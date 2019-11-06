@@ -13,50 +13,66 @@ static bool isFirstClassAggregateOrScalableType(Type *Ty) {
   return Ty->isStructTy() || Ty->isArrayTy() || isa<ScalableVectorType>(Ty);
 }
 
-/// Return true if coerceAvailableValueToLoadType will succeed.
-bool canCoerceMustAliasedValueToLoad(Value *StoredVal, Type *LoadTy,
-                                     const DataLayout &DL) {
-  Type *StoredTy = StoredVal->getType();
+bool canCoerceMustAliasedTypeToLoad(Type *StoredTy, Type *LoadTy,
+                                    const DataLayout &DL) {
+  // TODO: Caller expects to be able to check the results for aliasing, which
+  // is implemented by checking the sizes. Thus even if we know the types are
+  // identical, the code may later crash.
+  if (isa<ScalableVectorType>(StoredTy) || isa<ScalableVectorType>(LoadTy))
+    return false;
 
   if (StoredTy == LoadTy)
     return true;
 
-  // If the loaded/stored value is a first class array/struct, or scalable type,
-  // don't try to transform them. We need to be able to bitcast to integer.
+  // If the loaded/stored value is a first class array/struct, don't try to
+  // transform them. We need to be able to bitcast to integer.
   if (isFirstClassAggregateOrScalableType(LoadTy) ||
       isFirstClassAggregateOrScalableType(StoredTy))
     return false;
 
-  uint64_t StoreSize = DL.getTypeSizeInBits(StoredTy).getFixedSize();
+  TypeSize StoreSize = DL.getTypeSizeInBits(StoredTy);
 
   // The store size must be byte-aligned to support future type casts.
-  if (llvm::alignTo(StoreSize, 8) != StoreSize)
+  if (!StoreSize.isByteSized())
     return false;
 
   // The store has to be at least as big as the load.
-  if (StoreSize < DL.getTypeSizeInBits(LoadTy).getFixedSize())
+  if (StoreSize.getFixedSize() < DL.getTypeSizeInBits(LoadTy).getFixedSize())
     return false;
 
   // Don't coerce non-integral pointers to integers or vice versa.
-  if (DL.isNonIntegralPointerType(StoredVal->getType()->getScalarType()) !=
-      DL.isNonIntegralPointerType(LoadTy->getScalarType())) {
-    // As a special case, allow coercion of memset used to initialize
-    // an array w/null.  Despite non-integral pointers not generally having a
-    // specific bit pattern, we do assume null is zero.
-    if (auto *CI = dyn_cast<Constant>(StoredVal))
-      return CI->isNullValue();
+  if (DL.isNonIntegralPointerType(StoredTy->getScalarType()) !=
+      DL.isNonIntegralPointerType(LoadTy->getScalarType()))
     return false;
-  }
-
 
   // The implementation below uses inttoptr for vectors of unequal size; we
-  // can't allow this for non integral pointers.  Wecould teach it to extract
-  // exact subvectors if desired. 
+  // can't allow this for non integral pointers. We could teach it to extract
+  // exact subvectors if desired.
   if (DL.isNonIntegralPointerType(StoredTy->getScalarType()) &&
-      StoreSize != DL.getTypeSizeInBits(LoadTy).getFixedSize())
+      StoreSize.getFixedSize() != DL.getTypeSizeInBits(LoadTy).getFixedSize())
     return false;
-  
+
   return true;
+}
+
+/// Return true if coerceAvailableValueToLoadType will succeed.
+bool canCoerceMustAliasedValueToLoad(Value *StoredVal, Type *LoadTy,
+                                     const DataLayout &DL) {
+  Type *StoredTy = StoredVal->getType();
+  // If we know the value is available too, then, unlike for
+  // canCoerceMustAliasedTypeToLoad, we expect the caller to not need to
+  // or try to check that the size/offset is inbounds.
+  if (StoredTy == LoadTy)
+    return true;
+  if (auto *CI = dyn_cast<Constant>(StoredVal))
+    // All callers are expected to be able to detect and handle the zeros case.
+    if (CI->isNullValue())
+      if (!isa<ScalableVectorType>(StoredTy) &&
+          !isa<ScalableVectorType>(LoadTy) &&
+          DL.getTypeSizeInBits(StoredTy).getFixedSize() >=
+              DL.getTypeSizeInBits(LoadTy).getFixedSize())
+        return true;
+  return canCoerceMustAliasedTypeToLoad(StoredTy, LoadTy, DL);
 }
 
 template <class T, class HelperClass>
@@ -107,7 +123,7 @@ static T *coerceAvailableValueToLoadTypeHelper(T *StoredVal, Type *LoadedTy,
   // extract out a piece from it.  If the available value is too small, then we
   // can't do anything.
   assert(StoredValSize >= LoadedValSize &&
-         "canCoerceMustAliasedValueToLoad fail");
+         "canCoerceMustAliasedTypeToLoad fail");
 
   // Convert source pointers to integers, which can be manipulated.
   if (StoredValTy->isPtrOrPtrVectorTy()) {
@@ -426,6 +442,9 @@ static T *getStoreValueForLoadHelper(T *SrcVal, unsigned Offset, Type *LoadTy,
                                      HelperClass &Helper,
                                      const DataLayout &DL) {
   LLVMContext &Ctx = SrcVal->getType()->getContext();
+  if (auto *CI = dyn_cast<Constant>(getUnderlyingObject(SrcVal)))
+    if (CI->isNullValue())
+      return Constant::getNullValue(LoadTy);
 
   // If two pointers are in the same address space, they have the same size,
   // so we don't need to do any truncation, etc. This avoids introducing
@@ -556,6 +575,12 @@ T *getMemInstValueForLoadHelper(MemIntrinsic *SrcInst, unsigned Offset,
     // memset(P, 'x', 1234) -> splat('x'), even if x is a variable, and
     // independently of what the offset is.
     T *Val = cast<T>(MSI->getValue());
+    if (auto *CI = dyn_cast<Constant>(Val)) {
+      // memset(P, '\0', 1234) -> just directly create the null value for *P
+      // by-passing any later validity checks
+      if (CI->isNullValue())
+        return Constant::getNullValue(LoadTy);
+    }
     if (LoadSize != 1)
       Val =
           Helper.CreateZExtOrBitCast(Val, IntegerType::get(Ctx, LoadSize * 8));
