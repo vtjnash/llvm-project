@@ -9,8 +9,8 @@
 namespace llvm {
 namespace VNCoercion {
 
-static bool isFirstClassAggregateOrScalableType(Type *Ty) {
-  return Ty->isStructTy() || Ty->isArrayTy() || isa<ScalableVectorType>(Ty);
+static bool isFirstClassAggregate(Type *Ty) {
+  return Ty->isStructTy() || Ty->isArrayTy();
 }
 
 bool canCoerceMustAliasedTypeToLoad(Type *StoredTy, Type *LoadTy,
@@ -26,8 +26,7 @@ bool canCoerceMustAliasedTypeToLoad(Type *StoredTy, Type *LoadTy,
 
   // If the loaded/stored value is a first class array/struct, don't try to
   // transform them. We need to be able to bitcast to integer.
-  if (isFirstClassAggregateOrScalableType(LoadTy) ||
-      isFirstClassAggregateOrScalableType(StoredTy))
+  if (isFirstClassAggregate(LoadTy) || isFirstClassAggregate(StoredTy))
     return false;
 
   TypeSize StoreSize = DL.getTypeSizeInBits(StoredTy);
@@ -189,11 +188,6 @@ static int analyzeLoadFromClobberingWrite(Type *LoadTy, Value *LoadPtr,
                                           Value *WritePtr,
                                           uint64_t WriteSizeInBits,
                                           const DataLayout &DL) {
-  // If the loaded/stored value is a first class array/struct, or scalable type,
-  // don't try to transform them. We need to be able to bitcast to integer.
-  if (isFirstClassAggregateOrScalableType(LoadTy))
-    return -1;
-
   int64_t StoreOffset = 0, LoadOffset = 0;
   Value *StoreBase =
       GetPointerBaseWithConstantOffset(WritePtr, StoreOffset, DL);
@@ -243,17 +237,13 @@ static int analyzeLoadFromClobberingWrite(Type *LoadTy, Value *LoadPtr,
 int analyzeLoadFromClobberingStore(Type *LoadTy, Value *LoadPtr,
                                    StoreInst *DepSI, const DataLayout &DL) {
   auto *StoredVal = DepSI->getValueOperand();
-
-  // Cannot handle reading from store of first-class aggregate or scalable type.
-  if (isFirstClassAggregateOrScalableType(StoredVal->getType()))
-    return -1;
-
-  if (!canCoerceMustAliasedValueToLoad(StoredVal, LoadTy, DL))
+  if (!canCoerceMustAliasedValueToLoad(StoredVal, LoadTy, DL) ||
+      isa<ScalableVectorType>(StoredVal->getType()))
     return -1;
 
   Value *StorePtr = DepSI->getPointerOperand();
   uint64_t StoreSize =
-      DL.getTypeSizeInBits(DepSI->getValueOperand()->getType()).getFixedSize();
+      DL.getTypeSizeInBits(StoredVal->getType()).getFixedSize();
   return analyzeLoadFromClobberingWrite(LoadTy, LoadPtr, StorePtr, StoreSize,
                                         DL);
 }
@@ -348,21 +338,20 @@ static unsigned getLoadLoadClobberFullWidthSize(const Value *MemLocBase,
 /// the other load can feed into the second load.
 int analyzeLoadFromClobberingLoad(Type *LoadTy, Value *LoadPtr, LoadInst *DepLI,
                                   const DataLayout &DL) {
-  // Cannot handle reading from store of first-class aggregate yet.
-  if (DepLI->getType()->isStructTy() || DepLI->getType()->isArrayTy())
-    return -1;
-
-  if (!canCoerceMustAliasedValueToLoad(DepLI, LoadTy, DL))
-    return -1;
-
   Value *DepPtr = DepLI->getPointerOperand();
-  uint64_t DepSize = DL.getTypeSizeInBits(DepLI->getType()).getFixedSize();
-  int R = analyzeLoadFromClobberingWrite(LoadTy, LoadPtr, DepPtr, DepSize, DL);
-  if (R != -1)
-    return R;
+  if (canCoerceMustAliasedTypeToLoad(DepLI->getType(), LoadTy, DL)) {
+    uint64_t DepSize = DL.getTypeSizeInBits(DepLI->getType()).getFixedSize();
+    int R =
+        analyzeLoadFromClobberingWrite(LoadTy, LoadPtr, DepPtr, DepSize, DL);
+    if (R != -1)
+      return R;
+  }
 
-  // If we have a load/load clobber an DepLI can be widened to cover this load,
+  // If we have a load/load clobber and DepLI can be widened to cover this load,
   // then we should widen it!
+  if (!canCoerceMustAliasedTypeToLoad(LoadTy, DepLI->getType(), DL))
+    return -1;
+
   int64_t LoadOffs = 0;
   const Value *LoadBase =
       GetPointerBaseWithConstantOffset(LoadPtr, LoadOffs, DL);
@@ -392,13 +381,16 @@ int analyzeLoadFromClobberingMemInst(Type *LoadTy, Value *LoadPtr,
   // If this is memset, we just need to see if the offset is valid in the size
   // of the memset..
   if (MI->getIntrinsicID() == Intrinsic::memset) {
-    if (DL.isNonIntegralPointerType(LoadTy->getScalarType())) {
-      auto *CI = dyn_cast<ConstantInt>(cast<MemSetInst>(MI)->getValue());
-      if (!CI || !CI->isZero())
-        return -1;
-    }
-    return analyzeLoadFromClobberingWrite(LoadTy, LoadPtr, MI->getDest(),
-                                          MemSizeInBits, DL);
+    Value *StoredVal = cast<MemSetInst>(MI)->getValue();
+    if (auto *CI = dyn_cast<Constant>(StoredVal))
+      if (CI->isNullValue())
+        return analyzeLoadFromClobberingWrite(LoadTy, LoadPtr, MI->getDest(),
+                                              MemSizeInBits, DL);
+    Type *StoreTy = IntegerType::get(LoadTy->getContext(), MemSizeInBits);
+    if (canCoerceMustAliasedTypeToLoad(StoreTy, LoadTy, DL))
+      return analyzeLoadFromClobberingWrite(LoadTy, LoadPtr, MI->getDest(),
+                                            MemSizeInBits, DL);
+    return -1;
   }
 
   // If we have a memcpy/memmove, the only case we can handle is if this is a
