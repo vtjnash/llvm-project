@@ -29,6 +29,7 @@
 #include "llvm/Pass.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FileUtilities.h"
+#include "llvm/Target/TargetMachine.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "llvm/Transforms/Utils/Cloning.h"
@@ -654,11 +655,9 @@ namespace {
 class ReduceSimplifyCFG : public ListReducer<const BasicBlock *> {
   BugDriver &BD;
   BugTester TestFn;
-  TargetTransformInfo TTI;
 
 public:
-  ReduceSimplifyCFG(BugDriver &bd, BugTester testFn)
-      : BD(bd), TestFn(testFn), TTI(bd.getProgram().getDataLayout()) {}
+  ReduceSimplifyCFG(BugDriver &bd, BugTester testFn) : BD(bd), TestFn(testFn) {}
 
   Expected<TestResult> doTest(std::vector<const BasicBlock *> &Prefix,
                               std::vector<const BasicBlock *> &Kept) override {
@@ -677,6 +676,7 @@ bool ReduceSimplifyCFG::TestBlocks(std::vector<const BasicBlock *> &BBs) {
   // Clone the program to try hacking it apart...
   ValueToValueMapTy VMap;
   std::unique_ptr<Module> M = CloneModule(BD.getProgram(), VMap);
+  const TargetMachine *TM = BD.getTargetMachine();
 
   // Convert list to set for fast lookup...
   SmallPtrSet<const BasicBlock *, 8> Blocks;
@@ -701,7 +701,10 @@ bool ReduceSimplifyCFG::TestBlocks(std::vector<const BasicBlock *> &BBs) {
                            std::string(BB->getName()));
 
   // Loop over and delete any hack up any blocks that are not listed...
-  for (auto &F : *M)
+  for (auto &F : *M) {
+    TargetTransformInfo TTI =
+        TM ? TM->getTargetTransformInfo(F)
+           : TargetTransformInfo(nullptr, M->getDataLayout());
     // Loop over all of the basic blocks and remove them if they are unneeded.
     for (Function::iterator BBIt = F.begin(); BBIt != F.end();) {
       if (!Blocks.count(&*BBIt)) {
@@ -710,6 +713,7 @@ bool ReduceSimplifyCFG::TestBlocks(std::vector<const BasicBlock *> &BBs) {
       }
       simplifyCFG(&*BBIt++, TTI);
     }
+  }
   // Verify we didn't break anything
   std::vector<std::string> Passes;
   Passes.push_back("verify");

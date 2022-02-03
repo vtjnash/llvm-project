@@ -39,8 +39,8 @@ namespace {
 ///
 /// This is used when no target specific information is available.
 struct NoTTIImpl : TargetTransformInfoImplCRTPBase<NoTTIImpl> {
-  explicit NoTTIImpl(const DataLayout &DL)
-      : TargetTransformInfoImplCRTPBase<NoTTIImpl>(DL) {}
+  explicit NoTTIImpl(const TargetMachine *TM, const DataLayout &DL)
+      : TargetTransformInfoImplCRTPBase<NoTTIImpl>(TM, DL) {}
 };
 } // namespace
 
@@ -176,8 +176,9 @@ bool HardwareLoopInfo::isHardwareLoopCandidate(ScalarEvolution &SE,
   return true;
 }
 
-TargetTransformInfo::TargetTransformInfo(const DataLayout &DL)
-    : TTIImpl(new Model<NoTTIImpl>(NoTTIImpl(DL))) {}
+TargetTransformInfo::TargetTransformInfo(const TargetMachine *TM,
+                                         const DataLayout &DL)
+    : TTIImpl(new Model<NoTTIImpl>(NoTTIImpl(TM, DL))) {}
 
 TargetTransformInfo::~TargetTransformInfo() {}
 
@@ -1157,6 +1158,10 @@ TargetTransformInfo::getInstructionThroughput(const Instruction *I) const {
 
 TargetTransformInfo::Concept::~Concept() {}
 
+static TargetIRAnalysis::Result getDefaultTTI(const Function &F) {
+  return TargetIRAnalysis::Result(nullptr, F.getParent()->getDataLayout());
+}
+
 TargetIRAnalysis::TargetIRAnalysis() : TTICallback(&getDefaultTTI) {}
 
 TargetIRAnalysis::TargetIRAnalysis(
@@ -1169,10 +1174,6 @@ TargetIRAnalysis::Result TargetIRAnalysis::run(const Function &F,
 }
 
 AnalysisKey TargetIRAnalysis::Key;
-
-TargetIRAnalysis::Result TargetIRAnalysis::getDefaultTTI(const Function &F) {
-  return Result(F.getParent()->getDataLayout());
-}
 
 // Register the basic pass.
 INITIALIZE_PASS(TargetTransformInfoWrapperPass, "tti",

@@ -18,17 +18,42 @@
 #include "llvm/IR/Verifier.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Linker/Linker.h"
+#include "llvm/MC/TargetRegistry.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/FileUtilities.h"
 #include "llvm/Support/Host.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Target/TargetMachine.h"
 #include <memory>
 using namespace llvm;
 
 namespace llvm {
 Triple TargetTriple;
+std::unique_ptr<TargetMachine> TheTargetMachine;
+void setTargetTriple(StringRef TheTriple) {
+  TargetTriple = Triple(TheTriple);
+
+  // Construct a plausible TM, for simplifyCFG needs
+  std::string Error;
+  const Target *TheTarget =
+      TargetRegistry::lookupTarget(TheTriple.str(), Error);
+  if (!TheTarget) {
+    errs() << "warning: bugpoint could not allocate Target: " << Error << "\n";
+    return;
+  }
+  StringRef CPUStr("");
+  StringRef FeaturesStr("");
+  Optional<Reloc::Model> RM;
+  Optional<CodeModel::Model> CM;
+  CodeGenOpt::Level OLvl = CodeGenOpt::Default;
+  TargetOptions Options;
+  TheTargetMachine.reset(TheTarget->createTargetMachine(
+      TheTriple, CPUStr, FeaturesStr, Options, RM, CM, OLvl));
+  if (!TheTargetMachine)
+    errs() << "warning: bugpoint could not allocate TargetMachine\n";
+}
 }
 
 DiscardTemp::~DiscardTemp() {
@@ -52,6 +77,10 @@ namespace {
 cl::opt<std::string> OutputFile("output",
                                 cl::desc("Specify a reference program output "
                                          "(for miscompilation detection)"));
+}
+
+const TargetMachine *BugDriver::getTargetMachine() {
+  return TheTargetMachine.get();
 }
 
 /// If we reduce or update the program somehow, call this method to update
@@ -111,7 +140,7 @@ std::unique_ptr<Module> llvm::parseInputFile(StringRef Filename,
     if (TheTriple.getTriple().empty())
       TheTriple.setTriple(sys::getDefaultTargetTriple());
 
-    TargetTriple.setTriple(TheTriple.getTriple());
+    setTargetTriple(TheTriple.getTriple());
   }
 
   Result->setTargetTriple(TargetTriple.getTriple()); // override the triple

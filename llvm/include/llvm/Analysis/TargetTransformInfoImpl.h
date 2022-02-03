@@ -30,15 +30,20 @@ using namespace llvm::PatternMatch;
 
 namespace llvm {
 
+class TargetMachine;
+
 /// Base class for use as a mix-in that aids implementing
 /// a TargetTransformInfo-compatible class.
 class TargetTransformInfoImplBase {
 protected:
   typedef TargetTransformInfo TTI;
 
+  const TargetMachine *TM;
   const DataLayout &DL;
 
-  explicit TargetTransformInfoImplBase(const DataLayout &DL) : DL(DL) {}
+  explicit TargetTransformInfoImplBase(const TargetMachine *TM,
+                                       const DataLayout &DL)
+      : TM(TM), DL(DL) {}
 
 public:
   // Provide value semantics. MSVC requires that we spell all of these out.
@@ -46,6 +51,7 @@ public:
   TargetTransformInfoImplBase(TargetTransformInfoImplBase &&Arg) : DL(Arg.DL) {}
 
   const DataLayout &getDataLayout() const { return DL; }
+  const TargetMachine *getTargetMachine() const { return TM; }
 
   InstructionCost getGEPCost(Type *PointeeType, const Value *Ptr,
                              ArrayRef<const Value *> Operands,
@@ -890,7 +896,9 @@ private:
   typedef TargetTransformInfoImplBase BaseT;
 
 protected:
-  explicit TargetTransformInfoImplCRTPBase(const DataLayout &DL) : BaseT(DL) {}
+  explicit TargetTransformInfoImplCRTPBase(const TargetMachine *TM,
+                                           const DataLayout &DL)
+      : BaseT(TM, DL) {}
 
 public:
   using BaseT::getGEPCost;

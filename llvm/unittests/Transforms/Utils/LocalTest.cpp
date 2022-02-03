@@ -1005,7 +1005,7 @@ TEST(Local, SimplifyCFGWithNullAC) {
   )");
 
   Function &F = *cast<Function>(M->getNamedValue("foo"));
-  TargetTransformInfo TTI(M->getDataLayout());
+  TargetTransformInfo TTI(nullptr, M->getDataLayout());
 
   SimplifyCFGOptions Options{};
   Options.setAssumptionCache(nullptr);

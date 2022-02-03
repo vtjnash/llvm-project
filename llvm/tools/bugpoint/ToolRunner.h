@@ -27,7 +27,6 @@
 namespace llvm {
 
 extern cl::opt<bool> SaveTemps;
-extern Triple TargetTriple;
 
 class LLC;
 
@@ -62,7 +61,7 @@ public:
   Expected<int> ExecuteProgram(
       const std::string &ProgramFile, const std::vector<std::string> &Args,
       FileType fileType, const std::string &InputFile,
-      const std::string &OutputFile,
+      const std::string &OutputFile, const Triple &TargetTriple,
       const std::vector<std::string> &CCArgs = std::vector<std::string>(),
       unsigned Timeout = 0, unsigned MemoryLimit = 0);
 
@@ -70,7 +69,7 @@ public:
   /// file or a .s file) into a shared object.
   ///
   Error MakeSharedObject(const std::string &InputFile, FileType fileType,
-                         std::string &OutputFile,
+                         std::string &OutputFile, const Triple &TargetTriple,
                          const std::vector<std::string> &ArgsForCC);
 };
 
@@ -135,6 +134,7 @@ public:
   virtual Expected<int> ExecuteProgram(
       const std::string &Bitcode, const std::vector<std::string> &Args,
       const std::string &InputFile, const std::string &OutputFile,
+      const Triple &TargetTriple,
       const std::vector<std::string> &CCArgs = std::vector<std::string>(),
       const std::vector<std::string> &SharedLibs = std::vector<std::string>(),
       unsigned Timeout = 0, unsigned MemoryLimit = 0) = 0;
@@ -169,6 +169,7 @@ public:
   Expected<int> ExecuteProgram(
       const std::string &Bitcode, const std::vector<std::string> &Args,
       const std::string &InputFile, const std::string &OutputFile,
+      const Triple &TargetTriple,
       const std::vector<std::string> &CCArgs = std::vector<std::string>(),
       const std::vector<std::string> &SharedLibs = std::vector<std::string>(),
       unsigned Timeout = 0, unsigned MemoryLimit = 0) override;

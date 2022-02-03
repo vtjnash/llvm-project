@@ -1093,7 +1093,7 @@ Error BugDriver::debugCodeGenerator() {
   outs() << "The shared object was created with:\n  llc -march=c "
          << SafeModuleBC.str() << " -o temporary.c\n"
          << "  cc -xc temporary.c -O2 -o " << *SharedObject;
-  if (TargetTriple.getArch() == Triple::sparc)
+  if (Triple(getProgram().getTargetTriple()).getArch() == Triple::sparc)
     outs() << " -G"; // Compile a shared library, `-G' for Sparc
   else
     outs() << " -fPIC -shared"; // `-shared' for Linux/X86, maybe others

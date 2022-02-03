@@ -241,7 +241,7 @@ private:
 
 protected:
   explicit BasicTTIImplBase(const TargetMachine *TM, const DataLayout &DL)
-      : BaseT(DL) {}
+      : BaseT(TM, DL) {}
   virtual ~BasicTTIImplBase() = default;
 
   using TargetTransformInfoImplBase::DL;

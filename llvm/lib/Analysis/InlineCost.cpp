@@ -3095,10 +3095,10 @@ InlineCostAnnotationPrinterPass::run(Function &F,
       [&](Function &F) -> AssumptionCache & {
     return FAM.getResult<AssumptionAnalysis>(F);
   };
+  TargetTransformInfo &TTI = FAM.getResult<TargetIRAnalysis>(F);
   Module *M = F.getParent();
   ProfileSummaryInfo PSI(*M);
   DataLayout DL(M);
-  TargetTransformInfo TTI(DL);
   // FIXME: Redesign the usage of InlineParams to expand the scope of this pass.
   // In the current implementation, the type of InlineParams doesn't matter as
   // the pass serves only for verification of inliner's decisions.

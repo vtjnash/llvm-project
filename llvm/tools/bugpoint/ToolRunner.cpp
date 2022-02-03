@@ -156,7 +156,7 @@ public:
   Expected<int> ExecuteProgram(
       const std::string &Bitcode, const std::vector<std::string> &Args,
       const std::string &InputFile, const std::string &OutputFile,
-      const std::vector<std::string> &CCArgs,
+      const Triple &TargetTriple, const std::vector<std::string> &CCArgs,
       const std::vector<std::string> &SharedLibs = std::vector<std::string>(),
       unsigned Timeout = 0, unsigned MemoryLimit = 0) override;
 };
@@ -166,6 +166,7 @@ Expected<int> LLI::ExecuteProgram(const std::string &Bitcode,
                                   const std::vector<std::string> &Args,
                                   const std::string &InputFile,
                                   const std::string &OutputFile,
+                                  const Triple &TargetTriple,
                                   const std::vector<std::string> &CCArgs,
                                   const std::vector<std::string> &SharedLibs,
                                   unsigned Timeout, unsigned MemoryLimit) {
@@ -252,6 +253,7 @@ public:
   Expected<int> ExecuteProgram(
       const std::string &Bitcode, const std::vector<std::string> &Args,
       const std::string &InputFile, const std::string &OutputFile,
+      const Triple &TargetTriple,
       const std::vector<std::string> &CCArgs = std::vector<std::string>(),
       const std::vector<std::string> &SharedLibs = std::vector<std::string>(),
       unsigned Timeout = 0, unsigned MemoryLimit = 0) override {
@@ -301,7 +303,7 @@ public:
   Expected<int> ExecuteProgram(
       const std::string &Bitcode, const std::vector<std::string> &Args,
       const std::string &InputFile, const std::string &OutputFile,
-      const std::vector<std::string> &CCArgs,
+      const Triple &TargetTriple, const std::vector<std::string> &CCArgs,
       const std::vector<std::string> &SharedLibs = std::vector<std::string>(),
       unsigned Timeout = 0, unsigned MemoryLimit = 0) override;
 };
@@ -310,7 +312,7 @@ public:
 Expected<int> CustomExecutor::ExecuteProgram(
     const std::string &Bitcode, const std::vector<std::string> &Args,
     const std::string &InputFile, const std::string &OutputFile,
-    const std::vector<std::string> &CCArgs,
+    const Triple &TargetTriple, const std::vector<std::string> &CCArgs,
     const std::vector<std::string> &SharedLibs, unsigned Timeout,
     unsigned MemoryLimit) {
 
@@ -483,6 +485,7 @@ Expected<int> LLC::ExecuteProgram(const std::string &Bitcode,
                                   const std::vector<std::string> &Args,
                                   const std::string &InputFile,
                                   const std::string &OutputFile,
+                                  const Triple &TargetTriple,
                                   const std::vector<std::string> &ArgsForCC,
                                   const std::vector<std::string> &SharedLibs,
                                   unsigned Timeout, unsigned MemoryLimit) {
@@ -499,7 +502,8 @@ Expected<int> LLC::ExecuteProgram(const std::string &Bitcode,
 
   // Assuming LLC worked, compile the result with CC and run it.
   return cc->ExecuteProgram(OutputAsmFile, Args, *FileKind, InputFile,
-                            OutputFile, CCArgs, Timeout, MemoryLimit);
+                            OutputFile, TargetTriple, CCArgs, Timeout,
+                            MemoryLimit);
 }
 
 /// createLLC - Try to find the LLC executable
@@ -544,6 +548,7 @@ public:
   Expected<int> ExecuteProgram(
       const std::string &Bitcode, const std::vector<std::string> &Args,
       const std::string &InputFile, const std::string &OutputFile,
+      const Triple &TargetTriple,
       const std::vector<std::string> &CCArgs = std::vector<std::string>(),
       const std::vector<std::string> &SharedLibs = std::vector<std::string>(),
       unsigned Timeout = 0, unsigned MemoryLimit = 0) override;
@@ -554,6 +559,7 @@ Expected<int> JIT::ExecuteProgram(const std::string &Bitcode,
                                   const std::vector<std::string> &Args,
                                   const std::string &InputFile,
                                   const std::string &OutputFile,
+                                  const Triple &TargetTriple,
                                   const std::vector<std::string> &CCArgs,
                                   const std::vector<std::string> &SharedLibs,
                                   unsigned Timeout, unsigned MemoryLimit) {
@@ -624,6 +630,7 @@ Expected<int> CC::ExecuteProgram(const std::string &ProgramFile,
                                  FileType fileType,
                                  const std::string &InputFile,
                                  const std::string &OutputFile,
+                                 const Triple &TargetTriple,
                                  const std::vector<std::string> &ArgsForCC,
                                  unsigned Timeout, unsigned MemoryLimit) {
   std::vector<StringRef> CCArgs;
@@ -763,7 +770,7 @@ Expected<int> CC::ExecuteProgram(const std::string &ProgramFile,
 }
 
 Error CC::MakeSharedObject(const std::string &InputFile, FileType fileType,
-                           std::string &OutputFile,
+                           std::string &OutputFile, const Triple &TargetTriple,
                            const std::vector<std::string> &ArgsForCC) {
   SmallString<128> UniqueFilename;
   std::error_code EC = sys::fs::createUniqueFile(

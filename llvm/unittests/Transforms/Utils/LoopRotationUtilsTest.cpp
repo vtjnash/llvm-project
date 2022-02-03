@@ -77,7 +77,7 @@ deopt.exit:
   DominatorTree DT(*F);
   LoopInfo LI(DT);
   AssumptionCache AC(*F);
-  TargetTransformInfo TTI(M->getDataLayout());
+  TargetTransformInfo TTI(nullptr, M->getDataLayout());
   TargetLibraryInfoImpl TLII;
   TargetLibraryInfo TLI(TLII);
   ScalarEvolution SE(*F, TLI, AC, DT, LI);
@@ -148,7 +148,7 @@ deopt.exit:
   DominatorTree DT(*F);
   LoopInfo LI(DT);
   AssumptionCache AC(*F);
-  TargetTransformInfo TTI(M->getDataLayout());
+  TargetTransformInfo TTI(nullptr, M->getDataLayout());
   TargetLibraryInfoImpl TLII;
   TargetLibraryInfo TLI(TLII);
   ScalarEvolution SE(*F, TLI, AC, DT, LI);

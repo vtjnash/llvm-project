@@ -173,12 +173,12 @@ int main(int argc, char **argv) {
   sys::SetInterruptFunction(BugpointInterruptFunction);
 #endif
 
-  LLVMContext Context;
   // If we have an override, set it and then track the triple we want Modules
   // to use.
   if (!OverrideTriple.empty()) {
-    TargetTriple.setTriple(Triple::normalize(OverrideTriple));
-    outs() << "Override triple set to '" << TargetTriple.getTriple() << "'\n";
+    std::string TargetTriple = Triple::normalize(OverrideTriple);
+    setTargetTriple(TargetTriple);
+    outs() << "Override triple set to '" << TargetTriple << "'\n";
   }
 
   if (MemoryLimit < 0) {
@@ -196,6 +196,7 @@ int main(int argc, char **argv) {
 #endif
   }
 
+  LLVMContext Context;
   BugDriver D(argv[0], FindBugs, TimeoutValue, MemoryLimit, UseValgrind,
               Context);
   if (D.addSources(InputFilenames))

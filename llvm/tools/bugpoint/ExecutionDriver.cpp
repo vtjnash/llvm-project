@@ -13,6 +13,7 @@
 
 #include "BugDriver.h"
 #include "ToolRunner.h"
+#include "llvm/IR/Module.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/FileUtilities.h"
@@ -331,9 +332,10 @@ Expected<std::string> BugDriver::executeProgram(const Module &Program,
   if (!SharedObj.empty())
     SharedObjs.push_back(SharedObj);
 
-  Expected<int> RetVal = AI->ExecuteProgram(BitcodeFile, InputArgv, InputFile,
-                                            OutputFile, AdditionalLinkerArgs,
-                                            SharedObjs, Timeout, MemoryLimit);
+  Expected<int> RetVal = AI->ExecuteProgram(
+      BitcodeFile, InputArgv, InputFile, OutputFile,
+      Triple(Program.getTargetTriple()), AdditionalLinkerArgs, SharedObjs,
+      Timeout, MemoryLimit);
   if (Error E = RetVal.takeError())
     return std::move(E);
 
@@ -376,6 +378,7 @@ Expected<std::string>
 BugDriver::compileSharedObject(const std::string &BitcodeFile) {
   assert(Interpreter && "Interpreter should have been created already!");
   std::string OutputFile;
+  Triple TargetTriple(Program->getTargetTriple());
 
   // Using the known-good backend.
   Expected<CC::FileType> FT =
@@ -385,7 +388,7 @@ BugDriver::compileSharedObject(const std::string &BitcodeFile) {
 
   std::string SharedObjectFile;
   if (Error E = cc->MakeSharedObject(OutputFile, *FT, SharedObjectFile,
-                                     AdditionalLinkerArgs))
+                                     TargetTriple, AdditionalLinkerArgs))
     return std::move(E);
 
   // Remove the intermediate C file

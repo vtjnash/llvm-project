@@ -59,6 +59,7 @@ class ScalarEvolution;
 class StoreInst;
 class SwitchInst;
 class TargetLibraryInfo;
+class TargetMachine;
 class Type;
 class User;
 class Value;
@@ -179,7 +180,7 @@ public:
   ///
   /// The TTI implementation will reflect the information in the DataLayout
   /// provided if non-null.
-  explicit TargetTransformInfo(const DataLayout &DL);
+  TargetTransformInfo(const TargetMachine *TM, const DataLayout &DL);
 
   // Provide move semantics.
   TargetTransformInfo(TargetTransformInfo &&Arg);
@@ -1473,6 +1474,7 @@ class TargetTransformInfo::Concept {
 public:
   virtual ~Concept() = 0;
   virtual const DataLayout &getDataLayout() const = 0;
+  virtual const TargetMachine *getTargetMachine() const = 0;
   virtual InstructionCost getGEPCost(Type *PointeeType, const Value *Ptr,
                                      ArrayRef<const Value *> Operands,
                                      TTI::TargetCostKind CostKind) = 0;
@@ -1788,11 +1790,15 @@ class TargetTransformInfo::Model final : public TargetTransformInfo::Concept {
   T Impl;
 
 public:
-  Model(T Impl) : Impl(std::move(Impl)) {}
+  explicit Model(T Impl) : Impl(std::move(Impl)) {}
   ~Model() override = default;
 
   const DataLayout &getDataLayout() const override {
     return Impl.getDataLayout();
+  }
+
+  const TargetMachine *getTargetMachine() const override {
+    return Impl.getTargetMachine();
   }
 
   InstructionCost
@@ -2464,9 +2470,6 @@ private:
   /// This may also be less error prone as the callback is likely to reference
   /// the external TargetMachine, and that reference needs to never dangle.
   std::function<Result(const Function &)> TTICallback;
-
-  /// Helper function used as the callback in the default constructor.
-  static Result getDefaultTTI(const Function &F);
 };
 
 /// Wrapper pass for TargetTransformInfo.

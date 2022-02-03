@@ -33,6 +33,7 @@ class BasicBlock;
 class AbstractInterpreter;
 class Instruction;
 class LLVMContext;
+class TargetMachine;
 
 class CC;
 
@@ -47,6 +48,7 @@ class BugDriver {
   const char *ToolName;            // argv[0] of bugpoint
   std::string ReferenceOutputFile; // Name of `good' output file
   std::unique_ptr<Module> Program; // The raw program, linked together
+  const TargetMachine *TM;
   std::vector<std::string> PassesToRun;
   AbstractInterpreter *Interpreter;     // How to run the program
   AbstractInterpreter *SafeInterpreter; // To generate reference output, etc.
@@ -125,6 +127,7 @@ public:
   bool isExecutingJIT();
 
   Module &getProgram() const { return *Program; }
+  const TargetMachine *getTargetMachine();
 
   /// Set the current module to the specified module, returning the old one.
   std::unique_ptr<Module> swapProgramIn(std::unique_ptr<Module> M);
@@ -300,6 +303,8 @@ void DeleteFunctionBody(Function *F);
 std::unique_ptr<Module>
 SplitFunctionsOutOfModule(Module *M, const std::vector<Function *> &F,
                           ValueToValueMapTy &VMap);
+
+void setTargetTriple(StringRef TheTriple);
 
 } // End llvm namespace
 
