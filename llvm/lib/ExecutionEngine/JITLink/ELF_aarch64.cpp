@@ -210,6 +210,8 @@ private:
       return ELFTLSDescLd64Lo12;
     case ELF::R_AARCH64_TLSDESC_CALL:
       return ELFTLSDescCall;
+    default:
+      break;
     }
 
     return make_error<JITLinkError>(
@@ -455,6 +457,8 @@ private:
     case ELFTLSDescCall: {
       return Error::success();
     }
+    default:
+      break;
     };
 
     Edge GE(Kind, Offset, *GraphSymbol, Addend);

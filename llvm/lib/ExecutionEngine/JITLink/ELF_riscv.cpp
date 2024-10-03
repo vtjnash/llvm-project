@@ -843,6 +843,8 @@ private:
       return EdgeKind_riscv::R_RISCV_32_PCREL;
     case ELF::R_RISCV_ALIGN:
       return EdgeKind_riscv::AlignRelaxable;
+    default:
+      break;
     }
 
     return make_error<JITLinkError>(

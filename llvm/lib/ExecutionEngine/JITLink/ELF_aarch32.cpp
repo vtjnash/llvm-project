@@ -67,6 +67,8 @@ getJITLinkEdgeKind(uint32_t ELFType, const aarch32::ArmConfig &ArmCfg) {
     return aarch32::Thumb_MovwPrelNC;
   case ELF::R_ARM_THM_MOVT_PREL:
     return aarch32::Thumb_MovtPrel;
+  default:
+    break;
   }
 
   return make_error<JITLinkError>(
@@ -107,6 +109,8 @@ Expected<uint32_t> getELFRelocationType(Edge::Kind Kind) {
     return ELF::R_ARM_THM_MOVT_PREL;
   case aarch32::None:
     return ELF::R_ARM_NONE;
+  default:
+    break;
   }
 
   return make_error<JITLinkError>(formatv("Invalid aarch32 edge {0:d}: ",
@@ -318,7 +322,7 @@ void link_ELF_aarch32(std::unique_ptr<LinkGraph> G,
       PassCfg.PostPrunePasses.push_back(
           buildTables_ELF_aarch32<aarch32::StubsManager_v7>);
       break;
-    case aarch32::StubsFlavor::Undefined:
+    default:
       llvm_unreachable("Check before building graph");
     }
   }

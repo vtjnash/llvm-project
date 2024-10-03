@@ -133,6 +133,8 @@ private:
       return EdgeKind_i386::Delta32FromGOT;
     case ELF::R_386_PLT32:
       return EdgeKind_i386::BranchPCRel32;
+    default:
+      break;
     }
 
     return make_error<JITLinkError>("Unsupported i386 relocation:" +

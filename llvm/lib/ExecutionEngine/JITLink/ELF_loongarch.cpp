@@ -68,6 +68,8 @@ private:
       return RequestGOTAndTransformToPage20;
     case ELF::R_LARCH_GOT_PC_LO12:
       return RequestGOTAndTransformToPageOffset12;
+    default:
+      break;
     }
 
     return make_error<JITLinkError>(
