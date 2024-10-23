@@ -142,7 +142,8 @@ private:
 
   Expected<SymbolMap> emitMUImplSymbols(ReOptMaterializationUnitState &MUState,
                                         uint32_t Version, JITDylib &JD,
-                                        ThreadSafeModule TSM);
+                                        ThreadSafeModule TSM,
+                                        SymbolStringPtr InitSym);
 
   void rt_reoptimize(SendErrorFn SendResult, ReOptMaterializationUnitID MUID,
                      uint32_t CurVersion);

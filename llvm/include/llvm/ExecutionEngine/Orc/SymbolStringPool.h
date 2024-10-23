@@ -102,6 +102,11 @@ public:
   }
 #endif
 
+  size_t getRefCount() const {
+    return isRealPoolEntry(S) ? S->getValue().load(std::memory_order_relaxed)
+                              : size_t(0);
+  }
+
 protected:
   using PoolEntry = SymbolStringPool::PoolMapEntry;
   using PoolEntryPtr = PoolEntry *;
@@ -124,10 +129,6 @@ protected:
   static bool isRealPoolEntry(PoolEntryPtr P) {
     return ((reinterpret_cast<uintptr_t>(P) - 1) & InvalidPtrMask) !=
            InvalidPtrMask;
-  }
-
-  size_t getRefCount() const {
-    return isRealPoolEntry(S) ? size_t(S->getValue()) : size_t(0);
   }
 
   PoolEntryPtr S = nullptr;

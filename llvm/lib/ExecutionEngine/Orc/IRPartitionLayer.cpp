@@ -70,8 +70,10 @@ public:
   PartitioningIRMaterializationUnit(ExecutionSession &ES,
                                     const IRSymbolMapper::ManglingOptions &MO,
                                     ThreadSafeModule TSM,
+                                    SymbolStringPtr InitSym,
                                     IRPartitionLayer &Parent)
-      : IRMaterializationUnit(ES, MO, std::move(TSM)), Parent(Parent) {}
+      : IRMaterializationUnit(ES, MO, std::move(TSM), InitSym), Parent(Parent) {
+  }
 
   PartitioningIRMaterializationUnit(
       ThreadSafeModule TSM, Interface I,
@@ -128,7 +130,8 @@ void IRPartitionLayer::emit(std::unique_ptr<MaterializationResponsibility> R,
 
   // Create a partitioning materialization unit and pass the responsibility.
   if (auto Err = R->replace(std::make_unique<PartitioningIRMaterializationUnit>(
-          ES, *getManglingOptions(), std::move(TSM), *this))) {
+          ES, *getManglingOptions(), std::move(TSM), R->getInitializerSymbol(),
+          *this))) {
     ES.reportError(std::move(Err));
     R->failMaterialization();
     return;
@@ -191,13 +194,16 @@ void IRPartitionLayer::emitPartition(
 
   auto &ES = getExecutionSession();
   GlobalValueSet RequestedGVs;
+
+  auto InitSym = R->getInitializerSymbol();
   for (auto &Name : R->getRequestedSymbols()) {
-    if (Name == R->getInitializerSymbol())
+    if (Name == InitSym) {
       TSM.withModuleDo([&](Module &M) {
         for (auto &GV : getStaticInitGVs(M))
           RequestedGVs.insert(&GV);
       });
-    else {
+      InitSym = nullptr;
+    } else {
       assert(Defs.count(Name) && "No definition for symbol");
       RequestedGVs.insert(Defs[Name]);
     }
@@ -294,7 +300,7 @@ void IRPartitionLayer::emitPartition(
   }
 
   if (auto Err = R->replace(std::make_unique<PartitioningIRMaterializationUnit>(
-          ES, *getManglingOptions(), std::move(TSM), *this))) {
+          ES, *getManglingOptions(), std::move(TSM), InitSym, *this))) {
     ES.reportError(std::move(Err));
     R->failMaterialization();
     return;

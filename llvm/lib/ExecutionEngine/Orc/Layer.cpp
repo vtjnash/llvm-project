@@ -31,7 +31,7 @@ Error IRLayer::add(ResourceTrackerSP RT, ThreadSafeModule TSM) {
 
 IRMaterializationUnit::IRMaterializationUnit(
     ExecutionSession &ES, const IRSymbolMapper::ManglingOptions &MO,
-    ThreadSafeModule TSM)
+    ThreadSafeModule TSM, SymbolStringPtr InitSym)
     : MaterializationUnit(Interface()), TSM(std::move(TSM)) {
 
   assert(this->TSM && "Module must not be null");
@@ -87,12 +87,16 @@ IRMaterializationUnit::IRMaterializationUnit(
     if (!getStaticInitGVs(M).empty()) {
       size_t Counter = 0;
 
-      do {
-        std::string InitSymbolName;
-        raw_string_ostream(InitSymbolName)
-            << "$." << M.getModuleIdentifier() << ".__inits." << Counter++;
-        InitSymbol = ES.intern(InitSymbolName);
-      } while (SymbolFlags.count(InitSymbol));
+      if (InitSym)
+        InitSymbol = InitSym;
+      else
+        do {
+          std::string InitSymbolName;
+          raw_string_ostream(InitSymbolName)
+              << "$." << M.getModuleIdentifier() << ".__llinits." << Counter++;
+          InitSymbol = ES.intern(InitSymbolName);
+        } while (InitSymbol.getRefCount() != 1 ||
+                 SymbolFlags.count(InitSymbol));
 
       SymbolFlags[InitSymbol] = JITSymbolFlags::MaterializationSideEffectsOnly;
     }
@@ -133,9 +137,11 @@ void IRMaterializationUnit::discard(const JITDylib &JD,
 }
 
 BasicIRLayerMaterializationUnit::BasicIRLayerMaterializationUnit(
-    IRLayer &L, const IRSymbolMapper::ManglingOptions &MO, ThreadSafeModule TSM)
-    : IRMaterializationUnit(L.getExecutionSession(), MO, std::move(TSM)), L(L) {
-}
+    IRLayer &L, const IRSymbolMapper::ManglingOptions &MO, ThreadSafeModule TSM,
+    SymbolStringPtr InitSym)
+    : IRMaterializationUnit(L.getExecutionSession(), MO, std::move(TSM),
+                            InitSym),
+      L(L) {}
 
 void BasicIRLayerMaterializationUnit::materialize(
     std::unique_ptr<MaterializationResponsibility> R) {

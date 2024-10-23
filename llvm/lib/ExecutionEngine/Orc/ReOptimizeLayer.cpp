@@ -69,7 +69,8 @@ void ReOptimizeLayer::emit(std::unique_ptr<MaterializationResponsibility> R,
   }
 
   auto InitialDests =
-      emitMUImplSymbols(MUState, MUState.getCurVersion(), JD, std::move(TSM));
+      emitMUImplSymbols(MUState, MUState.getCurVersion(), JD, std::move(TSM),
+                        R->getInitializerSymbol());
   if (!InitialDests) {
     ES.reportError(InitialDests.takeError());
     R->failMaterialization();
@@ -113,10 +114,9 @@ Error ReOptimizeLayer::reoptimizeIfCallFrequent(ReOptimizeLayer &Parent,
   });
 }
 
-Expected<SymbolMap>
-ReOptimizeLayer::emitMUImplSymbols(ReOptMaterializationUnitState &MUState,
-                                   uint32_t Version, JITDylib &JD,
-                                   ThreadSafeModule TSM) {
+Expected<SymbolMap> ReOptimizeLayer::emitMUImplSymbols(
+    ReOptMaterializationUnitState &MUState, uint32_t Version, JITDylib &JD,
+    ThreadSafeModule TSM, SymbolStringPtr InitSym) {
   DenseMap<SymbolStringPtr, SymbolStringPtr> RenamedMap;
   cantFail(TSM.withModuleDo([&](Module &M) -> Error {
     MangleAndInterner Mangle(ES, M.getDataLayout());
@@ -131,10 +131,10 @@ ReOptimizeLayer::emitMUImplSymbols(ReOptMaterializationUnitState &MUState,
   }));
 
   auto RT = JD.createResourceTracker();
-  if (auto Err =
-          JD.define(std::make_unique<BasicIRLayerMaterializationUnit>(
-                        BaseLayer, *getManglingOptions(), std::move(TSM)),
-                    RT))
+  if (auto Err = JD.define(
+          std::make_unique<BasicIRLayerMaterializationUnit>(
+              BaseLayer, *getManglingOptions(), std::move(TSM), InitSym),
+          RT))
     return Err;
   MUState.setResourceTracker(RT);
 
@@ -176,7 +176,7 @@ void ReOptimizeLayer::rt_reoptimize(SendErrorFn SendResult,
   }
 
   auto SymbolDests =
-      emitMUImplSymbols(MUState, CurVersion + 1, JD, std::move(TSM));
+      emitMUImplSymbols(MUState, CurVersion + 1, JD, std::move(TSM), nullptr);
   if (!SymbolDests) {
     ES.reportError(SymbolDests.takeError());
     MUState.reoptimizeFailed();

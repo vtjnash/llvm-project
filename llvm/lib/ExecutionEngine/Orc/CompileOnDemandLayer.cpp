@@ -54,7 +54,8 @@ void CompileOnDemandLayer::emit(
   // Lodge symbols with the implementation dylib.
   if (auto Err = PDR.getImplDylib().define(
           std::make_unique<BasicIRLayerMaterializationUnit>(
-              BaseLayer, *getManglingOptions(), std::move(TSM)))) {
+              BaseLayer, *getManglingOptions(), std::move(TSM),
+              R->getInitializerSymbol()))) {
     ES.reportError(std::move(Err));
     R->failMaterialization();
     return;

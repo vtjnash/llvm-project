@@ -36,7 +36,8 @@ public:
   /// SymbolFlags and SymbolToDefinition maps.
   IRMaterializationUnit(ExecutionSession &ES,
                         const IRSymbolMapper::ManglingOptions &MO,
-                        ThreadSafeModule TSM);
+                        ThreadSafeModule TSM,
+                        SymbolStringPtr InitSym = nullptr);
 
   /// Create an IRMaterializationLayer from a module, and pre-existing
   /// SymbolFlags and SymbolToDefinition maps. The maps must provide
@@ -121,7 +122,8 @@ class BasicIRLayerMaterializationUnit : public IRMaterializationUnit {
 public:
   BasicIRLayerMaterializationUnit(IRLayer &L,
                                   const IRSymbolMapper::ManglingOptions &MO,
-                                  ThreadSafeModule TSM);
+                                  ThreadSafeModule TSM,
+                                  SymbolStringPtr InitSym = nullptr);
 
 private:
   void materialize(std::unique_ptr<MaterializationResponsibility> R) override;

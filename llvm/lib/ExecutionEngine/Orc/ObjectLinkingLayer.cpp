@@ -118,7 +118,7 @@ private:
   static SymbolStringPtr makeInitSymbol(ExecutionSession &ES, LinkGraph &G) {
     std::string InitSymString;
     raw_string_ostream(InitSymString)
-        << "$." << G.getName() << ".__inits" << Counter++;
+        << "$." << G.getName() << ".__graphinits" << Counter++;
     return ES.intern(InitSymString);
   }
 
