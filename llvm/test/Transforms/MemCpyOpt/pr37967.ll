@@ -16,6 +16,7 @@ define dso_local void @_Z3bar3Foo(ptr byval(%struct.Foo) align 8 %0) {
 ; CHECK-NEXT:      #dbg_value(ptr [[TMP1]], [[META11:![0-9]+]], !DIExpression(), [[DBG13]])
 ; CHECK-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr nonnull align 8 dereferenceable(24) [[AGG_TMP]], ptr nonnull align 8 dereferenceable(24) [[TMP1]], i64 24, i1 false), !dbg [[DBG14:![0-9]+]]
 ; CHECK-NEXT:    call void @_Z3bar3Foo(ptr nonnull byval([[STRUCT_FOO]]) align 8 [[TMP1]]), !dbg [[DBG15:![0-9]+]]
+; CHECK-NEXT:    call void @capture(ptr [[AGG_TMP]])
 ; CHECK-NEXT:    ret void, !dbg [[DBG16:![0-9]+]]
 ;
 entry:
@@ -23,7 +24,9 @@ entry:
   %1 = load ptr, ptr @a, align 8
   call void @llvm.memcpy.p0.p0.i64(ptr nonnull align 8 dereferenceable(24) %agg.tmp, ptr nonnull align 8 dereferenceable(24) %1, i64 24, i1 false)
   call void @_Z3bar3Foo(ptr nonnull byval(%struct.Foo) align 8 %agg.tmp)
+  call void @capture(ptr %agg.tmp)
   ret void
 }
 
 declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
+declare void @capture(ptr)

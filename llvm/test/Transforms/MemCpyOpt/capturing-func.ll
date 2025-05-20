@@ -96,10 +96,12 @@ define void @test_function_end() {
 ; CHECK-NEXT:    [[PTR1:%.*]] = alloca i8, align 1
 ; CHECK-NEXT:    [[PTR2:%.*]] = alloca i8, align 1
 ; CHECK-NEXT:    call void @foo(ptr [[PTR1]])
+; CHECK-NEXT:    call void @foo(ptr [[PTR1]])
 ; CHECK-NEXT:    ret void
 ;
   %ptr1 = alloca i8
   %ptr2 = alloca i8
+  call void @foo(ptr %ptr1)
   call void @foo(ptr %ptr2)
   call void @llvm.memcpy.p0.p0.i32(ptr %ptr1, ptr %ptr2, i32 1, i1 false)
   ret void
@@ -136,6 +138,7 @@ define void @test_terminator2() {
 ; CHECK-NEXT:    [[PTR2:%.*]] = alloca i8, align 1
 ; CHECK-NEXT:    call void @foo(ptr [[PTR2]])
 ; CHECK-NEXT:    call void @llvm.memcpy.p0.p0.i32(ptr [[PTR1]], ptr [[PTR2]], i32 1, i1 false)
+; CHECK-NEXT:    call void @foo(ptr [[PTR1]])
 ; CHECK-NEXT:    br label [[NEXT:%.*]]
 ; CHECK:       next:
 ; CHECK-NEXT:    ret void
@@ -144,6 +147,7 @@ define void @test_terminator2() {
   %ptr2 = alloca i8
   call void @foo(ptr %ptr2)
   call void @llvm.memcpy.p0.p0.i32(ptr %ptr1, ptr %ptr2, i32 1, i1 false)
+  call void @foo(ptr %ptr1)
   br label %next
 
 next:

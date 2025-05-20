@@ -88,6 +88,7 @@ private:
                              AllocaInst *DestAlloca, AllocaInst *SrcAlloca,
                              TypeSize Size, BatchAAResults &BAA);
   bool isMemMoveMemSetDependency(MemMoveInst *M);
+  bool processAlloca(AllocaInst *AI, BasicBlock::iterator &BBI);
 
   void eraseInstruction(Instruction *I);
   bool iterateOnFunction(Function &F);

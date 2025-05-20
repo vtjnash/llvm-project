@@ -13,6 +13,7 @@
 
 #include "llvm/Transforms/Scalar/MemCpyOptimizer.h"
 #include "llvm/ADT/DenseSet.h"
+#include "llvm/ADT/IntervalMap.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/ScopeExit.h"
 #include "llvm/ADT/SmallVector.h"
@@ -1766,7 +1767,7 @@ bool MemCpyOptPass::processMemCpy(MemCpyInst *M, BasicBlock::iterator &BBI) {
       AnyClobber, MemoryLocation::getForSource(M), BAA);
 
   // There are five possible optimizations we can do for memcpy:
-  //   a) memcpy-memcpy xform which exposes redundance for DSE.
+  //   a) memcpy-memcpy xform which exposes redundancy for DSE.
   //   b) call-memcpy xform for return slot optimization.
   //   c) memcpy from freshly alloca'd space or space that has just started
   //      its lifetime copies undefined data, and we can therefore eliminate
@@ -2095,6 +2096,205 @@ bool MemCpyOptPass::processImmutArgument(CallBase &CB, unsigned ArgNo) {
   return true;
 }
 
+template <class T, typename S, typename V>
+static void IntervalMap_insert_safe(T &Map, S a, S b, V v) {
+  // oddly, inserting into an IntervalMap is unsafe to insert into, although that is not documented
+  // so provide a wrapper here that can insert into it safely
+  typename T::iterator I = Map.find(a);
+  while (I.valid() && I.start() < b) {
+    assert(I.value() == v);
+    if (a < I.start())
+      I.setStart(a);
+    a = I.stop();
+    ++I;
+  }
+  if (a < b)
+    I.insert(a, b, v);
+}
+
+// Process Alloca to shrink wrap any stores to only the used bits
+// This is a generalized version of processMemCpyMemCpyDependence
+bool MemCpyOptPass::processAlloca(AllocaInst *AI, BasicBlock::iterator &BBI) {
+  const DataLayout &DL = AI->getDataLayout();
+  bool MadeChange = false;
+
+  SmallVector<std::pair<Instruction*,uint64_t>,0> Stores;
+  SmallVector<std::pair<User*,uint64_t>,0> Users;
+  SmallSet<PHINode*,0> Seen;
+  IntervalMap<uint64_t,char,4,IntervalMapHalfOpenInfo<uint64_t>>::Allocator allocator;
+  IntervalMap<uint64_t,char,4,IntervalMapHalfOpenInfo<uint64_t>> UsedBytes(allocator); // used similarly to MemsetRange
+
+  Users.push_back({AI, 0});
+  while (!Users.empty()) {
+    User *U;
+    uint64_t Offset;
+    std::tie(U, Offset) = Users.pop_back_val();
+    for (auto &Use : U->uses()) {
+      User *I = Use.getUser();
+      if (auto *PI = dyn_cast<PHINode>(I)) {
+          if (Seen.insert(PI).second)
+              Users.push_back({PI, Offset});
+      } else if (auto *GEP = dyn_cast<GetElementPtrInst>(I)) {
+          APInt NewOffset(DL.getIndexTypeSizeInBits(U->getType()), Offset);
+          if (!GEP->accumulateConstantOffset(DL, NewOffset))
+            return false;
+          Users.push_back({GEP, NewOffset.getSExtValue()});
+      //} else if (auto *AI = dyn_cast<AddrSpaceCastInst>(I)) {
+      //    // TODO?
+      //    return false;
+      } else if (auto *LI = dyn_cast<LoadInst>(I)) {
+        if (!LI->isUnordered())
+          return false;
+        TypeSize LoadSize = DL.getTypeStoreSize(LI->getType());
+        if (!LoadSize.isFixed())
+          return false;
+        IntervalMap_insert_safe(UsedBytes, Offset, Offset + LoadSize.getFixedValue(), 0);
+      } else if (auto *M = dyn_cast<MemTransferInst>(I)) {
+        if (M->isVolatile())
+          return false;
+        if (Use == M->getRawSourceUse()) {
+          ConstantInt *Size = dyn_cast<ConstantInt>(M->getLength());
+          if (!Size)
+            return false;
+          IntervalMap_insert_safe(UsedBytes, Offset, Offset + Size->getZExtValue(), 0);
+        } else if (Use == M->getRawDestUse()) {
+          Stores.push_back({M, Offset});
+        } else
+          return false;
+      } else if (auto *II = dyn_cast<IntrinsicInst>(I)) {
+        switch (II->getIntrinsicID()) {
+          default:
+            return false;
+          case Intrinsic::lifetime_start:
+          case Intrinsic::lifetime_end:
+            break;
+        }
+      //} else if (auto *CI = dyn_cast<CallInst>(I)) {
+      //  // TODO: handle no-op calls or pass-through?
+      } else if (auto *SI = dyn_cast<StoreInst>(I)) {
+        if (Use.getOperandNo() != StoreInst::getPointerOperandIndex())
+          return false;
+        if (!SI->isUnordered())
+          return false;
+        Stores.push_back({SI, Offset});
+      } else if (auto *M = dyn_cast<MemSetInst>(I)) {
+        if (M->isVolatile())
+          return false;
+        if (Use != M->getRawDestUse())
+          return false;
+        Stores.push_back({M,Offset});
+      }
+      else if (!isa<ICmpInst>(I)) {
+        // For any unknown instruction, assume it could load or store anything
+        return false;
+      }
+    }
+  }
+  if (Stores.empty()) {
+    // TODO: Erase this alloca somehow since all uses load undef?
+    return false;
+  }
+  // Move the endpoints of each region to be aligned
+  Align MaxAlign = AI->getAlign();
+  auto Prev = UsedBytes.begin();
+  while (Prev != UsedBytes.end()) {
+    uint64_t S = Prev.start();
+    uint64_t E = Prev.stop();
+    uint64_t PrevAlign = std::min(MaxAlign, Align(PowerOf2Ceil(E - S))).value();
+    IntervalMap_insert_safe(UsedBytes, S & ~(PrevAlign - 1), (E + PrevAlign - 1) & ~(PrevAlign - 1), 0);
+  }
+  // Compress out small gaps (relative to nearby data)
+  Prev.goToBegin();
+  while (Prev != UsedBytes.end()) {
+    auto Next = ++Prev;
+    if (Next == UsedBytes.end())
+      break;
+    // Compute the endpoints of the new region, after re-alignment
+    uint64_t S = Prev.start();
+    uint64_t E = Next.stop();
+    uint64_t NewAlign = std::min(MaxAlign, Align(PowerOf2Ceil(E - S))).value();
+    S = S & ~(NewAlign - 1);
+    E = (E + NewAlign - 1) & ~(NewAlign - 1);
+    uint64_t NextSize = Next.stop() - Next.start();
+    uint64_t PrevSize = Prev.stop() - Prev.start();
+    // if (PrevSize + NextSize >= E - S - PrevSize - NextSize)
+      // Length of New Region <= 2 x Length of Old Data
+    if (PrevSize + NextSize >= Next.start() - Prev.stop()) {
+      // Length of Gap <= Length of Old Data
+      IntervalMap_insert_safe(UsedBytes, S, E, 0);
+      Next = UsedBytes.find(S);
+      if (Next != UsedBytes.begin())
+        Prev = --Next;
+      else
+        Prev = Next;
+    } else {
+      Prev = UsedBytes.find(E);
+    }
+  }
+  bool HandledAllStores = true;
+  for (auto &Store : Stores) {
+    Instruction *I;
+    uint64_t Offset;
+    std::tie(I, Offset) = Store;
+    if (auto *SI = dyn_cast<StoreInst>(I)) {
+      // TODO: cut away some parts of Stores also?
+      (void)SI;
+      HandledAllStores = false;
+    } else {
+      auto *M = cast<MemIntrinsic>(I);
+      ConstantInt *Size = dyn_cast<ConstantInt>(M->getLength());
+      if (!Size) {
+        HandledAllStores = false;
+        continue;
+      }
+      auto Start = Offset;
+      auto Stop = Offset + Size->getZExtValue();
+      auto Intervals = UsedBytes.find(Stop);
+      if (!Intervals.atBegin() && Intervals.start() >= Stop)
+          --Intervals;
+      if (!Intervals.valid() || Intervals.stop() <= Start) {
+        // TODO: should we just erase M?
+        M->setLength(Constant::getNullValue(M->getLength()->getType()));
+        MadeChange = true;
+        continue;
+      }
+      // Trim this MemIntrinsic to not reference before Intervals.start or after Intervals.stop or too many ignored bytes in the middle
+      if (Intervals.start() > Start || Intervals.stop() < Stop) {
+        MadeChange = true;
+        Value *Ptr = M->getRawDest();
+        Value *SrcPtr = isa<MemTransferInst>(M) ? cast<MemTransferInst>(M)->getRawSource() : nullptr;
+        IRBuilder<> Builder(M);
+        //auto MCopyLoc = MemoryLocation::getForSource(M).getWithNewSize(ISize);
+        auto *LastDef = cast<MemoryDef>(MSSA->getMemoryAccess(M));
+        for (; Intervals.valid() && Intervals.stop() > Start; --Intervals) {
+          auto M2 = cast<MemIntrinsic>(M->clone());
+          M2->setDest(Builder.CreateInBoundsPtrAdd(Ptr, Builder.getInt64(Intervals.start())));
+          if (SrcPtr)
+            cast<MemTransferInst>(M2)->setSource(Builder.CreateInBoundsPtrAdd(SrcPtr, Builder.getInt64(Intervals.start())));
+          M2->setLength(ConstantInt::get(M->getLength()->getType(), Intervals.stop() - Intervals.start()));
+          //TODO: we could increase alignment sometimes
+          //M->setDestAlign(DstAlign);
+          //M->setSrcAlign(SrcAlign);
+          Builder.Insert(M2);
+          auto *NewAccess = MSSAU->createMemoryAccessAfter(M2, nullptr, LastDef);
+          MSSAU->insertDef(cast<MemoryDef>(NewAccess), /*RenameUses=*/true);
+        }
+        // TODO: should we just erase M?
+        M->setLength(Constant::getNullValue(M->getLength()->getType()));
+      }
+    }
+  }
+  if (HandledAllStores) {
+      // TODO: cut away some parts of Alloca also if all stores are accounted for?
+      // (RAUW smaller alloca+ptradd)
+  }
+  //if (MadeChange) {
+  //  AI->dump();
+  //  AI->getFunction()->dump();
+  //}
+  return MadeChange;
+}
+
 /// Executes one iteration of MemCpyOptPass.
 bool MemCpyOptPass::iterateOnFunction(Function &F) {
   bool MadeChange = false;
@@ -2130,6 +2330,8 @@ bool MemCpyOptPass::iterateOnFunction(Function &F) {
             MadeChange |= processImmutArgument(*CB, i);
         }
       }
+      else if (auto *AI = dyn_cast<AllocaInst>(I))
+        MadeChange |= processAlloca(AI, BI);
 
       // Reprocess the instruction if desired.
       if (RepeatInstruction) {

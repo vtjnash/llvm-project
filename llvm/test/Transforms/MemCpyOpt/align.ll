@@ -4,6 +4,7 @@ target datalayout = "E-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f3
 
 declare void @llvm.memcpy.p0.p0.i64(ptr nocapture, ptr nocapture, i64, i1) nounwind
 declare void @llvm.memset.p0.i64(ptr nocapture, i8, i64, i1) nounwind
+declare void @capture(ptr) nounwind
 
 ; The resulting memset is only 4-byte aligned, despite containing
 ; a 16-byte aligned store in the middle.
@@ -33,11 +34,13 @@ define void @bar() {
 ; CHECK-NEXT:    [[A4:%.*]] = alloca i32, align 8
 ; CHECK-NEXT:    [[A8:%.*]] = alloca i32, align 8
 ; CHECK-NEXT:    call void @llvm.memset.p0.i64(ptr align 8 [[A4]], i8 0, i64 4, i1 false)
+; CHECK-NEXT:    call void @capture(ptr [[A4]])
 ; CHECK-NEXT:    ret void
 ;
   %a4 = alloca i32, align 4
   %a8 = alloca i32, align 8
   call void @llvm.memset.p0.i64(ptr align 8 %a8, i8 0, i64 4, i1 false)
   call void @llvm.memcpy.p0.p0.i64(ptr align 4 %a4, ptr align 4 %a8, i64 4, i1 false)
+  call void @capture(ptr %a4)
   ret void
 }
