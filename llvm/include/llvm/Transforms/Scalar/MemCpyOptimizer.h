@@ -32,6 +32,7 @@ class Instruction;
 class LoadInst;
 class MemCpyInst;
 class MemMoveInst;
+class MemoryLocation;
 class MemorySSA;
 class MemorySSAUpdater;
 class MemSetInst;
@@ -84,6 +85,10 @@ private:
   Instruction *tryMergingIntoMemset(Instruction *I, Value *StartPtr,
                                     Value *ByteVal);
   bool moveUp(StoreInst *SI, Instruction *P, const LoadInst *LI);
+  void moveUp(SmallVector<Instruction *, 8> &ToMove, Instruction *P);
+  SmallVector<Instruction *, 8>
+  canMoveUp(Instruction *ToMove, Instruction *P,
+            std::optional<const MemoryLocation> LoadLoc);
   bool performStackMoveOptzn(Instruction *Load, Instruction *Store,
                              AllocaInst *DestAlloca, AllocaInst *SrcAlloca,
                              TypeSize Size, BatchAAResults &BAA);

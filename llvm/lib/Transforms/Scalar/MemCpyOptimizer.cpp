@@ -498,22 +498,33 @@ Instruction *MemCpyOptPass::tryMergingIntoMemset(Instruction *StartInst,
   return AMemSet;
 }
 
-// This method try to lift a store instruction before position P.
-// It will lift the store and its argument + that anything that
+// This method try to lift a instruction before position P, which must be in
+// the same basic block.
+// It will lift the instruction and its argument + that anything that
 // may alias with these.
-// The method returns true if it was successful.
-bool MemCpyOptPass::moveUp(StoreInst *SI, Instruction *P, const LoadInst *LI) {
-  // If the store alias this position, early bail out.
-  MemoryLocation StoreLoc = MemoryLocation::get(SI);
-  if (isModOrRefSet(AA->getModRefInfo(P, StoreLoc)))
-    return false;
+// The instruction must be something MemoryLocation::get understands, or that
+// does not have a MemoryLocation (such as an AllocaInst).
+// The user may optionally provide an additional load location which should not
+// be moved or otherwise affected by moving the instructions.
+// The method returns a vector of instructions to lift if it was successful, and
+// an empty vector if not.
+SmallVector<Instruction *, 8>
+MemCpyOptPass::canMoveUp(Instruction *ToMove, Instruction *P,
+                         std::optional<const MemoryLocation> LoadLoc) {
+  // If the instruction to move is a store that aliases this position, early
+  // bail out.
+  std::optional<MemoryLocation> StoreLoc = MemoryLocation::getOrNone(ToMove);
+  if (StoreLoc && isModOrRefSet(AA->getModRefInfo(P, *StoreLoc)))
+    return {};
+
+  assert(ToMove->getParent() == P->getParent());
 
   // Keep track of the arguments of all instruction we plan to lift
   // so we can make sure to lift them as well if appropriate.
   DenseSet<Instruction *> Args;
   auto AddArg = [&](Value *Arg) {
     auto *I = dyn_cast<Instruction>(Arg);
-    if (I && I->getParent() == SI->getParent()) {
+    if (I && I->getParent() == ToMove->getParent()) {
       // Cannot hoist user of P above P
       if (I == P)
         return false;
@@ -521,27 +532,28 @@ bool MemCpyOptPass::moveUp(StoreInst *SI, Instruction *P, const LoadInst *LI) {
     }
     return true;
   };
-  if (!AddArg(SI->getPointerOperand()))
-    return false;
+  for (Value *Op : ToMove->operands())
+    if (!AddArg(Op))
+      return {};
 
   // Instruction to lift before P.
-  SmallVector<Instruction *, 8> ToLift{SI};
+  SmallVector<Instruction *, 8> ToLift{ToMove};
 
   // Memory locations of lifted instructions.
-  SmallVector<MemoryLocation, 8> MemLocs{StoreLoc};
+  SmallVector<MemoryLocation, 8> MemLocs;
+  if (StoreLoc)
+    MemLocs.push_back(*StoreLoc);
 
   // Lifted calls.
   SmallVector<const CallBase *, 8> Calls;
 
-  const MemoryLocation LoadLoc = MemoryLocation::get(LI);
-
-  for (auto I = --SI->getIterator(), E = P->getIterator(); I != E; --I) {
+  for (auto I = --ToMove->getIterator(), E = P->getIterator(); I != E; --I) {
     auto *C = &*I;
 
     // Make sure hoisting does not perform a store that was not guaranteed to
     // happen.
     if (!isGuaranteedToTransferExecutionToSuccessor(C))
-      return false;
+      return {};
 
     bool MayAlias = isModOrRefSet(AA->getModRefInfo(C, std::nullopt));
 
@@ -565,64 +577,72 @@ bool MemCpyOptPass::moveUp(StoreInst *SI, Instruction *P, const LoadInst *LI) {
     if (MayAlias) {
       // Since LI is implicitly moved downwards past the lifted instructions,
       // none of them may modify its source.
-      if (isModSet(AA->getModRefInfo(C, LoadLoc)))
-        return false;
+      if (LoadLoc && isModSet(AA->getModRefInfo(C, *LoadLoc)))
+        return {};
       else if (const auto *Call = dyn_cast<CallBase>(C)) {
         // If we can't lift this before P, it's game over.
         if (isModOrRefSet(AA->getModRefInfo(P, Call)))
-          return false;
+          return {};
 
         Calls.push_back(Call);
       } else if (isa<LoadInst>(C) || isa<StoreInst>(C) || isa<VAArgInst>(C)) {
         // If we can't lift this before P, it's game over.
         auto ML = MemoryLocation::get(C);
         if (isModOrRefSet(AA->getModRefInfo(P, ML)))
-          return false;
+          return {};
 
         MemLocs.push_back(ML);
       } else
         // We don't know how to lift this instruction.
-        return false;
+        return {};
     }
 
     ToLift.push_back(C);
     for (Value *Op : C->operands())
       if (!AddArg(Op))
-        return false;
+        return {};
   }
 
-  // Find MSSA insertion point. Normally P will always have a corresponding
-  // memory access before which we can insert. However, with non-standard AA
-  // pipelines, there may be a mismatch between AA and MSSA, in which case we
-  // will scan for a memory access before P. In either case, we know for sure
-  // that at least the load will have a memory access.
-  // TODO: Simplify this once P will be determined by MSSA, in which case the
-  // discrepancy can no longer occur.
-  MemoryUseOrDef *MemInsertPoint = nullptr;
-  if (MemoryUseOrDef *MA = MSSA->getMemoryAccess(P)) {
-    MemInsertPoint = cast<MemoryUseOrDef>(--MA->getIterator());
-  } else {
-    const Instruction *ConstP = P;
-    for (const Instruction &I : make_range(++ConstP->getReverseIterator(),
-                                           ++LI->getReverseIterator())) {
-      if (MemoryUseOrDef *MA = MSSA->getMemoryAccess(&I)) {
-        MemInsertPoint = MA;
-        break;
-      }
-    }
-  }
+  return ToLift; // Success.
+}
+
+void MemCpyOptPass::moveUp(SmallVector<Instruction *, 8> &ToLift,
+                           Instruction *P) {
+  MemoryUseOrDef *MemInsertPoint = MSSA->getMemoryAccess(P);
+  bool InsertBefore = !!MemInsertPoint;
 
   // We made it, we need to lift.
   for (auto *I : llvm::reverse(ToLift)) {
     LLVM_DEBUG(dbgs() << "Lifting " << *I << " before " << *P << "\n");
     I->moveBefore(P->getIterator());
-    assert(MemInsertPoint && "Must have found insert point");
     if (MemoryUseOrDef *MA = MSSA->getMemoryAccess(I)) {
-      MSSAU->moveAfter(MA, MemInsertPoint);
-      MemInsertPoint = MA;
+      if (InsertBefore)
+        MSSAU->moveBefore(MA, MemInsertPoint);
+      else {
+        if (!MemInsertPoint) {
+          // Lazily find a MemInsertPoint
+          for (auto I = P->getReverseIterator(), E = P->getParent()->rend();
+               I != E; ++I) {
+            MemInsertPoint = MSSA->getMemoryAccess(&*I);
+            if (MemInsertPoint)
+              break;
+          }
+        }
+        if (!MemInsertPoint)
+          MSSAU->moveToPlace(MA, P->getParent(), MemorySSA::Beginning);
+        else
+          MSSAU->moveAfter(MA, MemInsertPoint);
+        MemInsertPoint = MA;
+      }
     }
   }
+}
 
+bool MemCpyOptPass::moveUp(StoreInst *SI, Instruction *P, const LoadInst *LI) {
+  auto ToLift = canMoveUp(SI, P, MemoryLocation::get(LI));
+  if (ToLift.empty())
+    return false;
+  moveUp(ToLift, P);
   return true;
 }
 
@@ -1584,18 +1604,13 @@ bool MemCpyOptPass::performStackMoveOptzn(Instruction *Load, Instruction *Store,
     }
 
   // Check if it will be legal to combine allocas without breaking dominator.
-  // TODO: Try to hoist the arguments (recursively) instead of giving up
-  // immediately.
   bool MoveSrc = !DT->dominates(SrcAlloca, DestAlloca);
-  if (MoveSrc) {
-    if (!DT->dominates(DestAlloca, SrcAlloca))
-      return false;
-    if (!DT->dominates(SrcAlloca->getArraySize(), DestAlloca))
-      return false;
-  } else {
-    if (!DT->dominates(DestAlloca->getArraySize(), SrcAlloca))
-      return false;
-  }
+  if (MoveSrc && !DT->dominates(DestAlloca, SrcAlloca))
+    return false;
+  auto ToLift = canMoveUp(MoveSrc ? SrcAlloca : DestAlloca,
+                          MoveSrc ? DestAlloca : SrcAlloca, std::nullopt);
+  if (ToLift.empty())
+    return false;
 
   // Check that src and dest are never captured, unescaped allocas. Also
   // find the nearest common dominator and postdominator for all users in
@@ -1725,8 +1740,13 @@ bool MemCpyOptPass::performStackMoveOptzn(Instruction *Load, Instruction *Store,
     return false;
 
   // We can now do the transformation. First move the Src if it was after Dest.
-  if (MoveSrc)
-    SrcAlloca->moveBefore(DestAlloca->getIterator());
+  if (MoveSrc && ToLift.size() == 1)
+    SrcAlloca->moveBefore(
+        DestAlloca->getIterator()); // Commonly just need to move SrcAlloca
+  else if (MoveSrc ||
+           ToLift.size() >
+               1) // Don't need to move DestAlloca, which is also a common case
+    moveUp(ToLift, MoveSrc ? DestAlloca : SrcAlloca);
 
   // Align the allocas appropriately.
   SrcAlloca->setAlignment(
