@@ -56,7 +56,9 @@ public:
       ExecutorAddr TrampolineAddr,
       TrampolinePool::NotifyLandingResolvedFunction NotifyLandingResolved);
 
-  TaskDispatcher& getDispatcher() { return ES.getExecutorProcessControl().getDispatcher(); }
+  TaskDispatcher &getDispatcher() {
+    return ES.getExecutorProcessControl().getDispatcher();
+  }
 
   virtual ~LazyCallThroughManager() = default;
 
@@ -104,7 +106,8 @@ private:
                    NotifyLandingResolved) {
           resolveTrampolineLandingAddress(TrampolineAddr,
                                           std::move(NotifyLandingResolved));
-        }, getDispatcher());
+        },
+        getDispatcher());
 
     if (!TP)
       return TP.takeError();

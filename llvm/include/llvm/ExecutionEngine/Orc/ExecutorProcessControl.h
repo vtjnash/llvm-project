@@ -404,7 +404,7 @@ protected:
 class LLVM_ABI InProcessMemoryAccess
     : public ExecutorProcessControl::MemoryAccess {
 public:
-  InProcessMemoryAccess(ExecutorProcessControl &EPC, bool IsArch64Bit) 
+  InProcessMemoryAccess(ExecutorProcessControl &EPC, bool IsArch64Bit)
       : MemoryAccess(EPC), IsArch64Bit(IsArch64Bit) {}
   void writeUInt8sAsync(ArrayRef<tpctypes::UInt8Write> Ws,
                         WriteResultFn OnWriteComplete) override;

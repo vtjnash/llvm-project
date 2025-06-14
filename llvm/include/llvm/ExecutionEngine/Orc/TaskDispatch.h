@@ -16,8 +16,8 @@
 #include "llvm/Config/llvm-config.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/Debug.h"
-#include "llvm/Support/ExtensibleRTTI.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/ExtensibleRTTI.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <atomic>
@@ -122,7 +122,7 @@ public:
   virtual void shutdown() = 0;
 
   /// Work on dispatched tasks until the given future is ready.
-  virtual void work_until(future_base& F) = 0;
+  virtual void work_until(future_base &F) = 0;
 };
 
 /// Runs all tasks on the current thread.
@@ -130,15 +130,15 @@ class LLVM_ABI InPlaceTaskDispatcher : public TaskDispatcher {
 public:
   void dispatch(std::unique_ptr<Task> T) override;
   void shutdown() override;
-  void work_until(future_base& F) override;
+  void work_until(future_base &F) override;
 
 private:
   thread_local static SmallVector<std::unique_ptr<Task>> TaskQueue;
-  
+
 #if LLVM_ENABLE_THREADS
   std::mutex DispatchMutex;
   std::condition_variable WorkFinishedCV;
-  SmallVector<future_base*> WaitingFutures;
+  SmallVector<future_base *> WaitingFutures;
 #endif
 };
 
@@ -152,7 +152,8 @@ public:
 
   void dispatch(std::unique_ptr<Task> T) override;
   void shutdown() override;
-  void work_until(future_base& F) override;
+  void work_until(future_base &F) override;
+
 private:
   bool canRunMaterializationTaskNow();
   bool canRunIdleTaskNow();
@@ -171,26 +172,24 @@ private:
 #endif // LLVM_ENABLE_THREADS
 
 /// Status for future/promise state
-enum class FutureStatus : uint8_t {
-  NotReady = 0,
-  Ready = 1,
-  NotValid = 2
-};
+enum class FutureStatus : uint8_t { NotReady = 0, Ready = 1, NotValid = 2 };
 
 /// Type-erased base class for futures
 class future_base {
 public:
   bool is_ready() const {
-    return state_->status_.load(std::memory_order_acquire) != FutureStatus::NotReady;
+    return state_->status_.load(std::memory_order_acquire) !=
+           FutureStatus::NotReady;
   }
 
   /// Check if the future is in a valid state (not moved-from and not consumed)
   bool valid() const {
-    return state_ && state_->status_.load(std::memory_order_acquire) != FutureStatus::NotValid;
+    return state_ && state_->status_.load(std::memory_order_acquire) !=
+                         FutureStatus::NotValid;
   }
 
   /// Wait for the future to be ready, helping with task dispatch
-  void wait(TaskDispatcher& D) {
+  void wait(TaskDispatcher &D) {
     // Keep helping with task dispatch until our future is ready
     if (!is_ready())
       D.work_until(*this);
@@ -202,19 +201,19 @@ protected:
     std::atomic<FutureStatus> status_{FutureStatus::NotReady};
   };
 
-  future_base(state_base* state) : state_(state) {}
+  future_base(state_base *state) : state_(state) {}
   future_base() = default;
-  ~future_base() { 
+  ~future_base() {
     if (valid())
       report_fatal_error("get() must be called before future destruction");
-    delete state_; 
+    delete state_;
   }
 
   // Move constructor and assignment
-  future_base(future_base&& other) noexcept : state_(other.state_) {
+  future_base(future_base &&other) noexcept : state_(other.state_) {
     other.state_ = nullptr;
   }
-  future_base& operator=(future_base&& other) noexcept {
+  future_base &operator=(future_base &&other) noexcept {
     if (this != &other) {
       delete state_;
       state_ = other.state_;
@@ -223,43 +222,41 @@ protected:
     return *this;
   }
 
-  state_base* state_;
+  state_base *state_;
 };
 
 /// ORC-aware future class that can help with task dispatch while waiting
 
 template <typename T> class future;
 template <typename T> class promise;
-template <typename T>
-class future : public future_base {
+template <typename T> class future : public future_base {
 public:
   struct state : public future_base::state_base {
-    template <typename U>
-    struct value_storage { 
+    template <typename U> struct value_storage {
       U value_;
     };
-    
-    template <>
-    struct value_storage<void> {
+
+    template <> struct value_storage<void> {
       // No value_ member for void
     };
-    
+
     value_storage<T> storage;
   };
 
   future() = delete;
-  future(const future&) = delete;
-  future& operator=(const future&) = delete;
-  future(future&&) = default;
-  future& operator=(future&&) = default;
+  future(const future &) = delete;
+  future &operator=(const future &) = delete;
+  future(future &&) = default;
+  future &operator=(future &&) = default;
 
   /// Get the value, helping with task dispatch while waiting.
   /// This will destroy the underlying value, so this must only be called once.
-  T get(TaskDispatcher& D) {
+  T get(TaskDispatcher &D) {
     if (!valid())
       report_fatal_error("get() must only be called once");
     wait(D);
-    auto old_status = state_->status_.exchange(FutureStatus::NotValid, std::memory_order_release);
+    auto old_status = state_->status_.exchange(FutureStatus::NotValid,
+                                               std::memory_order_release);
     if (old_status != FutureStatus::Ready)
       report_fatal_error("get() must only be called once");
     return take_value();
@@ -267,43 +264,43 @@ public:
 
 private:
   friend class promise<T>;
-  
+
   template <typename U = T>
   typename std::enable_if<!std::is_void<U>::value, U>::type take_value() {
-     return std::move(static_cast<typename future<T>::state*>(state_)->storage.value_);
+    return std::move(
+        static_cast<typename future<T>::state *>(state_)->storage.value_);
   }
-  
+
   template <typename U = T>
   typename std::enable_if<std::is_void<U>::value, U>::type take_value() {}
 
-  explicit future(state* state) : future_base(state) {}
+  explicit future(state *state) : future_base(state) {}
 };
 
 /// ORC-aware promise class that works with ORC future
-template <typename T>
-class promise {
+template <typename T> class promise {
   friend class future<T>;
-  
+
 public:
   promise() : state_(new typename future<T>::state()), future_created_(false) {}
-  
+
   ~promise() {
     // Delete state only if get_future() was never called
     if (!future_created_) {
       delete state_;
     }
   }
-  
-  promise(const promise&) = delete;
-  promise& operator=(const promise&) = delete;
-  
-  promise(promise&& other) noexcept 
-    : state_(other.state_), future_created_(other.future_created_) {
+
+  promise(const promise &) = delete;
+  promise &operator=(const promise &) = delete;
+
+  promise(promise &&other) noexcept
+      : state_(other.state_), future_created_(other.future_created_) {
     other.state_ = nullptr;
     other.future_created_ = false;
   }
-  
-  promise& operator=(promise&& other) noexcept {
+
+  promise &operator=(promise &&other) noexcept {
     if (this != &other) {
       if (!future_created_) {
         delete state_;
@@ -329,24 +326,29 @@ public:
   // but that if the user calls set_value(v) for any value v that they get a
   // member function error, instead of no member named 'value_'.
   template <typename U = T>
-  void set_value(const typename std::conditional<std::is_void<T>::value, std::nullopt_t, T>::type& value) {
+  void
+  set_value(const typename std::conditional<std::is_void<T>::value,
+                                            std::nullopt_t, T>::type &value) {
     assert(state_ && "Invalid promise state");
     state_->storage.value_ = value;
     state_->status_.store(FutureStatus::Ready, std::memory_order_release);
   }
-  
+
   template <typename U = T>
-  void set_value(typename std::conditional<std::is_void<T>::value, std::nullopt_t, T>::type&& value) {
+  void set_value(typename std::conditional<std::is_void<T>::value,
+                                           std::nullopt_t, T>::type &&value) {
     assert(state_ && "Invalid promise state");
     state_->storage.value_ = std::move(value);
     state_->status_.store(FutureStatus::Ready, std::memory_order_release);
   }
 
   template <typename U = T>
-  typename std::enable_if<std::is_void<U>::value, void>::type set_value(const std::nullopt_t& value) = delete;
+  typename std::enable_if<std::is_void<U>::value, void>::type
+  set_value(const std::nullopt_t &value) = delete;
 
   template <typename U = T>
-  typename std::enable_if<std::is_void<U>::value, void>::type set_value(std::nullopt_t&& value) = delete;
+  typename std::enable_if<std::is_void<U>::value, void>::type
+  set_value(std::nullopt_t &&value) = delete;
 
   template <typename U = T>
   typename std::enable_if<std::is_void<U>::value, void>::type set_value() {
@@ -355,14 +357,14 @@ public:
   }
 
   /// Swap with another promise
-  void swap(promise& other) noexcept {
+  void swap(promise &other) noexcept {
     using std::swap;
     swap(state_, other.state_);
     swap(future_created_, other.future_created_);
   }
 
 private:
-  typename future<T>::state* state_;
+  typename future<T>::state *state_;
   bool future_created_;
 };
 
@@ -371,7 +373,7 @@ private:
 
 namespace std {
 template <typename T>
-void swap(llvm::orc::promise<T>& lhs, llvm::orc::promise<T>& rhs) noexcept {
+void swap(llvm::orc::promise<T> &lhs, llvm::orc::promise<T> &rhs) noexcept {
   lhs.swap(rhs);
 }
 } // End namespace std

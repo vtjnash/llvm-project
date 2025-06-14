@@ -133,7 +133,8 @@ private:
     return LandingAddressF.get(TrampolinePool->D).getValue();
   }
 
-  LocalTrampolinePool(ResolveLandingFunction ResolveLanding, TaskDispatcher &D, Error &Err)
+  LocalTrampolinePool(ResolveLandingFunction ResolveLanding, TaskDispatcher &D,
+                      Error &Err)
       : ResolveLanding(std::move(ResolveLanding)), D(D) {
 
     ErrorAsOutParameter _(Err);
@@ -269,7 +270,8 @@ private:
         [this](ExecutorAddr TrampolineAddr,
                NotifyLandingResolvedFunction NotifyLandingResolved) {
           NotifyLandingResolved(executeCompileCallback(TrampolineAddr));
-        }, ES.getExecutorProcessControl().getDispatcher());
+        },
+        ES.getExecutorProcessControl().getDispatcher());
 
     if (!TP) {
       Err = TP.takeError();

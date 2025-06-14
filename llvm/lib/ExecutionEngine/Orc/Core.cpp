@@ -16,8 +16,8 @@
 #include "llvm/Support/MSVCErrorWorkarounds.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <condition_variable>
 #include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
+#include <condition_variable>
 #include <optional>
 
 #define DEBUG_TYPE "orc"
@@ -1831,7 +1831,8 @@ ExecutionSession::lookup(const JITDylibSearchOrder &SearchOrder,
          std::move(NotifyComplete), RegisterDependencies);
 
 #if LLVM_ENABLE_THREADS
-  return PromisedResult.get_future().get(getExecutorProcessControl().getDispatcher());
+  return PromisedResult.get_future().get(
+      getExecutorProcessControl().getDispatcher());
 #else
   if (ResolutionError)
     return std::move(ResolutionError);

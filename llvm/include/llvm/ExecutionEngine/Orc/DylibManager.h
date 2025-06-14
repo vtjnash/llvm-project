@@ -125,7 +125,6 @@ public:
   }
 };
 
-
 /// A ExecutorProcessControl implementation targeting the current process.
 class LLVM_ABI SelfExecutorProcessControl : public DylibManager,
                                             private InProcessMemoryAccess {

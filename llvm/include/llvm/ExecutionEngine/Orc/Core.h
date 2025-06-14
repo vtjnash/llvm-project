@@ -31,9 +31,9 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ExtensibleRTTI.h"
 
+#include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 #include <atomic>
 #include <deque>
-#include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 #include <memory>
 #include <vector>
 
