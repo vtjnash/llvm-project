@@ -33,7 +33,7 @@
 
 #include <atomic>
 #include <deque>
-#include <future>
+#include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 #include <memory>
 #include <vector>
 

@@ -11,7 +11,9 @@
 #include "llvm/ExecutionEngine/JITLink/JITLinkMemoryManager.h"
 #include "llvm/ExecutionEngine/JITLink/x86_64.h"
 #include "llvm/ExecutionEngine/JITSymbol.h"
+#include "llvm/ExecutionEngine/Orc/DylibManager.h"
 #include "llvm/ExecutionEngine/Orc/EPCDynamicLibrarySearchGenerator.h"
+#include "llvm/ExecutionEngine/Orc/ExecutorProcessControl.h"
 #include "llvm/ExecutionEngine/Orc/Shared/ExecutorAddress.h"
 #include "llvm/ExecutionEngine/Orc/Shared/ExecutorSymbolDef.h"
 #include "llvm/ExecutionEngine/Orc/Shared/TargetProcessControlTypes.h"
@@ -286,8 +288,7 @@ TEST_F(ObjectLinkingLayerTest, AddAndRemovePlugins) {
 }
 
 TEST(ObjectLinkingLayerSearchGeneratorTest, AbsoluteSymbolsObjectLayer) {
-  class TestEPC : public UnsupportedExecutorProcessControl,
-                  public DylibManager {
+  class TestEPC : public UnsupportedExecutorProcessControl {
   public:
     TestEPC()
         : UnsupportedExecutorProcessControl(nullptr, nullptr,

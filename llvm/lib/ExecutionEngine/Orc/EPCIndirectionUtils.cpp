@@ -11,7 +11,7 @@
 #include "llvm/ExecutionEngine/Orc/ExecutorProcessControl.h"
 #include "llvm/Support/MathExtras.h"
 
-#include <future>
+#include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 
 using namespace llvm;
 using namespace llvm::orc;
@@ -88,14 +88,14 @@ EPCTrampolinePool::EPCTrampolinePool(EPCIndirectionUtils &EPCIU)
 }
 
 Error EPCTrampolinePool::deallocatePool() {
-  std::promise<MSVCPError> DeallocResultP;
+  orc::promise<MSVCPError> DeallocResultP;
   auto DeallocResultF = DeallocResultP.get_future();
 
   EPCIU.getExecutorProcessControl().getMemMgr().deallocate(
       std::move(TrampolineBlocks),
       [&](Error Err) { DeallocResultP.set_value(std::move(Err)); });
 
-  return DeallocResultF.get();
+  return DeallocResultF.get(EPCIU.getExecutorProcessControl().getDispatcher());
 }
 
 Error EPCTrampolinePool::grow() {
@@ -409,12 +409,12 @@ EPCIndirectionUtils::getIndirectStubs(unsigned NumStubs) {
 static JITTargetAddress reentry(JITTargetAddress LCTMAddr,
                                 JITTargetAddress TrampolineAddr) {
   auto &LCTM = *jitTargetAddressToPointer<LazyCallThroughManager *>(LCTMAddr);
-  std::promise<ExecutorAddr> LandingAddrP;
+  orc::promise<ExecutorAddr> LandingAddrP;
   auto LandingAddrF = LandingAddrP.get_future();
   LCTM.resolveTrampolineLandingAddress(
       ExecutorAddr(TrampolineAddr),
       [&](ExecutorAddr Addr) { LandingAddrP.set_value(Addr); });
-  return LandingAddrF.get().getValue();
+  return LandingAddrF.get(LCTM.getDispatcher()).getValue();
 }
 
 Error setUpInProcessLCTMReentryViaEPCIU(EPCIndirectionUtils &EPCIU) {

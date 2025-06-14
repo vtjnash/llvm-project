@@ -17,7 +17,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <condition_variable>
-#include <future>
+#include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 #include <optional>
 
 #define DEBUG_TYPE "orc"
@@ -1756,7 +1756,7 @@ Expected<SymbolFlagsMap>
 ExecutionSession::lookupFlags(LookupKind K, JITDylibSearchOrder SearchOrder,
                               SymbolLookupSet LookupSet) {
 
-  std::promise<MSVCPExpected<SymbolFlagsMap>> ResultP;
+  orc::promise<MSVCPExpected<SymbolFlagsMap>> ResultP;
   OL_applyQueryPhase1(std::make_unique<InProgressLookupFlagsState>(
                           K, std::move(SearchOrder), std::move(LookupSet),
                           [&ResultP](Expected<SymbolFlagsMap> Result) {
@@ -1765,7 +1765,7 @@ ExecutionSession::lookupFlags(LookupKind K, JITDylibSearchOrder SearchOrder,
                       Error::success());
 
   auto ResultF = ResultP.get_future();
-  return ResultF.get();
+  return ResultF.get(getExecutorProcessControl().getDispatcher());
 }
 
 void ExecutionSession::lookup(
@@ -1804,7 +1804,7 @@ ExecutionSession::lookup(const JITDylibSearchOrder &SearchOrder,
                          RegisterDependenciesFunction RegisterDependencies) {
 #if LLVM_ENABLE_THREADS
   // In the threaded case we use promises to return the results.
-  std::promise<MSVCPExpected<SymbolMap>> PromisedResult;
+  orc::promise<MSVCPExpected<SymbolMap>> PromisedResult;
 
   auto NotifyComplete = [&](Expected<SymbolMap> R) {
     PromisedResult.set_value(std::move(R));
@@ -1828,7 +1828,7 @@ ExecutionSession::lookup(const JITDylibSearchOrder &SearchOrder,
          std::move(NotifyComplete), RegisterDependencies);
 
 #if LLVM_ENABLE_THREADS
-  return PromisedResult.get_future().get();
+  return PromisedResult.get_future().get(getExecutorProcessControl().getDispatcher());
 #else
   if (ResolutionError)
     return std::move(ResolutionError);

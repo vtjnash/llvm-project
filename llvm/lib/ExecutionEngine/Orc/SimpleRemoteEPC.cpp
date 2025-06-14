@@ -7,6 +7,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/ExecutionEngine/Orc/SimpleRemoteEPC.h"
+#include "llvm/ExecutionEngine/Orc/DylibManager.h"
 #include "llvm/ExecutionEngine/Orc/EPCGenericJITLinkMemoryManager.h"
 #include "llvm/ExecutionEngine/Orc/Shared/OrcRTBridge.h"
 #include "llvm/Support/FormatVariadic.h"
@@ -308,7 +309,7 @@ Error SimpleRemoteEPC::handleSetup(uint64_t SeqNo, ExecutorAddr TagAddr,
 Error SimpleRemoteEPC::setup(Setup S) {
   using namespace SimpleRemoteEPCDefaultBootstrapSymbolNames;
 
-  std::promise<MSVCPExpected<SimpleRemoteEPCExecutorInfo>> EIP;
+  orc::promise<MSVCPExpected<SimpleRemoteEPCExecutorInfo>> EIP;
   auto EIF = EIP.get_future();
 
   // Prepare a handler for the setup packet.
@@ -336,7 +337,7 @@ Error SimpleRemoteEPC::setup(Setup S) {
     return Err;
 
   // Wait for setup packet to arrive.
-  auto EI = EIF.get();
+  auto EI = EIF.get(getDispatcher());
   if (!EI) {
     T->disconnect();
     return EI.takeError();

@@ -21,6 +21,7 @@
 #include "llvm/ExecutionEngine/Orc/ExecutorProcessControl.h"
 #include "llvm/ExecutionEngine/Orc/Shared/ExecutorSymbolDef.h"
 #include "llvm/ExecutionEngine/Orc/Shared/SimpleRemoteEPCUtils.h"
+#include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 #include "llvm/Support/Compiler.h"
 
 namespace llvm {
@@ -53,19 +54,19 @@ public:
   /// Looks up symbols within the given dylib.
   Expected<tpctypes::LookupResult> lookup(tpctypes::DylibHandle H,
                                           const SymbolLookupSet &Lookup) {
-    std::promise<MSVCPExpected<tpctypes::LookupResult>> RP;
+    orc::promise<MSVCPExpected<tpctypes::LookupResult>> RP;
     auto RF = RP.get_future();
     lookupAsync(H, Lookup, [&RP](auto R) { RP.set_value(std::move(R)); });
-    return RF.get();
+    return RF.get(EPC.getDispatcher());
   }
 
   /// Looks up symbols within the given dylib.
   Expected<tpctypes::LookupResult> lookup(tpctypes::DylibHandle H,
                                           const RemoteSymbolLookupSet &Lookup) {
-    std::promise<MSVCPExpected<tpctypes::LookupResult>> RP;
+    orc::promise<MSVCPExpected<tpctypes::LookupResult>> RP;
     auto RF = RP.get_future();
     lookupAsync(H, Lookup, [&RP](auto R) { RP.set_value(std::move(R)); });
-    return RF.get();
+    return RF.get(EPC.getDispatcher());
   }
 
   using SymbolLookupCompleteFn =

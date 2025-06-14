@@ -8,7 +8,8 @@
 
 #include "llvm/ExecutionEngine/Orc/LookupAndRecordAddrs.h"
 
-#include <future>
+#include "llvm/ExecutionEngine/Orc/DylibManager.h"
+#include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 
 namespace llvm {
 namespace orc {
@@ -44,11 +45,11 @@ Error lookupAndRecordAddrs(
     std::vector<std::pair<SymbolStringPtr, ExecutorAddr *>> Pairs,
     SymbolLookupFlags LookupFlags) {
 
-  std::promise<MSVCPError> ResultP;
+  orc::promise<MSVCPError> ResultP;
   auto ResultF = ResultP.get_future();
   lookupAndRecordAddrs([&](Error Err) { ResultP.set_value(std::move(Err)); },
                        ES, K, SearchOrder, std::move(Pairs), LookupFlags);
-  return ResultF.get();
+  return ResultF.get(ES.getExecutorProcessControl().getDispatcher());
 }
 
 Error lookupAndRecordAddrs(

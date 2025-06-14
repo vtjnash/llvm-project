@@ -454,8 +454,8 @@ Error DebugObjectManagerPlugin::notifyEmitted(
   // Materialization must wait for this process to finish. Otherwise we might
   // start running code before the debugger processed the corresponding debug
   // info.
-  std::promise<MSVCPError> FinalizePromise;
-  std::future<MSVCPError> FinalizeErr = FinalizePromise.get_future();
+  orc::promise<MSVCPError> FinalizePromise;
+  orc::future<MSVCPError> FinalizeErr = FinalizePromise.get_future();
 
   It->second->finalizeAsync(
       [this, &FinalizePromise, &MR](Expected<ExecutorAddrRange> TargetMem) {
@@ -481,7 +481,7 @@ Error DebugObjectManagerPlugin::notifyEmitted(
         }));
       });
 
-  return FinalizeErr.get();
+  return FinalizeErr.get(ES.getExecutorProcessControl().getDispatcher());
 }
 
 Error DebugObjectManagerPlugin::notifyFailed(

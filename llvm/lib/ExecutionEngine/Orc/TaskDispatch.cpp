@@ -20,13 +20,67 @@ char IdleTask::ID = 0;
 const char *GenericNamedTask::DefaultDescription = "Generic Task";
 
 void Task::anchor() {}
+
 void IdleTask::anchor() {}
 
 TaskDispatcher::~TaskDispatcher() = default;
 
-void InPlaceTaskDispatcher::dispatch(std::unique_ptr<Task> T) { T->run(); }
+// InPlaceTaskDispatcher implementation
+thread_local SmallVector<std::unique_ptr<Task>> InPlaceTaskDispatcher::TaskQueue;
 
-void InPlaceTaskDispatcher::shutdown() {}
+void InPlaceTaskDispatcher::dispatch(std::unique_ptr<Task> T) { 
+  TaskQueue.push_back(std::move(T));
+}
+
+void InPlaceTaskDispatcher::shutdown() {
+  if (!TaskQueue.empty())
+    report_fatal_error("InPlaceTaskDispatcher shutdown with tasks still in queue");
+}
+
+void InPlaceTaskDispatcher::work_until(future_base& F) {
+  while (!F.is_ready()) {
+    // First, process any tasks in our local queue
+    // Process in LIFO order (most recently added first) to avoid deadlocks
+    // when tasks have dependencies on each other
+    while (!TaskQueue.empty()) {
+      auto T = std::move(TaskQueue.back());
+      TaskQueue.pop_back();
+      T->run();
+      
+      // Notify any threads that might be waiting for work to complete
+#if LLVM_ENABLE_THREADS
+      {
+        std::lock_guard<std::mutex> Lock(DispatchMutex);
+        bool ShouldNotify = llvm::any_of(WaitingFutures, [](future_base* F) {
+          return F->is_ready();
+        });
+        if (ShouldNotify) {
+          WaitingFutures.clear();
+          WorkFinishedCV.notify_all();
+        }
+      }
+#endif
+      
+      // Check if our future is now ready
+      if (F.is_ready())
+        return;
+    }
+    
+    // If we get here, our queue is empty but the future isn't ready
+    // We need to wait for other threads to finish work that might complete our future
+#if LLVM_ENABLE_THREADS
+    {
+      std::unique_lock<std::mutex> Lock(DispatchMutex);
+      WaitingFutures.push_back(&F);
+      WorkFinishedCV.wait(Lock, [&F]() { return F.is_ready(); });
+    }
+#else
+    // Without threading, if our queue is empty and future isn't ready,
+    // we can't make progress
+    return;
+#endif
+  }
+}
 
 #if LLVM_ENABLE_THREADS
 void DynamicThreadPoolTaskDispatcher::dispatch(std::unique_ptr<Task> T) {
@@ -119,6 +173,12 @@ bool DynamicThreadPoolTaskDispatcher::canRunMaterializationTaskNow() {
 bool DynamicThreadPoolTaskDispatcher::canRunIdleTaskNow() {
   return !MaxMaterializationThreads ||
          (Outstanding < *MaxMaterializationThreads);
+}
+
+void DynamicThreadPoolTaskDispatcher::work_until(future_base& F) {
+  // TODO: Implement efficient work_until for DynamicThreadPoolTaskDispatcher
+  std::unique_lock<std::mutex> Lock(DispatchMutex);
+  OutstandingCV.wait(Lock, [this]() { return Outstanding == 0; });
 }
 
 #endif

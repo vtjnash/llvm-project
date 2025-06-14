@@ -19,6 +19,7 @@
 #include "llvm/Support/ExtensibleRTTI.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <atomic>
 #include <cassert>
 #include <string>
 
@@ -31,6 +32,12 @@
 
 namespace llvm {
 namespace orc {
+
+/// Forward declarations
+class future_base;
+template <typename T> class future;
+template <typename T> class promise;
+class TaskDispatcher;
 
 /// Represents an abstract task for ORC to run.
 class LLVM_ABI Task : public RTTIExtends<Task, RTTIRoot> {
@@ -113,6 +120,9 @@ public:
 
   /// Called by ExecutionSession. Waits until all tasks have completed.
   virtual void shutdown() = 0;
+
+  /// Work on dispatched tasks until the given future is ready.
+  virtual void work_until(future_base& F) = 0;
 };
 
 /// Runs all tasks on the current thread.
@@ -120,6 +130,16 @@ class LLVM_ABI InPlaceTaskDispatcher : public TaskDispatcher {
 public:
   void dispatch(std::unique_ptr<Task> T) override;
   void shutdown() override;
+  void work_until(future_base& F) override;
+
+private:
+  thread_local static SmallVector<std::unique_ptr<Task>> TaskQueue;
+  
+#if LLVM_ENABLE_THREADS
+  std::mutex DispatchMutex;
+  std::condition_variable WorkFinishedCV;
+  SmallVector<future_base*> WaitingFutures;
+#endif
 };
 
 #if LLVM_ENABLE_THREADS
@@ -132,6 +152,7 @@ public:
 
   void dispatch(std::unique_ptr<Task> T) override;
   void shutdown() override;
+  void work_until(future_base& F) override;
 private:
   bool canRunMaterializationTaskNow();
   bool canRunIdleTaskNow();
@@ -148,6 +169,103 @@ private:
 };
 
 #endif // LLVM_ENABLE_THREADS
+
+/// Type-erased base class for futures
+class future_base {
+public:
+  virtual ~future_base() = default;
+
+  bool is_ready() const {
+    return state_->status_.load(std::memory_order_acquire) != 0;
+  }
+
+  /// Wait for the future to be ready, helping with task dispatch
+  void wait(TaskDispatcher& D) {
+    // Keep helping with task dispatch until our future is ready
+    if (!is_ready())
+      D.work_until(*this);
+    assert(is_ready());
+  }
+
+protected:
+  struct state_base {
+    std::atomic<uint8_t> status_{0};
+  };
+
+  future_base(std::shared_ptr<state_base> state) : state_(std::move(state)) {}
+  future_base() = default;
+
+  std::shared_ptr<state_base> state_;
+};
+
+/// ORC-aware future class that can help with task dispatch while waiting
+template <typename T>
+class future : public future_base {
+public:
+  struct state : public future_base::state_base {
+    T value_;
+  };
+
+  future() = default;
+  future(const future&) = delete;
+  future& operator=(const future&) = delete;
+  future(future&&) = default;
+  future& operator=(future&&) = default;
+
+
+  /// Get the value, helping with task dispatch while waiting.
+  /// This will destroy the underlying value, so this must only be called once.
+  T get(TaskDispatcher& D) {
+    wait(D);
+    // optionally: state_->ready_.swap(0, std::memory_order_acquire);
+    return std::move(static_cast<typename future<T>::state*>(state_.get())->value_);
+  }
+
+  /// Cast a future to a different type using static_pointer_cast
+  template <typename U>
+  static future<U> static_pointer_cast(future<T>&& f) {
+    std::shared_ptr<typename future<U>::state> casted_state = std::static_pointer_cast<typename future<U>::state>(std::move(f.state_));
+    return future<U>(casted_state);
+  }
+
+private:
+  friend class promise<T>;
+  
+  explicit future(std::shared_ptr<state> state) : future_base(state) {}
+};
+
+/// ORC-aware promise class that works with ORC future
+template <typename T>
+class promise {
+  friend class future<T>;
+  
+public:
+  promise() : state_(std::make_shared<typename future<T>::state>()) {}
+  promise(const promise&) = delete;
+  promise& operator=(const promise&) = delete;
+  promise(promise&&) = default;
+  promise& operator=(promise&&) = default;
+
+  /// Get the associated future
+  future<T> get_future() {
+    return future<T>(state_);
+  }
+
+  /// Set the value
+  void set_value(const T& value) {
+    state_->value_ = value;
+    state_->status_.store(1, std::memory_order_release);
+  }
+  
+  void set_value(T&& value) {
+    state_->value_ = std::move(value);
+    state_->status_.store(1, std::memory_order_release);
+  }
+
+private:
+  std::shared_ptr<typename future<T>::state> state_;
+};
+
 
 } // End namespace orc
 } // End namespace llvm

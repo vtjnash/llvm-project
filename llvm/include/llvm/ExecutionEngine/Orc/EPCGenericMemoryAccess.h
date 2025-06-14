@@ -45,7 +45,7 @@ public:
   /// Create an EPCGenericMemoryAccess instance from a given set of
   /// function addrs.
   EPCGenericMemoryAccess(ExecutorProcessControl &EPC, FuncAddrs FAs)
-      : EPC(EPC), FAs(FAs) {}
+      : MemoryAccess(EPC), FAs(FAs) {}
 
   void writeUInt8sAsync(ArrayRef<tpctypes::UInt8Write> Ws,
                         WriteResultFn OnWriteComplete) override {
@@ -202,7 +202,6 @@ public:
   }
 
 private:
-  ExecutorProcessControl &EPC;
   FuncAddrs FAs;
 };
 

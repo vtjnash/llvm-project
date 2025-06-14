@@ -26,13 +26,13 @@
 #include "llvm/Support/Compiler.h"
 #include "llvm/TargetParser/Triple.h"
 
-#include <future>
 #include <mutex>
 #include <vector>
 
 namespace llvm::orc {
 
 class ExecutionSession;
+class DylibManager;
 
 /// ExecutorProcessControl supports interaction with a JIT target process.
 class LLVM_ABI ExecutorProcessControl {
@@ -95,6 +95,85 @@ public:
     }
   private:
     TaskDispatcher &D;
+  };
+
+  /// APIs for manipulating memory in the target process.
+  class LLVM_ABI MemoryAccess {
+  public:
+    /// Callback function for asynchronous writes.
+    using WriteResultFn = unique_function<void(Error)>;
+
+    MemoryAccess(ExecutorProcessControl &EPC) : EPC(EPC) {}
+    virtual ~MemoryAccess();
+
+    virtual void writeUInt8sAsync(ArrayRef<tpctypes::UInt8Write> Ws,
+                                  WriteResultFn OnWriteComplete) = 0;
+
+    virtual void writeUInt16sAsync(ArrayRef<tpctypes::UInt16Write> Ws,
+                                   WriteResultFn OnWriteComplete) = 0;
+
+    virtual void writeUInt32sAsync(ArrayRef<tpctypes::UInt32Write> Ws,
+                                   WriteResultFn OnWriteComplete) = 0;
+
+    virtual void writeUInt64sAsync(ArrayRef<tpctypes::UInt64Write> Ws,
+                                   WriteResultFn OnWriteComplete) = 0;
+
+    virtual void writeBuffersAsync(ArrayRef<tpctypes::BufferWrite> Ws,
+                                   WriteResultFn OnWriteComplete) = 0;
+
+    virtual void writePointersAsync(ArrayRef<tpctypes::PointerWrite> Ws,
+                                    WriteResultFn OnWriteComplete) = 0;
+
+    Error writeUInt8s(ArrayRef<tpctypes::UInt8Write> Ws) {
+      orc::promise<MSVCPError> ResultP;
+      auto ResultF = ResultP.get_future();
+      writeUInt8sAsync(Ws,
+                       [&](Error Err) { ResultP.set_value(std::move(Err)); });
+      return ResultF.get(EPC.getDispatcher());
+    }
+
+    Error writeUInt16s(ArrayRef<tpctypes::UInt16Write> Ws) {
+      orc::promise<MSVCPError> ResultP;
+      auto ResultF = ResultP.get_future();
+      writeUInt16sAsync(Ws,
+                        [&](Error Err) { ResultP.set_value(std::move(Err)); });
+      return ResultF.get(EPC.getDispatcher());
+    }
+
+    Error writeUInt32s(ArrayRef<tpctypes::UInt32Write> Ws) {
+      orc::promise<MSVCPError> ResultP;
+      auto ResultF = ResultP.get_future();
+      writeUInt32sAsync(Ws,
+                        [&](Error Err) { ResultP.set_value(std::move(Err)); });
+      return ResultF.get(EPC.getDispatcher());
+    }
+
+    Error writeUInt64s(ArrayRef<tpctypes::UInt64Write> Ws) {
+      orc::promise<MSVCPError> ResultP;
+      auto ResultF = ResultP.get_future();
+      writeUInt64sAsync(Ws,
+                        [&](Error Err) { ResultP.set_value(std::move(Err)); });
+      return ResultF.get(EPC.getDispatcher());
+    }
+
+    Error writeBuffers(ArrayRef<tpctypes::BufferWrite> Ws) {
+      orc::promise<MSVCPError> ResultP;
+      auto ResultF = ResultP.get_future();
+      writeBuffersAsync(Ws,
+                        [&](Error Err) { ResultP.set_value(std::move(Err)); });
+      return ResultF.get(EPC.getDispatcher());
+    }
+
+    Error writePointers(ArrayRef<tpctypes::PointerWrite> Ws) {
+      orc::promise<MSVCPError> ResultP;
+      auto ResultF = ResultP.get_future();
+      writePointersAsync(Ws,
+                         [&](Error Err) { ResultP.set_value(std::move(Err)); });
+      return ResultF.get(EPC.getDispatcher());
+    }
+
+  protected:
+    ExecutorProcessControl &EPC;
   };
 
   /// Contains the address of the dispatch function and context that the ORC
@@ -251,14 +330,14 @@ public:
   /// \endcode{.cpp}
   shared::WrapperFunctionResult callWrapper(ExecutorAddr WrapperFnAddr,
                                             ArrayRef<char> ArgBuffer) {
-    std::promise<shared::WrapperFunctionResult> RP;
+    orc::promise<shared::WrapperFunctionResult> RP;
     auto RF = RP.get_future();
     callWrapperAsync(
         RunInPlace(), WrapperFnAddr,
         [&](shared::WrapperFunctionResult R) {
           RP.set_value(std::move(R));
         }, ArgBuffer);
-    return RF.get();
+    return RF.get(*D);
   }
 
   /// Run a wrapper function using SPS to serialize the arguments and
@@ -322,6 +401,34 @@ protected:
   StringMap<ExecutorAddr> BootstrapSymbols;
 };
 
-} // namespace llvm::orc
+class LLVM_ABI InProcessMemoryAccess
+    : public ExecutorProcessControl::MemoryAccess {
+public:
+  InProcessMemoryAccess(ExecutorProcessControl &EPC, bool IsArch64Bit) 
+      : MemoryAccess(EPC), IsArch64Bit(IsArch64Bit) {}
+  void writeUInt8sAsync(ArrayRef<tpctypes::UInt8Write> Ws,
+                        WriteResultFn OnWriteComplete) override;
+
+  void writeUInt16sAsync(ArrayRef<tpctypes::UInt16Write> Ws,
+                         WriteResultFn OnWriteComplete) override;
+
+  void writeUInt32sAsync(ArrayRef<tpctypes::UInt32Write> Ws,
+                         WriteResultFn OnWriteComplete) override;
+
+  void writeUInt64sAsync(ArrayRef<tpctypes::UInt64Write> Ws,
+                         WriteResultFn OnWriteComplete) override;
+
+  void writeBuffersAsync(ArrayRef<tpctypes::BufferWrite> Ws,
+                         WriteResultFn OnWriteComplete) override;
+
+  void writePointersAsync(ArrayRef<tpctypes::PointerWrite> Ws,
+                          WriteResultFn OnWriteComplete) override;
+
+private:
+  bool IsArch64Bit;
+};
+
+} // end namespace orc
+} // end namespace llvm
 
 #endif // LLVM_EXECUTIONENGINE_ORC_EXECUTORPROCESSCONTROL_H
