@@ -1463,9 +1463,10 @@ Expected<DenseMap<JITDylib *, SymbolMap>> Platform::lookupInitSymbols(
 
   DenseMap<JITDylib *, SymbolMap> CompoundResult;
   Error CompoundErr = Error::success();
+  orc::promise<void> ResultReady;
+  auto ReadyF = ResultReady.get_future();
   std::mutex LookupMutex;
-  std::condition_variable CV;
-  uint64_t Count = InitSyms.size();
+  volatile uint64_t Count = InitSyms.size();
 
   LLVM_DEBUG({
     dbgs() << "Issuing init-symbol lookup:\n";
@@ -1473,6 +1474,8 @@ Expected<DenseMap<JITDylib *, SymbolMap>> Platform::lookupInitSymbols(
       dbgs() << "  " << KV.first->getName() << ": " << KV.second << "\n";
   });
 
+  if (Count == 0)
+    ResultReady.set_value();
   for (auto &KV : InitSyms) {
     auto *JD = KV.first;
     auto Names = std::move(KV.second);
@@ -1491,14 +1494,14 @@ Expected<DenseMap<JITDylib *, SymbolMap>> Platform::lookupInitSymbols(
             } else
               CompoundErr =
                   joinErrors(std::move(CompoundErr), Result.takeError());
+            if (Count == 0)
+              ResultReady.set_value();
           }
-          CV.notify_one();
         },
         NoDependenciesToRegister);
   }
 
-  std::unique_lock<std::mutex> Lock(LookupMutex);
-  CV.wait(Lock, [&] { return Count == 0; });
+  ReadyF.get(ES.getExecutorProcessControl().getDispatcher());
 
   if (CompoundErr)
     return std::move(CompoundErr);

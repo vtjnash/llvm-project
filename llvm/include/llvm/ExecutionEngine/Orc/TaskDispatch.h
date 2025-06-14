@@ -266,6 +266,46 @@ private:
   std::shared_ptr<typename future<T>::state> state_;
 };
 
+/// Specialization of future<void>
+template <> class future<void> : public future_base {
+public:
+  using state = future_base::state_base;
+
+  future() = default;
+  future(const future &) = delete;
+  future &operator=(const future &) = delete;
+  future(future &&) = default;
+  future &operator=(future &&) = default;
+
+  /// Get the value (void), helping with task dispatch while waiting.
+  void get(TaskDispatcher &D) { wait(D); }
+
+private:
+  friend class promise<void>;
+
+  explicit future(std::shared_ptr<state> state) : future_base(state) {}
+};
+
+/// Specialization of promise<void>
+template <> class promise<void> {
+  friend class future<void>;
+
+public:
+  promise() : state_(std::make_shared<future<void>::state>()) {}
+  promise(const promise &) = delete;
+  promise &operator=(const promise &) = delete;
+  promise(promise &&) = default;
+  promise &operator=(promise &&) = default;
+
+  /// Get the associated future
+  future<void> get_future() { return future<void>(state_); }
+
+  /// Set the value (void)
+  void set_value() { state_->status_.store(1, std::memory_order_release); }
+
+private:
+  std::shared_ptr<future<void>::state> state_;
+};
 
 } // End namespace orc
 } // End namespace llvm
