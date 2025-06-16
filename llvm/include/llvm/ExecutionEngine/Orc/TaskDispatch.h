@@ -162,6 +162,7 @@ private:
   bool Shutdown = false;
   size_t Outstanding = 0;
   std::condition_variable OutstandingCV;
+  SmallVector<future_base *> WaitingFutures;
 
   std::optional<size_t> MaxMaterializationThreads;
   size_t NumMaterializationThreads = 0;
@@ -171,13 +172,16 @@ private:
 
 #endif // LLVM_ENABLE_THREADS
 
+/// ORC-TaskDispatch aware promise/future class that can help with task dispatch while waiting
+// TODO: docs
+
 /// Status for future/promise state
 enum class FutureStatus : uint8_t { NotReady = 0, Ready = 1, NotValid = 2 };
 
 /// Type-erased base class for futures
 class future_base {
 public:
-  bool is_ready() const {
+  bool ready() const {
     return state_->status_.load(std::memory_order_acquire) !=
            FutureStatus::NotReady;
   }
@@ -191,9 +195,9 @@ public:
   /// Wait for the future to be ready, helping with task dispatch
   void wait(TaskDispatcher &D) {
     // Keep helping with task dispatch until our future is ready
-    if (!is_ready())
+    if (!ready())
       D.work_until(*this);
-    assert(is_ready());
+    assert(ready());
   }
 
 protected:

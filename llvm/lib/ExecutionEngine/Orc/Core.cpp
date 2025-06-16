@@ -1784,11 +1784,6 @@ void ExecutionSession::lookup(
     });
   });
 
-  // lookup can be re-entered recursively if running on a single thread. Run any
-  // outstanding MUs in case this query depends on them, otherwise this lookup
-  // will starve waiting for a result from an MU that is stuck in the queue.
-  dispatchOutstandingMUs();
-
   auto Unresolved = std::move(Symbols);
   auto Q = std::make_shared<AsynchronousSymbolQuery>(Unresolved, RequiredState,
                                                      std::move(NotifyComplete));
@@ -2040,32 +2035,6 @@ bool ExecutionSession::verifySessionState(Twine Phase) {
   });
 }
 #endif // EXPENSIVE_CHECKS
-
-void ExecutionSession::dispatchOutstandingMUs() {
-  LLVM_DEBUG(dbgs() << "Dispatching MaterializationUnits...\n");
-  while (true) {
-    std::optional<std::pair<std::unique_ptr<MaterializationUnit>,
-                            std::unique_ptr<MaterializationResponsibility>>>
-        JMU;
-
-    {
-      std::lock_guard<std::recursive_mutex> Lock(OutstandingMUsMutex);
-      if (!OutstandingMUs.empty()) {
-        JMU.emplace(std::move(OutstandingMUs.back()));
-        OutstandingMUs.pop_back();
-      }
-    }
-
-    if (!JMU)
-      break;
-
-    assert(JMU->first && "No MU?");
-    LLVM_DEBUG(dbgs() << "  Dispatching \"" << JMU->first->getName() << "\"\n");
-    dispatchTask(std::make_unique<MaterializationTask>(std::move(JMU->first),
-                                                       std::move(JMU->second)));
-  }
-  LLVM_DEBUG(dbgs() << "Done dispatching MaterializationUnits.\n");
-}
 
 Error ExecutionSession::removeResourceTracker(ResourceTracker &RT) {
   LLVM_DEBUG({
@@ -2640,8 +2609,6 @@ void ExecutionSession::OL_completeLookup(
 
     // Move the collected MUs to the OutstandingMUs list.
     if (!CollectedUMIs.empty()) {
-      std::lock_guard<std::recursive_mutex> Lock(OutstandingMUsMutex);
-
       LLVM_DEBUG(dbgs() << "Adding MUs to dispatch:\n");
       for (auto &KV : CollectedUMIs) {
         LLVM_DEBUG({
@@ -2653,8 +2620,9 @@ void ExecutionSession::OL_completeLookup(
           auto MR = createMaterializationResponsibility(
               *UMI->RT, std::move(UMI->MU->SymbolFlags),
               std::move(UMI->MU->InitSymbol));
-          OutstandingMUs.push_back(
-              std::make_pair(std::move(UMI->MU), std::move(MR)));
+          LLVM_DEBUG(dbgs() << "  Dispatching \"" << UMI->MU->getName() << "\"\n");
+          dispatchTask(std::make_unique<MaterializationTask>(std::move(UMI->MU),
+                                                             std::move(MR)));
         }
       }
     } else
@@ -2680,8 +2648,6 @@ void ExecutionSession::OL_completeLookup(
     LLVM_DEBUG(dbgs() << "Completing query\n");
     Q->handleComplete(*this);
   }
-
-  dispatchOutstandingMUs();
 }
 
 void ExecutionSession::OL_completeLookupFlags(

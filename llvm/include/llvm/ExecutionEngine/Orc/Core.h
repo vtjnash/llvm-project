@@ -1707,8 +1707,6 @@ private:
     logAllUnhandledErrors(std::move(Err), errs(), "JIT session error: ");
   }
 
-  void dispatchOutstandingMUs();
-
   static std::unique_ptr<MaterializationResponsibility>
   createMaterializationResponsibility(ResourceTracker &RT,
                                       SymbolFlagsMap Symbols,
@@ -1814,13 +1812,6 @@ private:
 
   std::vector<JITDylibSP> JDs;
   WaitingOnGraph G;
-
-  // FIXME: Remove this (and runOutstandingMUs) once the linking layer works
-  //        with callbacks from asynchronous queries.
-  mutable std::recursive_mutex OutstandingMUsMutex;
-  std::vector<std::pair<std::unique_ptr<MaterializationUnit>,
-                        std::unique_ptr<MaterializationResponsibility>>>
-      OutstandingMUs;
 
   mutable std::mutex JITDispatchHandlersMutex;
   DenseMap<ExecutorAddr, std::shared_ptr<JITDispatchHandlerFunction>>

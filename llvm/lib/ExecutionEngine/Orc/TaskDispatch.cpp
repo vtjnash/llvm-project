@@ -40,7 +40,7 @@ void InPlaceTaskDispatcher::shutdown() {
 }
 
 void InPlaceTaskDispatcher::work_until(future_base &F) {
-  while (!F.is_ready()) {
+  while (!F.ready()) {
     // First, process any tasks in our local queue
     // Process in LIFO order (most recently added first) to avoid deadlocks
     // when tasks have dependencies on each other
@@ -54,7 +54,7 @@ void InPlaceTaskDispatcher::work_until(future_base &F) {
       {
         std::lock_guard<std::mutex> Lock(DispatchMutex);
         bool ShouldNotify = llvm::any_of(
-            WaitingFutures, [](future_base *F) { return F->is_ready(); });
+            WaitingFutures, [](future_base *F) { return F->ready(); });
         if (ShouldNotify) {
           WaitingFutures.clear();
           WorkFinishedCV.notify_all();
@@ -63,23 +63,23 @@ void InPlaceTaskDispatcher::work_until(future_base &F) {
 #endif
 
       // Check if our future is now ready
-      if (F.is_ready())
+      if (F.ready())
         return;
     }
 
     // If we get here, our queue is empty but the future isn't ready
-    // We need to wait for other threads to finish work that might complete our
+    // We need to wait for other threads to finish work that should complete our
     // future
 #if LLVM_ENABLE_THREADS
     {
       std::unique_lock<std::mutex> Lock(DispatchMutex);
       WaitingFutures.push_back(&F);
-      WorkFinishedCV.wait(Lock, [&F]() { return F.is_ready(); });
+      WorkFinishedCV.wait(Lock, [&F]() { return F.ready(); });
     }
 #else
     // Without threading, if our queue is empty and future isn't ready,
-    // we can't make progress
-    return;
+    // the library must have forgotten to schedule it, causing deadlock here
+    report_fatal_error("waiting for future that was never dispatched");
 #endif
   }
 }
@@ -140,6 +140,13 @@ void DynamicThreadPoolTaskDispatcher::dispatch(std::unique_ptr<Task> T) {
         --NumMaterializationThreads;
       --Outstanding;
 
+      bool ShouldNotify = Outstanding == 0 || llvm::any_of(
+          WaitingFutures, [](future_base *F) { return F->ready(); });
+      if (ShouldNotify) {
+        WaitingFutures.clear();
+        OutstandingCV.notify_all();
+      }
+
       if (!MaterializationTaskQueue.empty() && canRunMaterializationTaskNow()) {
         // If there are any materialization tasks running then steal that work.
         T = std::move(MaterializationTaskQueue.front());
@@ -153,8 +160,6 @@ void DynamicThreadPoolTaskDispatcher::dispatch(std::unique_ptr<Task> T) {
         TaskKind = Idle;
         ++Outstanding;
       } else {
-        if (Outstanding == 0)
-          OutstandingCV.notify_all();
         return;
       }
     }
@@ -178,9 +183,9 @@ bool DynamicThreadPoolTaskDispatcher::canRunIdleTaskNow() {
 }
 
 void DynamicThreadPoolTaskDispatcher::work_until(future_base &F) {
-  // TODO: Implement efficient work_until for DynamicThreadPoolTaskDispatcher
   std::unique_lock<std::mutex> Lock(DispatchMutex);
-  OutstandingCV.wait(Lock, [this]() { return Outstanding == 0; });
+  WaitingFutures.push_back(&F);
+  OutstandingCV.wait(Lock, [&F]() { return F.ready(); });
 }
 
 #endif
