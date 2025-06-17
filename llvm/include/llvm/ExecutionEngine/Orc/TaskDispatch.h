@@ -13,8 +13,8 @@
 #ifndef LLVM_EXECUTIONENGINE_ORC_TASKDISPATCH_H
 #define LLVM_EXECUTIONENGINE_ORC_TASKDISPATCH_H
 
-#include "llvm/Config/llvm-config.h"
 #include "llvm/ADT/BitmaskEnum.h"
+#include "llvm/Config/llvm-config.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -39,6 +39,23 @@ namespace orc {
 /// Forward declarations
 class future_base;
 class TaskDispatcher;
+
+/// Value storage template for future EBCO pattern
+/// Moved outside class to avoid GCC nested template specialization issues
+template <typename U> struct future_value_storage {
+  // Union disables default construction/destruction semantics, allowing us to
+  // use placement new/delete for precise control over value lifetime
+  union {
+    U value_;
+  };
+
+  future_value_storage() {}
+  ~future_value_storage() {}
+};
+
+template <> struct future_value_storage<void> {
+  // No value_ member for void
+};
 
 /// Represents an abstract task for ORC to run.
 class LLVM_ABI Task : public RTTIExtends<Task, RTTIRoot> {
@@ -140,7 +157,8 @@ private:
 #if LLVM_ENABLE_THREADS
   thread_local static
 #endif
-    SmallVector<std::pair<std::unique_ptr<Task>, InPlaceTaskDispatcher*>> TaskQueue;
+      SmallVector<std::pair<std::unique_ptr<Task>, InPlaceTaskDispatcher *>>
+          TaskQueue;
 
 #if LLVM_ENABLE_THREADS
   std::mutex DispatchMutex;
@@ -180,13 +198,13 @@ private:
 #endif // LLVM_ENABLE_THREADS
 
 /// @name ORC Promise/Future Classes
-/// 
+///
 /// ORC-aware promise/future implementation that integrates with the
 /// TaskDispatcher system to allow efficient cooperative multitasking while
 /// waiting for results (with certain limitations on what can be awaited).
 /// Together they provide building blocks for a full async/await-like runtime
 /// for llvm that supports multiple threads.
-/// 
+///
 /// Unlike std::promise/std::future alone, these classes can help dispatch other
 /// tasks while waiting, preventing deadlocks and improving overall system
 /// throughput. They have a similar API, though with some important differences
@@ -194,39 +212,44 @@ private:
 ///
 /// @{
 
+template <typename T> class promise;
+
 /// Status for future/promise state
 enum class FutureStatus : uint8_t { NotReady = 0, Ready = 1 };
 
 /// Status for promise state tracking
-enum class PromiseStatus : uint8_t { 
-  Initial = 0, 
-  FutureCreated = 1, 
+enum class PromiseStatus : uint8_t {
+  Initial = 0,
+  FutureCreated = 1,
   ValueSet = 2,
   LLVM_MARK_AS_BITMASK_ENUM(ValueSet)
 };
+
+/// @}
 
 /// Type-erased base class for futures, generally for scheduler use to avoid
 /// needing virtual dispatches
 class future_base {
 public:
-  /// Check if the future is now ready with a value (precondition: should be valid)
+  /// Check if the future is now ready with a value (precondition: should be
+  /// valid)
   bool ready() const {
     return state_->status_.load(std::memory_order_acquire) !=
            FutureStatus::NotReady;
   }
 
   /// Check if the future is in a valid state (not moved-from and not consumed)
-  bool valid() const {
-    return state_ != nullptr;
-  }
+  bool valid() const { return state_ != nullptr; }
 
   /// Wait for the future to be ready, helping with task dispatch
   void wait(TaskDispatcher &D) {
     // Keep helping with task dispatch until our future is ready
     if (!ready()) {
       D.work_until(*this);
-      if (state_->status_.load(std::memory_order_relaxed) != FutureStatus::Ready)
-        report_fatal_error("work_until() returned without this future being ready");
+      if (state_->status_.load(std::memory_order_relaxed) !=
+          FutureStatus::Ready)
+        report_fatal_error(
+            "work_until() returned without this future being ready");
     }
   }
 
@@ -241,8 +264,9 @@ protected:
   /// Only allow deleting the future once it is invalid
   ~future_base() {
     if (valid())
-      report_fatal_error("get() must be called before future destruction");
-    // state_ is already nullptr if get() was called, otherwise we have an error above
+      report_fatal_error("get() must be called before future destruction (ensuring promise::set_value memory is valid)");
+    // state_ is already nullptr if get() was called, otherwise we have an error
+    // above
   }
 
   // Move constructor and assignment
@@ -264,42 +288,37 @@ protected:
 
 /// TaskDispatcher-aware future class for cooperative await.
 ///
-/// @tparam T The type of value this future will provide. Use void for futures that
+/// @tparam T The type of value this future will provide. Use void for futures
+/// that
 ///           signal completion without providing a value.
 ///
 /// This future implementation is similar to `std::future`, so most code can
-/// transition to it easily`. However, it differs from `std::future` in a few key
-/// ways to be aware of:
+/// transition to it easily. However, it differs from `std::future` in a few
+/// key ways to be aware of:
 /// - No exception support (or the overhead for it).
 /// - Waiting operations (get(&D), wait(&D)) help dispatch other tasks while
-///   blocked, requiring an additional argument of which TaskDispatcher object of
-///   where all associated work will be scheduled.
+///   blocked, requiring an additional argument of which TaskDispatcher object
+///   of where all associated work will be scheduled.
+/// - While `wait` may be called multiple times and on multiple threads, all of
+///   them must have returned before calling `get` on exactly one thread.
 /// - Must call get() exactly once before destruction (enforced with
 ///   `report_fatal_error`). Internal state is freed when `get` returns.
 ///
 /// Other notable features, in common with `std::future`:
-/// - Supports both value types and void specialization through the same interface.
+/// - Supports both value types and void specialization through the same
+/// interface.
 /// - Thread-safe through atomic operations.
 /// - Provides acquire-release ordering with `std::promise::set_value()`.
 /// - Concurrent access to any method (including to `ready`) on multiple threads
 ///   is not allowed.
+/// - Holding any locks while calling `get()` is likely to lead to deadlock.
 
-template <typename T> class future;
-template <typename T> class promise;
 template <typename T> class future : public future_base {
 public:
-  // Template the state struct so that future<void> has no wasted overhead for the value
-  struct state : public future_base::state_base {
-    template <typename U> struct value_storage {
-      U value_;
-    };
-
-    template <> struct value_storage<void> {
-      // No value_ member for void
-    };
-
-    value_storage<T> storage;
-  };
+  // Template the state struct with EBCO so that future<void> has no wasted
+  // overhead for the value. The declaration of future_value_storage is above
+  // since GCC doesn't implement nested specializations properly.
+  struct state : public future_base::state_base, public future_value_storage<T> {};
 
   future() = delete;
   future(const future &) = delete;
@@ -308,7 +327,8 @@ public:
   future &operator=(future &&) = default;
 
   /// Get the value, helping with task dispatch while waiting.
-  /// This will destroy the underlying value, so this must be called exactly once.
+  /// This will destroy the underlying value, so this must be called exactly
+  /// once.
   T get(TaskDispatcher &D) {
     if (!valid())
       report_fatal_error("get() must only be called once");
@@ -321,8 +341,9 @@ private:
 
   template <typename U = T>
   typename std::enable_if<!std::is_void<U>::value, U>::type take_value() {
-    T result = std::move(
-        static_cast<typename future<T>::state *>(state_)->storage.value_);
+    auto state = static_cast<typename future<T>::state *>(state_);
+    T result = std::move(state->value_);
+    state->value_.~T();
     delete state_;
     state_ = nullptr;
     return result;
@@ -337,18 +358,36 @@ private:
   explicit future(state *state) : future_base(state) {}
 };
 
-/// TaskDispatcher-aware promise class that provides values to associated futures.
+/// TaskDispatcher-aware promise class that provides values to associated
+/// futures.
 ///
-/// @tparam T The type of value this promise will provide. Use void for promises that
+/// @tparam T The type of value this promise will provide. Use void for promises
+/// that
 ///           signal completion without providing a value.
 ///
-/// This promise implementation provides the value-setting side of the promise/future
-/// pair and integrates with the ORC TaskDispatcher system. Key characteristics:
+/// This promise implementation provides the value-setting side of the
+/// promise/future pair and integrates with the ORC TaskDispatcher system. Key
+/// characteristics:
 /// - Must call get_future() no more than once to create the associated future.
 /// - Must call set_value() exactly once to provide the result.
 /// - Automatically cleans up state if get_future() is never called.
 /// - Thread-safe from set_value to get.
 /// - Move-only semantics to prevent accidental copying.
+///
+/// The `promise` can usually be passed to another thread in one of two ways:
+/// - With move semantics:
+///     * `[P = std::move(P)] () mutable { P.set_value(); }`
+///     * Advantages: clearer where `P` is owned, automatic deadlock detection
+///     on destruction,
+///       easier memory management if the future is returned from the function.
+///     * Disadvantages: more verbose syntax, requires unique_function (not
+///     compatible with std::function).
+/// - By reference:
+///     * `[&P] () { P.set_value(); }`
+///     * Advantages: simpler memory management if the future is consumed in the
+///     same function.
+///     * Disadvantages: more difficult memory management if the future is
+///     returned from the function, no deadlock detection.
 ///
 /// @par Error Handling:
 /// The promise/future system uses report_fatal_error() for misuse:
@@ -367,15 +406,19 @@ template <typename T> class promise {
   friend class future<T>;
 
 public:
-  promise() : state_(new typename future<T>::state()), status_(PromiseStatus::Initial) {}
+  promise()
+      : state_(new typename future<T>::state()),
+        status_(PromiseStatus::Initial) {}
 
   ~promise() {
     // Assert proper promise lifecycle: ensure set_value was called if
     // get_future() was called. This can catch deadlocks where get_future() is
     // called but set_value() is never called, though only if the promise is
     // moved from instead of borrowed from the frame with the future.
-    assert((bool)(status_ & PromiseStatus::ValueSet) == (bool)(status_ & PromiseStatus::FutureCreated) && 
-           "Promise destroyed with mismatched ValueSet and FutureCreated state");
+    assert(
+        (bool)(status_ & PromiseStatus::ValueSet) ==
+            (bool)(status_ & PromiseStatus::FutureCreated) &&
+        "Promise destroyed with mismatched value_set and get_future call state (possible deadlock)");
     // Delete state only if get_future() was never called
     if (!(status_ & PromiseStatus::FutureCreated)) {
       delete state_;
@@ -406,7 +449,8 @@ public:
 
   /// Get the associated future (must only be called once)
   future<T> get_future() {
-    assert(!(status_ & PromiseStatus::FutureCreated) && "get_future() can only be called once");
+    assert(!(status_ & PromiseStatus::FutureCreated) &&
+           "get_future() can only be called once");
     status_ |= PromiseStatus::FutureCreated;
     return future<T>(state_);
   }
@@ -421,8 +465,9 @@ public:
   set_value(const typename std::conditional<std::is_void<T>::value,
                                             std::nullopt_t, T>::type &value) {
     assert(state_ && "Invalid promise state");
-    assert(!(status_ & PromiseStatus::ValueSet) && "set_value() can only be called once");
-    state_->storage.value_ = value;
+    assert(!(status_ & PromiseStatus::ValueSet) &&
+           "set_value() can only be called once");
+    new (&state_->value_) T(value);
     status_ |= PromiseStatus::ValueSet;
     state_->status_.store(FutureStatus::Ready, std::memory_order_release);
   }
@@ -431,8 +476,9 @@ public:
   void set_value(typename std::conditional<std::is_void<T>::value,
                                            std::nullopt_t, T>::type &&value) {
     assert(state_ && "Invalid promise state");
-    assert(!(status_ & PromiseStatus::ValueSet) && "set_value() can only be called once");
-    state_->storage.value_ = std::move(value);
+    assert(!(status_ & PromiseStatus::ValueSet) &&
+           "set_value() can only be called once");
+    new (&state_->value_) T(std::move(value));
     status_ |= PromiseStatus::ValueSet;
     state_->status_.store(FutureStatus::Ready, std::memory_order_release);
   }
@@ -448,7 +494,8 @@ public:
   template <typename U = T>
   typename std::enable_if<std::is_void<U>::value, void>::type set_value() {
     assert(state_ && "Invalid promise state");
-    assert(!(status_ & PromiseStatus::ValueSet) && "set_value() can only be called once");
+    assert(!(status_ & PromiseStatus::ValueSet) &&
+           "set_value() can only be called once");
     status_ |= PromiseStatus::ValueSet;
     state_->status_.store(FutureStatus::Ready, std::memory_order_release);
   }
@@ -464,8 +511,6 @@ private:
   typename future<T>::state *state_;
   PromiseStatus status_;
 };
-
-/// @}
 
 } // End namespace orc
 } // End namespace llvm

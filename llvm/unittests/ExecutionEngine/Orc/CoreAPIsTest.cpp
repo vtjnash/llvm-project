@@ -162,7 +162,8 @@ TEST_F(CoreAPIsStandardTest, MaterializationSideEffctsOnlyBasic) {
       SymbolFlagsMap(
           {{Foo, JITSymbolFlags::Exported |
                      JITSymbolFlags::MaterializationSideEffectsOnly}}),
-      [FooPromise = std::move(FooPromise)](std::unique_ptr<MaterializationResponsibility> R) mutable {
+      [FooPromise = std::move(FooPromise)](
+          std::unique_ptr<MaterializationResponsibility> R) mutable {
         FooPromise.set_value(std::move(R));
       })));
 
@@ -170,7 +171,8 @@ TEST_F(CoreAPIsStandardTest, MaterializationSideEffctsOnlyBasic) {
       LookupKind::Static, makeJITDylibSearchOrder(&JD),
       SymbolLookupSet(Foo, SymbolLookupFlags::WeaklyReferencedSymbol),
       SymbolState::Ready,
-      [ResultPromise = std::move(ResultPromise)](Expected<SymbolMap> LookupResult) mutable {
+      [ResultPromise =
+           std::move(ResultPromise)](Expected<SymbolMap> LookupResult) mutable {
         if (LookupResult)
           ResultPromise.set_value(std::move(*LookupResult));
         else {
@@ -701,7 +703,7 @@ TEST_F(CoreAPIsStandardTest, TestCircularDependenceInOneJITDylib) {
             SymbolLookupSet(Baz), SymbolState::Ready, std::move(OnBazReady),
             NoDependenciesToRegister);
   getDispatcher().shutdown();
- 
+
   // Check that nothing has been resolved yet.
   EXPECT_FALSE(FooResolved) << "\"Foo\" should not be resolved yet";
   EXPECT_FALSE(BarResolved) << "\"Bar\" should not be resolved yet";
@@ -908,13 +910,15 @@ TEST_F(CoreAPIsStandardTest, FailAfterMaterialization) {
   // MaterializationResponsibility into one of the locals above.
   auto FooMU = std::make_unique<SimpleMaterializationUnit>(
       SymbolFlagsMap({{Foo, FooSym.getFlags()}}),
-      [FooPromise = std::move(FooPromise)](std::unique_ptr<MaterializationResponsibility> R) mutable {
+      [FooPromise = std::move(FooPromise)](
+          std::unique_ptr<MaterializationResponsibility> R) mutable {
         FooPromise.set_value(std::move(R));
       });
 
   auto BarMU = std::make_unique<SimpleMaterializationUnit>(
       SymbolFlagsMap({{Bar, BarSym.getFlags()}}),
-      [BarPromise = std::move(BarPromise)](std::unique_ptr<MaterializationResponsibility> R) mutable {
+      [BarPromise = std::move(BarPromise)](
+          std::unique_ptr<MaterializationResponsibility> R) mutable {
         BarPromise.set_value(std::move(R));
       });
 
@@ -924,7 +928,8 @@ TEST_F(CoreAPIsStandardTest, FailAfterMaterialization) {
 
   orc::promise<void> OnFooReadyRun;
   auto OnFooReadyRunF = OnFooReadyRun.get_future();
-  auto OnFooReady = [OnFooReadyRun = std::move(OnFooReadyRun)](Expected<SymbolMap> Result) mutable {
+  auto OnFooReady = [OnFooReadyRun = std::move(OnFooReadyRun)](
+                        Expected<SymbolMap> Result) mutable {
     EXPECT_THAT_EXPECTED(std::move(Result), Failed());
     OnFooReadyRun.set_value();
   };
@@ -935,7 +940,8 @@ TEST_F(CoreAPIsStandardTest, FailAfterMaterialization) {
 
   orc::promise<void> OnBarReadyRun;
   auto OnBarReadyRunF = OnBarReadyRun.get_future();
-  auto OnBarReady = [OnBarReadyRun = std::move(OnBarReadyRun)](Expected<SymbolMap> Result) mutable {
+  auto OnBarReady = [OnBarReadyRun = std::move(OnBarReadyRun)](
+                        Expected<SymbolMap> Result) mutable {
     EXPECT_THAT_EXPECTED(std::move(Result), Failed());
     OnBarReadyRun.set_value();
   };
@@ -1134,10 +1140,11 @@ TEST_F(CoreAPIsStandardTest, RedefineBoundWeakSymbol) {
 
 TEST_F(CoreAPIsStandardTest, DefineMaterializingSymbol) {
   bool ExpectNoMoreMaterialization = false;
-  DispatchOverride = [&](std::unique_ptr<Task> &T) {
+  auto &D = getDispatcher();
+  DispatchOverride = [&](std::unique_ptr<Task> T) {
     if (ExpectNoMoreMaterialization && isa<MaterializationTask>(*T))
       ADD_FAILURE() << "Unexpected materialization";
-    return false;
+    D.dispatch_super(std::move(T));
   };
 
   auto MU = std::make_unique<SimpleMaterializationUnit>(
@@ -1614,18 +1621,18 @@ TEST_F(CoreAPIsStandardTest, TestLookupWithThreadedMaterialization) {
 #if LLVM_ENABLE_THREADS
 
   std::mutex WorkThreadsMutex;
-  std::vector<std::thread> WorkThreads;
-  DispatchOverride = [&](std::unique_ptr<Task> &T) {
+  SmallVector<std::thread, 0> WorkThreads;
+  auto &D = getDispatcher();
+  DispatchOverride = [&](std::unique_ptr<Task> T) {
     std::promise<void> WaitP;
     std::lock_guard<std::mutex> Lock(WorkThreadsMutex);
-    WorkThreads.push_back(
-        std::thread([T = std::move(T), WaitF = WaitP.get_future(), &D = getDispatcher()]() mutable {
+    WorkThreads.push_back(std::thread(
+        [T = std::move(T), WaitF = WaitP.get_future(), &D]() mutable {
           WaitF.get();
-          T->run();
+          D.dispatch_super(std::move(T));
           D.shutdown();
         }));
     WaitP.set_value();
-    return true;
   };
 
   cantFail(JD.define(absoluteSymbols({{Foo, FooSym}})));

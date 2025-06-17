@@ -250,8 +250,11 @@ public:
 
     if (Err) {
       if (FA)
-        Err =
-            joinErrors(std::move(Err), Layer.MemMgr.deallocate(std::move(FA)));
+        Err = joinErrors(std::move(Err),
+                         Layer.MemMgr.deallocate(
+                             std::move(FA), Layer.getExecutionSession()
+                                                .getExecutorProcessControl()
+                                                .getDispatcher()));
       return Err;
     }
 
@@ -524,7 +527,11 @@ Error LinkGraphLinkingLayer::recordFinalizedAlloc(
       [&](ResourceKey K) { Allocs[K].push_back(std::move(FA)); });
 
   if (Err)
-    Err = joinErrors(std::move(Err), MemMgr.deallocate(std::move(FA)));
+    Err = joinErrors(
+        std::move(Err),
+        MemMgr.deallocate(
+            std::move(FA),
+            getExecutionSession().getExecutorProcessControl().getDispatcher()));
 
   return Err;
 }
@@ -552,7 +559,9 @@ Error LinkGraphLinkingLayer::handleRemoveResources(JITDylib &JD,
   if (AllocsToRemove.empty())
     return Error::success();
 
-  return MemMgr.deallocate(std::move(AllocsToRemove));
+  return MemMgr.deallocate(
+      std::move(AllocsToRemove),
+      getExecutionSession().getExecutorProcessControl().getDispatcher());
 }
 
 void LinkGraphLinkingLayer::handleTransferResources(JITDylib &JD,

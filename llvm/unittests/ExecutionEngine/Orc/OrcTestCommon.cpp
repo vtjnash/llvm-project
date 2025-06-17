@@ -25,7 +25,9 @@ ModuleBuilder::ModuleBuilder(LLVMContext &Context, StringRef TripleStr,
 
 void llvm::orc::CoreAPIsBasedStandardTest::OverridableDispatcher::dispatch(
     std::unique_ptr<Task> T) {
-  if (!Parent.DispatchOverride || !Parent.DispatchOverride(T))
+  if (Parent.DispatchOverride)
+    Parent.DispatchOverride(std::move(T));
+  else
     InPlaceTaskDispatcher::dispatch(std::move(T));
 }
 

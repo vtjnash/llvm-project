@@ -20,6 +20,7 @@
 #include "llvm/ExecutionEngine/Orc/Shared/ExecutorAddress.h"
 #include "llvm/ExecutionEngine/Orc/Shared/MemoryFlags.h"
 #include "llvm/ExecutionEngine/Orc/SymbolStringPool.h"
+#include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 #include "llvm/Support/Allocator.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/Error.h"
@@ -34,6 +35,11 @@
 #include <mutex>
 
 namespace llvm {
+
+namespace orc {
+class ExecutorProcessControl;
+}
+
 namespace jitlink {
 
 class Block;
@@ -132,14 +138,15 @@ public:
     /// Called to transfer working memory to the target and apply finalization.
     virtual void finalize(OnFinalizedFunction OnFinalized) = 0;
 
-    /// Synchronous convenience version of finalize.
-    Expected<FinalizedAlloc> finalize() {
-      std::promise<MSVCPExpected<FinalizedAlloc>> FinalizeResultP;
+    /// Co-synchronous convenience version of finalize.
+    Expected<FinalizedAlloc> finalize(orc::TaskDispatcher &D) {
+      orc::promise<MSVCPExpected<FinalizedAlloc>> FinalizeResultP;
       auto FinalizeResultF = FinalizeResultP.get_future();
-      finalize([&](Expected<FinalizedAlloc> Result) {
+      finalize([FinalizeResultP = std::move(FinalizeResultP)](
+                   Expected<FinalizedAlloc> Result) mutable {
         FinalizeResultP.set_value(std::move(Result));
       });
-      return FinalizeResultF.get();
+      return FinalizeResultF.get(D);
     }
   };
 
@@ -163,14 +170,17 @@ public:
   virtual void allocate(const JITLinkDylib *JD, LinkGraph &G,
                         OnAllocatedFunction OnAllocated) = 0;
 
-  /// Convenience function for blocking allocation.
-  AllocResult allocate(const JITLinkDylib *JD, LinkGraph &G) {
-    std::promise<MSVCPExpected<std::unique_ptr<InFlightAlloc>>> AllocResultP;
+  /// Convenience function for co-blocking allocation.
+  AllocResult allocate(const JITLinkDylib *JD, LinkGraph &G,
+                       orc::TaskDispatcher &D) {
+    orc::promise<MSVCPExpected<std::unique_ptr<InFlightAlloc>>> AllocResultP;
     auto AllocResultF = AllocResultP.get_future();
-    allocate(JD, G, [&](AllocResult Alloc) {
-      AllocResultP.set_value(std::move(Alloc));
-    });
-    return AllocResultF.get();
+    allocate(
+        JD, G,
+        [AllocResultP = std::move(AllocResultP)](AllocResult Alloc) mutable {
+          AllocResultP.set_value(std::move(Alloc));
+        });
+    return AllocResultF.get(D);
   }
 
   /// Deallocate a list of allocation objects.
@@ -187,20 +197,22 @@ public:
     deallocate(std::move(Allocs), std::move(OnDeallocated));
   }
 
-  /// Convenience function for blocking deallocation.
-  Error deallocate(std::vector<FinalizedAlloc> Allocs) {
-    std::promise<MSVCPError> DeallocResultP;
+  /// Convenience function for co-blocking deallocation.
+  Error deallocate(std::vector<FinalizedAlloc> Allocs, orc::TaskDispatcher &D) {
+    orc::promise<MSVCPError> DeallocResultP;
     auto DeallocResultF = DeallocResultP.get_future();
     deallocate(std::move(Allocs),
-               [&](Error Err) { DeallocResultP.set_value(std::move(Err)); });
-    return DeallocResultF.get();
+               [DeallocResultP = std::move(DeallocResultP)](Error Err) mutable {
+                 DeallocResultP.set_value(std::move(Err));
+               });
+    return DeallocResultF.get(D);
   }
 
-  /// Convenience function for blocking deallocation of a single alloc.
-  Error deallocate(FinalizedAlloc Alloc) {
+  /// Convenience function for co-blocking deallocation of a single alloc.
+  Error deallocate(FinalizedAlloc Alloc, orc::TaskDispatcher &D) {
     std::vector<FinalizedAlloc> Allocs;
     Allocs.push_back(std::move(Alloc));
-    return deallocate(std::move(Allocs));
+    return deallocate(std::move(Allocs), D);
   }
 };
 
@@ -326,10 +338,12 @@ public:
                               Triple TT, const JITLinkDylib *JD,
                               SegmentMap Segments, OnCreatedFunction OnCreated);
 
+  // The blocking version of this should be deprecated, and requires an
+  // TaskDispatcher for co-async correctness.
   LLVM_ABI static Expected<SimpleSegmentAlloc>
   Create(JITLinkMemoryManager &MemMgr,
          std::shared_ptr<orc::SymbolStringPool> SSP, Triple TT,
-         const JITLinkDylib *JD, SegmentMap Segments);
+         const JITLinkDylib *JD, SegmentMap Segments, orc::TaskDispatcher &D);
 
   LLVM_ABI SimpleSegmentAlloc(SimpleSegmentAlloc &&);
   LLVM_ABI SimpleSegmentAlloc &operator=(SimpleSegmentAlloc &&);
@@ -343,9 +357,10 @@ public:
     Alloc->finalize(std::move(OnFinalized));
   }
 
-  /// Finalize all groups.
-  Expected<JITLinkMemoryManager::FinalizedAlloc> finalize() {
-    return Alloc->finalize();
+  /// Finalize all groups (deprecated co-blocking version).
+  Expected<JITLinkMemoryManager::FinalizedAlloc>
+  finalize(orc::TaskDispatcher &D) {
+    return Alloc->finalize(D);
   }
 
 private:

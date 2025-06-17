@@ -17,9 +17,12 @@
 
 namespace llvm::orc {
 
+class ExecutorProcessControl;
+
 class LLVM_ABI InProcessMemoryAccess : public MemoryAccess {
 public:
-  InProcessMemoryAccess(bool IsArch64Bit) : IsArch64Bit(IsArch64Bit) {}
+  InProcessMemoryAccess(ExecutorProcessControl &EPC, bool IsArch64Bit) 
+      : MemoryAccess(EPC), IsArch64Bit(IsArch64Bit) {}
   void writeUInt8sAsync(ArrayRef<tpctypes::UInt8Write> Ws,
                         WriteResultFn OnWriteComplete) override;
 

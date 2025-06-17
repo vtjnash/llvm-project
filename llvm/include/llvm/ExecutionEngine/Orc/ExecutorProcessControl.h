@@ -15,8 +15,6 @@
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ExecutionEngine/JITLink/JITLinkMemoryManager.h"
-#include "llvm/ExecutionEngine/Orc/DylibManager.h"
-#include "llvm/ExecutionEngine/Orc/MemoryAccess.h"
 #include "llvm/ExecutionEngine/Orc/Shared/ExecutorAddress.h"
 #include "llvm/ExecutionEngine/Orc/Shared/TargetProcessControlTypes.h"
 #include "llvm/ExecutionEngine/Orc/Shared/WrapperFunctionUtils.h"
@@ -29,10 +27,13 @@
 #include <mutex>
 #include <vector>
 
-namespace llvm::orc {
+namespace llvm {
+namespace orc {
 
 class ExecutionSession;
 class DylibManager;
+class MemoryAccess;
+class SymbolLookupSet;
 
 /// ExecutorProcessControl supports interaction with a JIT target process.
 class LLVM_ABI ExecutorProcessControl {
@@ -97,84 +98,6 @@ public:
     TaskDispatcher &D;
   };
 
-  /// APIs for manipulating memory in the target process.
-  class LLVM_ABI MemoryAccess {
-  public:
-    /// Callback function for asynchronous writes.
-    using WriteResultFn = unique_function<void(Error)>;
-
-    MemoryAccess(ExecutorProcessControl &EPC) : EPC(EPC) {}
-    virtual ~MemoryAccess();
-
-    virtual void writeUInt8sAsync(ArrayRef<tpctypes::UInt8Write> Ws,
-                                  WriteResultFn OnWriteComplete) = 0;
-
-    virtual void writeUInt16sAsync(ArrayRef<tpctypes::UInt16Write> Ws,
-                                   WriteResultFn OnWriteComplete) = 0;
-
-    virtual void writeUInt32sAsync(ArrayRef<tpctypes::UInt32Write> Ws,
-                                   WriteResultFn OnWriteComplete) = 0;
-
-    virtual void writeUInt64sAsync(ArrayRef<tpctypes::UInt64Write> Ws,
-                                   WriteResultFn OnWriteComplete) = 0;
-
-    virtual void writeBuffersAsync(ArrayRef<tpctypes::BufferWrite> Ws,
-                                   WriteResultFn OnWriteComplete) = 0;
-
-    virtual void writePointersAsync(ArrayRef<tpctypes::PointerWrite> Ws,
-                                    WriteResultFn OnWriteComplete) = 0;
-
-    Error writeUInt8s(ArrayRef<tpctypes::UInt8Write> Ws) {
-      orc::promise<MSVCPError> ResultP;
-      auto ResultF = ResultP.get_future();
-      writeUInt8sAsync(Ws,
-                       [&](Error Err) { ResultP.set_value(std::move(Err)); });
-      return ResultF.get(EPC.getDispatcher());
-    }
-
-    Error writeUInt16s(ArrayRef<tpctypes::UInt16Write> Ws) {
-      orc::promise<MSVCPError> ResultP;
-      auto ResultF = ResultP.get_future();
-      writeUInt16sAsync(Ws,
-                        [&](Error Err) { ResultP.set_value(std::move(Err)); });
-      return ResultF.get(EPC.getDispatcher());
-    }
-
-    Error writeUInt32s(ArrayRef<tpctypes::UInt32Write> Ws) {
-      orc::promise<MSVCPError> ResultP;
-      auto ResultF = ResultP.get_future();
-      writeUInt32sAsync(Ws,
-                        [&](Error Err) { ResultP.set_value(std::move(Err)); });
-      return ResultF.get(EPC.getDispatcher());
-    }
-
-    Error writeUInt64s(ArrayRef<tpctypes::UInt64Write> Ws) {
-      orc::promise<MSVCPError> ResultP;
-      auto ResultF = ResultP.get_future();
-      writeUInt64sAsync(Ws,
-                        [&](Error Err) { ResultP.set_value(std::move(Err)); });
-      return ResultF.get(EPC.getDispatcher());
-    }
-
-    Error writeBuffers(ArrayRef<tpctypes::BufferWrite> Ws) {
-      orc::promise<MSVCPError> ResultP;
-      auto ResultF = ResultP.get_future();
-      writeBuffersAsync(Ws,
-                        [&](Error Err) { ResultP.set_value(std::move(Err)); });
-      return ResultF.get(EPC.getDispatcher());
-    }
-
-    Error writePointers(ArrayRef<tpctypes::PointerWrite> Ws) {
-      orc::promise<MSVCPError> ResultP;
-      auto ResultF = ResultP.get_future();
-      writePointersAsync(Ws,
-                         [&](Error Err) { ResultP.set_value(std::move(Err)); });
-      return ResultF.get(EPC.getDispatcher());
-    }
-
-  protected:
-    ExecutorProcessControl &EPC;
-  };
 
   /// Contains the address of the dispatch function and context that the ORC
   /// runtime can use to call functions in the JIT.
@@ -401,32 +324,7 @@ protected:
   StringMap<ExecutorAddr> BootstrapSymbols;
 };
 
-class LLVM_ABI InProcessMemoryAccess
-    : public ExecutorProcessControl::MemoryAccess {
-public:
-  InProcessMemoryAccess(ExecutorProcessControl &EPC, bool IsArch64Bit)
-      : MemoryAccess(EPC), IsArch64Bit(IsArch64Bit) {}
-  void writeUInt8sAsync(ArrayRef<tpctypes::UInt8Write> Ws,
-                        WriteResultFn OnWriteComplete) override;
 
-  void writeUInt16sAsync(ArrayRef<tpctypes::UInt16Write> Ws,
-                         WriteResultFn OnWriteComplete) override;
-
-  void writeUInt32sAsync(ArrayRef<tpctypes::UInt32Write> Ws,
-                         WriteResultFn OnWriteComplete) override;
-
-  void writeUInt64sAsync(ArrayRef<tpctypes::UInt64Write> Ws,
-                         WriteResultFn OnWriteComplete) override;
-
-  void writeBuffersAsync(ArrayRef<tpctypes::BufferWrite> Ws,
-                         WriteResultFn OnWriteComplete) override;
-
-  void writePointersAsync(ArrayRef<tpctypes::PointerWrite> Ws,
-                          WriteResultFn OnWriteComplete) override;
-
-private:
-  bool IsArch64Bit;
-};
 
 } // end namespace orc
 } // end namespace llvm

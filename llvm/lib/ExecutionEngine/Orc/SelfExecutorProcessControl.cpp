@@ -23,8 +23,8 @@ SelfExecutorProcessControl::SelfExecutorProcessControl(
     std::shared_ptr<SymbolStringPool> SSP, std::unique_ptr<TaskDispatcher> D,
     Triple TargetTriple, unsigned PageSize,
     std::unique_ptr<jitlink::JITLinkMemoryManager> MemMgr)
-    : ExecutorProcessControl(std::move(SSP), std::move(D)),
-      IPMA(TargetTriple.isArch64Bit()) {
+    : DylibManager(std::move(SSP), std::move(D)),
+      InProcessMemoryAccess(*this, TargetTriple.isArch64Bit()) {
 
   OwnedMemMgr = std::move(MemMgr);
   if (!OwnedMemMgr)
@@ -34,7 +34,7 @@ SelfExecutorProcessControl::SelfExecutorProcessControl(
   this->TargetTriple = std::move(TargetTriple);
   this->PageSize = PageSize;
   this->MemMgr = OwnedMemMgr.get();
-  this->MemAccess = &IPMA;
+  this->MemAccess = this;
   this->DylibMgr = this;
   this->JDI = {ExecutorAddr::fromPtr(jitDispatchViaWrapperFunctionManager),
                ExecutorAddr::fromPtr(this)};
@@ -151,10 +151,10 @@ SelfExecutorProcessControl::jitDispatchViaWrapperFunctionManager(
            << " byte payload.\n";
   });
 
-  std::promise<shared::WrapperFunctionResult> ResultP;
+  orc::promise<shared::WrapperFunctionResult> ResultP;
   auto ResultF = ResultP.get_future();
-  static_cast<SelfExecutorProcessControl *>(Ctx)
-      ->getExecutionSession()
+  auto *EPC = static_cast<SelfExecutorProcessControl *>(Ctx);
+  EPC->getExecutionSession()
       .runJITDispatchHandler(
           [ResultP = std::move(ResultP)](
               shared::WrapperFunctionResult Result) mutable {
@@ -162,7 +162,7 @@ SelfExecutorProcessControl::jitDispatchViaWrapperFunctionManager(
           },
           ExecutorAddr::fromPtr(FnTag), {Data, Size});
 
-  return ResultF.get().release();
+  return ResultF.get(EPC->getDispatcher()).release();
 }
 
 } // namespace llvm::orc

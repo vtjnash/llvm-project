@@ -59,7 +59,7 @@ TEST(SharedMemoryMapperTest, MemReserveInitializeDeinitializeRelease) {
   std::string TestString = "Hello, World!";
 
   // barrier
-  std::promise<void> P;
+  orc::promise<void> P;
   auto F = P.get_future();
 
   {
@@ -72,7 +72,8 @@ TEST(SharedMemoryMapperTest, MemReserveInitializeDeinitializeRelease) {
                          Triple("x86_64-apple-darwin"), SubtargetFeatures(),
                          jitlink::getGenericEdgeKindName);
 
-    Mapper->reserve(ReqSize, [&](Expected<ExecutorAddrRange> Result) {
+    Mapper->reserve(ReqSize, [&, P = std::move(P)](
+                                 Expected<ExecutorAddrRange> Result) mutable {
       EXPECT_THAT_ERROR(Result.takeError(), Succeeded());
       auto Reservation = std::move(*Result);
       {
@@ -102,7 +103,8 @@ TEST(SharedMemoryMapperTest, MemReserveInitializeDeinitializeRelease) {
       EXPECT_EQ(InitializeCounter, 0);
       EXPECT_EQ(DeinitializeCounter, 0);
 
-      Mapper->initialize(AI, [&, Reservation](Expected<ExecutorAddr> Result) {
+      Mapper->initialize(AI, [&, Reservation, P = std::move(P)](
+                                 Expected<ExecutorAddr> Result) mutable {
         EXPECT_THAT_ERROR(Result.takeError(), Succeeded());
 
         EXPECT_EQ(TestString, std::string(static_cast<char *>(
@@ -111,23 +113,25 @@ TEST(SharedMemoryMapperTest, MemReserveInitializeDeinitializeRelease) {
         EXPECT_EQ(InitializeCounter, 1);
         EXPECT_EQ(DeinitializeCounter, 0);
 
-        Mapper->deinitialize({*Result}, [&, Reservation](Error Err) {
-          EXPECT_THAT_ERROR(std::move(Err), Succeeded());
+        Mapper->deinitialize(
+            {*Result}, [&, Reservation, P = std::move(P)](Error Err) mutable {
+              EXPECT_THAT_ERROR(std::move(Err), Succeeded());
 
-          EXPECT_EQ(InitializeCounter, 1);
-          EXPECT_EQ(DeinitializeCounter, 1);
+              EXPECT_EQ(InitializeCounter, 1);
+              EXPECT_EQ(DeinitializeCounter, 1);
 
-          Mapper->release({Reservation.Start}, [&](Error Err) {
-            EXPECT_THAT_ERROR(std::move(Err), Succeeded());
+              Mapper->release({Reservation.Start},
+                              [&, P = std::move(P)](Error Err) mutable {
+                                EXPECT_THAT_ERROR(std::move(Err), Succeeded());
 
-            P.set_value();
-          });
-        });
+                                P.set_value();
+                              });
+            });
       });
     });
 
     // This will block the test if any of the above callbacks are not executed
-    F.wait();
+    F.get(SelfEPC->getDispatcher());
     // Mapper must be destructed before calling shutdown to avoid double free
   }
 

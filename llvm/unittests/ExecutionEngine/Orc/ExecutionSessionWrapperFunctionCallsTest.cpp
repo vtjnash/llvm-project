@@ -8,7 +8,6 @@
 
 #include "llvm/ExecutionEngine/Orc/AbsoluteSymbols.h"
 #include "llvm/ExecutionEngine/Orc/Core.h"
-#include "llvm/ExecutionEngine/Orc/DylibManager.h"
 #include "llvm/ExecutionEngine/Orc/ExecutorProcessControl.h"
 #include "llvm/ExecutionEngine/Orc/SelfExecutorProcessControl.h"
 #include "llvm/Support/MSVCErrorWorkarounds.h"
@@ -50,12 +49,13 @@ TEST(ExecutionSessionWrapperFunctionCalls, RunWrapperTemplate) {
 TEST(ExecutionSessionWrapperFunctionCalls, RunVoidWrapperAsyncTemplate) {
   ExecutionSession ES(cantFail(SelfExecutorProcessControl::Create()));
 
-  std::promise<MSVCPError> RP;
+  orc::promise<MSVCPError> RP;
   ES.callSPSWrapperAsync<void()>(ExecutorAddr::fromPtr(voidWrapper),
                                  [&](Error SerializationErr) {
                                    RP.set_value(std::move(SerializationErr));
                                  });
-  Error Err = RP.get_future().get();
+  Error Err =
+      RP.get_future().get(ES.getExecutorProcessControl().getDispatcher());
   EXPECT_THAT_ERROR(std::move(Err), Succeeded());
   cantFail(ES.endSession());
 }
@@ -63,7 +63,7 @@ TEST(ExecutionSessionWrapperFunctionCalls, RunVoidWrapperAsyncTemplate) {
 TEST(ExecutionSessionWrapperFunctionCalls, RunNonVoidWrapperAsyncTemplate) {
   ExecutionSession ES(cantFail(SelfExecutorProcessControl::Create()));
 
-  std::promise<MSVCPExpected<int32_t>> RP;
+  orc::promise<MSVCPExpected<int32_t>> RP;
   ES.callSPSWrapperAsync<int32_t(int32_t, int32_t)>(
       ExecutorAddr::fromPtr(addWrapper),
       [&](Error SerializationErr, int32_t R) {
@@ -72,7 +72,8 @@ TEST(ExecutionSessionWrapperFunctionCalls, RunNonVoidWrapperAsyncTemplate) {
         RP.set_value(std::move(R));
       },
       2, 3);
-  Expected<int32_t> Result = RP.get_future().get();
+  Expected<int32_t> Result =
+      RP.get_future().get(ES.getExecutorProcessControl().getDispatcher());
   EXPECT_THAT_EXPECTED(Result, HasValue(5));
   cantFail(ES.endSession());
 }
@@ -95,7 +96,7 @@ TEST(ExecutionSessionWrapperFunctionCalls, RegisterAsyncHandlerAndRun) {
 
   cantFail(ES.registerJITDispatchHandlers(JD, std::move(Associations)));
 
-  std::promise<int32_t> RP;
+  orc::promise<int32_t> RP;
   auto RF = RP.get_future();
 
   using ArgSerialization = SPSArgList<int32_t, int32_t>;
@@ -113,7 +114,7 @@ TEST(ExecutionSessionWrapperFunctionCalls, RegisterAsyncHandlerAndRun) {
       },
       AddAsyncTagAddr, ArrayRef<char>(ArgBuffer));
 
-  EXPECT_EQ(RF.get(), (int32_t)3);
+  EXPECT_EQ(RF.get(ES.getExecutorProcessControl().getDispatcher()), (int32_t)3);
 
   cantFail(ES.endSession());
 }

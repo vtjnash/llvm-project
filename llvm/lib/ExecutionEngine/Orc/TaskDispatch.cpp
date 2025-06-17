@@ -30,8 +30,8 @@ TaskDispatcher::~TaskDispatcher() = default;
 #if LLVM_ENABLE_THREADS
 thread_local
 #endif
-  SmallVector<std::pair<std::unique_ptr<Task>, InPlaceTaskDispatcher*>>
-    InPlaceTaskDispatcher::TaskQueue;
+    SmallVector<std::pair<std::unique_ptr<Task>, InPlaceTaskDispatcher *>>
+        InPlaceTaskDispatcher::TaskQueue;
 
 void InPlaceTaskDispatcher::dispatch(std::unique_ptr<Task> T) {
   TaskQueue.push_back(std::pair(std::move(T), this));
@@ -41,30 +41,29 @@ void InPlaceTaskDispatcher::shutdown() {
   // Keep processing until no tasks belonging to this dispatcher remain
   while (true) {
     // Check if any task belongs to this dispatcher
-    auto it = std::find_if(TaskQueue.begin(), TaskQueue.end(),
-                           [this](const auto &TaskPair) {
-                             return TaskPair.second == this;
-                           });
-    
+    auto it = std::find_if(
+        TaskQueue.begin(), TaskQueue.end(),
+        [this](const auto &TaskPair) { return TaskPair.second == this; });
+
     // If no tasks belonging to this dispatcher, we're done
     if (it == TaskQueue.end())
       return;
-    
+
     // Create a promise/future pair to wait for completion of this task
     orc::promise<void> taskPromise;
     auto taskFuture = taskPromise.get_future();
-    
+
     // Replace the task with a GenericNamedTask that wraps the original task
     // with a notification of completion that this thread can work_until.
     auto originalTask = std::move(it->first);
     it->first = makeGenericNamedTask(
-      [originalTask = std::move(originalTask), taskPromise = std::move(taskPromise)]() mutable {
-        originalTask->run();
-        taskPromise.set_value();
-      },
-      "Shutdown task marker"
-    );
-    
+        [originalTask = std::move(originalTask),
+         taskPromise = std::move(taskPromise)]() mutable {
+          originalTask->run();
+          taskPromise.set_value();
+        },
+        "Shutdown task marker");
+
     // Wait for the task to complete
     taskFuture.get(*this);
   }

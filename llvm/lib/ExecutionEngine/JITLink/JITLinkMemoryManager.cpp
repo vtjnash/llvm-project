@@ -8,6 +8,7 @@
 
 #include "llvm/ExecutionEngine/JITLink/JITLinkMemoryManager.h"
 #include "llvm/ExecutionEngine/JITLink/JITLink.h"
+#include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 #include "llvm/Support/FormatVariadic.h"
 #include "llvm/Support/Process.h"
 
@@ -203,16 +204,19 @@ void SimpleSegmentAlloc::Create(JITLinkMemoryManager &MemMgr,
                   });
 }
 
-Expected<SimpleSegmentAlloc> SimpleSegmentAlloc::Create(
-    JITLinkMemoryManager &MemMgr, std::shared_ptr<orc::SymbolStringPool> SSP,
-    Triple TT, const JITLinkDylib *JD, SegmentMap Segments) {
-  std::promise<MSVCPExpected<SimpleSegmentAlloc>> AllocP;
+Expected<SimpleSegmentAlloc>
+SimpleSegmentAlloc::Create(JITLinkMemoryManager &MemMgr,
+                           std::shared_ptr<orc::SymbolStringPool> SSP,
+                           Triple TT, const JITLinkDylib *JD,
+                           SegmentMap Segments, orc::TaskDispatcher &D) {
+  orc::promise<MSVCPExpected<SimpleSegmentAlloc>> AllocP;
   auto AllocF = AllocP.get_future();
   Create(MemMgr, std::move(SSP), std::move(TT), JD, std::move(Segments),
-         [&](Expected<SimpleSegmentAlloc> Result) {
+         [AllocP =
+              std::move(AllocP)](Expected<SimpleSegmentAlloc> Result) mutable {
            AllocP.set_value(std::move(Result));
          });
-  return AllocF.get();
+  return AllocF.get(D);
 }
 
 SimpleSegmentAlloc::SimpleSegmentAlloc(SimpleSegmentAlloc &&) = default;

@@ -9,6 +9,7 @@
 #include "llvm/ExecutionEngine/Orc/EPCIndirectionUtils.h"
 
 #include "llvm/ExecutionEngine/Orc/ExecutorProcessControl.h"
+#include "llvm/ExecutionEngine/Orc/MemoryAccess.h"
 #include "llvm/Support/MathExtras.h"
 
 #include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
@@ -88,14 +89,9 @@ EPCTrampolinePool::EPCTrampolinePool(EPCIndirectionUtils &EPCIU)
 }
 
 Error EPCTrampolinePool::deallocatePool() {
-  orc::promise<MSVCPError> DeallocResultP;
-  auto DeallocResultF = DeallocResultP.get_future();
-
-  EPCIU.getExecutorProcessControl().getMemMgr().deallocate(
+  return EPCIU.getExecutorProcessControl().getMemMgr().deallocate(
       std::move(TrampolineBlocks),
-      [&](Error Err) { DeallocResultP.set_value(std::move(Err)); });
-
-  return DeallocResultF.get(EPCIU.getExecutorProcessControl().getDispatcher());
+      EPCIU.getExecutorProcessControl().getDispatcher());
 }
 
 Error EPCTrampolinePool::grow() {
@@ -111,7 +107,8 @@ Error EPCTrampolinePool::grow() {
   auto PageSize = EPC.getPageSize();
   auto Alloc = SimpleSegmentAlloc::Create(
       EPC.getMemMgr(), EPC.getSymbolStringPool(), EPC.getTargetTriple(),
-      nullptr, {{MemProt::Read | MemProt::Exec, {PageSize, Align(PageSize)}}});
+      nullptr, {{MemProt::Read | MemProt::Exec, {PageSize, Align(PageSize)}}},
+      EPC.getDispatcher());
   if (!Alloc)
     return Alloc.takeError();
 
@@ -123,7 +120,7 @@ Error EPCTrampolinePool::grow() {
   for (unsigned I = 0; I < NumTrampolines; ++I)
     AvailableTrampolines.push_back(SegInfo.Addr + (I * TrampolineSize));
 
-  auto FA = Alloc->finalize();
+  auto FA = Alloc->finalize(EPCIU.getExecutorProcessControl().getDispatcher());
   if (!FA)
     return FA.takeError();
 
@@ -273,15 +270,16 @@ EPCIndirectionUtils::Create(ExecutorProcessControl &EPC) {
 Error EPCIndirectionUtils::cleanup() {
 
   auto &MemMgr = EPC.getMemMgr();
-  auto Err = MemMgr.deallocate(std::move(IndirectStubAllocs));
+  auto Err =
+      MemMgr.deallocate(std::move(IndirectStubAllocs), EPC.getDispatcher());
 
   if (TP)
     Err = joinErrors(std::move(Err),
                      static_cast<EPCTrampolinePool &>(*TP).deallocatePool());
 
   if (ResolverBlock)
-    Err =
-        joinErrors(std::move(Err), MemMgr.deallocate(std::move(ResolverBlock)));
+    Err = joinErrors(std::move(Err), MemMgr.deallocate(std::move(ResolverBlock),
+                                                       EPC.getDispatcher()));
 
   return Err;
 }
@@ -298,7 +296,8 @@ EPCIndirectionUtils::writeResolverBlock(ExecutorAddr ReentryFnAddr,
       SimpleSegmentAlloc::Create(EPC.getMemMgr(), EPC.getSymbolStringPool(),
                                  EPC.getTargetTriple(), nullptr,
                                  {{MemProt::Read | MemProt::Exec,
-                                   {ResolverSize, Align(EPC.getPageSize())}}});
+                                   {ResolverSize, Align(EPC.getPageSize())}}},
+                                 EPC.getDispatcher());
 
   if (!Alloc)
     return Alloc.takeError();
@@ -308,7 +307,7 @@ EPCIndirectionUtils::writeResolverBlock(ExecutorAddr ReentryFnAddr,
   ABI->writeResolverCode(SegInfo.WorkingMem.data(), ResolverBlockAddr,
                          ReentryFnAddr, ReentryCtxAddr);
 
-  auto FA = Alloc->finalize();
+  auto FA = Alloc->finalize(EPC.getDispatcher());
   if (!FA)
     return FA.takeError();
 
@@ -367,7 +366,8 @@ EPCIndirectionUtils::getIndirectStubs(unsigned NumStubs) {
         EPC.getMemMgr(), EPC.getSymbolStringPool(), EPC.getTargetTriple(),
         nullptr,
         {{StubProt, {static_cast<size_t>(StubBytes), Align(PageSize)}},
-         {PtrProt, {static_cast<size_t>(PtrBytes), Align(PageSize)}}});
+         {PtrProt, {static_cast<size_t>(PtrBytes), Align(PageSize)}}},
+        EPC.getDispatcher());
 
     if (!Alloc)
       return Alloc.takeError();
@@ -378,7 +378,7 @@ EPCIndirectionUtils::getIndirectStubs(unsigned NumStubs) {
     ABI->writeIndirectStubsBlock(StubSeg.WorkingMem.data(), StubSeg.Addr,
                                  PtrSeg.Addr, NumStubsToAllocate);
 
-    auto FA = Alloc->finalize();
+    auto FA = Alloc->finalize(EPC.getDispatcher());
     if (!FA)
       return FA.takeError();
 
