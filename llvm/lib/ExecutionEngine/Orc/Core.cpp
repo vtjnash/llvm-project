@@ -2620,7 +2620,8 @@ void ExecutionSession::OL_completeLookup(
           auto MR = createMaterializationResponsibility(
               *UMI->RT, std::move(UMI->MU->SymbolFlags),
               std::move(UMI->MU->InitSymbol));
-          LLVM_DEBUG(dbgs() << "  Dispatching \"" << UMI->MU->getName() << "\"\n");
+          LLVM_DEBUG(dbgs()
+                     << "  Dispatching \"" << UMI->MU->getName() << "\"\n");
           dispatchTask(std::make_unique<MaterializationTask>(std::move(UMI->MU),
                                                              std::move(MR)));
         }

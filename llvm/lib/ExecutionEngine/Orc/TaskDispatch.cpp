@@ -9,6 +9,7 @@
 #include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 #include "llvm/Config/llvm-config.h" // for LLVM_ENABLE_THREADS
 #include "llvm/ExecutionEngine/Orc/Core.h"
+#include <algorithm>
 
 namespace llvm {
 namespace orc {
@@ -26,17 +27,47 @@ void IdleTask::anchor() {}
 TaskDispatcher::~TaskDispatcher() = default;
 
 // InPlaceTaskDispatcher implementation
-thread_local SmallVector<std::unique_ptr<Task>>
+#if LLVM_ENABLE_THREADS
+thread_local
+#endif
+  SmallVector<std::pair<std::unique_ptr<Task>, InPlaceTaskDispatcher*>>
     InPlaceTaskDispatcher::TaskQueue;
 
 void InPlaceTaskDispatcher::dispatch(std::unique_ptr<Task> T) {
-  TaskQueue.push_back(std::move(T));
+  TaskQueue.push_back(std::pair(std::move(T), this));
 }
 
 void InPlaceTaskDispatcher::shutdown() {
-  if (!TaskQueue.empty())
-    report_fatal_error(
-        "InPlaceTaskDispatcher shutdown with tasks still in queue");
+  // Keep processing until no tasks belonging to this dispatcher remain
+  while (true) {
+    // Check if any task belongs to this dispatcher
+    auto it = std::find_if(TaskQueue.begin(), TaskQueue.end(),
+                           [this](const auto &TaskPair) {
+                             return TaskPair.second == this;
+                           });
+    
+    // If no tasks belonging to this dispatcher, we're done
+    if (it == TaskQueue.end())
+      return;
+    
+    // Create a promise/future pair to wait for completion of this task
+    orc::promise<void> taskPromise;
+    auto taskFuture = taskPromise.get_future();
+    
+    // Replace the task with a GenericNamedTask that wraps the original task
+    // with a notification of completion that this thread can work_until.
+    auto originalTask = std::move(it->first);
+    it->first = makeGenericNamedTask(
+      [originalTask = std::move(originalTask), taskPromise = std::move(taskPromise)]() mutable {
+        originalTask->run();
+        taskPromise.set_value();
+      },
+      "Shutdown task marker"
+    );
+    
+    // Wait for the task to complete
+    taskFuture.get(*this);
+  }
 }
 
 void InPlaceTaskDispatcher::work_until(future_base &F) {
@@ -45,9 +76,11 @@ void InPlaceTaskDispatcher::work_until(future_base &F) {
     // Process in LIFO order (most recently added first) to avoid deadlocks
     // when tasks have dependencies on each other
     while (!TaskQueue.empty()) {
-      auto T = std::move(TaskQueue.back());
-      TaskQueue.pop_back();
-      T->run();
+      {
+        auto TaskPair = std::move(TaskQueue.back());
+        TaskQueue.pop_back();
+        TaskPair.first->run();
+      }
 
       // Notify any threads that might be waiting for work to complete
 #if LLVM_ENABLE_THREADS
@@ -100,6 +133,9 @@ void DynamicThreadPoolTaskDispatcher::dispatch(std::unique_ptr<Task> T) {
     std::lock_guard<std::mutex> Lock(DispatchMutex);
 
     // Reject new tasks if they're dispatched after a call to shutdown.
+    // Warning: This deletes T, which may result in deadlock (or a future
+    // assertion error of possible deadlock) if there exists any client waiting
+    // for a promise produced by this.
     if (Shutdown)
       return;
 
@@ -140,8 +176,10 @@ void DynamicThreadPoolTaskDispatcher::dispatch(std::unique_ptr<Task> T) {
         --NumMaterializationThreads;
       --Outstanding;
 
-      bool ShouldNotify = Outstanding == 0 || llvm::any_of(
-          WaitingFutures, [](future_base *F) { return F->ready(); });
+      bool ShouldNotify =
+          Outstanding == 0 || llvm::any_of(WaitingFutures, [](future_base *F) {
+            return F->ready();
+          });
       if (ShouldNotify) {
         WaitingFutures.clear();
         OutstandingCV.notify_all();
