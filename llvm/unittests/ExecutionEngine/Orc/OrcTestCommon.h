@@ -66,6 +66,8 @@ protected:
   std::unique_ptr<llvm::orc::ExecutorProcessControl>
   makeEPC(std::shared_ptr<SymbolStringPool> SSP);
 
+  TaskDispatcher &getDispatcher() { return ES.getExecutorProcessControl().getDispatcher(); }
+
   std::shared_ptr<SymbolStringPool> SSP = std::make_shared<SymbolStringPool>();
   ExecutionSession ES{makeEPC(SSP)};
   JITDylib &JD = ES.createBareJITDylib("JD");
@@ -81,7 +83,8 @@ protected:
   ExecutorSymbolDef BarSym{BarAddr, JITSymbolFlags::Exported};
   ExecutorSymbolDef BazSym{BazAddr, JITSymbolFlags::Exported};
   ExecutorSymbolDef QuxSym{QuxAddr, JITSymbolFlags::Exported};
-  unique_function<void(std::unique_ptr<Task>)> DispatchOverride;
+  // Return true to indicate the Task is handled
+  unique_function<bool(std::unique_ptr<Task>&)> DispatchOverride;
 };
 
 /// A ExecutorProcessControl instance that asserts if any of its methods are
@@ -145,10 +148,10 @@ private:
 class SimpleMaterializationUnit : public orc::MaterializationUnit {
 public:
   using MaterializeFunction =
-      std::function<void(std::unique_ptr<orc::MaterializationResponsibility>)>;
+      unique_function<void(std::unique_ptr<orc::MaterializationResponsibility>)>;
   using DiscardFunction =
-      std::function<void(const orc::JITDylib &, orc::SymbolStringPtr)>;
-  using DestructorFunction = std::function<void()>;
+      unique_function<void(const orc::JITDylib &, orc::SymbolStringPtr)>;
+  using DestructorFunction = unique_function<void()>;
 
   SimpleMaterializationUnit(
       orc::SymbolFlagsMap SymbolFlags, MaterializeFunction Materialize,

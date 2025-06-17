@@ -98,14 +98,17 @@ TEST_F(CoreAPIsStandardTest, BasicSuccessfulLookup) {
   ES.lookup(LookupKind::Static, makeJITDylibSearchOrder(&JD),
             SymbolLookupSet(Foo), SymbolState::Ready, OnCompletion,
             NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   EXPECT_FALSE(OnCompletionRun) << "Should not have been resolved yet";
 
   cantFail(FooMR->notifyResolved({{Foo, FooSym}}));
 
   EXPECT_FALSE(OnCompletionRun) << "Should not be ready yet";
+  getDispatcher().shutdown();
 
   cantFail(FooMR->notifyEmitted({}));
+  getDispatcher().shutdown();
 
   EXPECT_TRUE(OnCompletionRun) << "Should have been marked ready";
 }
@@ -120,6 +123,7 @@ TEST_F(CoreAPIsStandardTest, EmptyLookup) {
 
   ES.lookup(LookupKind::Static, makeJITDylibSearchOrder(&JD), SymbolLookupSet(),
             SymbolState::Ready, OnCompletion, NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   EXPECT_TRUE(OnCompletionRun) << "OnCompletion was not run for empty query";
 }
@@ -149,35 +153,42 @@ TEST_F(CoreAPIsStandardTest, MaterializationSideEffctsOnlyBasic) {
   // don't return until they're emitted, and that they don't appear in query
   // results.
 
-  std::unique_ptr<MaterializationResponsibility> FooR;
-  std::optional<SymbolMap> Result;
+  orc::promise<std::unique_ptr<MaterializationResponsibility>> FooPromise;
+  auto FooF = FooPromise.get_future();
+  orc::promise<std::optional<SymbolMap>> ResultPromise;
+  auto ResultF = ResultPromise.get_future();
 
   cantFail(JD.define(std::make_unique<SimpleMaterializationUnit>(
       SymbolFlagsMap(
           {{Foo, JITSymbolFlags::Exported |
                      JITSymbolFlags::MaterializationSideEffectsOnly}}),
-      [&](std::unique_ptr<MaterializationResponsibility> R) {
-        FooR = std::move(R);
+      [FooPromise = std::move(FooPromise)](std::unique_ptr<MaterializationResponsibility> R) mutable {
+        FooPromise.set_value(std::move(R));
       })));
 
   ES.lookup(
       LookupKind::Static, makeJITDylibSearchOrder(&JD),
       SymbolLookupSet(Foo, SymbolLookupFlags::WeaklyReferencedSymbol),
       SymbolState::Ready,
-      [&](Expected<SymbolMap> LookupResult) {
+      [ResultPromise = std::move(ResultPromise)](Expected<SymbolMap> LookupResult) mutable {
         if (LookupResult)
-          Result = std::move(*LookupResult);
-        else
+          ResultPromise.set_value(std::move(*LookupResult));
+        else {
           ADD_FAILURE() << "Unexpected lookup error: "
                         << toString(LookupResult.takeError());
+          ResultPromise.set_value(std::nullopt);
+        }
       },
       NoDependenciesToRegister);
 
-  EXPECT_FALSE(Result) << "Lookup returned unexpectedly";
+  auto FooR = FooF.get(getDispatcher());
+  getDispatcher().shutdown();
+  EXPECT_FALSE(ResultF.ready()) << "Lookup returned unexpectedly";
   EXPECT_TRUE(FooR) << "Lookup failed to trigger materialization";
   EXPECT_THAT_ERROR(FooR->notifyEmitted({}), Succeeded())
       << "Emission of materialization-side-effects-only symbol failed";
 
+  auto Result = ResultF.get(getDispatcher());
   EXPECT_TRUE(Result) << "Lookup failed to return";
   EXPECT_TRUE(Result->empty()) << "Lookup result contained unexpected value";
 }
@@ -254,6 +265,7 @@ TEST_F(CoreAPIsStandardTest, RemoveSymbolsTest) {
         OnCompletionRun = true;
       },
       NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   {
     // Attempt 1: Search for a missing symbol, Qux.
@@ -281,6 +293,7 @@ TEST_F(CoreAPIsStandardTest, RemoveSymbolsTest) {
     auto Err = JD.remove({Foo, Bar, Baz});
     EXPECT_FALSE(!!Err) << "Expected success";
   }
+  getDispatcher().shutdown();
 
   EXPECT_TRUE(BarDiscarded) << "\"Bar\" should have been discarded";
   EXPECT_TRUE(BarMaterializerDestructed)
@@ -507,12 +520,14 @@ TEST_F(CoreAPIsStandardTest, TestTrivialCircularDependency) {
   ES.lookup(LookupKind::Static, makeJITDylibSearchOrder(&JD),
             SymbolLookupSet({Foo}), SymbolState::Ready, OnCompletion,
             NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   EXPECT_THAT_ERROR(FooR->notifyResolved({{Foo, FooSym}}), Succeeded())
       << "No symbols marked failed, but Foo failed to resolve";
   SymbolDependenceGroup SDG({{Foo}, {{&JD, SymbolNameSet({Foo})}}});
   EXPECT_THAT_ERROR(FooR->notifyEmitted(SDG), Succeeded())
       << "No symbols marked failed, but Foo failed to emit";
+  getDispatcher().shutdown();
 
   EXPECT_TRUE(FooReady)
     << "Self-dependency prevented symbol from being marked ready";
@@ -554,6 +569,7 @@ TEST_F(CoreAPIsStandardTest, TestBasicQueryDependenciesReporting) {
         EXPECT_THAT_EXPECTED(std::move(Result), Succeeded());
       },
       NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   cantFail(FooR->notifyResolved({{Foo, FooSym}}));
   cantFail(FooR->notifyEmitted({}));
@@ -577,6 +593,7 @@ TEST_F(CoreAPIsStandardTest, TestBasicQueryDependenciesReporting) {
         EXPECT_TRUE(Deps.count(Baz));
         DependenciesCallbackRan = true;
       });
+  getDispatcher().shutdown();
 
   cantFail(BarR->notifyEmitted({}));
 
@@ -640,6 +657,7 @@ TEST_F(CoreAPIsStandardTest, TestCircularDependenceInOneJITDylib) {
   ES.lookup(LookupKind::Static, makeJITDylibSearchOrder(&JD),
             SymbolLookupSet(Foo), SymbolState::Ready, std::move(OnFooReady),
             NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   bool BarResolved = false;
   bool BarReady = false;
@@ -660,6 +678,7 @@ TEST_F(CoreAPIsStandardTest, TestCircularDependenceInOneJITDylib) {
   ES.lookup(LookupKind::Static, makeJITDylibSearchOrder(&JD),
             SymbolLookupSet(Bar), SymbolState::Ready, std::move(OnBarReady),
             NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   bool BazResolved = false;
   bool BazReady = false;
@@ -681,7 +700,8 @@ TEST_F(CoreAPIsStandardTest, TestCircularDependenceInOneJITDylib) {
   ES.lookup(LookupKind::Static, makeJITDylibSearchOrder(&JD),
             SymbolLookupSet(Baz), SymbolState::Ready, std::move(OnBazReady),
             NoDependenciesToRegister);
-
+  getDispatcher().shutdown();
+ 
   // Check that nothing has been resolved yet.
   EXPECT_FALSE(FooResolved) << "\"Foo\" should not be resolved yet";
   EXPECT_FALSE(BarResolved) << "\"Bar\" should not be resolved yet";
@@ -694,6 +714,7 @@ TEST_F(CoreAPIsStandardTest, TestCircularDependenceInOneJITDylib) {
       << "No symbols failed, but Bar failed to resolve";
   EXPECT_THAT_ERROR(BazR->notifyResolved({{Baz, BazSym}}), Succeeded())
       << "No symbols failed, but Baz failed to resolve";
+  getDispatcher().shutdown();
 
   // Verify that the symbols have been resolved, but are not ready yet.
   EXPECT_TRUE(FooResolved) << "\"Foo\" should be resolved now";
@@ -714,6 +735,7 @@ TEST_F(CoreAPIsStandardTest, TestCircularDependenceInOneJITDylib) {
     EXPECT_THAT_ERROR(BarR->notifyEmitted(BarDeps), Succeeded())
         << "No symbols failed, but Bar failed to emit";
   }
+  getDispatcher().shutdown();
 
   // Verify that nothing is ready until the circular dependence is resolved.
   EXPECT_FALSE(FooReady) << "\"Foo\" still should not be ready";
@@ -726,6 +748,7 @@ TEST_F(CoreAPIsStandardTest, TestCircularDependenceInOneJITDylib) {
     EXPECT_THAT_ERROR(BazR->notifyEmitted(BazDeps), Succeeded())
         << "No symbols failed, but Baz failed to emit";
   }
+  getDispatcher().shutdown();
 
   // Verify that everything becomes ready once the circular dependence resolved.
   EXPECT_TRUE(FooReady) << "\"Foo\" should be ready now";
@@ -764,6 +787,7 @@ TEST_F(CoreAPIsStandardTest, FailureInDependency) {
   ES.lookup(LookupKind::Static, makeJITDylibSearchOrder(&JD),
             SymbolLookupSet(Foo), SymbolState::Ready, std::move(OnFooReady),
             NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   bool OnBarReadyRun = false;
   auto OnBarReady = [&](Expected<SymbolMap> Result) {
@@ -774,6 +798,7 @@ TEST_F(CoreAPIsStandardTest, FailureInDependency) {
   ES.lookup(LookupKind::Static, makeJITDylibSearchOrder(&JD),
             SymbolLookupSet(Bar), SymbolState::Ready, std::move(OnBarReady),
             NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   // Fail bar.
   BarR->failMaterialization();
@@ -842,6 +867,7 @@ TEST_F(CoreAPIsStandardTest, AddDependencyOnFailedSymbol) {
             NoDependenciesToRegister);
 
   // Fail bar.
+  getDispatcher().shutdown();
   BarR->failMaterialization();
 
   // We expect Bar's query to fail immediately, but Foo's query not to have run
@@ -859,6 +885,7 @@ TEST_F(CoreAPIsStandardTest, AddDependencyOnFailedSymbol) {
   }
 
   FooR->failMaterialization();
+  getDispatcher().shutdown();
 
   // Foo's query should have failed before we return from addDependencies.
   EXPECT_TRUE(OnFooReadyRun) << "Query for \"Foo\" was not run";
@@ -872,46 +899,53 @@ TEST_F(CoreAPIsStandardTest, AddDependencyOnFailedSymbol) {
 }
 
 TEST_F(CoreAPIsStandardTest, FailAfterMaterialization) {
-  std::unique_ptr<MaterializationResponsibility> FooR;
-  std::unique_ptr<MaterializationResponsibility> BarR;
+  orc::promise<std::unique_ptr<MaterializationResponsibility>> FooPromise;
+  auto FooF = FooPromise.get_future();
+  orc::promise<std::unique_ptr<MaterializationResponsibility>> BarPromise;
+  auto BarF = BarPromise.get_future();
 
   // Create a MaterializationUnit for each symbol that moves the
   // MaterializationResponsibility into one of the locals above.
   auto FooMU = std::make_unique<SimpleMaterializationUnit>(
       SymbolFlagsMap({{Foo, FooSym.getFlags()}}),
-      [&](std::unique_ptr<MaterializationResponsibility> R) {
-        FooR = std::move(R);
+      [FooPromise = std::move(FooPromise)](std::unique_ptr<MaterializationResponsibility> R) mutable {
+        FooPromise.set_value(std::move(R));
       });
 
   auto BarMU = std::make_unique<SimpleMaterializationUnit>(
       SymbolFlagsMap({{Bar, BarSym.getFlags()}}),
-      [&](std::unique_ptr<MaterializationResponsibility> R) {
-        BarR = std::move(R);
+      [BarPromise = std::move(BarPromise)](std::unique_ptr<MaterializationResponsibility> R) mutable {
+        BarPromise.set_value(std::move(R));
       });
 
   // Define the symbols.
   cantFail(JD.define(FooMU));
   cantFail(JD.define(BarMU));
 
-  bool OnFooReadyRun = false;
-  auto OnFooReady = [&](Expected<SymbolMap> Result) {
+  orc::promise<void> OnFooReadyRun;
+  auto OnFooReadyRunF = OnFooReadyRun.get_future();
+  auto OnFooReady = [OnFooReadyRun = std::move(OnFooReadyRun)](Expected<SymbolMap> Result) mutable {
     EXPECT_THAT_EXPECTED(std::move(Result), Failed());
-    OnFooReadyRun = true;
+    OnFooReadyRun.set_value();
   };
 
   ES.lookup(LookupKind::Static, makeJITDylibSearchOrder(&JD),
             SymbolLookupSet(Foo), SymbolState::Ready, std::move(OnFooReady),
             NoDependenciesToRegister);
 
-  bool OnBarReadyRun = false;
-  auto OnBarReady = [&](Expected<SymbolMap> Result) {
+  orc::promise<void> OnBarReadyRun;
+  auto OnBarReadyRunF = OnBarReadyRun.get_future();
+  auto OnBarReady = [OnBarReadyRun = std::move(OnBarReadyRun)](Expected<SymbolMap> Result) mutable {
     EXPECT_THAT_EXPECTED(std::move(Result), Failed());
-    OnBarReadyRun = true;
+    OnBarReadyRun.set_value();
   };
 
   ES.lookup(LookupKind::Static, makeJITDylibSearchOrder(&JD),
             SymbolLookupSet(Bar), SymbolState::Ready, std::move(OnBarReady),
             NoDependenciesToRegister);
+
+  // getDispatcher().shutdown();
+  auto FooR = FooF.get(getDispatcher());
 
   // Materialize Foo.
   EXPECT_THAT_ERROR(FooR->notifyResolved({{Foo, FooSym}}), Succeeded())
@@ -923,11 +957,12 @@ TEST_F(CoreAPIsStandardTest, FailAfterMaterialization) {
   }
 
   // Fail bar.
+  auto BarR = BarF.get(getDispatcher());
   BarR->failMaterialization();
 
   // Verify that both queries failed.
-  EXPECT_TRUE(OnFooReadyRun) << "Query for Foo did not run";
-  EXPECT_TRUE(OnBarReadyRun) << "Query for Bar did not run";
+  OnFooReadyRunF.get(getDispatcher());
+  OnBarReadyRunF.get(getDispatcher());
 }
 
 TEST_F(CoreAPIsStandardTest, FailMaterializerWithUnqueriedSymbols) {
@@ -1028,6 +1063,7 @@ TEST_F(CoreAPIsStandardTest, AddAndMaterializeLazySymbol) {
   ES.lookup(LookupKind::Static, makeJITDylibSearchOrder(&JD),
             SymbolLookupSet(Foo), SymbolState::Ready, std::move(OnCompletion),
             NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   EXPECT_TRUE(FooMaterialized) << "Foo was not materialized";
   EXPECT_TRUE(BarDiscarded) << "Bar was not discarded";
@@ -1073,6 +1109,7 @@ TEST_F(CoreAPIsStandardTest, TestBasicWeakSymbolMaterialization) {
   ES.lookup(LookupKind::Static, makeJITDylibSearchOrder(&JD),
             SymbolLookupSet(Bar), SymbolState::Ready, std::move(OnCompletion),
             NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   EXPECT_TRUE(OnCompletionRun) << "OnCompletion not run";
   EXPECT_TRUE(BarMaterialized) << "Bar was not materialized at all";
@@ -1097,10 +1134,10 @@ TEST_F(CoreAPIsStandardTest, RedefineBoundWeakSymbol) {
 
 TEST_F(CoreAPIsStandardTest, DefineMaterializingSymbol) {
   bool ExpectNoMoreMaterialization = false;
-  DispatchOverride = [&](std::unique_ptr<Task> T) {
+  DispatchOverride = [&](std::unique_ptr<Task> &T) {
     if (ExpectNoMoreMaterialization && isa<MaterializationTask>(*T))
       ADD_FAILURE() << "Unexpected materialization";
-    T->run();
+    return false;
   };
 
   auto MU = std::make_unique<SimpleMaterializationUnit>(
@@ -1215,11 +1252,13 @@ TEST_F(CoreAPIsStandardTest, SimpleAsynchronousGeneratorTest) {
         }
       },
       NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   EXPECT_FALSE(LookupCompleted);
 
   cantFail(JD.define(absoluteSymbols({{Foo, FooSym}})));
   G.takeLookup().LS.continueLookup(Error::success());
+  getDispatcher().shutdown();
 
   EXPECT_TRUE(LookupCompleted);
 }
@@ -1238,11 +1277,13 @@ TEST_F(CoreAPIsStandardTest, ErrorFromSuspendedAsynchronousGeneratorTest) {
         EXPECT_THAT_EXPECTED(Result, Failed());
       },
       NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   EXPECT_FALSE(LookupCompleted);
 
   G.takeLookup().LS.continueLookup(
       make_error<StringError>("boom", inconvertibleErrorCode()));
+  getDispatcher().shutdown();
 
   EXPECT_TRUE(LookupCompleted);
 }
@@ -1261,6 +1302,7 @@ TEST_F(CoreAPIsStandardTest, ErrorFromAutoSuspendedAsynchronousGeneratorTest) {
         EXPECT_THAT_EXPECTED(Result, Failed());
       },
       NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   EXPECT_EQ(LookupsCompleted, 0U);
 
@@ -1276,15 +1318,18 @@ TEST_F(CoreAPIsStandardTest, ErrorFromAutoSuspendedAsynchronousGeneratorTest) {
         EXPECT_THAT_EXPECTED(Result, Failed());
       },
       NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   EXPECT_EQ(LookupsCompleted, 0U);
 
   // Unsuspend the first lookup.
   LS1.continueLookup(make_error<StringError>("boom", inconvertibleErrorCode()));
+  getDispatcher().shutdown();
 
   // Unsuspend the second.
   G.takeLookup().LS.continueLookup(
       make_error<StringError>("boom", inconvertibleErrorCode()));
+  getDispatcher().shutdown();
 
   EXPECT_EQ(LookupsCompleted, 2U);
 }
@@ -1316,6 +1361,7 @@ TEST_F(CoreAPIsStandardTest, BlockedGeneratorAutoSuspensionTest) {
         }
       },
       NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   // The generator should immediately see the first lookup.
   EXPECT_NE(G.Lookup, std::nullopt);
@@ -1345,6 +1391,7 @@ TEST_F(CoreAPIsStandardTest, BlockedGeneratorAutoSuspensionTest) {
         }
       },
       NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   // Add lookup 3.
   //
@@ -1363,6 +1410,7 @@ TEST_F(CoreAPIsStandardTest, BlockedGeneratorAutoSuspensionTest) {
         }
       },
       NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   // Add lookup 4.
   //
@@ -1379,6 +1427,7 @@ TEST_F(CoreAPIsStandardTest, BlockedGeneratorAutoSuspensionTest) {
         }
       },
       NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   // All lookups have been started, but none should have been completed yet.
   EXPECT_FALSE(Lookup1Completed);
@@ -1393,6 +1442,7 @@ TEST_F(CoreAPIsStandardTest, BlockedGeneratorAutoSuspensionTest) {
   // allow both 2 and 3 to complete.
   cantFail(JD.define(absoluteSymbols({{Foo, FooSym}})));
   G.takeLookup().LS.continueLookup(Error::success());
+  getDispatcher().shutdown();
 
   EXPECT_TRUE(Lookup1Completed);
   EXPECT_TRUE(Lookup2Completed);
@@ -1407,6 +1457,7 @@ TEST_F(CoreAPIsStandardTest, BlockedGeneratorAutoSuspensionTest) {
 
   cantFail(JD.define(absoluteSymbols({{Baz, BazSym}})));
   G.takeLookup().LS.continueLookup(Error::success());
+  getDispatcher().shutdown();
 
   EXPECT_TRUE(Lookup4Completed);
 }
@@ -1456,7 +1507,7 @@ TEST_F(CoreAPIsStandardTest, FailEmissionAfterResolution) {
         ES.lookup(
             LookupKind::Static, makeJITDylibSearchOrder(&JD),
             SymbolLookupSet({Baz}), SymbolState::Resolved,
-            [&](Expected<SymbolMap> Result) {
+            [R = std::move(R)](Expected<SymbolMap> Result) {
               // Called when "baz" is resolved. We don't actually depend
               // on or care about baz, but use it to trigger failure of
               // this materialization before Baz has been finalized in
@@ -1472,6 +1523,7 @@ TEST_F(CoreAPIsStandardTest, FailEmissionAfterResolution) {
 
   auto Result =
       ES.lookup(makeJITDylibSearchOrder(&JD), SymbolLookupSet({Foo, Bar}));
+  getDispatcher().shutdown();
 
   EXPECT_THAT_EXPECTED(std::move(Result), Failed())
       << "Unexpected success while trying to test error propagation";
@@ -1500,6 +1552,7 @@ TEST_F(CoreAPIsStandardTest, FailAfterPartialResolution) {
         QueryHandlerRun = true;
       },
       NoDependenciesToRegister);
+  getDispatcher().shutdown();
   EXPECT_TRUE(QueryHandlerRun) << "Query handler never ran";
 }
 
@@ -1526,6 +1579,7 @@ TEST_F(CoreAPIsStandardTest, FailDefineMaterializingDueToDefunctTracker) {
   ES.lookup(LookupKind::Static, makeJITDylibSearchOrder(&JD),
             SymbolLookupSet(Foo), SymbolState::Ready, OnCompletion,
             NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   cantFail(RT->remove());
 
@@ -1533,6 +1587,7 @@ TEST_F(CoreAPIsStandardTest, FailDefineMaterializingDueToDefunctTracker) {
       << "defineMaterializing should have failed due to a defunct tracker";
 
   FooMR->failMaterialization();
+  getDispatcher().shutdown();
 
   EXPECT_TRUE(OnCompletionRan) << "OnCompletion handler did not run.";
 }
@@ -1559,16 +1614,24 @@ TEST_F(CoreAPIsStandardTest, TestLookupWithThreadedMaterialization) {
 #if LLVM_ENABLE_THREADS
 
   std::mutex WorkThreadsMutex;
-  SmallVector<std::thread, 0> WorkThreads;
-  DispatchOverride = [&](std::unique_ptr<Task> T) {
+  std::vector<std::thread> WorkThreads;
+  DispatchOverride = [&](std::unique_ptr<Task> &T) {
+    std::promise<void> WaitP;
     std::lock_guard<std::mutex> Lock(WorkThreadsMutex);
     WorkThreads.push_back(
-        std::thread([T = std::move(T)]() mutable { T->run(); }));
+        std::thread([T = std::move(T), WaitF = WaitP.get_future(), &D = getDispatcher()]() mutable {
+          WaitF.get();
+          T->run();
+          D.shutdown();
+        }));
+    WaitP.set_value();
+    return true;
   };
 
   cantFail(JD.define(absoluteSymbols({{Foo, FooSym}})));
 
   auto FooLookupResult = cantFail(ES.lookup(makeJITDylibSearchOrder(&JD), Foo));
+  getDispatcher().shutdown();
 
   EXPECT_EQ(FooLookupResult.getAddress(), FooSym.getAddress())
       << "lookup returned an incorrect address";
@@ -1683,6 +1746,7 @@ TEST_F(CoreAPIsStandardTest, TestMaterializeWeakSymbol) {
   ES.lookup(LookupKind::Static, makeJITDylibSearchOrder(&JD),
             SymbolLookupSet({Foo}), SymbolState::Ready, std::move(OnCompletion),
             NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   auto MU2 = std::make_unique<SimpleMaterializationUnit>(
       SymbolFlagsMap({{Foo, JITSymbolFlags::Exported}}),
@@ -1699,6 +1763,7 @@ TEST_F(CoreAPIsStandardTest, TestMaterializeWeakSymbol) {
   // No dependencies registered, can't fail:
   cantFail(FooR->notifyResolved(SymbolMap({{Foo, FooSym}})));
   cantFail(FooR->notifyEmitted({}));
+  getDispatcher().shutdown();
 }
 
 static bool linkOrdersEqual(const std::vector<JITDylibSP> &LHS,
@@ -1850,6 +1915,7 @@ TEST_F(CoreAPIsStandardTest, RemoveJITDylibs) {
         }
       },
       NoDependenciesToRegister);
+  getDispatcher().shutdown();
 
   // Remove the JITDylib.
   auto Err = ES.removeJITDylib(JD);
