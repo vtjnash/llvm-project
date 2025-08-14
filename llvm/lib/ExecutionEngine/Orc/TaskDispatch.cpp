@@ -7,8 +7,10 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
+#include "llvm/ADT/STLExtras.h"      // for llvm::any_of
 #include "llvm/Config/llvm-config.h" // for LLVM_ENABLE_THREADS
 #include "llvm/ExecutionEngine/Orc/Core.h"
+#include "llvm/Support/Casting.h" // for dyn_cast
 #include <algorithm>
 
 namespace llvm {
@@ -24,7 +26,20 @@ void Task::anchor() {}
 
 void IdleTask::anchor() {}
 
+#if LLVM_ENABLE_THREADS
+// Static members definition
+std::mutex TaskDispatcher::DispatchMutex;
+std::condition_variable TaskDispatcher::FutureReadyCV;
+#endif
+
 TaskDispatcher::~TaskDispatcher() = default;
+
+LLVM_ABI void TaskDispatcher::notifyWaiters() {
+#if LLVM_ENABLE_THREADS
+  std::unique_lock<std::mutex> Lock(DispatchMutex);
+  FutureReadyCV.notify_all();
+#endif
+}
 
 // InPlaceTaskDispatcher implementation
 #if LLVM_ENABLE_THREADS
@@ -35,6 +50,12 @@ thread_local
 
 void InPlaceTaskDispatcher::dispatch(std::unique_ptr<Task> T) {
   TaskQueue.push_back(std::pair(std::move(T), this));
+}
+
+void InPlaceTaskDispatcher::dispatch_elsewhere(std::unique_ptr<Task> T) {
+  std::unique_lock<std::mutex> Lock(DispatchMutex);
+  ElsewhereQueue.push_back(std::move(T));
+  FutureReadyCV.notify_one();
 }
 
 void InPlaceTaskDispatcher::shutdown() {
@@ -49,23 +70,22 @@ void InPlaceTaskDispatcher::shutdown() {
     if (it == TaskQueue.end())
       return;
 
-    // Create a promise/future pair to wait for completion of this task
-    orc::promise<void> taskPromise;
-    auto taskFuture = taskPromise.get_future();
+    // Create a future/promise pair to wait for completion of this task
+    orc::future<void> taskFuture;
 
     // Replace the task with a GenericNamedTask that wraps the original task
     // with a notification of completion that this thread can work_until.
     auto originalTask = std::move(it->first);
     it->first = makeGenericNamedTask(
         [originalTask = std::move(originalTask),
-         taskPromise = std::move(taskPromise)]() mutable {
+         taskPromise = taskFuture.get_promise(*this)]() {
           originalTask->run();
           taskPromise.set_value();
         },
         "Shutdown task marker");
 
     // Wait for the task to complete
-    taskFuture.get(*this);
+    taskFuture.get();
   }
 }
 
@@ -81,19 +101,6 @@ void InPlaceTaskDispatcher::work_until(future_base &F) {
         TaskPair.first->run();
       }
 
-      // Notify any threads that might be waiting for work to complete
-#if LLVM_ENABLE_THREADS
-      {
-        std::lock_guard<std::mutex> Lock(DispatchMutex);
-        bool ShouldNotify = llvm::any_of(
-            WaitingFutures, [](future_base *F) { return F->ready(); });
-        if (ShouldNotify) {
-          WaitingFutures.clear();
-          WorkFinishedCV.notify_all();
-        }
-      }
-#endif
-
       // Check if our future is now ready
       if (F.ready())
         return;
@@ -105,13 +112,19 @@ void InPlaceTaskDispatcher::work_until(future_base &F) {
 #if LLVM_ENABLE_THREADS
     {
       std::unique_lock<std::mutex> Lock(DispatchMutex);
-      WaitingFutures.push_back(&F);
-      WorkFinishedCV.wait(Lock, [&F]() { return F.ready(); });
+      FutureReadyCV.wait(
+          Lock, [&F, this]() { return F.ready() || !ElsewhereQueue.empty(); });
+      assert(TaskQueue.empty());
+      if (!F.ready())
+        TaskQueue.push_back(std::pair(ElsewhereQueue.pop_back_val(), this));
     }
 #else
-    // Without threading, if our queue is empty and future isn't ready,
-    // the library must have forgotten to schedule it, causing deadlock here
-    report_fatal_error("waiting for future that was never dispatched");
+    if (!ElsewhereQueue.empty())
+      TaskQueue.push_back(std::pair(ElsewhereQueue.pop_back_val(), this));
+    else
+      // Without threading, if our queue is empty and future isn't ready,
+      // the library must have forgotten to schedule it, causing deadlock here
+      report_fatal_error("waiting for future that was never dispatched");
 #endif
   }
 }
@@ -175,12 +188,8 @@ void DynamicThreadPoolTaskDispatcher::dispatch(std::unique_ptr<Task> T) {
         --NumMaterializationThreads;
       --Outstanding;
 
-      bool ShouldNotify =
-          Outstanding == 0 || llvm::any_of(WaitingFutures, [](future_base *F) {
-            return F->ready();
-          });
-      if (ShouldNotify) {
-        WaitingFutures.clear();
+      // Notify shutdown when all work is done
+      if (Outstanding == 0) {
         OutstandingCV.notify_all();
       }
 
@@ -221,8 +230,7 @@ bool DynamicThreadPoolTaskDispatcher::canRunIdleTaskNow() {
 
 void DynamicThreadPoolTaskDispatcher::work_until(future_base &F) {
   std::unique_lock<std::mutex> Lock(DispatchMutex);
-  WaitingFutures.push_back(&F);
-  OutstandingCV.wait(Lock, [&F]() { return F.ready(); });
+  FutureReadyCV.wait(Lock, [&F]() { return F.ready(); });
 }
 
 #endif

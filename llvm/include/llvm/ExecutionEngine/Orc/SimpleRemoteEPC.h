@@ -93,7 +93,8 @@ public:
 private:
   SimpleRemoteEPC(std::shared_ptr<SymbolStringPool> SSP,
                   std::unique_ptr<TaskDispatcher> D)
-      : DylibManager(std::move(SSP), std::move(D)) {
+      : DylibManager(std::move(SSP), std::move(D)),
+        DisconnectP(DisconnectF.get_promise(getDispatcher())) {
     this->DylibMgr = this;
   }
 
@@ -127,7 +128,8 @@ private:
     DenseMap<uint64_t, IncomingWFRHandler>;
 
   std::mutex SimpleRemoteEPCMutex;
-  std::condition_variable DisconnectCV;
+  orc::future<void> DisconnectF;
+  orc::promise<void> DisconnectP;
   bool Disconnected = false;
   Error DisconnectErr = Error::success();
 

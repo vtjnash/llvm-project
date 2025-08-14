@@ -56,11 +56,12 @@ public:
   /// symbol is not found then it be assigned a '0' value.
   Expected<std::vector<tpctypes::LookupResult>>
   lookupSymbols(ArrayRef<LookupRequest> Request) {
-    orc::promise<MSVCPExpected<std::vector<tpctypes::LookupResult>>> RP;
-    auto RF = RP.get_future();
+    orc::future<MSVCPExpected<std::vector<tpctypes::LookupResult>>> RF;
     lookupSymbolsAsync(Request,
-                       [&RP](auto Result) { RP.set_value(std::move(Result)); });
-    return RF.get(getDispatcher());
+                       [RP = RF.get_promise(getDispatcher())](auto Result) {
+                         RP.set_value(std::move(Result));
+                       });
+    return RF.get();
   }
 
   using SymbolLookupCompleteFn =
@@ -75,8 +76,6 @@ public:
   virtual void lookupSymbolsAsync(ArrayRef<LookupRequest> Request,
                                   SymbolLookupCompleteFn F) = 0;
 };
-
-
 
 } // end namespace llvm::orc
 

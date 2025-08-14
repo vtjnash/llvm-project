@@ -38,14 +38,14 @@ class SymbolLookupSet;
 /// ExecutorProcessControl supports interaction with a JIT target process.
 class LLVM_ABI ExecutorProcessControl {
   friend class ExecutionSession;
-public:
 
+public:
   /// A handler or incoming WrapperFunctionResults -- either return values from
   /// callWrapper* calls, or incoming JIT-dispatch requests.
   ///
   /// IncomingWFRHandlers are constructible from
   /// unique_function<void(shared::WrapperFunctionResult)>s using the
-  /// runInPlace function or a RunWithDispatch object.
+  /// RunInPlace function or a RunAsTask object.
   class IncomingWFRHandler {
     friend class ExecutorProcessControl;
   public:
@@ -84,20 +84,20 @@ public:
 
     template <typename FnT>
     IncomingWFRHandler operator()(FnT &&Fn) {
-      return IncomingWFRHandler(
-          [&D = this->D, Fn = std::move(Fn)]
-          (shared::WrapperFunctionResult WFR) mutable {
-              D.dispatch(
-                makeGenericNamedTask(
-                    [Fn = std::move(Fn), WFR = std::move(WFR)]() mutable {
-                      Fn(std::move(WFR));
-                    }, "WFR handler task"));
+      orc::future<shared::WrapperFunctionResult> F;
+      auto H = IncomingWFRHandler(
+          [P = F.get_promise(D)](shared::WrapperFunctionResult WFR) {
+            P.set_value(std::move(WFR));
           });
+      std::move(F).then(
+          [Fn = std::move(Fn)](shared::WrapperFunctionResult &&WFR) mutable {
+            Fn(std::move(WFR));
+          });
+      return H;
     }
   private:
     TaskDispatcher &D;
   };
-
 
   /// Contains the address of the dispatch function and context that the ORC
   /// runtime can use to call functions in the JIT.
@@ -253,14 +253,14 @@ public:
   /// \endcode{.cpp}
   shared::WrapperFunctionResult callWrapper(ExecutorAddr WrapperFnAddr,
                                             ArrayRef<char> ArgBuffer) {
-    orc::promise<shared::WrapperFunctionResult> RP;
-    auto RF = RP.get_future();
+    orc::future<shared::WrapperFunctionResult> RF;
     callWrapperAsync(
         RunInPlace(), WrapperFnAddr,
-        [&](shared::WrapperFunctionResult R) {
+        [RP = RF.get_promise(*D)](shared::WrapperFunctionResult R) {
           RP.set_value(std::move(R));
-        }, ArgBuffer);
-    return RF.get(*D);
+        },
+        ArgBuffer);
+    return RF.get();
   }
 
   /// Run a wrapper function using SPS to serialize the arguments and
@@ -323,8 +323,6 @@ protected:
   StringMap<std::vector<char>> BootstrapMap;
   StringMap<ExecutorAddr> BootstrapSymbols;
 };
-
-
 
 } // end namespace orc
 } // end namespace llvm

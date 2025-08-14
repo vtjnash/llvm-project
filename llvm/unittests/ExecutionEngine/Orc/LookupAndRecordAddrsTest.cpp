@@ -25,13 +25,14 @@ TEST_F(LookupAndRecordAddrsTest, AsyncRequiredSuccess) {
   cantFail(JD.define(absoluteSymbols({{Foo, FooSym}, {Bar, BarSym}})));
 
   ExecutorAddr ReturnedFooAddr, ReturnedBarAddr;
-  orc::promise<MSVCPError> ErrP;
+  orc::future<MSVCPError> ErrF;
 
-  lookupAndRecordAddrs([&](Error Err) { ErrP.set_value(std::move(Err)); }, ES,
-                       LookupKind::Static, makeJITDylibSearchOrder(&JD),
+  lookupAndRecordAddrs([ErrP = ErrF.get_promise(getDispatcher())](
+                           Error Err) { ErrP.set_value(std::move(Err)); },
+                       ES, LookupKind::Static, makeJITDylibSearchOrder(&JD),
                        {{Foo, &ReturnedFooAddr}, {Bar, &ReturnedBarAddr}});
 
-  Error Err = ErrP.get_future().get(getDispatcher());
+  Error Err = ErrF.get();
 
   EXPECT_THAT_ERROR(std::move(Err), Succeeded());
   EXPECT_EQ(ReturnedFooAddr, FooAddr);
@@ -40,13 +41,14 @@ TEST_F(LookupAndRecordAddrsTest, AsyncRequiredSuccess) {
 
 TEST_F(LookupAndRecordAddrsTest, AsyncRequiredFailure) {
   ExecutorAddr RecordedFooAddr, RecordedBarAddr;
-  orc::promise<MSVCPError> ErrP;
+  orc::future<MSVCPError> ErrF;
 
-  lookupAndRecordAddrs([&](Error Err) { ErrP.set_value(std::move(Err)); }, ES,
-                       LookupKind::Static, makeJITDylibSearchOrder(&JD),
+  lookupAndRecordAddrs([ErrP = ErrF.get_promise(getDispatcher())](
+                           Error Err) { ErrP.set_value(std::move(Err)); },
+                       ES, LookupKind::Static, makeJITDylibSearchOrder(&JD),
                        {{Foo, &RecordedFooAddr}, {Bar, &RecordedBarAddr}});
 
-  Error Err = ErrP.get_future().get(getDispatcher());
+  Error Err = ErrF.get();
 
   EXPECT_THAT_ERROR(std::move(Err), Failed());
 }
@@ -55,14 +57,15 @@ TEST_F(LookupAndRecordAddrsTest, AsyncWeakReference) {
   cantFail(JD.define(absoluteSymbols({{Foo, FooSym}})));
 
   ExecutorAddr RecordedFooAddr, RecordedBarAddr;
-  orc::promise<MSVCPError> ErrP;
+  orc::future<MSVCPError> ErrF;
 
-  lookupAndRecordAddrs([&](Error Err) { ErrP.set_value(std::move(Err)); }, ES,
-                       LookupKind::Static, makeJITDylibSearchOrder(&JD),
+  lookupAndRecordAddrs([ErrP = ErrF.get_promise(getDispatcher())](
+                           Error Err) { ErrP.set_value(std::move(Err)); },
+                       ES, LookupKind::Static, makeJITDylibSearchOrder(&JD),
                        {{Foo, &RecordedFooAddr}, {Bar, &RecordedBarAddr}},
                        SymbolLookupFlags::WeaklyReferencedSymbol);
 
-  Error Err = ErrP.get_future().get(getDispatcher());
+  Error Err = ErrF.get();
 
   EXPECT_THAT_ERROR(std::move(Err), Succeeded());
   EXPECT_EQ(RecordedFooAddr, FooAddr);

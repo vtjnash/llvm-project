@@ -409,12 +409,12 @@ EPCIndirectionUtils::getIndirectStubs(unsigned NumStubs) {
 static JITTargetAddress reentry(JITTargetAddress LCTMAddr,
                                 JITTargetAddress TrampolineAddr) {
   auto &LCTM = *jitTargetAddressToPointer<LazyCallThroughManager *>(LCTMAddr);
-  orc::promise<ExecutorAddr> LandingAddrP;
-  auto LandingAddrF = LandingAddrP.get_future();
+  orc::future<ExecutorAddr> LandingAddrF;
   LCTM.resolveTrampolineLandingAddress(
       ExecutorAddr(TrampolineAddr),
-      [&](ExecutorAddr Addr) { LandingAddrP.set_value(Addr); });
-  return LandingAddrF.get(LCTM.getDispatcher()).getValue();
+      [LandingAddrP = LandingAddrF.get_promise(LCTM.getDispatcher())](
+          ExecutorAddr Addr) { LandingAddrP.set_value(Addr); });
+  return LandingAddrF.get().getValue();
 }
 
 Error setUpInProcessLCTMReentryViaEPCIU(EPCIndirectionUtils &EPCIU) {

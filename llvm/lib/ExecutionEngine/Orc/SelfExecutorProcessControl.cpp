@@ -151,18 +151,16 @@ SelfExecutorProcessControl::jitDispatchViaWrapperFunctionManager(
            << " byte payload.\n";
   });
 
-  orc::promise<shared::WrapperFunctionResult> ResultP;
-  auto ResultF = ResultP.get_future();
+  orc::future<shared::WrapperFunctionResult> ResultF;
   auto *EPC = static_cast<SelfExecutorProcessControl *>(Ctx);
-  EPC->getExecutionSession()
-      .runJITDispatchHandler(
-          [ResultP = std::move(ResultP)](
-              shared::WrapperFunctionResult Result) mutable {
-            ResultP.set_value(std::move(Result));
-          },
-          ExecutorAddr::fromPtr(FnTag), {Data, Size});
+  EPC->getExecutionSession().runJITDispatchHandler(
+      [ResultP = ResultF.get_promise(EPC->getDispatcher())](
+          shared::WrapperFunctionResult Result) {
+        ResultP.set_value(std::move(Result));
+      },
+      ExecutorAddr::fromPtr(FnTag), {Data, Size});
 
-  return ResultF.get(EPC->getDispatcher()).release();
+  return ResultF.get().release();
 }
 
 } // namespace llvm::orc

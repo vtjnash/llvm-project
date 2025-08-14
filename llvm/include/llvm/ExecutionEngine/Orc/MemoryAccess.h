@@ -15,8 +15,8 @@
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/FunctionExtras.h"
-#include "llvm/ExecutionEngine/Orc/Shared/TargetProcessControlTypes.h"
 #include "llvm/ExecutionEngine/Orc/ExecutorProcessControl.h"
+#include "llvm/ExecutionEngine/Orc/Shared/TargetProcessControlTypes.h"
 #include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 #include "llvm/Support/MSVCErrorWorkarounds.h"
 
@@ -92,113 +92,118 @@ public:
                                 OnReadStringsCompleteFn OnComplete) = 0;
 
   Error writeUInt8s(ArrayRef<tpctypes::UInt8Write> Ws) {
-    orc::promise<MSVCPError> ResultP;
-    auto ResultF = ResultP.get_future();
-    writeUInt8sAsync(Ws, [&](Error Err) { ResultP.set_value(std::move(Err)); });
-    return ResultF.get(EPC.getDispatcher());
+    orc::future<MSVCPError> ResultF;
+    writeUInt8sAsync(Ws, [ResultP = ResultF.get_promise(EPC.getDispatcher())](
+                             Error Err) { ResultP.set_value(std::move(Err)); });
+    return ResultF.get();
   }
 
   Error writeUInt16s(ArrayRef<tpctypes::UInt16Write> Ws) {
-    orc::promise<MSVCPError> ResultP;
-    auto ResultF = ResultP.get_future();
-    writeUInt16sAsync(Ws,
-                      [&](Error Err) { ResultP.set_value(std::move(Err)); });
-    return ResultF.get(EPC.getDispatcher());
+    orc::future<MSVCPError> ResultF;
+    writeUInt16sAsync(
+        Ws, [ResultP = ResultF.get_promise(EPC.getDispatcher())](Error Err) {
+          ResultP.set_value(std::move(Err));
+        });
+    return ResultF.get();
   }
 
   Error writeUInt32s(ArrayRef<tpctypes::UInt32Write> Ws) {
-    orc::promise<MSVCPError> ResultP;
-    auto ResultF = ResultP.get_future();
-    writeUInt32sAsync(Ws,
-                      [&](Error Err) { ResultP.set_value(std::move(Err)); });
-    return ResultF.get(EPC.getDispatcher());
+    orc::future<MSVCPError> ResultF;
+    writeUInt32sAsync(
+        Ws, [ResultP = ResultF.get_promise(EPC.getDispatcher())](Error Err) {
+          ResultP.set_value(std::move(Err));
+        });
+    return ResultF.get();
   }
 
   Error writeUInt64s(ArrayRef<tpctypes::UInt64Write> Ws) {
-    orc::promise<MSVCPError> ResultP;
-    auto ResultF = ResultP.get_future();
-    writeUInt64sAsync(Ws,
-                      [&](Error Err) { ResultP.set_value(std::move(Err)); });
-    return ResultF.get(EPC.getDispatcher());
+    orc::future<MSVCPError> ResultF;
+    writeUInt64sAsync(
+        Ws, [ResultP = ResultF.get_promise(EPC.getDispatcher())](Error Err) {
+          ResultP.set_value(std::move(Err));
+        });
+    return ResultF.get();
   }
 
   Error writePointers(ArrayRef<tpctypes::PointerWrite> Ws) {
-    orc::promise<MSVCPError> ResultP;
-    auto ResultF = ResultP.get_future();
-    writePointersAsync(Ws,
-                       [&](Error Err) { ResultP.set_value(std::move(Err)); });
-    return ResultF.get(EPC.getDispatcher());
+    orc::future<MSVCPError> ResultF;
+    writePointersAsync(
+        Ws, [ResultP = ResultF.get_promise(EPC.getDispatcher())](Error Err) {
+          ResultP.set_value(std::move(Err));
+        });
+    return ResultF.get();
   }
 
   Error writeBuffers(ArrayRef<tpctypes::BufferWrite> Ws) {
-    orc::promise<MSVCPError> ResultP;
-    auto ResultF = ResultP.get_future();
-    writeBuffersAsync(Ws,
-                      [&](Error Err) { ResultP.set_value(std::move(Err)); });
-    return ResultF.get(EPC.getDispatcher());
+    orc::future<MSVCPError> ResultF;
+    writeBuffersAsync(
+        Ws, [ResultP = ResultF.get_promise(EPC.getDispatcher())](Error Err) {
+          ResultP.set_value(std::move(Err));
+        });
+    return ResultF.get();
   }
 
   Expected<ReadUIntsResult<uint8_t>> readUInt8s(ArrayRef<ExecutorAddr> Rs) {
-    orc::promise<MSVCPExpected<ReadUIntsResult<uint8_t>>> P;
-    auto F = P.get_future();
-    readUInt8sAsync(Rs, [&](Expected<ReadUIntsResult<uint8_t>> Result) {
+    orc::future<MSVCPExpected<ReadUIntsResult<uint8_t>>> F;
+    readUInt8sAsync(Rs, [P = F.get_promise(EPC.getDispatcher())](
+                            Expected<ReadUIntsResult<uint8_t>> Result) {
       P.set_value(std::move(Result));
     });
-    return F.get(EPC.getDispatcher());
+    return F.get();
   }
 
   Expected<ReadUIntsResult<uint16_t>> readUInt16s(ArrayRef<ExecutorAddr> Rs) {
-    orc::promise<MSVCPExpected<ReadUIntsResult<uint16_t>>> P;
-    auto F = P.get_future();
-    readUInt16sAsync(Rs, [&](Expected<ReadUIntsResult<uint16_t>> Result) {
+    orc::future<MSVCPExpected<ReadUIntsResult<uint16_t>>> F;
+    readUInt16sAsync(Rs, [P = F.get_promise(EPC.getDispatcher())](
+                             Expected<ReadUIntsResult<uint16_t>> Result) {
       P.set_value(std::move(Result));
     });
-    return F.get(EPC.getDispatcher());
+    return F.get();
   }
 
   Expected<ReadUIntsResult<uint32_t>> readUInt32s(ArrayRef<ExecutorAddr> Rs) {
-    orc::promise<MSVCPExpected<ReadUIntsResult<uint32_t>>> P;
-    auto F = P.get_future();
-    readUInt32sAsync(Rs, [&](Expected<ReadUIntsResult<uint32_t>> Result) {
+    orc::future<MSVCPExpected<ReadUIntsResult<uint32_t>>> F;
+    readUInt32sAsync(Rs, [P = F.get_promise(EPC.getDispatcher())](
+                             Expected<ReadUIntsResult<uint32_t>> Result) {
       P.set_value(std::move(Result));
     });
-    return F.get(EPC.getDispatcher());
+    return F.get();
   }
 
   Expected<ReadUIntsResult<uint64_t>> readUInt64s(ArrayRef<ExecutorAddr> Rs) {
-    orc::promise<MSVCPExpected<ReadUIntsResult<uint64_t>>> P;
-    auto F = P.get_future();
-    readUInt64sAsync(Rs, [&](Expected<ReadUIntsResult<uint64_t>> Result) {
+    orc::future<MSVCPExpected<ReadUIntsResult<uint64_t>>> F;
+    readUInt64sAsync(Rs, [P = F.get_promise(EPC.getDispatcher())](
+                             Expected<ReadUIntsResult<uint64_t>> Result) {
       P.set_value(std::move(Result));
     });
-    return F.get(EPC.getDispatcher());
+    return F.get();
   }
 
   Expected<ReadPointersResult> readPointers(ArrayRef<ExecutorAddr> Rs) {
-    orc::promise<MSVCPExpected<ReadPointersResult>> P;
-    auto F = P.get_future();
-    readPointersAsync(Rs, [&](Expected<ReadPointersResult> Result) {
+    orc::future<MSVCPExpected<ReadPointersResult>> F;
+    readPointersAsync(Rs, [P = F.get_promise(EPC.getDispatcher())](
+                              Expected<ReadPointersResult> Result) {
       P.set_value(std::move(Result));
     });
-    return F.get(EPC.getDispatcher());
+    return F.get();
   }
 
   Expected<ReadBuffersResult> readBuffers(ArrayRef<ExecutorAddrRange> Rs) {
-    orc::promise<MSVCPExpected<ReadBuffersResult>> P;
-    auto F = P.get_future();
-    readBuffersAsync(Rs, [&](Expected<ReadBuffersResult> Result) {
+    orc::future<MSVCPExpected<ReadBuffersResult>> F;
+    readBuffersAsync(Rs, [P = F.get_promise(EPC.getDispatcher())](
+                             Expected<ReadBuffersResult> Result) {
       P.set_value(std::move(Result));
     });
-    return F.get(EPC.getDispatcher());
+    return F.get();
   }
 
   Expected<ReadStringsResult> readStrings(ArrayRef<ExecutorAddr> Rs) {
-    orc::promise<MSVCPExpected<ReadStringsResult>> P;
-    auto F = P.get_future();
-    readStringsAsync(Rs, [&](Expected<ReadStringsResult> Result) {
+    orc::future<MSVCPExpected<ReadStringsResult>> F;
+    readStringsAsync(Rs, [P = F.get_promise(EPC.getDispatcher())](
+                             Expected<ReadStringsResult> Result) {
       P.set_value(std::move(Result));
     });
-    return F.get(EPC.getDispatcher());
+    return F.get();
   }
 
 protected:

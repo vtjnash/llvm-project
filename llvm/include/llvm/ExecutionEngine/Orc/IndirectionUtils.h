@@ -123,14 +123,15 @@ private:
     LocalTrampolinePool<ORCABI> *TrampolinePool =
         static_cast<LocalTrampolinePool *>(TrampolinePoolPtr);
 
-    orc::promise<ExecutorAddr> LandingAddressP;
-    auto LandingAddressF = LandingAddressP.get_future();
+    orc::future<ExecutorAddr> LandingAddressF;
 
-    TrampolinePool->ResolveLanding(ExecutorAddr::fromPtr(TrampolineId),
-                                   [&](ExecutorAddr LandingAddress) {
-                                     LandingAddressP.set_value(LandingAddress);
-                                   });
-    return LandingAddressF.get(TrampolinePool->D).getValue();
+    TrampolinePool->ResolveLanding(
+        ExecutorAddr::fromPtr(TrampolineId),
+        [LandingAddressP = LandingAddressF.get_promise(TrampolinePool->D)](
+            ExecutorAddr LandingAddress) {
+          LandingAddressP.set_value(LandingAddress);
+        });
+    return LandingAddressF.get().getValue();
   }
 
   LocalTrampolinePool(ResolveLandingFunction ResolveLanding, TaskDispatcher &D,

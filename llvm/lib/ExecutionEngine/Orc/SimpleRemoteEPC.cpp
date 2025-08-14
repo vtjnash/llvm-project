@@ -22,6 +22,7 @@ SimpleRemoteEPC::~SimpleRemoteEPC() {
   std::lock_guard<std::mutex> Lock(SimpleRemoteEPCMutex);
   assert(Disconnected && "Destroyed without disconnection");
 #endif // NDEBUG
+  DisconnectF.get();
 }
 
 Expected<tpctypes::DylibHandle>
@@ -125,9 +126,8 @@ void SimpleRemoteEPC::callWrapperAsync(ExecutorAddr WrapperFnAddr,
 
 Error SimpleRemoteEPC::disconnect() {
   T->disconnect();
+  DisconnectF.wait();
   D->shutdown();
-  std::unique_lock<std::mutex> Lock(SimpleRemoteEPCMutex);
-  DisconnectCV.wait(Lock, [this] { return Disconnected; });
   return std::move(DisconnectErr);
 }
 
@@ -208,7 +208,7 @@ void SimpleRemoteEPC::handleDisconnect(Error Err) {
   std::lock_guard<std::mutex> Lock(SimpleRemoteEPCMutex);
   DisconnectErr = joinErrors(std::move(DisconnectErr), std::move(Err));
   Disconnected = true;
-  DisconnectCV.notify_all();
+  DisconnectP.set_value();
 }
 
 Expected<std::unique_ptr<jitlink::JITLinkMemoryManager>>
@@ -309,13 +309,12 @@ Error SimpleRemoteEPC::handleSetup(uint64_t SeqNo, ExecutorAddr TagAddr,
 Error SimpleRemoteEPC::setup(Setup S) {
   using namespace SimpleRemoteEPCDefaultBootstrapSymbolNames;
 
-  orc::promise<MSVCPExpected<SimpleRemoteEPCExecutorInfo>> EIP;
-  auto EIF = EIP.get_future();
+  orc::future<MSVCPExpected<SimpleRemoteEPCExecutorInfo>> EIF;
 
   // Prepare a handler for the setup packet.
   PendingCallWrapperResults[0] =
-    RunInPlace()(
-      [&](shared::WrapperFunctionResult SetupMsgBytes) {
+      RunInPlace()([EIP = EIF.get_promise(getDispatcher())](
+                       shared::WrapperFunctionResult SetupMsgBytes) {
         if (const char *ErrMsg = SetupMsgBytes.getOutOfBandError()) {
           EIP.set_value(
               make_error<StringError>(ErrMsg, inconvertibleErrorCode()));
@@ -337,7 +336,7 @@ Error SimpleRemoteEPC::setup(Setup S) {
     return Err;
 
   // Wait for setup packet to arrive.
-  auto EI = EIF.get(getDispatcher());
+  auto EI = EIF.get();
   if (!EI) {
     T->disconnect();
     return EI.takeError();

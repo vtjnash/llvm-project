@@ -59,8 +59,7 @@ TEST(SharedMemoryMapperTest, MemReserveInitializeDeinitializeRelease) {
   std::string TestString = "Hello, World!";
 
   // barrier
-  orc::promise<void> P;
-  auto F = P.get_future();
+  orc::future<void> F;
 
   {
     std::unique_ptr<MemoryMapper> Mapper =
@@ -72,7 +71,7 @@ TEST(SharedMemoryMapperTest, MemReserveInitializeDeinitializeRelease) {
                          Triple("x86_64-apple-darwin"), SubtargetFeatures(),
                          jitlink::getGenericEdgeKindName);
 
-    Mapper->reserve(ReqSize, [&, P = std::move(P)](
+    Mapper->reserve(ReqSize, [&, P = F.get_promise(SelfEPC->getDispatcher())](
                                  Expected<ExecutorAddrRange> Result) mutable {
       EXPECT_THAT_ERROR(Result.takeError(), Succeeded());
       auto Reservation = std::move(*Result);
@@ -121,7 +120,7 @@ TEST(SharedMemoryMapperTest, MemReserveInitializeDeinitializeRelease) {
               EXPECT_EQ(DeinitializeCounter, 1);
 
               Mapper->release({Reservation.Start},
-                              [&, P = std::move(P)](Error Err) mutable {
+                              [P = std::move(P)](Error Err) mutable {
                                 EXPECT_THAT_ERROR(std::move(Err), Succeeded());
 
                                 P.set_value();
@@ -131,7 +130,7 @@ TEST(SharedMemoryMapperTest, MemReserveInitializeDeinitializeRelease) {
     });
 
     // This will block the test if any of the above callbacks are not executed
-    F.get(SelfEPC->getDispatcher());
+    F.get();
     // Mapper must be destructed before calling shutdown to avoid double free
   }
 

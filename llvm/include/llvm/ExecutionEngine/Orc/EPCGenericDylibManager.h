@@ -54,19 +54,21 @@ public:
   /// Looks up symbols within the given dylib.
   Expected<tpctypes::LookupResult> lookup(tpctypes::DylibHandle H,
                                           const SymbolLookupSet &Lookup) {
-    orc::promise<MSVCPExpected<tpctypes::LookupResult>> RP;
-    auto RF = RP.get_future();
-    lookupAsync(H, Lookup, [&RP](auto R) { RP.set_value(std::move(R)); });
-    return RF.get(EPC.getDispatcher());
+    orc::future<MSVCPExpected<tpctypes::LookupResult>> RF;
+    lookupAsync(H, Lookup, [RP = RF.get_promise(EPC.getDispatcher())](auto R) {
+      RP.set_value(std::move(R));
+    });
+    return RF.get();
   }
 
   /// Looks up symbols within the given dylib.
   Expected<tpctypes::LookupResult> lookup(tpctypes::DylibHandle H,
                                           const RemoteSymbolLookupSet &Lookup) {
-    orc::promise<MSVCPExpected<tpctypes::LookupResult>> RP;
-    auto RF = RP.get_future();
-    lookupAsync(H, Lookup, [&RP](auto R) { RP.set_value(std::move(R)); });
-    return RF.get(EPC.getDispatcher());
+    orc::future<MSVCPExpected<std::vector<ExecutorSymbolDef>>> RF;
+    lookupAsync(H, Lookup, [RP = RF.get_promise(EPC.getDispatcher())](auto R) {
+      RP.set_value(std::move(R));
+    });
+    return RF.get();
   }
 
   using SymbolLookupCompleteFn =

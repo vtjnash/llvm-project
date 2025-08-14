@@ -23,7 +23,6 @@ namespace orc {
 
 DylibManager::~DylibManager() = default;
 
-
 ExecutorProcessControl::~ExecutorProcessControl() = default;
 
 } // end namespace orc

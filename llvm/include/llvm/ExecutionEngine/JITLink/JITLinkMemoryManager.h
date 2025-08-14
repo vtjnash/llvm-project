@@ -140,13 +140,12 @@ public:
 
     /// Co-synchronous convenience version of finalize.
     Expected<FinalizedAlloc> finalize(orc::TaskDispatcher &D) {
-      orc::promise<MSVCPExpected<FinalizedAlloc>> FinalizeResultP;
-      auto FinalizeResultF = FinalizeResultP.get_future();
-      finalize([FinalizeResultP = std::move(FinalizeResultP)](
+      orc::future<MSVCPExpected<FinalizedAlloc>> FinalizeResultF;
+      finalize([FinalizeResultP = FinalizeResultF.get_promise(D)](
                    Expected<FinalizedAlloc> Result) mutable {
         FinalizeResultP.set_value(std::move(Result));
       });
-      return FinalizeResultF.get(D);
+      return FinalizeResultF.get();
     }
   };
 
@@ -173,14 +172,12 @@ public:
   /// Convenience function for co-blocking allocation.
   AllocResult allocate(const JITLinkDylib *JD, LinkGraph &G,
                        orc::TaskDispatcher &D) {
-    orc::promise<MSVCPExpected<std::unique_ptr<InFlightAlloc>>> AllocResultP;
-    auto AllocResultF = AllocResultP.get_future();
-    allocate(
-        JD, G,
-        [AllocResultP = std::move(AllocResultP)](AllocResult Alloc) mutable {
-          AllocResultP.set_value(std::move(Alloc));
-        });
-    return AllocResultF.get(D);
+    orc::future<MSVCPExpected<std::unique_ptr<InFlightAlloc>>> AllocResultF;
+    allocate(JD, G,
+             [AllocResultP = AllocResultF.get_promise(D)](AllocResult Alloc) {
+               AllocResultP.set_value(std::move(Alloc));
+             });
+    return AllocResultF.get();
   }
 
   /// Deallocate a list of allocation objects.
@@ -199,13 +196,12 @@ public:
 
   /// Convenience function for co-blocking deallocation.
   Error deallocate(std::vector<FinalizedAlloc> Allocs, orc::TaskDispatcher &D) {
-    orc::promise<MSVCPError> DeallocResultP;
-    auto DeallocResultF = DeallocResultP.get_future();
+    orc::future<MSVCPError> DeallocResultF;
     deallocate(std::move(Allocs),
-               [DeallocResultP = std::move(DeallocResultP)](Error Err) mutable {
+               [DeallocResultP = DeallocResultF.get_promise(D)](Error Err) {
                  DeallocResultP.set_value(std::move(Err));
                });
-    return DeallocResultF.get(D);
+    return DeallocResultF.get();
   }
 
   /// Convenience function for co-blocking deallocation of a single alloc.
@@ -343,7 +339,15 @@ public:
   LLVM_ABI static Expected<SimpleSegmentAlloc>
   Create(JITLinkMemoryManager &MemMgr,
          std::shared_ptr<orc::SymbolStringPool> SSP, Triple TT,
-         const JITLinkDylib *JD, SegmentMap Segments, orc::TaskDispatcher &D);
+         const JITLinkDylib *JD, SegmentMap Segments, orc::TaskDispatcher &D) {
+    orc::future<MSVCPExpected<SimpleSegmentAlloc>> AllocF;
+    Create(
+        MemMgr, std::move(SSP), std::move(TT), JD, std::move(Segments),
+        [AllocP = AllocF.get_promise(D)](Expected<SimpleSegmentAlloc> Result) {
+          AllocP.set_value(std::move(Result));
+        });
+    return AllocF.get();
+  }
 
   LLVM_ABI SimpleSegmentAlloc(SimpleSegmentAlloc &&);
   LLVM_ABI SimpleSegmentAlloc &operator=(SimpleSegmentAlloc &&);

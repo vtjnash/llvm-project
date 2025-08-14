@@ -108,7 +108,8 @@ public:
   void readUInt16sAsync(ArrayRef<ExecutorAddr> Rs,
                         OnReadUIntsCompleteFn<uint16_t> OnComplete) override {
     using namespace shared;
-    EPC.callSPSWrapperAsync<SPSSequence<uint16_t>(SPSSequence<SPSExecutorAddr>)>(
+    EPC.callSPSWrapperAsync<SPSSequence<uint16_t>(
+        SPSSequence<SPSExecutorAddr>)>(
         FAs.ReadUInt16s,
         [OnComplete = std::move(OnComplete)](
             Error Err, ReadUIntsResult<uint16_t> Result) mutable {
@@ -123,7 +124,8 @@ public:
   void readUInt32sAsync(ArrayRef<ExecutorAddr> Rs,
                         OnReadUIntsCompleteFn<uint32_t> OnComplete) override {
     using namespace shared;
-    EPC.callSPSWrapperAsync<SPSSequence<uint32_t>(SPSSequence<SPSExecutorAddr>)>(
+    EPC.callSPSWrapperAsync<SPSSequence<uint32_t>(
+        SPSSequence<SPSExecutorAddr>)>(
         FAs.ReadUInt32s,
         [OnComplete = std::move(OnComplete)](
             Error Err, ReadUIntsResult<uint32_t> Result) mutable {
@@ -138,7 +140,8 @@ public:
   void readUInt64sAsync(ArrayRef<ExecutorAddr> Rs,
                         OnReadUIntsCompleteFn<uint64_t> OnComplete) override {
     using namespace shared;
-    EPC.callSPSWrapperAsync<SPSSequence<uint64_t>(SPSSequence<SPSExecutorAddr>)>(
+    EPC.callSPSWrapperAsync<SPSSequence<uint64_t>(
+        SPSSequence<SPSExecutorAddr>)>(
         FAs.ReadUInt64s,
         [OnComplete = std::move(OnComplete)](
             Error Err, ReadUIntsResult<uint64_t> Result) mutable {

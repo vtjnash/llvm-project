@@ -1463,8 +1463,9 @@ Expected<DenseMap<JITDylib *, SymbolMap>> Platform::lookupInitSymbols(
 
   DenseMap<JITDylib *, SymbolMap> CompoundResult;
   Error CompoundErr = Error::success();
-  orc::promise<void> ResultReady;
-  auto ReadyF = ResultReady.get_future();
+  orc::future<void> ReadyF;
+  auto ResultReady =
+      ReadyF.get_promise(ES.getExecutorProcessControl().getDispatcher());
   std::mutex LookupMutex;
   volatile uint64_t Count = InitSyms.size();
 
@@ -1501,7 +1502,7 @@ Expected<DenseMap<JITDylib *, SymbolMap>> Platform::lookupInitSymbols(
         NoDependenciesToRegister);
   }
 
-  ReadyF.get(ES.getExecutorProcessControl().getDispatcher());
+  ReadyF.get();
 
   if (CompoundErr)
     return std::move(CompoundErr);
@@ -1759,16 +1760,17 @@ Expected<SymbolFlagsMap>
 ExecutionSession::lookupFlags(LookupKind K, JITDylibSearchOrder SearchOrder,
                               SymbolLookupSet LookupSet) {
 
-  orc::promise<MSVCPExpected<SymbolFlagsMap>> ResultP;
+  orc::future<MSVCPExpected<SymbolFlagsMap>> ResultF;
   OL_applyQueryPhase1(std::make_unique<InProgressLookupFlagsState>(
                           K, std::move(SearchOrder), std::move(LookupSet),
-                          [&ResultP](Expected<SymbolFlagsMap> Result) {
+                          [ResultP = ResultF.get_promise(
+                               getExecutorProcessControl().getDispatcher())](
+                              Expected<SymbolFlagsMap> Result) {
                             ResultP.set_value(std::move(Result));
                           }),
                       Error::success());
 
-  auto ResultF = ResultP.get_future();
-  return ResultF.get(getExecutorProcessControl().getDispatcher());
+  return ResultF.get();
 }
 
 void ExecutionSession::lookup(
@@ -1802,10 +1804,12 @@ ExecutionSession::lookup(const JITDylibSearchOrder &SearchOrder,
                          RegisterDependenciesFunction RegisterDependencies) {
 #if LLVM_ENABLE_THREADS
   // In the threaded case we use promises to return the results.
-  orc::promise<MSVCPExpected<SymbolMap>> PromisedResult;
+  orc::future<MSVCPExpected<SymbolMap>> PromisedResult;
 
-  auto NotifyComplete = [&](Expected<SymbolMap> R) {
-    PromisedResult.set_value(std::move(R));
+  auto NotifyComplete = [PromisedResultP = PromisedResult.get_promise(
+                             getExecutorProcessControl().getDispatcher())](
+                            Expected<SymbolMap> R) {
+    PromisedResultP.set_value(std::move(R));
   };
 
 #else
@@ -1826,8 +1830,7 @@ ExecutionSession::lookup(const JITDylibSearchOrder &SearchOrder,
          std::move(NotifyComplete), RegisterDependencies);
 
 #if LLVM_ENABLE_THREADS
-  return PromisedResult.get_future().get(
-      getExecutorProcessControl().getDispatcher());
+  return PromisedResult.get();
 #else
   if (ResolutionError)
     return std::move(ResolutionError);

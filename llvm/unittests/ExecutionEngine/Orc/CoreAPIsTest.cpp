@@ -153,17 +153,15 @@ TEST_F(CoreAPIsStandardTest, MaterializationSideEffctsOnlyBasic) {
   // don't return until they're emitted, and that they don't appear in query
   // results.
 
-  orc::promise<std::unique_ptr<MaterializationResponsibility>> FooPromise;
-  auto FooF = FooPromise.get_future();
-  orc::promise<std::optional<SymbolMap>> ResultPromise;
-  auto ResultF = ResultPromise.get_future();
+  orc::future<std::unique_ptr<MaterializationResponsibility>> FooF;
+  orc::future<std::optional<SymbolMap>> ResultF;
 
   cantFail(JD.define(std::make_unique<SimpleMaterializationUnit>(
       SymbolFlagsMap(
           {{Foo, JITSymbolFlags::Exported |
                      JITSymbolFlags::MaterializationSideEffectsOnly}}),
-      [FooPromise = std::move(FooPromise)](
-          std::unique_ptr<MaterializationResponsibility> R) mutable {
+      [FooPromise = FooF.get_promise(getDispatcher())](
+          std::unique_ptr<MaterializationResponsibility> R) {
         FooPromise.set_value(std::move(R));
       })));
 
@@ -171,8 +169,8 @@ TEST_F(CoreAPIsStandardTest, MaterializationSideEffctsOnlyBasic) {
       LookupKind::Static, makeJITDylibSearchOrder(&JD),
       SymbolLookupSet(Foo, SymbolLookupFlags::WeaklyReferencedSymbol),
       SymbolState::Ready,
-      [ResultPromise =
-           std::move(ResultPromise)](Expected<SymbolMap> LookupResult) mutable {
+      [ResultPromise = ResultF.get_promise(getDispatcher())](
+          Expected<SymbolMap> LookupResult) {
         if (LookupResult)
           ResultPromise.set_value(std::move(*LookupResult));
         else {
@@ -183,14 +181,14 @@ TEST_F(CoreAPIsStandardTest, MaterializationSideEffctsOnlyBasic) {
       },
       NoDependenciesToRegister);
 
-  auto FooR = FooF.get(getDispatcher());
+  auto FooR = FooF.get();
   getDispatcher().shutdown();
   EXPECT_FALSE(ResultF.ready()) << "Lookup returned unexpectedly";
   EXPECT_TRUE(FooR) << "Lookup failed to trigger materialization";
   EXPECT_THAT_ERROR(FooR->notifyEmitted({}), Succeeded())
       << "Emission of materialization-side-effects-only symbol failed";
 
-  auto Result = ResultF.get(getDispatcher());
+  auto Result = ResultF.get();
   EXPECT_TRUE(Result) << "Lookup failed to return";
   EXPECT_TRUE(Result->empty()) << "Lookup result contained unexpected value";
 }
@@ -901,24 +899,22 @@ TEST_F(CoreAPIsStandardTest, AddDependencyOnFailedSymbol) {
 }
 
 TEST_F(CoreAPIsStandardTest, FailAfterMaterialization) {
-  orc::promise<std::unique_ptr<MaterializationResponsibility>> FooPromise;
-  auto FooF = FooPromise.get_future();
-  orc::promise<std::unique_ptr<MaterializationResponsibility>> BarPromise;
-  auto BarF = BarPromise.get_future();
+  orc::future<std::unique_ptr<MaterializationResponsibility>> FooF;
+  orc::future<std::unique_ptr<MaterializationResponsibility>> BarF;
 
   // Create a MaterializationUnit for each symbol that moves the
   // MaterializationResponsibility into one of the locals above.
   auto FooMU = std::make_unique<SimpleMaterializationUnit>(
       SymbolFlagsMap({{Foo, FooSym.getFlags()}}),
-      [FooPromise = std::move(FooPromise)](
-          std::unique_ptr<MaterializationResponsibility> R) mutable {
+      [FooPromise = FooF.get_promise(getDispatcher())](
+          std::unique_ptr<MaterializationResponsibility> R) {
         FooPromise.set_value(std::move(R));
       });
 
   auto BarMU = std::make_unique<SimpleMaterializationUnit>(
       SymbolFlagsMap({{Bar, BarSym.getFlags()}}),
-      [BarPromise = std::move(BarPromise)](
-          std::unique_ptr<MaterializationResponsibility> R) mutable {
+      [BarPromise = BarF.get_promise(getDispatcher())](
+          std::unique_ptr<MaterializationResponsibility> R) {
         BarPromise.set_value(std::move(R));
       });
 
@@ -926,10 +922,9 @@ TEST_F(CoreAPIsStandardTest, FailAfterMaterialization) {
   cantFail(JD.define(FooMU));
   cantFail(JD.define(BarMU));
 
-  orc::promise<void> OnFooReadyRun;
-  auto OnFooReadyRunF = OnFooReadyRun.get_future();
-  auto OnFooReady = [OnFooReadyRun = std::move(OnFooReadyRun)](
-                        Expected<SymbolMap> Result) mutable {
+  orc::future<void> OnFooReadyRunF;
+  auto OnFooReady = [OnFooReadyRun = OnFooReadyRunF.get_promise(
+                         getDispatcher())](Expected<SymbolMap> Result) {
     EXPECT_THAT_EXPECTED(std::move(Result), Failed());
     OnFooReadyRun.set_value();
   };
@@ -938,10 +933,9 @@ TEST_F(CoreAPIsStandardTest, FailAfterMaterialization) {
             SymbolLookupSet(Foo), SymbolState::Ready, std::move(OnFooReady),
             NoDependenciesToRegister);
 
-  orc::promise<void> OnBarReadyRun;
-  auto OnBarReadyRunF = OnBarReadyRun.get_future();
-  auto OnBarReady = [OnBarReadyRun = std::move(OnBarReadyRun)](
-                        Expected<SymbolMap> Result) mutable {
+  orc::future<void> OnBarReadyRunF;
+  auto OnBarReady = [OnBarReadyRun = OnBarReadyRunF.get_promise(
+                         getDispatcher())](Expected<SymbolMap> Result) {
     EXPECT_THAT_EXPECTED(std::move(Result), Failed());
     OnBarReadyRun.set_value();
   };
@@ -951,7 +945,7 @@ TEST_F(CoreAPIsStandardTest, FailAfterMaterialization) {
             NoDependenciesToRegister);
 
   // getDispatcher().shutdown();
-  auto FooR = FooF.get(getDispatcher());
+  auto FooR = FooF.get();
 
   // Materialize Foo.
   EXPECT_THAT_ERROR(FooR->notifyResolved({{Foo, FooSym}}), Succeeded())
@@ -963,12 +957,12 @@ TEST_F(CoreAPIsStandardTest, FailAfterMaterialization) {
   }
 
   // Fail bar.
-  auto BarR = BarF.get(getDispatcher());
+  auto BarR = BarF.get();
   BarR->failMaterialization();
 
   // Verify that both queries failed.
-  OnFooReadyRunF.get(getDispatcher());
-  OnBarReadyRunF.get(getDispatcher());
+  OnFooReadyRunF.get();
+  OnBarReadyRunF.get();
 }
 
 TEST_F(CoreAPIsStandardTest, FailMaterializerWithUnqueriedSymbols) {
@@ -1160,12 +1154,14 @@ TEST_F(CoreAPIsStandardTest, DefineMaterializingSymbol) {
   cantFail(ES.lookup(makeJITDylibSearchOrder(&JD), Foo));
 
   // Assert that materialization is complete by now.
+  D.shutdown();
   ExpectNoMoreMaterialization = true;
 
   // Look up bar to verify that no further materialization happens.
   auto BarResult = cantFail(ES.lookup(makeJITDylibSearchOrder(&JD), Bar));
   EXPECT_EQ(BarResult.getAddress(), BarSym.getAddress())
       << "Expected Bar == BarSym";
+  D.shutdown();
 }
 
 TEST_F(CoreAPIsStandardTest, GeneratorTest) {
@@ -1622,17 +1618,16 @@ TEST_F(CoreAPIsStandardTest, TestLookupWithThreadedMaterialization) {
 
   std::mutex WorkThreadsMutex;
   SmallVector<std::thread, 0> WorkThreads;
-  auto &D = getDispatcher();
+  // auto &D = getDispatcher();
   DispatchOverride = [&](std::unique_ptr<Task> T) {
-    std::promise<void> WaitP;
     std::lock_guard<std::mutex> Lock(WorkThreadsMutex);
-    WorkThreads.push_back(std::thread(
-        [T = std::move(T), WaitF = WaitP.get_future(), &D]() mutable {
-          WaitF.get();
-          D.dispatch_super(std::move(T));
-          D.shutdown();
-        }));
-    WaitP.set_value();
+    WorkThreads.push_back(
+        std::thread([T = std::move(T)]() mutable { T->run(); }));
+    // WorkThreads.push_back(std::thread(
+    //     [T = std::move(T), &D]() mutable {
+    //       D.dispatch_super(std::move(T));
+    //       D.shutdown();
+    //     }));
   };
 
   cantFail(JD.define(absoluteSymbols({{Foo, FooSym}})));
