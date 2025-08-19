@@ -25,6 +25,7 @@ TEST(InPlaceTaskDispatchTest, GenericNamedTask) {
   F.get();
   EXPECT_FALSE(F.valid());
   EXPECT_TRUE(F.ready());
+  D->run_to_complete();
   D->shutdown();
 }
 
@@ -39,6 +40,7 @@ TEST(DynamicThreadPoolDispatchTest, GenericNamedTask) {
   F.get();
   EXPECT_FALSE(F.valid());
   EXPECT_TRUE(F.ready());
+  D->run_to_complete();
   D->shutdown();
 }
 #endif

@@ -134,8 +134,14 @@ public:
     dispatch(std::move(T));
   }
 
-  /// Called by ExecutionSession. Waits until all tasks have completed.
-  virtual void shutdown() = 0;
+  /// The TaskDispatcher may be reused immediatly afterwards.
+  void run_to_complete() { run(false); }
+
+  /// Called by ExecutionSession. Halts all in-progress work as soon as
+  /// possible. May cause deadlocks since promises will not be set, so this
+  /// should only be used immediately before exiting.
+  /// The TaskDispatcher should not be reused afterwards.
+  void shutdown() { run(true); }
 
 protected:
   friend class future_base;
@@ -146,6 +152,9 @@ protected:
 
   /// Notify all task dispatchers that a future with have_waiter became ready
   LLVM_ABI static void notifyWaiters();
+
+  /// Called by ExecutionSession. Waits until all tasks have completed.
+  virtual void run(bool cancel) = 0;
 
 #if LLVM_ENABLE_THREADS
   /// Shared synchronization primitives for all dispatchers
@@ -163,9 +172,9 @@ class LLVM_ABI InPlaceTaskDispatcher : public TaskDispatcher {
 public:
   void dispatch(std::unique_ptr<Task> T) override;
   void dispatch_elsewhere(std::unique_ptr<Task> T) override;
-  void shutdown() override;
 
 private:
+  void run(bool cancel) override;
   void work_until(future_base &F) override;
 
   /// C++ does not support non-static thread_local variables, so this needs to
@@ -188,9 +197,9 @@ public:
       : MaxMaterializationThreads(MaxMaterializationThreads) {}
 
   void dispatch(std::unique_ptr<Task> T) override;
-  void shutdown() override;
 
 private:
+  void run(bool cancel) override;
   void work_until(future_base &F) override;
   bool canRunMaterializationTaskNow();
   bool canRunIdleTaskNow();

@@ -64,14 +64,15 @@ private:
 };
 
 // Since InProcessMemoryMapper doesn't use dispatch and doesn't have an EPC,
-// create this class just to satisfy the blocking API constraints.
+// create this class just to satisfy the blocking API constraints and assert
+// that it does not try to schedule tasks unexpectedly.
 class NoDispatch final : public TaskDispatcher {
 public:
   void dispatch(std::unique_ptr<Task> T) override {
     llvm_unreachable("NoDispatch::dispatch should never be called");
   }
 
-  void shutdown() override {
+  void run(bool cancel) override {
     llvm_unreachable("NoDispatch::shutdown should never be called");
   }
 

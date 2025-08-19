@@ -58,7 +58,7 @@ void InPlaceTaskDispatcher::dispatch_elsewhere(std::unique_ptr<Task> T) {
   FutureReadyCV.notify_one();
 }
 
-void InPlaceTaskDispatcher::shutdown() {
+void InPlaceTaskDispatcher::run(bool cancel) {
   // Keep processing until no tasks belonging to this dispatcher remain
   while (true) {
     // Check if any task belongs to this dispatcher
@@ -212,9 +212,10 @@ void DynamicThreadPoolTaskDispatcher::dispatch(std::unique_ptr<Task> T) {
   }).detach();
 }
 
-void DynamicThreadPoolTaskDispatcher::shutdown() {
+void DynamicThreadPoolTaskDispatcher::run(bool cancel) {
   std::unique_lock<std::mutex> Lock(DispatchMutex);
-  Shutdown = true;
+  if (cancel)
+    Shutdown = true;
   OutstandingCV.wait(Lock, [this]() { return Outstanding == 0; });
 }
 
