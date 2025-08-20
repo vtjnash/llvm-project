@@ -1097,7 +1097,7 @@ define void @mismatched_alloca_size() {
 ; Tests merging allocas with different types
 define void @mismatched_alloca_type() {
 ; CHECK-LABEL: define void @mismatched_alloca_type() {
-; CHECK-NEXT:    [[SRC:%.*]] = alloca i8, i64 6, align 4
+; CHECK-NEXT:    [[SRC:%.*]] = alloca i8, i32 12, align 4
 ; CHECK-NEXT:    store [[STRUCT_FOO:%.*]] { i32 10, i32 20, i32 30 }, ptr [[SRC]], align 4
 ; CHECK-NEXT:    [[TMP1:%.*]] = call i32 @use_nocapture(ptr captures(none) [[SRC]])
 ; CHECK-NEXT:    [[TMP2:%.*]] = call i32 @use_nocapture(ptr captures(none) [[SRC]])

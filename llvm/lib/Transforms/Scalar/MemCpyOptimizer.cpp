@@ -1725,6 +1725,7 @@ bool MemCpyOptPass::performStackMoveOptzn(Instruction *Load, Instruction *Store,
     DestArraySize = Builder.CreateMul(
         DestArraySize, ConstantInt::get(Int32Ty, DestSize.getFixedValue()), "",
         true, true);
+    SrcAlloca->setOperand(0, SrcArraySize);
   }
   if (SrcArraySize != DestArraySize) {
     if (SrcArraySize->getType() != DestArraySize->getType()) {
