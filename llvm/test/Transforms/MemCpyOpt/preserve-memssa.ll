@@ -76,7 +76,7 @@ declare void @decompose(ptr nocapture)
 define void @test5(ptr %ptr) {
 ; CHECK-LABEL: @test5(
 ; CHECK-NEXT:  entry:
-; CHECK-NEXT:    [[TMP:%.*]] = alloca i8, i32 8224, align 8
+; CHECK-NEXT:    [[TMP:%.*]] = alloca [[T:%.*]], align 8
 ; CHECK-NEXT:    [[TMP0:%.*]] = load i32, ptr [[PTR:%.*]], align 8
 ; CHECK-NEXT:    call fastcc void @decompose(ptr [[TMP]])
 ; CHECK-NEXT:    ret void

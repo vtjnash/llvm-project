@@ -1097,7 +1097,7 @@ define void @mismatched_alloca_size() {
 ; Tests merging allocas with different types
 define void @mismatched_alloca_type() {
 ; CHECK-LABEL: define void @mismatched_alloca_type() {
-; CHECK-NEXT:    [[SRC:%.*]] = alloca i8, i32 12, align 4
+; CHECK-NEXT:    [[SRC:%.*]] = alloca i16, i64 6, align 4
 ; CHECK-NEXT:    store [[STRUCT_FOO:%.*]] { i32 10, i32 20, i32 30 }, ptr [[SRC]], align 4
 ; CHECK-NEXT:    [[TMP1:%.*]] = call i32 @use_nocapture(ptr captures(none) [[SRC]])
 ; CHECK-NEXT:    [[TMP2:%.*]] = call i32 @use_nocapture(ptr captures(none) [[SRC]])
@@ -1121,7 +1121,7 @@ define void @mismatched_alloca_type() {
 ; Tests merging allocas with different types and sizes
 define void @mismatched_alloca_type_size() {
 ; CHECK-LABEL: define void @mismatched_alloca_type_size() {
-; CHECK-NEXT:    [[SRC:%.*]] = alloca i8, i32 24, align 4
+; CHECK-NEXT:    [[SRC:%.*]] = alloca i16, i64 12, align 4
 ; CHECK-NEXT:    store [[STRUCT_FOO:%.*]] { i32 10, i32 20, i32 30 }, ptr [[SRC]], align 4
 ; CHECK-NEXT:    [[TMP1:%.*]] = call i32 @use_nocapture(ptr captures(none) [[SRC]])
 ; CHECK-NEXT:    [[TMP2:%.*]] = call i32 @use_nocapture(ptr captures(none) [[SRC]])
@@ -1147,9 +1147,15 @@ define void @dynamically_sized_alloca(i64 %i) {
 ; CHECK-LABEL: define void @dynamically_sized_alloca
 ; CHECK-SAME: (i64 [[I:%.*]]) {
 ; CHECK-NEXT:    [[SRC:%.*]] = alloca i8, i64 [[I]], align 4
+; CHECK-NEXT:    [[DEST:%.*]] = alloca i8, i64 [[I]], align 4
+; CHECK-NEXT:    call void @llvm.lifetime.start.p0(ptr captures(none) [[SRC]])
+; CHECK-NEXT:    call void @llvm.lifetime.start.p0(ptr captures(none) [[DEST]])
 ; CHECK-NEXT:    store [[STRUCT_FOO:%.*]] { i32 10, i32 20, i32 30 }, ptr [[SRC]], align 4
 ; CHECK-NEXT:    [[TMP1:%.*]] = call i32 @use_nocapture(ptr captures(none) [[SRC]])
-; CHECK-NEXT:    [[TMP2:%.*]] = call i32 @use_nocapture(ptr captures(none) [[SRC]])
+; CHECK-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 4 [[DEST]], ptr align 4 [[SRC]], i64 12, i1 false)
+; CHECK-NEXT:    [[TMP2:%.*]] = call i32 @use_nocapture(ptr captures(none) [[DEST]])
+; CHECK-NEXT:    call void @llvm.lifetime.end.p0(ptr captures(none) [[SRC]])
+; CHECK-NEXT:    call void @llvm.lifetime.end.p0(ptr captures(none) [[DEST]])
 ; CHECK-NEXT:    ret void
 ;
   %src = alloca i8, i64 %i, align 4
