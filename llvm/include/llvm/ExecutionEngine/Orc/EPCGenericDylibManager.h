@@ -51,20 +51,20 @@ public:
   /// Loads the dylib with the given name.
   LLVM_ABI Expected<tpctypes::DylibHandle> open(StringRef Path, uint64_t Mode);
 
-  /// Looks up symbols within the given dylib.
+  /// Blocking lookup of symbols within the given dylib.
   Expected<tpctypes::LookupResult> lookup(tpctypes::DylibHandle H,
                                           const SymbolLookupSet &Lookup) {
-    orc::future<MSVCPExpected<tpctypes::LookupResult>> RF;
+    orc::future<Expected<tpctypes::LookupResult>> RF;
     lookupAsync(H, Lookup, [RP = RF.get_promise(EPC.getDispatcher())](auto R) {
       RP.set_value(std::move(R));
     });
     return RF.get();
   }
 
-  /// Looks up symbols within the given dylib.
+  /// Blocking lookup of symbols within the given dylib.
   Expected<tpctypes::LookupResult> lookup(tpctypes::DylibHandle H,
                                           const RemoteSymbolLookupSet &Lookup) {
-    orc::future<MSVCPExpected<std::vector<ExecutorSymbolDef>>> RF;
+    orc::future<Expected<tpctypes::LookupResult>> RF;
     lookupAsync(H, Lookup, [RP = RF.get_promise(EPC.getDispatcher())](auto R) {
       RP.set_value(std::move(R));
     });
