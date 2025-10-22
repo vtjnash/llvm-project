@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Implements ExecutorProcessControl::MemoryAccess by making calls to
+// Implements MemoryAccess by making calls to
 // ExecutorProcessControl::callWrapperAsync.
 //
 // This simplifies the implementaton of new ExecutorProcessControl instances,
@@ -19,6 +19,7 @@
 #define LLVM_EXECUTIONENGINE_ORC_EPCGENERICMEMORYACCESS_H
 
 #include "llvm/ExecutionEngine/Orc/Core.h"
+#include "llvm/ExecutionEngine/Orc/MemoryAccess.h"
 
 namespace llvm {
 namespace orc {
@@ -45,7 +46,7 @@ public:
   /// Create an EPCGenericMemoryAccess instance from a given set of
   /// function addrs.
   EPCGenericMemoryAccess(ExecutorProcessControl &EPC, FuncAddrs FAs)
-      : EPC(EPC), FAs(FAs) {}
+      : MemoryAccess(EPC), FAs(FAs) {}
 
   void writeUInt8sAsync(ArrayRef<tpctypes::UInt8Write> Ws,
                         WriteResultFn OnWriteComplete) override {
@@ -202,7 +203,6 @@ public:
   }
 
 private:
-  ExecutorProcessControl &EPC;
   FuncAddrs FAs;
 };
 

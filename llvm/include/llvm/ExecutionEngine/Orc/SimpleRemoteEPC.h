@@ -15,6 +15,7 @@
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/FunctionExtras.h"
+#include "llvm/ExecutionEngine/Orc/DylibManager.h"
 #include "llvm/ExecutionEngine/Orc/EPCGenericDylibManager.h"
 #include "llvm/ExecutionEngine/Orc/EPCGenericJITLinkMemoryManager.h"
 #include "llvm/ExecutionEngine/Orc/EPCGenericMemoryAccess.h"
@@ -24,14 +25,13 @@
 #include "llvm/Support/Error.h"
 #include "llvm/Support/MSVCErrorWorkarounds.h"
 
-#include <future>
+#include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 
 namespace llvm {
 namespace orc {
 
-class LLVM_ABI SimpleRemoteEPC : public ExecutorProcessControl,
-                                 public SimpleRemoteEPCTransportClient,
-                                 private DylibManager {
+class LLVM_ABI SimpleRemoteEPC : public SimpleRemoteEPCTransportClient,
+                                 public DylibManager {
 public:
   /// A setup object containing callbacks to construct a memory manager and
   /// memory access object. Both are optional. If not specified,
@@ -93,7 +93,8 @@ public:
 private:
   SimpleRemoteEPC(std::shared_ptr<SymbolStringPool> SSP,
                   std::unique_ptr<TaskDispatcher> D)
-      : ExecutorProcessControl(std::move(SSP), std::move(D)) {
+      : DylibManager(std::move(SSP), std::move(D)),
+        DisconnectP(DisconnectF.get_promise(getDispatcher())) {
     this->DylibMgr = this;
   }
 
@@ -127,7 +128,8 @@ private:
     DenseMap<uint64_t, IncomingWFRHandler>;
 
   std::mutex SimpleRemoteEPCMutex;
-  std::condition_variable DisconnectCV;
+  orc::future<void> DisconnectF;
+  orc::promise<void> DisconnectP;
   bool Disconnected = false;
   Error DisconnectErr = Error::success();
 

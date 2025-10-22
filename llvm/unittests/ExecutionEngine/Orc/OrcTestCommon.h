@@ -16,6 +16,7 @@
 
 #include "llvm/ExecutionEngine/JITSymbol.h"
 #include "llvm/ExecutionEngine/Orc/Core.h"
+#include "llvm/ExecutionEngine/Orc/DylibManager.h"
 #include "llvm/ExecutionEngine/Orc/ExecutorProcessControl.h"
 #include "llvm/ExecutionEngine/Orc/InProcessMemoryAccess.h"
 #include "llvm/ExecutionEngine/Orc/IndirectionUtils.h"
@@ -57,6 +58,9 @@ protected:
   public:
     OverridableDispatcher(CoreAPIsBasedStandardTest &Parent) : Parent(Parent) {}
     void dispatch(std::unique_ptr<Task> T) override;
+    void dispatch_super(std::unique_ptr<Task> T) {
+      InPlaceTaskDispatcher::dispatch(std::move(T));
+    }
 
   private:
     CoreAPIsBasedStandardTest &Parent;
@@ -64,6 +68,11 @@ protected:
 
   std::unique_ptr<llvm::orc::ExecutorProcessControl>
   makeEPC(std::shared_ptr<SymbolStringPool> SSP);
+
+  OverridableDispatcher &getDispatcher() {
+    return static_cast<OverridableDispatcher &>(
+        ES.getExecutorProcessControl().getDispatcher());
+  }
 
   std::shared_ptr<SymbolStringPool> SSP = std::make_shared<SymbolStringPool>();
   ExecutionSession ES{makeEPC(SSP)};
@@ -80,23 +89,24 @@ protected:
   ExecutorSymbolDef BarSym{BarAddr, JITSymbolFlags::Exported};
   ExecutorSymbolDef BazSym{BazAddr, JITSymbolFlags::Exported};
   ExecutorSymbolDef QuxSym{QuxAddr, JITSymbolFlags::Exported};
+  // Return true to indicate the Task is handled
   unique_function<void(std::unique_ptr<Task>)> DispatchOverride;
 };
 
 /// A ExecutorProcessControl instance that asserts if any of its methods are
 /// used. Suitable for use is unit tests, and by ORC clients who haven't moved
 /// to ExecutorProcessControl-based APIs yet.
-class UnsupportedExecutorProcessControl : public ExecutorProcessControl,
+class UnsupportedExecutorProcessControl : public DylibManager,
                                           private InProcessMemoryAccess {
 public:
   UnsupportedExecutorProcessControl(
       std::shared_ptr<SymbolStringPool> SSP = nullptr,
       std::unique_ptr<TaskDispatcher> D = nullptr, const std::string &TT = "",
       unsigned PageSize = 0)
-      : ExecutorProcessControl(
+      : DylibManager(
             SSP ? std::move(SSP) : std::make_shared<SymbolStringPool>(),
             D ? std::move(D) : std::make_unique<InPlaceTaskDispatcher>()),
-        InProcessMemoryAccess(Triple(TT).isArch64Bit()) {
+        InProcessMemoryAccess(*this, Triple(TT).isArch64Bit()) {
     this->TargetTriple = Triple(TT);
     this->PageSize = PageSize;
     this->MemAccess = this;
@@ -122,6 +132,15 @@ public:
   }
 
   Error disconnect() override { return Error::success(); }
+
+  Expected<tpctypes::DylibHandle> loadDylib(const char *DylibPath) override {
+    return make_error<StringError>("Unsupported", inconvertibleErrorCode());
+  }
+
+  void lookupSymbolsAsync(ArrayRef<LookupRequest> Request,
+                          SymbolLookupCompleteFn F) override {
+    F(make_error<StringError>("Unsupported", inconvertibleErrorCode()));
+  }
 };
 
 } // end namespace orc
@@ -143,11 +162,11 @@ private:
 
 class SimpleMaterializationUnit : public orc::MaterializationUnit {
 public:
-  using MaterializeFunction =
-      std::function<void(std::unique_ptr<orc::MaterializationResponsibility>)>;
+  using MaterializeFunction = unique_function<void(
+      std::unique_ptr<orc::MaterializationResponsibility>)>;
   using DiscardFunction =
-      std::function<void(const orc::JITDylib &, orc::SymbolStringPtr)>;
-  using DestructorFunction = std::function<void()>;
+      unique_function<void(const orc::JITDylib &, orc::SymbolStringPtr)>;
+  using DestructorFunction = unique_function<void()>;
 
   SimpleMaterializationUnit(
       orc::SymbolFlagsMap SymbolFlags, MaterializeFunction Materialize,

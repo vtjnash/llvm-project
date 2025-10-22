@@ -15,8 +15,6 @@
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ExecutionEngine/JITLink/JITLinkMemoryManager.h"
-#include "llvm/ExecutionEngine/Orc/DylibManager.h"
-#include "llvm/ExecutionEngine/Orc/MemoryAccess.h"
 #include "llvm/ExecutionEngine/Orc/Shared/ExecutorAddress.h"
 #include "llvm/ExecutionEngine/Orc/Shared/TargetProcessControlTypes.h"
 #include "llvm/ExecutionEngine/Orc/Shared/WrapperFunctionUtils.h"
@@ -26,25 +24,28 @@
 #include "llvm/Support/Compiler.h"
 #include "llvm/TargetParser/Triple.h"
 
-#include <future>
 #include <mutex>
 #include <vector>
 
-namespace llvm::orc {
+namespace llvm {
+namespace orc {
 
 class ExecutionSession;
+class DylibManager;
+class MemoryAccess;
+class SymbolLookupSet;
 
 /// ExecutorProcessControl supports interaction with a JIT target process.
 class LLVM_ABI ExecutorProcessControl {
   friend class ExecutionSession;
-public:
 
+public:
   /// A handler or incoming WrapperFunctionResults -- either return values from
   /// callWrapper* calls, or incoming JIT-dispatch requests.
   ///
   /// IncomingWFRHandlers are constructible from
   /// unique_function<void(shared::WrapperFunctionResult)>s using the
-  /// runInPlace function or a RunWithDispatch object.
+  /// RunInPlace function or a RunAsTask object.
   class IncomingWFRHandler {
     friend class ExecutorProcessControl;
   public:
@@ -83,15 +84,16 @@ public:
 
     template <typename FnT>
     IncomingWFRHandler operator()(FnT &&Fn) {
-      return IncomingWFRHandler(
-          [&D = this->D, Fn = std::move(Fn)]
-          (shared::WrapperFunctionResult WFR) mutable {
-              D.dispatch(
-                makeGenericNamedTask(
-                    [Fn = std::move(Fn), WFR = std::move(WFR)]() mutable {
-                      Fn(std::move(WFR));
-                    }, "WFR handler task"));
+      orc::future<shared::WrapperFunctionResult> F;
+      auto H = IncomingWFRHandler(
+          [P = F.get_promise(D)](shared::WrapperFunctionResult WFR) {
+            P.set_value(std::move(WFR));
           });
+      std::move(F).then(
+          [Fn = std::move(Fn)](shared::WrapperFunctionResult &&WFR) mutable {
+            Fn(std::move(WFR));
+          });
+      return H;
     }
   private:
     TaskDispatcher &D;
@@ -251,13 +253,13 @@ public:
   /// \endcode{.cpp}
   shared::WrapperFunctionResult callWrapper(ExecutorAddr WrapperFnAddr,
                                             ArrayRef<char> ArgBuffer) {
-    std::promise<shared::WrapperFunctionResult> RP;
-    auto RF = RP.get_future();
+    orc::future<shared::WrapperFunctionResult> RF;
     callWrapperAsync(
         RunInPlace(), WrapperFnAddr,
-        [&](shared::WrapperFunctionResult R) {
+        [RP = RF.get_promise(*D)](shared::WrapperFunctionResult R) {
           RP.set_value(std::move(R));
-        }, ArgBuffer);
+        },
+        ArgBuffer);
     return RF.get();
   }
 
@@ -322,6 +324,7 @@ protected:
   StringMap<ExecutorAddr> BootstrapSymbols;
 };
 
-} // namespace llvm::orc
+} // end namespace orc
+} // end namespace llvm
 
 #endif // LLVM_EXECUTIONENGINE_ORC_EXECUTORPROCESSCONTROL_H

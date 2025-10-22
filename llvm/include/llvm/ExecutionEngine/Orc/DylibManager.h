@@ -13,12 +13,13 @@
 #ifndef LLVM_EXECUTIONENGINE_ORC_DYLIBMANAGER_H
 #define LLVM_EXECUTIONENGINE_ORC_DYLIBMANAGER_H
 
+#include "llvm/ExecutionEngine/Orc/ExecutorProcessControl.h"
+#include "llvm/ExecutionEngine/Orc/InProcessMemoryAccess.h"
 #include "llvm/ExecutionEngine/Orc/Shared/TargetProcessControlTypes.h"
+#include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/MSVCErrorWorkarounds.h"
-
-#include <future>
 #include <mutex>
 #include <vector>
 
@@ -26,8 +27,12 @@ namespace llvm::orc {
 
 class SymbolLookupSet;
 
-class LLVM_ABI DylibManager {
+class LLVM_ABI DylibManager : public ExecutorProcessControl {
 public:
+  DylibManager(std::shared_ptr<SymbolStringPool> SSP,
+               std::unique_ptr<TaskDispatcher> D)
+      : ExecutorProcessControl(std::move(SSP), std::move(D)) {}
+
   /// A pair of a dylib and a set of symbols to be looked up.
   struct LookupRequest {
     LookupRequest(tpctypes::DylibHandle Handle, const SymbolLookupSet &Symbols)
@@ -51,10 +56,11 @@ public:
   /// symbol is not found then it be assigned a '0' value.
   Expected<std::vector<tpctypes::LookupResult>>
   lookupSymbols(ArrayRef<LookupRequest> Request) {
-    std::promise<MSVCPExpected<std::vector<tpctypes::LookupResult>>> RP;
-    auto RF = RP.get_future();
+    orc::future<MSVCPExpected<std::vector<tpctypes::LookupResult>>> RF;
     lookupSymbolsAsync(Request,
-                       [&RP](auto Result) { RP.set_value(std::move(Result)); });
+                       [RP = RF.get_promise(getDispatcher())](auto Result) {
+                         RP.set_value(std::move(Result));
+                       });
     return RF.get();
   }
 

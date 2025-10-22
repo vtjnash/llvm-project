@@ -119,6 +119,10 @@ static void dumpSectionMemory(const SectionEntry &S, StringRef State) {
 
 // Resolve the relocations for all symbols we currently know about.
 void RuntimeDyldImpl::resolveRelocations() {
+  // TODO: the existence of this lock may imply a whole lot of soundness
+  // problems for any user of this class, since it is held while waiting for a
+  // std::promise, but that incurs a lock inversion / deadlock if there is any
+  // delay in fulfilling that promise.
   std::lock_guard<sys::Mutex> locked(lock);
 
   // Print out the sections prior to relocation.
@@ -1200,12 +1204,14 @@ Error RuntimeDyldImpl::resolveExternalSymbols() {
       using ExpectedLookupResult = Expected<JITSymbolResolver::LookupResult>;
 #endif
 
-      auto NewSymbolsP = std::make_shared<std::promise<ExpectedLookupResult>>();
-      auto NewSymbolsF = NewSymbolsP->get_future();
-      Resolver.lookup(NewSymbols,
-                      [=](Expected<JITSymbolResolver::LookupResult> Result) {
-                        NewSymbolsP->set_value(std::move(Result));
-                      });
+      auto NewSymbolsP = std::promise<ExpectedLookupResult>();
+      auto NewSymbolsF = NewSymbolsP.get_future();
+      Resolver.lookup(
+          NewSymbols,
+          [NewSymbolsP = std::move(NewSymbolsP)](
+              Expected<JITSymbolResolver::LookupResult> Result) mutable {
+            NewSymbolsP.set_value(std::move(Result));
+          });
 
       auto NewResolverResults = NewSymbolsF.get();
 

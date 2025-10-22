@@ -17,20 +17,30 @@ using namespace llvm::orc;
 
 TEST(InPlaceTaskDispatchTest, GenericNamedTask) {
   auto D = std::make_unique<InPlaceTaskDispatcher>();
-  bool B = false;
-  D->dispatch(makeGenericNamedTask([&]() { B = true; }));
-  EXPECT_TRUE(B);
+  orc::future<void> F;
+  D->dispatch(
+      makeGenericNamedTask([B = F.get_promise(*D)]() { B.set_value(); }));
+  EXPECT_TRUE(F.valid());
+  EXPECT_FALSE(F.ready());
+  F.get();
+  EXPECT_FALSE(F.valid());
+  EXPECT_TRUE(F.ready());
+  D->run_to_complete();
   D->shutdown();
 }
 
 #if LLVM_ENABLE_THREADS
 TEST(DynamicThreadPoolDispatchTest, GenericNamedTask) {
   auto D = std::make_unique<DynamicThreadPoolTaskDispatcher>(std::nullopt);
-  std::promise<bool> P;
-  auto F = P.get_future();
-  D->dispatch(makeGenericNamedTask(
-      [P = std::move(P)]() mutable { P.set_value(true); }));
-  EXPECT_TRUE(F.get());
+  orc::future<void> F;
+  D->dispatch(
+      makeGenericNamedTask([B = F.get_promise(*D)]() { B.set_value(); }));
+  EXPECT_TRUE(F.valid());
+  EXPECT_FALSE(F.ready());
+  F.get();
+  EXPECT_FALSE(F.valid());
+  EXPECT_TRUE(F.ready());
+  D->run_to_complete();
   D->shutdown();
 }
 #endif

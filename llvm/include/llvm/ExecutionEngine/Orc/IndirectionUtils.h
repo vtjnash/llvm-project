@@ -19,6 +19,7 @@
 #include "llvm/ExecutionEngine/Orc/Core.h"
 #include "llvm/ExecutionEngine/Orc/OrcABISupport.h"
 #include "llvm/ExecutionEngine/Orc/RedirectionManager.h"
+#include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/Memory.h"
@@ -28,7 +29,6 @@
 #include <cassert>
 #include <cstdint>
 #include <functional>
-#include <future>
 #include <map>
 #include <memory>
 #include <system_error>
@@ -107,11 +107,11 @@ public:
   /// Returns an error if this function is unable to correctly allocate, write
   /// and protect the resolver code block.
   static Expected<std::unique_ptr<LocalTrampolinePool>>
-  Create(ResolveLandingFunction ResolveLanding) {
+  Create(ResolveLandingFunction ResolveLanding, TaskDispatcher &D) {
     Error Err = Error::success();
 
     auto LTP = std::unique_ptr<LocalTrampolinePool>(
-        new LocalTrampolinePool(std::move(ResolveLanding), Err));
+        new LocalTrampolinePool(std::move(ResolveLanding), D, Err));
 
     if (Err)
       return std::move(Err);
@@ -123,18 +123,20 @@ private:
     LocalTrampolinePool<ORCABI> *TrampolinePool =
         static_cast<LocalTrampolinePool *>(TrampolinePoolPtr);
 
-    std::promise<ExecutorAddr> LandingAddressP;
-    auto LandingAddressF = LandingAddressP.get_future();
+    orc::future<ExecutorAddr> LandingAddressF;
 
-    TrampolinePool->ResolveLanding(ExecutorAddr::fromPtr(TrampolineId),
-                                   [&](ExecutorAddr LandingAddress) {
-                                     LandingAddressP.set_value(LandingAddress);
-                                   });
+    TrampolinePool->ResolveLanding(
+        ExecutorAddr::fromPtr(TrampolineId),
+        [LandingAddressP = LandingAddressF.get_promise(TrampolinePool->D)](
+            ExecutorAddr LandingAddress) {
+          LandingAddressP.set_value(LandingAddress);
+        });
     return LandingAddressF.get().getValue();
   }
 
-  LocalTrampolinePool(ResolveLandingFunction ResolveLanding, Error &Err)
-      : ResolveLanding(std::move(ResolveLanding)) {
+  LocalTrampolinePool(ResolveLandingFunction ResolveLanding, TaskDispatcher &D,
+                      Error &Err)
+      : ResolveLanding(std::move(ResolveLanding)), D(D) {
 
     ErrorAsOutParameter _(Err);
 
@@ -196,6 +198,7 @@ private:
   }
 
   ResolveLandingFunction ResolveLanding;
+  TaskDispatcher &D;
 
   sys::OwningMemoryBlock ResolverBlock;
   std::vector<sys::OwningMemoryBlock> TrampolineBlocks;
@@ -268,7 +271,8 @@ private:
         [this](ExecutorAddr TrampolineAddr,
                NotifyLandingResolvedFunction NotifyLandingResolved) {
           NotifyLandingResolved(executeCompileCallback(TrampolineAddr));
-        });
+        },
+        ES.getExecutorProcessControl().getDispatcher());
 
     if (!TP) {
       Err = TP.takeError();

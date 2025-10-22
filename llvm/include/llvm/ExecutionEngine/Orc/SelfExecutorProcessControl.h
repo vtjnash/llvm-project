@@ -14,7 +14,7 @@
 #ifndef LLVM_EXECUTIONENGINE_ORC_SELFEXECUTORPROCESSCONTROL_H
 #define LLVM_EXECUTIONENGINE_ORC_SELFEXECUTORPROCESSCONTROL_H
 
-#include "llvm/ExecutionEngine/Orc/ExecutorProcessControl.h"
+#include "llvm/ExecutionEngine/Orc/DylibManager.h"
 #include "llvm/ExecutionEngine/Orc/InProcessMemoryAccess.h"
 
 #include <memory>
@@ -22,8 +22,8 @@
 namespace llvm::orc {
 
 /// A ExecutorProcessControl implementation targeting the current process.
-class LLVM_ABI SelfExecutorProcessControl : public ExecutorProcessControl,
-                                            private DylibManager {
+class LLVM_ABI SelfExecutorProcessControl : public DylibManager,
+                                            private InProcessMemoryAccess {
 public:
   SelfExecutorProcessControl(
       std::shared_ptr<SymbolStringPool> SSP, std::unique_ptr<TaskDispatcher> D,
@@ -68,7 +68,6 @@ private:
   std::unique_ptr<UnwindInfoManager> UnwindInfoMgr;
 #endif // __APPLE__
   char GlobalManglingPrefix = 0;
-  InProcessMemoryAccess IPMA;
 };
 
 } // namespace llvm::orc
