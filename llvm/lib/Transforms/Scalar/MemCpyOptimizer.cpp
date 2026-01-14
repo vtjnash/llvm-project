@@ -23,6 +23,7 @@
 #include "llvm/Analysis/CFG.h"
 #include "llvm/Analysis/CaptureTracking.h"
 #include "llvm/Analysis/GlobalsModRef.h"
+#include "llvm/Analysis/InstSimplifyFolder.h"
 #include "llvm/Analysis/InstructionSimplify.h"
 #include "llvm/Analysis/Loads.h"
 #include "llvm/Analysis/MemoryLocation.h"
@@ -1513,23 +1514,37 @@ bool MemCpyOptPass::performStackMoveOptzn(Instruction *Load, Instruction *Store,
     return false;
   }
 
-  if (!SrcAlloca->isStaticAlloca() || !DestAlloca->isStaticAlloca())
+  if (SrcAlloca->isUsedWithInAlloca() || DestAlloca->isUsedWithInAlloca())
     return false;
 
-  const DataLayout &DL = DestAlloca->getDataLayout();
-  // Check if allocation sizes are compatible with compile-time math
-  std::optional<TypeSize> SrcSize = SrcAlloca->getAllocationSize(DL);
-  std::optional<TypeSize> DestSize = DestAlloca->getAllocationSize(DL);
-  if (!SrcSize || !DestSize)
+  // Need to check for stackrestore instructions, which act like lifetime end on all alloca,
+  // but which are defined to be no-op in the entry block.
+  if (!SrcAlloca->getParent()->isEntryBlock() || !DestAlloca->getParent()->isEntryBlock())
     return false;
-  if (*SrcSize != *DestSize)
-    if (!SrcSize->isFixed() || !DestSize->isFixed())
-      return false;
+
+  Type *SrcType = SrcAlloca->getAllocatedType();
+  Type *DestType = DestAlloca->getAllocatedType();
+  // If they don't have common type, then they will need to be converted to a
+  // common size at runtime
+  const DataLayout &DL = DestAlloca->getDataLayout();
+  TypeSize SrcSize = DL.getTypeAllocSize(SrcType);
+  TypeSize DestSize = DL.getTypeAllocSize(DestType);
+  if (SrcType != DestType)
+    if (SrcSize != DestSize)
+      if (!SrcSize.isFixed() || !DestSize.isFixed())
+        return false;
 
   // Check if it will be legal to combine allocas without breaking dominator.
+  // TODO: Try to hoist the arguments (recursively) instead of giving up
+  // immediately.
   bool MoveSrc = !DT->dominates(SrcAlloca, DestAlloca);
   if (MoveSrc) {
     if (!DT->dominates(DestAlloca, SrcAlloca))
+      return false;
+    if (!DT->dominates(SrcAlloca->getArraySize(), DestAlloca))
+      return false;
+  } else {
+    if (!DT->dominates(DestAlloca->getArraySize(), SrcAlloca))
       return false;
   }
 
@@ -1643,7 +1658,8 @@ bool MemCpyOptPass::performStackMoveOptzn(Instruction *Load, Instruction *Store,
   // be checked for now. For example, a source language might emit code matching
   // that pattern for a simple array reverse with a struct element type:
   //   for (i = 0; i < size; i++) dest[size - i - 1] = src[i];
-  if (Size != *DestSize) {
+  std::optional<TypeSize> FullSize = DestAlloca->getAllocationSize(DL);
+  if (!FullSize || Size != *FullSize) {
     // Similar analysis to overreadUndefContents
     MemoryLocation Loc;
     Value *Ptr;
@@ -1719,13 +1735,33 @@ bool MemCpyOptPass::performStackMoveOptzn(Instruction *Load, Instruction *Store,
       std::max(SrcAlloca->getAlign(), DestAlloca->getAlign()));
 
   // Size the allocas appropriately.
-  if (*SrcSize != *DestSize) {
-    // Only possible if both sizes are fixed (due to earlier check)
-    // Set Src to the type and array size of Dest if Dest was larger
-    if (DestSize->getFixedValue() > SrcSize->getFixedValue()) {
-      SrcAlloca->setAllocatedType(DestAlloca->getAllocatedType());
-      SrcAlloca->setOperand(0, DestAlloca->getArraySize());
+  Value *SrcArraySize = SrcAlloca->getArraySize();
+  Value *DestArraySize = DestAlloca->getArraySize();
+  IRBuilder<InstSimplifyFolder> Builder(SrcAlloca->getContext(),
+                                        InstSimplifyFolder(DL));
+  Builder.SetInsertPoint(SrcAlloca);
+  Type *Int32Ty = Builder.getInt32Ty();
+  if (SrcType != DestType && SrcSize != DestSize) {
+    SrcAlloca->setAllocatedType(Type::getInt8Ty(Load->getContext()));
+    if (SrcArraySize->getType() != Int32Ty)
+      SrcArraySize = Builder.CreateZExtOrTrunc(SrcArraySize, Int32Ty);
+    if (DestArraySize->getType() != Int32Ty)
+      DestArraySize = Builder.CreateZExtOrTrunc(DestArraySize, Int32Ty);
+    SrcArraySize = Builder.CreateMul(
+        SrcArraySize, ConstantInt::get(Int32Ty, SrcSize.getFixedValue()), "",
+        true, true);
+    DestArraySize = Builder.CreateMul(
+        DestArraySize, ConstantInt::get(Int32Ty, DestSize.getFixedValue()), "",
+        true, true);
+    SrcAlloca->setOperand(0, SrcArraySize);
+  }
+  if (SrcArraySize != DestArraySize) {
+    if (SrcArraySize->getType() != DestArraySize->getType()) {
+      SrcArraySize = Builder.CreateZExtOrTrunc(SrcArraySize, Int32Ty);
+      DestArraySize = Builder.CreateZExtOrTrunc(DestArraySize, Int32Ty);
     }
+    SrcAlloca->setOperand(0, Builder.CreateBinaryIntrinsic(
+                                 Intrinsic::umax, SrcArraySize, DestArraySize));
   }
 
   // Merge the two allocas.
