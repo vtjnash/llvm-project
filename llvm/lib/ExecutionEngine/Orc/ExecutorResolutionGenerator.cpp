@@ -10,6 +10,7 @@
 
 #include "llvm/ExecutionEngine/Orc/DebugUtils.h"
 #include "llvm/ExecutionEngine/Orc/Shared/ExecutorSymbolDef.h"
+#include "llvm/ExecutionEngine/Orc/DylibManager.h"
 #include "llvm/Support/Error.h"
 
 #define DEBUG_TYPE "orc"

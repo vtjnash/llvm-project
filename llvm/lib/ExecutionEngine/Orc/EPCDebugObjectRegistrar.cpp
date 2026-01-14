@@ -9,6 +9,7 @@
 #include "llvm/ExecutionEngine/Orc/EPCDebugObjectRegistrar.h"
 
 #include "llvm/ExecutionEngine/Orc/Core.h"
+#include "llvm/ExecutionEngine/Orc/DylibManager.h"
 
 namespace llvm {
 namespace orc {

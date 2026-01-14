@@ -20,7 +20,7 @@
 #include "llvm/ExecutionEngine/Orc/Shared/ExecutorAddress.h"
 #include "llvm/Support/Compiler.h"
 
-#include <future>
+#include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 #include <thread>
 #include <vector>
 

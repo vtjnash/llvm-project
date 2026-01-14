@@ -41,7 +41,8 @@ void SimpleRemoteEPCServer::ThreadDispatcher::dispatch(
     Work();
     std::lock_guard<std::mutex> Lock(DispatchMutex);
     --Outstanding;
-    OutstandingCV.notify_all();
+    if (Outstanding == 0)
+      OutstandingCV.notify_all();
   }).detach();
 }
 

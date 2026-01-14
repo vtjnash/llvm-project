@@ -133,7 +133,9 @@ public:
     if (Alloc) {
       std::vector<FinalizedAlloc> Allocs;
       Allocs.push_back(std::move(Alloc));
-      if (Error Err = MemMgr.deallocate(std::move(Allocs)))
+      if (Error Err =
+              MemMgr.deallocate(std::move(Allocs),
+                                ES.getExecutorProcessControl().getDispatcher()))
         ES.reportError(std::move(Err));
     }
   }
@@ -333,7 +335,8 @@ Expected<SimpleSegmentAlloc> ELFDebugObject::finalizeWorkingMemory() {
   // Allocate working memory for debug object in read-only segment.
   auto Alloc = SimpleSegmentAlloc::Create(
       MemMgr, ES.getSymbolStringPool(), ES.getTargetTriple(), JD,
-      {{MemProt::Read, {Size, Align(PageSize)}}});
+      {{MemProt::Read, {Size, Align(PageSize)}}},
+      ES.getExecutorProcessControl().getDispatcher());
   if (!Alloc)
     return Alloc;
 
@@ -454,8 +457,9 @@ Error DebugObjectManagerPlugin::notifyEmitted(
   // Materialization must wait for this process to finish. Otherwise we might
   // start running code before the debugger processed the corresponding debug
   // info.
-  std::promise<MSVCPError> FinalizePromise;
-  std::future<MSVCPError> FinalizeErr = FinalizePromise.get_future();
+  orc::future<MSVCPError> FinalizeErr;
+  auto FinalizePromise =
+      FinalizeErr.get_promise(ES.getExecutorProcessControl().getDispatcher());
 
   It->second->finalizeAsync(
       [this, &FinalizePromise, &MR](Expected<ExecutorAddrRange> TargetMem) {

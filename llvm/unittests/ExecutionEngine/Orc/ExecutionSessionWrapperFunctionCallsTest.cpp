@@ -49,12 +49,14 @@ TEST(ExecutionSessionWrapperFunctionCalls, RunWrapperTemplate) {
 TEST(ExecutionSessionWrapperFunctionCalls, RunVoidWrapperAsyncTemplate) {
   ExecutionSession ES(cantFail(SelfExecutorProcessControl::Create()));
 
-  std::promise<MSVCPError> RP;
-  ES.callSPSWrapperAsync<void()>(ExecutorAddr::fromPtr(voidWrapper),
-                                 [&](Error SerializationErr) {
-                                   RP.set_value(std::move(SerializationErr));
-                                 });
-  Error Err = RP.get_future().get();
+  orc::future<MSVCPError> RF;
+  ES.callSPSWrapperAsync<void()>(
+      ExecutorAddr::fromPtr(voidWrapper),
+      [RP = RF.get_promise(ES.getExecutorProcessControl().getDispatcher())](
+          Error SerializationErr) {
+        RP.set_value(std::move(SerializationErr));
+      });
+  Error Err = RF.get();
   EXPECT_THAT_ERROR(std::move(Err), Succeeded());
   cantFail(ES.endSession());
 }
@@ -62,16 +64,17 @@ TEST(ExecutionSessionWrapperFunctionCalls, RunVoidWrapperAsyncTemplate) {
 TEST(ExecutionSessionWrapperFunctionCalls, RunNonVoidWrapperAsyncTemplate) {
   ExecutionSession ES(cantFail(SelfExecutorProcessControl::Create()));
 
-  std::promise<MSVCPExpected<int32_t>> RP;
+  orc::future<MSVCPExpected<int32_t>> RF;
   ES.callSPSWrapperAsync<int32_t(int32_t, int32_t)>(
       ExecutorAddr::fromPtr(addWrapper),
-      [&](Error SerializationErr, int32_t R) {
+      [RP = RF.get_promise(ES.getExecutorProcessControl().getDispatcher())](
+          Error SerializationErr, int32_t R) {
         if (SerializationErr)
           RP.set_value(std::move(SerializationErr));
         RP.set_value(std::move(R));
       },
       2, 3);
-  Expected<int32_t> Result = RP.get_future().get();
+  Expected<int32_t> Result = RF.get();
   EXPECT_THAT_EXPECTED(Result, HasValue(5));
   cantFail(ES.endSession());
 }
@@ -94,8 +97,7 @@ TEST(ExecutionSessionWrapperFunctionCalls, RegisterAsyncHandlerAndRun) {
 
   cantFail(ES.registerJITDispatchHandlers(JD, std::move(Associations)));
 
-  std::promise<int32_t> RP;
-  auto RF = RP.get_future();
+  orc::future<int32_t> RF;
 
   using ArgSerialization = SPSArgList<int32_t, int32_t>;
   size_t ArgBufferSize = ArgSerialization::size(1, 2);
@@ -104,7 +106,8 @@ TEST(ExecutionSessionWrapperFunctionCalls, RegisterAsyncHandlerAndRun) {
   EXPECT_TRUE(ArgSerialization::serialize(OB, 1, 2));
 
   ES.runJITDispatchHandler(
-      [&](WrapperFunctionResult ResultBuffer) {
+      [RP = RF.get_promise(ES.getExecutorProcessControl().getDispatcher())](
+          WrapperFunctionResult ResultBuffer) {
         int32_t Result;
         SPSInputBuffer IB(ResultBuffer.data(), ResultBuffer.size());
         EXPECT_TRUE(SPSArgList<int32_t>::deserialize(IB, Result));

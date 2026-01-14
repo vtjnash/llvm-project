@@ -119,12 +119,12 @@ TEST(EPCGenericJITLinkMemoryManagerTest, AllocFinalizeFree) {
   auto SSA = jitlink::SimpleSegmentAlloc::Create(
       *MemMgr, std::make_shared<SymbolStringPool>(),
       Triple("x86_64-apple-darwin"), nullptr,
-      {{MemProt::Read, {Hello.size(), Align(1)}}});
+      {{MemProt::Read, {Hello.size(), Align(1)}}}, SelfEPC->getDispatcher());
   EXPECT_THAT_EXPECTED(SSA, Succeeded());
   auto SegInfo = SSA->getSegInfo(MemProt::Read);
   memcpy(SegInfo.WorkingMem.data(), Hello.data(), Hello.size());
 
-  auto FA = SSA->finalize();
+  auto FA = SSA->finalize(SelfEPC->getDispatcher());
   EXPECT_THAT_EXPECTED(FA, Succeeded());
 
   ExecutorAddr TargetAddr(SegInfo.Addr);
@@ -134,7 +134,7 @@ TEST(EPCGenericJITLinkMemoryManagerTest, AllocFinalizeFree) {
   StringRef TargetHello(TargetMem, Hello.size());
   EXPECT_EQ(Hello, TargetHello);
 
-  auto Err2 = MemMgr->deallocate(std::move(*FA));
+  auto Err2 = MemMgr->deallocate(std::move(*FA), SelfEPC->getDispatcher());
   EXPECT_THAT_ERROR(std::move(Err2), Succeeded());
 
   cantFail(SelfEPC->disconnect());

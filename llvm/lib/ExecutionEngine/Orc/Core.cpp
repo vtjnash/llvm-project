@@ -16,8 +16,8 @@
 #include "llvm/Support/MSVCErrorWorkarounds.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "llvm/ExecutionEngine/Orc/TaskDispatch.h"
 #include <condition_variable>
-#include <future>
 #include <optional>
 
 #define DEBUG_TYPE "orc"
@@ -1463,9 +1463,11 @@ Expected<DenseMap<JITDylib *, SymbolMap>> Platform::lookupInitSymbols(
 
   DenseMap<JITDylib *, SymbolMap> CompoundResult;
   Error CompoundErr = Error::success();
+  orc::future<void> ReadyF;
+  auto ResultReady =
+      ReadyF.get_promise(ES.getExecutorProcessControl().getDispatcher());
   std::mutex LookupMutex;
-  std::condition_variable CV;
-  uint64_t Count = InitSyms.size();
+  volatile uint64_t Count = InitSyms.size();
 
   LLVM_DEBUG({
     dbgs() << "Issuing init-symbol lookup:\n";
@@ -1473,6 +1475,8 @@ Expected<DenseMap<JITDylib *, SymbolMap>> Platform::lookupInitSymbols(
       dbgs() << "  " << KV.first->getName() << ": " << KV.second << "\n";
   });
 
+  if (Count == 0)
+    ResultReady.set_value();
   for (auto &KV : InitSyms) {
     auto *JD = KV.first;
     auto Names = std::move(KV.second);
@@ -1491,14 +1495,14 @@ Expected<DenseMap<JITDylib *, SymbolMap>> Platform::lookupInitSymbols(
             } else
               CompoundErr =
                   joinErrors(std::move(CompoundErr), Result.takeError());
+            if (Count == 0)
+              ResultReady.set_value();
           }
-          CV.notify_one();
         },
         NoDependenciesToRegister);
   }
 
-  std::unique_lock<std::mutex> Lock(LookupMutex);
-  CV.wait(Lock, [&] { return Count == 0; });
+  ReadyF.get();
 
   if (CompoundErr)
     return std::move(CompoundErr);
@@ -1756,15 +1760,16 @@ Expected<SymbolFlagsMap>
 ExecutionSession::lookupFlags(LookupKind K, JITDylibSearchOrder SearchOrder,
                               SymbolLookupSet LookupSet) {
 
-  std::promise<MSVCPExpected<SymbolFlagsMap>> ResultP;
+  orc::future<MSVCPExpected<SymbolFlagsMap>> ResultF;
   OL_applyQueryPhase1(std::make_unique<InProgressLookupFlagsState>(
                           K, std::move(SearchOrder), std::move(LookupSet),
-                          [&ResultP](Expected<SymbolFlagsMap> Result) {
+                          [ResultP = ResultF.get_promise(
+                               getExecutorProcessControl().getDispatcher())](
+                              Expected<SymbolFlagsMap> Result) {
                             ResultP.set_value(std::move(Result));
                           }),
                       Error::success());
 
-  auto ResultF = ResultP.get_future();
   return ResultF.get();
 }
 
@@ -1780,11 +1785,6 @@ void ExecutionSession::lookup(
              << " (required state: " << RequiredState << ")\n";
     });
   });
-
-  // lookup can be re-entered recursively if running on a single thread. Run any
-  // outstanding MUs in case this query depends on them, otherwise this lookup
-  // will starve waiting for a result from an MU that is stuck in the queue.
-  dispatchOutstandingMUs();
 
   auto Unresolved = std::move(Symbols);
   auto Q = std::make_shared<AsynchronousSymbolQuery>(Unresolved, RequiredState,
@@ -1804,10 +1804,12 @@ ExecutionSession::lookup(const JITDylibSearchOrder &SearchOrder,
                          RegisterDependenciesFunction RegisterDependencies) {
 #if LLVM_ENABLE_THREADS
   // In the threaded case we use promises to return the results.
-  std::promise<MSVCPExpected<SymbolMap>> PromisedResult;
+  orc::future<MSVCPExpected<SymbolMap>> PromisedResult;
 
-  auto NotifyComplete = [&](Expected<SymbolMap> R) {
-    PromisedResult.set_value(std::move(R));
+  auto NotifyComplete = [PromisedResultP = PromisedResult.get_promise(
+                             getExecutorProcessControl().getDispatcher())](
+                            Expected<SymbolMap> R) {
+    PromisedResultP.set_value(std::move(R));
   };
 
 #else
@@ -1828,7 +1830,7 @@ ExecutionSession::lookup(const JITDylibSearchOrder &SearchOrder,
          std::move(NotifyComplete), RegisterDependencies);
 
 #if LLVM_ENABLE_THREADS
-  return PromisedResult.get_future().get();
+  return PromisedResult.get();
 #else
   if (ResolutionError)
     return std::move(ResolutionError);
@@ -2036,32 +2038,6 @@ bool ExecutionSession::verifySessionState(Twine Phase) {
   });
 }
 #endif // EXPENSIVE_CHECKS
-
-void ExecutionSession::dispatchOutstandingMUs() {
-  LLVM_DEBUG(dbgs() << "Dispatching MaterializationUnits...\n");
-  while (true) {
-    std::optional<std::pair<std::unique_ptr<MaterializationUnit>,
-                            std::unique_ptr<MaterializationResponsibility>>>
-        JMU;
-
-    {
-      std::lock_guard<std::recursive_mutex> Lock(OutstandingMUsMutex);
-      if (!OutstandingMUs.empty()) {
-        JMU.emplace(std::move(OutstandingMUs.back()));
-        OutstandingMUs.pop_back();
-      }
-    }
-
-    if (!JMU)
-      break;
-
-    assert(JMU->first && "No MU?");
-    LLVM_DEBUG(dbgs() << "  Dispatching \"" << JMU->first->getName() << "\"\n");
-    dispatchTask(std::make_unique<MaterializationTask>(std::move(JMU->first),
-                                                       std::move(JMU->second)));
-  }
-  LLVM_DEBUG(dbgs() << "Done dispatching MaterializationUnits.\n");
-}
 
 Error ExecutionSession::removeResourceTracker(ResourceTracker &RT) {
   LLVM_DEBUG({
@@ -2636,8 +2612,6 @@ void ExecutionSession::OL_completeLookup(
 
     // Move the collected MUs to the OutstandingMUs list.
     if (!CollectedUMIs.empty()) {
-      std::lock_guard<std::recursive_mutex> Lock(OutstandingMUsMutex);
-
       LLVM_DEBUG(dbgs() << "Adding MUs to dispatch:\n");
       for (auto &KV : CollectedUMIs) {
         LLVM_DEBUG({
@@ -2649,8 +2623,10 @@ void ExecutionSession::OL_completeLookup(
           auto MR = createMaterializationResponsibility(
               *UMI->RT, std::move(UMI->MU->SymbolFlags),
               std::move(UMI->MU->InitSymbol));
-          OutstandingMUs.push_back(
-              std::make_pair(std::move(UMI->MU), std::move(MR)));
+          LLVM_DEBUG(dbgs()
+                     << "  Dispatching \"" << UMI->MU->getName() << "\"\n");
+          dispatchTask(std::make_unique<MaterializationTask>(std::move(UMI->MU),
+                                                             std::move(MR)));
         }
       }
     } else
@@ -2676,8 +2652,6 @@ void ExecutionSession::OL_completeLookup(
     LLVM_DEBUG(dbgs() << "Completing query\n");
     Q->handleComplete(*this);
   }
-
-  dispatchOutstandingMUs();
 }
 
 void ExecutionSession::OL_completeLookupFlags(

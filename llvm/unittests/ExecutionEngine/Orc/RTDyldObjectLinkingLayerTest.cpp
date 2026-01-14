@@ -65,6 +65,7 @@ static bool testSetProcessAllSections(std::unique_ptr<MemoryBuffer> Obj,
             SymbolLookupSet(Foo), SymbolState::Resolved, OnResolveDoNothing,
             NoDependenciesToRegister);
 
+  ES.getExecutorProcessControl().getDispatcher().run_to_complete();
   if (auto Err = ES.endSession())
     ES.reportError(std::move(Err));
 
@@ -168,6 +169,7 @@ TEST(RTDyldObjectLinkingLayerTest, TestOverrideObjectFlags) {
       [](Expected<SymbolMap> R) { cantFail(std::move(R)); },
       NoDependenciesToRegister);
 
+  ES.getExecutorProcessControl().getDispatcher().run_to_complete();
   if (auto Err = ES.endSession())
     ES.reportError(std::move(Err));
 }
@@ -237,6 +239,7 @@ TEST(RTDyldObjectLinkingLayerTest, TestAutoClaimResponsibilityForSymbols) {
       [](Expected<SymbolMap> R) { cantFail(std::move(R)); },
       NoDependenciesToRegister);
 
+  ES.getExecutorProcessControl().getDispatcher().run_to_complete();
   if (auto Err = ES.endSession())
     ES.reportError(std::move(Err));
 }
@@ -292,6 +295,7 @@ TEST(RTDyldObjectLinkingLayerTest, TestMemoryBufferNamePropagation) {
       [](Expected<SymbolMap> R) { cantFail(std::move(R)); },
       NoDependenciesToRegister);
 
+  ES.getExecutorProcessControl().getDispatcher().run_to_complete();
   if (auto Err = ES.endSession())
     ES.reportError(std::move(Err));
 
