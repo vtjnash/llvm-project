@@ -1420,6 +1420,30 @@ static bool overreadUndefContents(MemorySSA *MSSA, MemCpyInst *MemCpy,
   return false;
 }
 
+// If only the MemSrc instruction is known, a similar but slightly weaker
+// analysis can apply
+static bool allOverreadUndefContents(MemorySSA *MSSA, Instruction *Store,
+                                     BatchAAResults &BAA) {
+  MemoryLocation Loc;
+  Value *Ptr;
+  if (auto SI = dyn_cast<StoreInst>(Store)) {
+    Loc = MemoryLocation::get(SI);
+    Ptr = SI->getPointerOperand();
+  } else if (auto MI = dyn_cast<MemCpyInst>(Store)) {
+    Loc = MemoryLocation::getForDest(MI);
+    Ptr = MI->getDest();
+  } else {
+    llvm_unreachable("performStackMoveOptzn must have a known store kind");
+  }
+  MemoryUseOrDef *MemAccess = MSSA->getMemoryAccess(Store);
+  MemoryAccess *Clobber = MSSA->getWalker()->getClobberingMemoryAccess(
+      MemAccess->getDefiningAccess(), Loc, BAA);
+  if (auto *MD = dyn_cast<MemoryDef>(Clobber))
+    if (hasUndefContents(MSSA, BAA, Ptr, MD))
+      return true;
+  return false;
+}
+
 /// Transform memcpy to memset when its source was just memset.
 /// In other words, turn:
 /// \code
@@ -1513,8 +1537,11 @@ bool MemCpyOptPass::performStackMoveOptzn(Instruction *Load, Instruction *Store,
     return false;
   }
 
-  // Check that copy is full with static size.
+  if (!SrcAlloca->isStaticAlloca() || !DestAlloca->isStaticAlloca())
+    return false;
+
   const DataLayout &DL = DestAlloca->getDataLayout();
+  // Check if allocation sizes are compatible with compile-time math
   std::optional<TypeSize> SrcSize = SrcAlloca->getAllocationSize(DL);
   std::optional<TypeSize> DestSize = DestAlloca->getAllocationSize(DL);
   if (!SrcSize || !DestSize)
@@ -1522,13 +1549,14 @@ bool MemCpyOptPass::performStackMoveOptzn(Instruction *Load, Instruction *Store,
   if (*SrcSize != *DestSize)
     if (!SrcSize->isFixed() || !DestSize->isFixed())
       return false;
-  if (Size != *DestSize) {
-    LLVM_DEBUG(dbgs() << "Stack Move: Destination alloca size mismatch\n");
-    return false;
-  }
 
-  if (!SrcAlloca->isStaticAlloca() || !DestAlloca->isStaticAlloca())
-    return false;
+  // Check that copy is full with dest size, either because it wrote every byte,
+  // or it was fresh.
+  if (Size != *DestSize)
+    if (!allOverreadUndefContents(MSSA, Store, BAA)) {
+      LLVM_DEBUG(dbgs() << "Stack Move: Destination alloca size mismatch\n");
+      return false;
+    }
 
   // Check if it will be legal to combine allocas without breaking dominator.
   bool MoveSrc = !DT->dominates(SrcAlloca, DestAlloca);
