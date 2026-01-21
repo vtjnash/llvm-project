@@ -553,9 +553,14 @@ Constant *FunctionSpecializer::getConstantStackValue(CallInst *Call,
   if (auto *ConstVal = dyn_cast<ConstantInt>(Val))
     return ConstVal;
   auto *Alloca = dyn_cast<AllocaInst>(Val);
-  if (!Alloca || !Alloca->getAllocatedType()->isIntegerTy())
+  if (!Alloca)
     return nullptr;
-  return getPromotableAlloca(Alloca, Call);
+  // Check the constant's type rather than the alloca's declared type to handle
+  // cases where the stored type differs from the alloca's type.
+  Constant *C = getPromotableAlloca(Alloca, Call);
+  if (!C || !C->getType()->isIntegerTy())
+    return nullptr;
+  return C;
 }
 
 // To support specializing recursive functions, it is important to propagate
