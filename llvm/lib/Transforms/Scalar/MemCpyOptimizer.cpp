@@ -1703,10 +1703,13 @@ bool MemCpyOptPass::performStackMoveOptzn(Instruction *Load, Instruction *Store,
   // Size the allocas appropriately.
   if (*SrcSize != *DestSize) {
     // Only possible if both sizes are fixed (due to earlier check)
-    // Set Src to the type and array size of Dest if Dest was larger
+    // Resize Src to the larger size using a byte array type
     if (DestSize->getFixedValue() > SrcSize->getFixedValue()) {
-      SrcAlloca->setAllocatedType(DestAlloca->getAllocatedType());
-      SrcAlloca->setOperand(0, DestAlloca->getArraySize());
+      Type *ByteArrayTy = ArrayType::get(
+          Type::getInt8Ty(SrcAlloca->getContext()), DestSize->getFixedValue());
+      SrcAlloca->setAllocatedType(ByteArrayTy);
+      SrcAlloca->setOperand(
+          0, ConstantInt::get(SrcAlloca->getArraySize()->getType(), 1));
     }
   }
 
