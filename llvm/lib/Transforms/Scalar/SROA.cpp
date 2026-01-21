@@ -1051,7 +1051,7 @@ class AllocaSlices::SliceBuilder : public PtrUseVisitor<SliceBuilder> {
 public:
   SliceBuilder(const DataLayout &DL, AllocaInst &AI, AllocaSlices &AS)
       : PtrUseVisitor<SliceBuilder>(DL),
-        AllocSize(DL.getTypeAllocSize(AI.getAllocatedType()).getFixedValue()),
+        AllocSize(AI.getAllocationSize(DL)->getFixedValue()),
         AS(AS) {}
 
 private:
@@ -2891,7 +2891,7 @@ public:
         IntTy(
             IsIntegerPromotable
                 ? Type::getIntNTy(NewAI.getContext(),
-                                  DL.getTypeSizeInBits(NewAI.getAllocatedType())
+                                  DL.getTypeSizeInBits(NewAllocaTy)
                                       .getFixedValue())
                 : nullptr),
         VecTy(PromotableVecTy),
@@ -3009,8 +3009,8 @@ public:
     // If the new alloca is a fixed vector type, we use its element type as the
     // allocated element type, otherwise we use i8 as the allocated element
     Type *AllocatedEltTy =
-        isa<FixedVectorType>(NewAI.getAllocatedType())
-            ? cast<FixedVectorType>(NewAI.getAllocatedType())->getElementType()
+        isa<FixedVectorType>(NewAllocaTy)
+            ? cast<FixedVectorType>(NewAllocaTy)->getElementType()
             : Type::getInt8Ty(NewAI.getContext());
     unsigned AllocatedEltTySize = DL.getTypeSizeInBits(AllocatedEltTy);
 
@@ -3232,7 +3232,7 @@ private:
     unsigned EndIndex = getIndex(NewEndOffset);
     assert(EndIndex > BeginIndex && "Empty vector!");
 
-    LoadInst *Load = IRB.CreateAlignedLoad(NewAI.getAllocatedType(), &NewAI,
+    LoadInst *Load = IRB.CreateAlignedLoad(NewAllocaTy, &NewAI,
                                            NewAI.getAlign(), "load");
 
     Load->copyMetadata(LI, {LLVMContext::MD_mem_parallel_loop_access,
@@ -3243,7 +3243,7 @@ private:
   Value *rewriteIntegerLoad(LoadInst &LI) {
     assert(IntTy && "We cannot insert an integer to the alloca");
     assert(!LI.isVolatile());
-    Value *V = IRB.CreateAlignedLoad(NewAI.getAllocatedType(), &NewAI,
+    Value *V = IRB.CreateAlignedLoad(NewAllocaTy, &NewAI,
                                      NewAI.getAlign(), "load");
     V = convertValue(DL, IRB, V, IntTy);
     assert(NewBeginOffset >= NewAllocaBeginOffset && "Out of bounds offset");
@@ -3289,7 +3289,7 @@ private:
                  !LI.isVolatile()))) {
       Value *NewPtr =
           getPtrToNewAI(LI.getPointerAddressSpace(), LI.isVolatile());
-      LoadInst *NewLI = IRB.CreateAlignedLoad(NewAI.getAllocatedType(), NewPtr,
+      LoadInst *NewLI = IRB.CreateAlignedLoad(NewAllocaTy, NewPtr,
                                               NewAI.getAlign(), LI.isVolatile(),
                                               LI.getName());
       if (LI.isVolatile())
@@ -3397,7 +3397,7 @@ private:
         V = convertValue(DL, IRB, V, SliceTy);
 
       // Mix in the existing elements.
-      Value *Old = IRB.CreateAlignedLoad(NewAI.getAllocatedType(), &NewAI,
+      Value *Old = IRB.CreateAlignedLoad(NewAllocaTy, &NewAI,
                                          NewAI.getAlign(), "load");
       V = insertVector(IRB, Old, V, BeginIndex, "vec");
     }
@@ -3421,7 +3421,7 @@ private:
     assert(!SI.isVolatile());
     if (DL.getTypeSizeInBits(V->getType()).getFixedValue() !=
         IntTy->getBitWidth()) {
-      Value *Old = IRB.CreateAlignedLoad(NewAI.getAllocatedType(), &NewAI,
+      Value *Old = IRB.CreateAlignedLoad(NewAllocaTy, &NewAI,
                                          NewAI.getAlign(), "oldload");
       Old = convertValue(DL, IRB, Old, IntTy);
       assert(BeginOffset >= NewAllocaBeginOffset && "Out of bounds offset");
@@ -3573,7 +3573,7 @@ private:
     // Record this instruction for deletion.
     Pass.DeadInsts.push_back(&II);
 
-    Type *AllocaTy = NewAI.getAllocatedType();
+    Type *AllocaTy = NewAllocaTy;
     Type *ScalarTy = AllocaTy->getScalarType();
 
     const bool CanContinue = [&]() {
@@ -3636,7 +3636,7 @@ private:
       if (NumElements > 1)
         Splat = getVectorSplat(Splat, NumElements);
 
-      Value *Old = IRB.CreateAlignedLoad(NewAI.getAllocatedType(), &NewAI,
+      Value *Old = IRB.CreateAlignedLoad(NewAllocaTy, &NewAI,
                                          NewAI.getAlign(), "oldload");
       V = insertVector(IRB, Old, Splat, BeginIndex, "vec");
     } else if (IntTy) {
@@ -3649,7 +3649,7 @@ private:
 
       if (IntTy && (BeginOffset != NewAllocaBeginOffset ||
                     EndOffset != NewAllocaBeginOffset)) {
-        Value *Old = IRB.CreateAlignedLoad(NewAI.getAllocatedType(), &NewAI,
+        Value *Old = IRB.CreateAlignedLoad(NewAllocaTy, &NewAI,
                                            NewAI.getAlign(), "oldload");
         Old = convertValue(DL, IRB, Old, IntTy);
         uint64_t Offset = NewBeginOffset - NewAllocaBeginOffset;
@@ -3741,9 +3741,9 @@ private:
         !VecTy && !IntTy &&
         (BeginOffset > NewAllocaBeginOffset || EndOffset < NewAllocaEndOffset ||
          SliceSize !=
-             DL.getTypeStoreSize(NewAI.getAllocatedType()).getFixedValue() ||
-         !DL.typeSizeEqualsStoreSize(NewAI.getAllocatedType()) ||
-         !NewAI.getAllocatedType()->isSingleValueType());
+             DL.getTypeStoreSize(NewAllocaTy).getFixedValue() ||
+         !DL.typeSizeEqualsStoreSize(NewAllocaTy) ||
+         !NewAllocaTy->isSingleValueType());
 
     // If we're just going to emit a memcpy, the alloca hasn't changed, and the
     // size hasn't been shrunk based on analysis of the viable range, this is
@@ -3867,11 +3867,11 @@ private:
 
     Value *Src;
     if (VecTy && !IsWholeAlloca && !IsDest) {
-      Src = IRB.CreateAlignedLoad(NewAI.getAllocatedType(), &NewAI,
+      Src = IRB.CreateAlignedLoad(NewAllocaTy, &NewAI,
                                   NewAI.getAlign(), "load");
       Src = extractVector(IRB, Src, BeginIndex, EndIndex, "vec");
     } else if (IntTy && !IsWholeAlloca && !IsDest) {
-      Src = IRB.CreateAlignedLoad(NewAI.getAllocatedType(), &NewAI,
+      Src = IRB.CreateAlignedLoad(NewAllocaTy, &NewAI,
                                   NewAI.getAlign(), "load");
       Src = convertValue(DL, IRB, Src, IntTy);
       uint64_t Offset = NewBeginOffset - NewAllocaBeginOffset;
@@ -3888,11 +3888,11 @@ private:
     }
 
     if (VecTy && !IsWholeAlloca && IsDest) {
-      Value *Old = IRB.CreateAlignedLoad(NewAI.getAllocatedType(), &NewAI,
+      Value *Old = IRB.CreateAlignedLoad(NewAllocaTy, &NewAI,
                                          NewAI.getAlign(), "oldload");
       Src = insertVector(IRB, Old, Src, BeginIndex, "vec");
     } else if (IntTy && !IsWholeAlloca && IsDest) {
-      Value *Old = IRB.CreateAlignedLoad(NewAI.getAllocatedType(), &NewAI,
+      Value *Old = IRB.CreateAlignedLoad(NewAllocaTy, &NewAI,
                                          NewAI.getAlign(), "oldload");
       Old = convertValue(DL, IRB, Old, IntTy);
       uint64_t Offset = NewBeginOffset - NewAllocaBeginOffset;
@@ -5633,8 +5633,7 @@ bool SROA::splitAlloca(AllocaInst &AI, AllocaSlices &AS) {
   // to be rewritten into a partition.
   bool IsSorted = true;
 
-  uint64_t AllocaSize =
-      DL.getTypeAllocSize(AI.getAllocatedType()).getFixedValue();
+  uint64_t AllocaSize = AI.getAllocationSize(DL)->getFixedValue();
   const uint64_t MaxBitVectorSize = 1024;
   if (AllocaSize <= MaxBitVectorSize) {
     // If a byte boundary is included in any load or store, a slice starting or
@@ -5698,7 +5697,7 @@ bool SROA::splitAlloca(AllocaInst &AI, AllocaSlices &AS) {
       if (NewAI != &AI) {
         uint64_t SizeOfByte = 8;
         uint64_t AllocaSize =
-            DL.getTypeSizeInBits(NewAI->getAllocatedType()).getFixedValue();
+            NewAI->getAllocationSize(DL)->getFixedValue() * SizeOfByte;
         // Don't include any padding.
         uint64_t Size = std::min(AllocaSize, P.size() * SizeOfByte);
         Fragments.push_back(
@@ -5945,10 +5944,9 @@ SROA::runOnAlloca(AllocaInst &AI) {
   const DataLayout &DL = AI.getDataLayout();
 
   // Skip alloca forms that this analysis can't handle.
-  auto *AT = AI.getAllocatedType();
-  TypeSize Size = DL.getTypeAllocSize(AT);
-  if (AI.isArrayAllocation() || !AT->isSized() || Size.isScalable() ||
-      Size.getFixedValue() == 0)
+  std::optional<TypeSize> Size = AI.getAllocationSize(DL);
+  if (AI.isArrayAllocation() || !Size || Size->isScalable() ||
+      Size->isZero())
     return {Changed, CFGChanged};
 
   // First, split any FCA loads and stores touching this alloca to promote
@@ -6110,8 +6108,8 @@ std::pair<bool /*Changed*/, bool /*CFGChanged*/> SROA::runSROA(Function &F) {
   for (BasicBlock::iterator I = EntryBB.begin(), E = std::prev(EntryBB.end());
        I != E; ++I) {
     if (AllocaInst *AI = dyn_cast<AllocaInst>(I)) {
-      if (DL.getTypeAllocSize(AI->getAllocatedType()).isScalable() &&
-          isAllocaPromotable(AI))
+      std::optional<TypeSize> Size = AI->getAllocationSize(DL);
+      if (Size && Size->isScalable() && isAllocaPromotable(AI))
         PromotableAllocas.insert(AI);
       else
         Worklist.insert(AI);
