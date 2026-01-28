@@ -30624,18 +30624,12 @@ bool AArch64TargetLowering::fallBackToDAGISel(const Instruction &Inst) const {
   // Note that if EnableSVEGISel is true, we allow scalable vector types for
   // all instructions, regardless of whether they are actually supported.
   if (!EnableSVEGISel) {
-    if (Inst.getType()->isScalableTy()) {
+    if (Inst.getType()->isScalableTy())
       return true;
-    }
 
     for (unsigned i = 0; i < Inst.getNumOperands(); ++i)
       if (Inst.getOperand(i)->getType()->isScalableTy())
         return true;
-
-    if (const AllocaInst *AI = dyn_cast<AllocaInst>(&Inst)) {
-      if (AI->getAllocatedType()->isScalableTy())
-        return true;
-    }
   }
 
   // Checks to allow the use of SME instructions
