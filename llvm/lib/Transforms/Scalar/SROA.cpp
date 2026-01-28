@@ -4594,126 +4594,6 @@ static Type *stripAggregateTypeWrapping(const DataLayout &DL, Type *Ty) {
   return stripAggregateTypeWrapping(DL, InnerTy);
 }
 
-/// Try to find a partition of the aggregate type passed in for a given
-/// offset and size.
-///
-/// This recurses through the aggregate type and tries to compute a subtype
-/// based on the offset and size. When the offset and size span a sub-section
-/// of an array, it will even compute a new array type for that sub-section,
-/// and the same for structs.
-///
-/// Note that this routine is very strict and tries to find a partition of the
-/// type which produces the *exact* right offset and size. It is not forgiving
-/// when the size or offset cause either end of type-based partition to be off.
-/// Also, this is a best-effort routine. It is reasonable to give up and not
-/// return a type if necessary.
-static Type *getTypePartition(const DataLayout &DL, Type *Ty, uint64_t Offset,
-                              uint64_t Size) {
-  if (Offset == 0 && DL.getTypeAllocSize(Ty).getFixedValue() == Size)
-    return stripAggregateTypeWrapping(DL, Ty);
-  if (Offset > DL.getTypeAllocSize(Ty).getFixedValue() ||
-      (DL.getTypeAllocSize(Ty).getFixedValue() - Offset) < Size)
-    return nullptr;
-
-  if (isa<ArrayType>(Ty) || isa<VectorType>(Ty)) {
-    Type *ElementTy;
-    uint64_t TyNumElements;
-    if (auto *AT = dyn_cast<ArrayType>(Ty)) {
-      ElementTy = AT->getElementType();
-      TyNumElements = AT->getNumElements();
-    } else {
-      // FIXME: This isn't right for vectors with non-byte-sized or
-      // non-power-of-two sized elements.
-      auto *VT = cast<FixedVectorType>(Ty);
-      ElementTy = VT->getElementType();
-      TyNumElements = VT->getNumElements();
-    }
-    uint64_t ElementSize = DL.getTypeAllocSize(ElementTy).getFixedValue();
-    uint64_t NumSkippedElements = Offset / ElementSize;
-    if (NumSkippedElements >= TyNumElements)
-      return nullptr;
-    Offset -= NumSkippedElements * ElementSize;
-
-    // First check if we need to recurse.
-    if (Offset > 0 || Size < ElementSize) {
-      // Bail if the partition ends in a different array element.
-      if ((Offset + Size) > ElementSize)
-        return nullptr;
-      // Recurse through the element type trying to peel off offset bytes.
-      return getTypePartition(DL, ElementTy, Offset, Size);
-    }
-    assert(Offset == 0);
-
-    if (Size == ElementSize)
-      return stripAggregateTypeWrapping(DL, ElementTy);
-    assert(Size > ElementSize);
-    uint64_t NumElements = Size / ElementSize;
-    if (NumElements * ElementSize != Size)
-      return nullptr;
-    return ArrayType::get(ElementTy, NumElements);
-  }
-
-  StructType *STy = dyn_cast<StructType>(Ty);
-  if (!STy)
-    return nullptr;
-
-  const StructLayout *SL = DL.getStructLayout(STy);
-
-  if (SL->getSizeInBits().isScalable())
-    return nullptr;
-
-  if (Offset >= SL->getSizeInBytes())
-    return nullptr;
-  uint64_t EndOffset = Offset + Size;
-  if (EndOffset > SL->getSizeInBytes())
-    return nullptr;
-
-  unsigned Index = SL->getElementContainingOffset(Offset);
-  Offset -= SL->getElementOffset(Index);
-
-  Type *ElementTy = STy->getElementType(Index);
-  uint64_t ElementSize = DL.getTypeAllocSize(ElementTy).getFixedValue();
-  if (Offset >= ElementSize)
-    return nullptr; // The offset points into alignment padding.
-
-  // See if any partition must be contained by the element.
-  if (Offset > 0 || Size < ElementSize) {
-    if ((Offset + Size) > ElementSize)
-      return nullptr;
-    return getTypePartition(DL, ElementTy, Offset, Size);
-  }
-  assert(Offset == 0);
-
-  if (Size == ElementSize)
-    return stripAggregateTypeWrapping(DL, ElementTy);
-
-  StructType::element_iterator EI = STy->element_begin() + Index,
-                               EE = STy->element_end();
-  if (EndOffset < SL->getSizeInBytes()) {
-    unsigned EndIndex = SL->getElementContainingOffset(EndOffset);
-    if (Index == EndIndex)
-      return nullptr; // Within a single element and its padding.
-
-    // Don't try to form "natural" types if the elements don't line up with the
-    // expected size.
-    // FIXME: We could potentially recurse down through the last element in the
-    // sub-struct to find a natural end point.
-    if (SL->getElementOffset(EndIndex) != EndOffset)
-      return nullptr;
-
-    assert(Index < EndIndex);
-    EE = STy->element_begin() + EndIndex;
-  }
-
-  // Try to build up a sub-structure.
-  StructType *SubTy =
-      StructType::get(STy->getContext(), ArrayRef(EI, EE), STy->isPacked());
-  const StructLayout *SubSL = DL.getStructLayout(SubTy);
-  if (Size != SubSL->getSizeInBytes())
-    return nullptr; // The sub-struct doesn't have quite the size needed.
-
-  return SubTy;
-}
 
 /// Pre-split loads and stores to simplify rewriting.
 ///
@@ -5264,33 +5144,6 @@ selectPartitionType(Partition &P, const DataLayout &DL, AllocaInst &AI,
     }
   }
 
-  // Can we find an appropriate subtype in the original allocated
-  // type?
-  if (Type *TypePartitionTy = getTypePartition(DL, AI.getAllocatedType(),
-                                               P.beginOffset(), P.size())) {
-    // If the partition is an integer array that can be spanned by a legal
-    // integer type, prefer to represent it as a legal integer type because
-    // it's more likely to be promotable.
-    if (TypePartitionTy->isArrayTy() &&
-        TypePartitionTy->getArrayElementType()->isIntegerTy() &&
-        DL.isLegalInteger(P.size() * 8))
-      TypePartitionTy = Type::getIntNTy(C, P.size() * 8);
-    // There was no common type used, so we prefer integer widening promotion.
-    if (isIntegerWideningViable(P, TypePartitionTy, DL))
-      return {TypePartitionTy, true, nullptr};
-    if (VecTy)
-      return {VecTy, false, VecTy};
-    // If we couldn't promote with TypePartitionTy, try with the largest
-    // integer type used.
-    if (LargestIntTy &&
-        DL.getTypeAllocSize(LargestIntTy).getFixedValue() >= P.size() &&
-        isIntegerWideningViable(P, LargestIntTy, DL))
-      return {LargestIntTy, true, nullptr};
-
-    // Fallback to TypePartitionTy and we probably won't promote.
-    return {TypePartitionTy, false, nullptr};
-  }
-
   // Select the largest integer type used if it spans the partition.
   if (LargestIntTy &&
       DL.getTypeAllocSize(LargestIntTy).getFixedValue() >= P.size())
@@ -5322,13 +5175,15 @@ SROA::rewritePartition(AllocaInst &AI, AllocaSlices &AS, Partition &P) {
       selectPartitionType(P, DL, AI, *C);
 
   // Check for the case where we're going to rewrite to a new alloca of the
-  // exact same type as the original, and with the same access offsets. In that
+  // same size as the original, and with the same access offsets. In that
   // case, re-use the existing alloca, but still run through the rewriter to
   // perform phi and select speculation.
-  // P.beginOffset() can be non-zero even with the same type in a case with
+  // P.beginOffset() can be non-zero even with the same size in a case with
   // out-of-bounds access (e.g. @PR35657 function in SROA/basictest.ll).
   AllocaInst *NewAI;
-  if (PartitionTy == AI.getAllocatedType() && P.beginOffset() == 0) {
+  std::optional<TypeSize> AllocaSize = AI.getAllocationSize(DL);
+  if (AllocaSize && AllocaSize->getFixedValue() == P.size() &&
+      P.beginOffset() == 0) {
     NewAI = &AI;
     // FIXME: We should be able to bail at this point with "nothing changed".
     // FIXME: We might want to defer PHI speculation until after here.
