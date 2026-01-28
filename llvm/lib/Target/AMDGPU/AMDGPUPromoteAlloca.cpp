@@ -1641,7 +1641,9 @@ bool AMDGPUPromoteAllocaImpl::tryPromoteAllocaToLDS(
 
   Function *F = AA.Alloca->getFunction();
 
-  Type *GVTy = ArrayType::get(AA.Alloca->getAllocatedType(), WorkGroupSize);
+  // Use byte array instead of typed array for LDS allocation
+  Type *GVTy = ArrayType::get(Type::getInt8Ty(Mod->getContext()),
+                              WorkGroupSize * ElemSize->getFixedValue());
   GlobalVariable *GV = new GlobalVariable(
       *Mod, GVTy, false, GlobalValue::InternalLinkage, PoisonValue::get(GVTy),
       Twine(F->getName()) + Twine('.') + AA.Alloca->getName(), nullptr,
