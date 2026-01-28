@@ -57,13 +57,14 @@ FunctionPass *llvm::createWebAssemblyRefTypeMem2Local() {
 }
 
 void WebAssemblyRefTypeMem2Local::visitAllocaInst(AllocaInst &AI) {
-  if (WebAssembly::isWebAssemblyReferenceType(AI.getAllocatedType())) {
+  Type *AllocaTy = AI.getAllocatedType();
+  if (WebAssembly::isWebAssemblyReferenceType(AllocaTy)) {
     Changed = true;
     IRBuilder<> IRB(AI.getContext());
     IRB.SetInsertPoint(&AI);
-    auto *NewAI = IRB.CreateAlloca(AI.getAllocatedType(),
-                                   WebAssembly::WASM_ADDRESS_SPACE_VAR, nullptr,
-                                   AI.getName() + ".var");
+    auto *NewAI =
+        IRB.CreateAlloca(AllocaTy, WebAssembly::WASM_ADDRESS_SPACE_VAR, nullptr,
+                         AI.getName() + ".var");
 
     // The below is basically equivalent to AI.replaceAllUsesWith(NewAI), but we
     // cannot use it because it requires the old and new types be the same,
