@@ -11,13 +11,11 @@
 
 ; CHECK-DAG: %[[Char:.*]] = OpTypeInt 8 0
 ; CHECK-DAG: %[[Long:.*]] = OpTypeInt 32 0
-; CHECK-DAG: %[[Array:.*]] = OpTypeArray %[[Long]] %[[#]]
-; CHECK-DAG: %[[Struct:.*]] = OpTypeStruct %[[Array]]
-; CHECK-DAG: %[[StructPtr:.*]] = OpTypePointer Function %[[Struct]]
+; CHECK-DAG: %[[LongPtr:.*]] = OpTypePointer Function %[[Long]]
 ; CHECK-DAG: %[[CharPtr:.*]] = OpTypePointer Function %[[Char]]
 
 ; CHECK: %[[Branch1:.*]] = OpLabel
-; CHECK: %[[Res1:.*]] = OpVariable %[[StructPtr]] Function
+; CHECK: %[[Res1:.*]] = OpVariable %[[LongPtr]] Function
 ; CHECK: %[[Res1Casted:.*]] = OpBitcast %[[CharPtr]] %[[Res1]]
 ; CHECK: OpBranchConditional %[[#]] %[[#]] %[[Branch2:.*]]
 ; CHECK: %[[Res2:.*]] = OpInBoundsPtrAccessChain %[[CharPtr]] %[[#]] %[[#]]

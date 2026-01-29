@@ -781,9 +781,7 @@ Type *SPIRVEmitIntrinsics::deduceElementTypeHelper(
   // fallback value in case when we fail to deduce a type
   Type *Ty = nullptr;
   // look for known basic patterns of type inference
-  if (auto *Ref = dyn_cast<AllocaInst>(I)) {
-    maybeAssignPtrType(Ty, I, Ref->getAllocatedType(), UnknownElemTypeI8);
-  } else if (auto *Ref = dyn_cast<GetElementPtrInst>(I)) {
+  if (auto *Ref = dyn_cast<GetElementPtrInst>(I)) {
     Ty = getGEPType(Ref);
   } else if (auto *Ref = dyn_cast<LoadInst>(I)) {
     Value *Op = Ref->getPointerOperand();

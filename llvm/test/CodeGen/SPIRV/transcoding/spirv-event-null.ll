@@ -5,11 +5,9 @@
 ; RUN: %if spirv-tools %{ llc -O0 -mtriple=spirv64-unknown-unknown %s -o - -filetype=obj | spirv-val %}
 
 ; CHECK-DAG: %[[#TyEvent:]] = OpTypeEvent
-; CHECK-DAG: %[[#TyStruct:]] = OpTypeStruct %[[#TyEvent]]
 ; CHECK-DAG: %[[#ConstEvent:]] = OpConstantNull %[[#TyEvent]]
 ; CHECK-DAG: %[[#TyEventPtr:]] = OpTypePointer Function %[[#TyEvent]]
 ; CHECK-DAG: %[[#TyEventPtrGen:]] = OpTypePointer Generic %[[#TyEvent]]
-; CHECK-DAG: %[[#TyStructPtr:]] = OpTypePointer Function %[[#TyStruct]]
 ; CHECK-DAG: %[[#TyChar:]] = OpTypeInt 8 0
 ; CHECK-DAG: %[[#TyV4:]] = OpTypeVector %[[#TyChar]] 4
 ; CHECK-DAG: %[[#TyStructV4:]] = OpTypeStruct %[[#TyV4]]
@@ -71,12 +69,10 @@ declare dso_local spir_func target("spirv.Event") @_Z22__spirv_GroupAsyncCopyjPU
 ; CHECK: OpFunction
 ; CHECK: %[[#BarArg1:]] = OpFunctionParameter %[[#TyPtrV4_W]]
 ; CHECK: %[[#BarArg2:]] = OpFunctionParameter %[[#TyPtrSV4_CW]]
-; CHECK: %[[#EventVarBar:]] = OpVariable %[[#TyStructPtr]] Function
-; CHECK: %[[#EventVarBarCasted2:]] = OpBitcast %[[#TyEventPtr]] %[[#EventVarBar]]
+; CHECK: %[[#EventVarBar:]] = OpVariable %[[#TyEventPtr]] Function
 ; CHECK: %[[#ResBar:]] = OpGroupAsyncCopy %[[#TyEvent]] %[[#]] %[[#BarArg1]] %[[#]] %[[#]] %[[#]] %[[#ConstEvent]]
-; CHECK: %[[#EventVarBarCasted:]] = OpBitcast %[[#TyEventPtr]] %[[#EventVarBar]]
-; CHECK: OpStore %[[#EventVarBarCasted]] %[[#ResBar]]
-; CHECK: %[[#EventVarBarGen:]] = OpPtrCastToGeneric %[[#TyEventPtrGen]] %[[#EventVarBarCasted2]]
+; CHECK: OpStore %[[#EventVarBar]] %[[#ResBar]]
+; CHECK: %[[#EventVarBarGen:]] = OpPtrCastToGeneric %[[#TyEventPtrGen]] %[[#EventVarBar]]
 ; CHECK: OpGroupWaitEvents %[[#]] %[[#]] %[[#EventVarBarGen]]
 ; CHECK: OpFunctionEnd
 

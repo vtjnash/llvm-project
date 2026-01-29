@@ -17,10 +17,11 @@
 ; CHECK-SPIRV-DAG:    %[[#test_arr1:]] = OpVariable %[[#const_i32x3_ptr]] UniformConstant %[[#test_arr_init]]
 ; CHECK-SPIRV-DAG:    %[[#test_arr2:]] = OpVariable %[[#const_i32x3_ptr]] UniformConstant %[[#test_arr_init]]
 
-; CHECK-SPIRV-DAG:    %[[#i32x3_ptr:]] = OpTypePointer Function %[[#i32x3]]
+; CHECK-SPIRV-DAG:    %[[#i8:]] = OpTypeInt 8 0
+; CHECK-SPIRV-DAG:    %[[#i8_ptr:]] = OpTypePointer Function %[[#i8]]
 
-; CHECK-SPIRV:        %[[#arr1:]] = OpVariable %[[#i32x3_ptr]] Function
-; CHECK-SPIRV:        %[[#arr2:]] = OpVariable %[[#i32x3_ptr]] Function
+; CHECK-SPIRV:        %[[#arr1:]] = OpVariable %[[#i8_ptr]] Function
+; CHECK-SPIRV:        %[[#arr2:]] = OpVariable %[[#i8_ptr]] Function
 
 ; CHECK-SPIRV-32:     OpCopyMemorySized %[[#arr1]] %[[#test_arr1]] %[[#twelve]] Aligned 4
 ; CHECK-SPIRV-32:     OpCopyMemorySized %[[#arr2]] %[[#test_arr2]] %[[#twelve]] Aligned 4

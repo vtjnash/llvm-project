@@ -7,7 +7,7 @@
 ; CHECK-DAG: %[[#Int32:]] = OpTypeInt 32 0
 ; CHECK-DAG: %[[#Int64:]] = OpTypeInt 64 0
 ; CHECK-DAG: %[[#Ptr_CrossWG_8:]] = OpTypePointer CrossWorkgroup %[[#Int8]]
-; CHECK-DAG: %[[#Ptr_Generic_32:]] = OpTypePointer Generic %[[#Int32]]
+; CHECK-DAG: %[[#Ptr_Generic_8:]] = OpTypePointer Generic %[[#Int8]]
 ; CHECK-DAG: %[[#Const_64:]] = OpConstant %[[#Int32]] 64
 ; CHECK-DAG: %[[#Const_36:]] = OpConstant %[[#Int32]] 36
 ; CHECK-DAG: %[[#Const_30:]] = OpConstant %[[#Int32]] 30
@@ -28,7 +28,7 @@
 ; CHECK: %[[#Size3:]] = OpUConvert %[[#Int64]] %[[#Const_30]]
 ; CHECK: OpCopyMemorySized %[[#Param2]] %[[#Param1]] %[[#Size3]] Aligned 1
 
-; CHECK: %[[#Phi:]] = OpPhi %[[#Ptr_Generic_32]] %[[#Op1:]] %[[#Lbl1:]] %[[#Op2:]] %[[#Lbl2:]]
+; CHECK: %[[#Phi:]] = OpPhi %[[#Ptr_Generic_8]] %[[#Op1:]] %[[#Lbl1:]] %[[#Op2:]] %[[#Lbl2:]]
 ; CHECK: %[[#Cast:]] = OpPtrCastToGeneric %[[#]] %[[#]]
 ; CHECK: OpCopyMemorySized %[[#Cast]] %[[#Phi]] %[[#Const_32_64]] Aligned 8
 

@@ -16,12 +16,7 @@
 ; CHECK-DAG: %[[#I64:]] = OpTypeInt 64 0
 ; CHECK-DAG: %[[#I32:]] = OpTypeInt 32 0
 ; CHECK-DAG: %[[#I8:]] = OpTypeInt 8 0
-; CHECK-DAG: %[[#F64:]] = OpTypeFloat 64
-; CHECK-DAG: %[[#STRUCT_TY:]] = OpTypeStruct %[[#F64]] %[[#F64]]
-; CHECK-DAG: %[[#PTR_STRUCT:]] = OpTypePointer Function %[[#STRUCT_TY]]
 ; CHECK-DAG: %[[#PTR_I8:]] = OpTypePointer Function %[[#I8]]
-; CHECK-DAG: %[[#F32:]] = OpTypeFloat 32
-; CHECK-DAG: %[[#PTR_F32:]] = OpTypePointer Function %[[#F32]]
 
 ; CHECK-DAG: %[[#SC0:]] = OpSpecConstant %[[#I64]] 1
 ; CHECK-DAG: %[[#SC1:]] = OpSpecConstant %[[#I32]] 2
@@ -30,9 +25,9 @@
 ; CHECK: %[[#]] = OpFunction %[[#VOID_TY]] None %[[#FUNC_TY]]
 ; CHECK: %[[#LABEL:]] = OpLabel
 
-; CHECK: %[[#A0]] = OpVariableLengthArrayINTEL %[[#PTR_F32]] %[[#SC0]]
+; CHECK: %[[#A0]] = OpVariableLengthArrayINTEL %[[#PTR_I8]] %[[#SC0]]
 ; CHECK: %[[#A1]] = OpVariableLengthArrayINTEL %[[#PTR_I8]] %[[#SC1]]
-; CHECK: %[[#A2]] = OpVariableLengthArrayINTEL %[[#PTR_STRUCT]] %[[#SC2]]
+; CHECK: %[[#A2]] = OpVariableLengthArrayINTEL %[[#PTR_I8]] %[[#SC2]]
 
 %struct_type = type { double, double }
 
