@@ -24,6 +24,8 @@
 ; CHECK-SPIRV-DAG:                 [[vecstruct:%[a-z0-9_]+]] = OpTypeStruct [[v4uint]] [[v4uint]]
 ; CHECK-SPIRV-DAG:   [[_ptr_Function_vecstruct:%[a-z0-9_]+]] = OpTypePointer Function [[vecstruct]]
 ; CHECK-SPIRV-DAG:    [[_ptr_Generic_i32struct:%[a-z0-9_]+]] = OpTypePointer Generic [[i32struct]]
+; CHECK-SPIRV-DAG:       [[_ptr_Function_i8:%[a-z0-9_]+]] = OpTypePointer Function [[uchar]]
+; CHECK-SPIRV-DAG:         [[_ptr_Generic_i8:%[a-z0-9_]+]] = OpTypePointer Generic [[uchar]]
 
 define spir_func void @test_builtin_isubborrowcc(i8 %a, i8 %b) {
   entry:
@@ -112,10 +114,11 @@ define spir_func void @test_builtin_isubborrow_anon(i32 %a, i32 %b) {
 ; CHECK-SPIRV:        [[a_4:%[a-z0-9_]+]] = OpFunctionParameter [[uint]]
 ; CHECK-SPIRV:        [[b_4:%[a-z0-9_]+]] = OpFunctionParameter [[uint]]
 ; CHECK-SPIRV:    [[entry_4:%[a-z0-9_]+]] = OpLabel
-; CHECK-SPIRV:     [[var_59:%[a-z0-9_]+]] = OpVariable [[_ptr_Function_i32struct]] Function
-; CHECK-SPIRV:     [[var_61:%[a-z0-9_]+]] = OpPtrCastToGeneric [[_ptr_Generic_i32struct]] [[var_59]]
-; CHECK-SPIRV:     [[var_62:%[a-z0-9_]+]] = OpISubBorrow [[i32struct]] [[a_4]] [[b_4]]
-; CHECK-SPIRV:                              OpStore [[var_61]] [[var_62]]
+; CHECK-SPIRV:     [[var_59:%[a-z0-9_]+]] = OpVariable [[_ptr_Function_i8]] Function
+; CHECK-SPIRV:     [[var_61:%[a-z0-9_]+]] = OpPtrCastToGeneric [[_ptr_Generic_i8]] [[var_59]]
+; CHECK-SPIRV:     [[var_62:%[a-z0-9_]+]] = OpBitcast [[_ptr_Generic_i32struct]] [[var_61]]
+; CHECK-SPIRV:     [[var_63:%[a-z0-9_]+]] = OpISubBorrow [[i32struct]] [[a_4]] [[b_4]]
+; CHECK-SPIRV:                              OpStore [[var_62]] [[var_63]]
 
 declare void @_Z18__spirv_ISubBorrowIiiE4anonIT_T0_ES1_S2_(ptr addrspace(4) sret(%struct.anon) align 4, i32, i32)
 declare void @_Z18__spirv_ISubBorrowcc(ptr sret(%i8struct), i8, i8)

@@ -59,11 +59,13 @@
 ; CHECK-NEXT:  %[[#]] = OpFixedExpALTERA %[[Ty_34]] %[[Exp_InId]] 0 20 20 0 0
 
 ; CHECK:        %[[SinCos_InId:[0-9]+]] = OpLoad %[[Ty_34]]
+; CHECK-NEXT:  %[[#]] = OpBitcast %[[#]] %[[#]]
 ; CHECK-NEXT:  %[[SinCos_ResultId:[0-9]+]] = OpFixedSinCosALTERA %[[Ty_51]] %[[SinCos_InId]] 1 3 2 0 0
 ; CHECK-NEXT:        OpStore %[[#]] %[[SinCos_ResultId]]
 
 ; CHECK:       %[[ResId:[0-9]+]] = OpLoad %[[Ty_51]]
 ; CHECK-NEXT:  OpStore %[[PtrId:[0-9]+]] %[[ResId]]
+; CHECK-NEXT:  %[[#]] = OpBitcast %[[#]] %[[#]]
 ; CHECK-NEXT:  %[[ExpInId2:[0-9]+]] = OpLoad %[[Ty_51]] %[[PtrId]]
 ; CHECK-NEXT:  %[[#]] = OpFixedExpALTERA %[[Ty_51]] %[[ExpInId2]] 0 20 20 0 0
 

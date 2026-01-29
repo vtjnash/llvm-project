@@ -9,17 +9,14 @@
 ; CHECK-DAG: %[[#PtrChar:]] = OpTypePointer Function %[[#Char]]
 ; CHECK-DAG: %[[#PtrCharCW:]] = OpTypePointer CrossWorkgroup %[[#Char]]
 ; CHECK-DAG: %[[#PtrCharGen:]] = OpTypePointer Generic %[[#Char]]
-; CHECK-DAG: %[[#Struct:]] = OpTypeStruct %[[#]] %[[#]] %[[#]]
 ; CHECK-DAG: %[[#PtrInt:]] = OpTypePointer Function %[[#Int]]
 ; CHECK-DAG: %[[#PtrPtrCharGen:]] = OpTypePointer Function %[[#PtrCharGen]]
-; CHECK-DAG: %[[#PtrStruct:]] = OpTypePointer Function %[[#Struct]]
 ; CHECK: OpFunction
 ; CHECK: %[[#Arg1:]] = OpFunctionParameter %[[#Int]]
 ; CHECK: %[[#Arg2:]] = OpFunctionParameter %[[#PtrCharCW]]
-; CHECK: %[[#Kernel:]] = OpVariable %[[#PtrStruct]] Function
-; CHECK: %[[#IntKernel:]] = OpBitcast %[[#PtrInt]] %[[#Kernel]]
-; CHECK: OpStore %[[#IntKernel]] %[[#Arg1]]
+; CHECK: %[[#Kernel:]] = OpVariable %[[#PtrInt]] Function
 ; CHECK: %[[#CharKernel:]] = OpBitcast %[[#PtrChar]] %[[#Kernel]]
+; CHECK: OpStore %[[#Kernel]] %[[#Arg1]]
 ; CHECK: %[[#P:]] = OpInBoundsPtrAccessChain %[[#PtrChar]] %[[#CharKernel]] %[[#]]
 ; CHECK: %[[#R0:]] = OpPtrCastToGeneric %[[#PtrCharGen]] %[[#Arg2]]
 ; CHECK: %[[#P2:]] = OpBitcast %[[#PtrPtrCharGen]] %[[#P]]

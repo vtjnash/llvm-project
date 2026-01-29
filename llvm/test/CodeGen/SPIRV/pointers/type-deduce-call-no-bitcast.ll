@@ -11,6 +11,7 @@
 ; CHECK-SPIRV-DAG: %[[TyFunFoo:.*]] = OpTypeFunction %[[TyVoid]] %[[TyLong]] %[[TyGenPtrPtrChar]] %[[TyGenPtrPtrChar]]
 ; CHECK-SPIRV-DAG: %[[TyStruct:.*]] = OpTypeStruct %[[TyLong]]
 ; CHECK-SPIRV-DAG: %[[Const100:.*]] = OpConstant %[[TyLong]] 100
+; CHECK-SPIRV-DAG: %[[TyFunPtrChar:.*]] = OpTypePointer Function %[[TyChar]]
 ; CHECK-SPIRV-DAG: %[[TyFunPtrGenPtrChar:.*]] = OpTypePointer Function %[[TyGenPtrChar]]
 ; CHECK-SPIRV-DAG: %[[TyPtrStruct:.*]] = OpTypePointer Generic %[[TyStruct]]
 ; CHECK-SPIRV-DAG: %[[TyPtrLong:.*]] = OpTypePointer Generic %[[TyLong]]
@@ -18,14 +19,18 @@
 ; CHECK-SPIRV: %[[Bar:.*]] = OpFunction %[[TyVoid]] None %[[TyFunBar]]
 ; CHECK-SPIRV: %[[BarArg:.*]] = OpFunctionParameter %[[TyGenPtrChar]]
 ; CHECK-SPIRV-NEXT: OpLabel
+; CHECK-SPIRV-NEXT: OpVariable %[[TyFunPtrChar]] Function
+; CHECK-SPIRV-NEXT: OpVariable %[[TyFunPtrChar]] Function
 ; CHECK-SPIRV-NEXT: OpVariable %[[TyFunPtrGenPtrChar]] Function
-; CHECK-SPIRV-NEXT: OpVariable %[[TyFunPtrGenPtrChar]] Function
-; CHECK-SPIRV-NEXT: OpVariable %[[TyFunPtrGenPtrChar]] Function
-; CHECK-SPIRV: %[[Var1:.*]] = OpPtrCastToGeneric %[[TyGenPtrPtrChar]] %[[#]]
-; CHECK-SPIRV: %[[Var2:.*]] = OpPtrCastToGeneric %[[TyGenPtrPtrChar]] %[[#]]
-; CHECK-SPIRV: OpStore %[[#]] %[[BarArg]]
-; CHECK-SPIRV-NEXT: OpFunctionCall %[[TyVoid]] %[[Foo]] %[[Const100]] %[[Var1]] %[[Var2]]
-; CHECK-SPIRV-NEXT: OpFunctionCall %[[TyVoid]] %[[Foo]] %[[Const100]] %[[Var2]] %[[Var1]]
+; CHECK-SPIRV: %[[Var1Cast:.*]] = OpPtrCastToGeneric %[[TyGenPtrChar]] %[[#]]
+; CHECK-SPIRV: %[[Var2Cast:.*]] = OpPtrCastToGeneric %[[TyGenPtrChar]] %[[#]]
+; CHECK-SPIRV: OpStore %[[#]] %[[BarArg]] Aligned 8
+; CHECK-SPIRV: %[[Var1:.*]] = OpBitcast %[[TyGenPtrPtrChar]] %[[Var1Cast]]
+; CHECK-SPIRV: %[[Var2:.*]] = OpBitcast %[[TyGenPtrPtrChar]] %[[Var2Cast]]
+; CHECK-SPIRV: OpFunctionCall %[[TyVoid]] %[[Foo]] %[[Const100]] %[[Var1]] %[[Var2]]
+; CHECK-SPIRV: %[[#]] = OpBitcast %[[TyGenPtrPtrChar]] %[[#]]
+; CHECK-SPIRV: %[[#]] = OpBitcast %[[TyGenPtrPtrChar]] %[[#]]
+; CHECK-SPIRV: OpFunctionCall %[[TyVoid]] %[[Foo]] %[[Const100]]
 
 ; CHECK-SPIRV: %[[Foo]] = OpFunction %[[TyVoid]] None %[[TyFunFoo]]
 ; CHECK-SPIRV-NEXT: OpFunctionParameter %[[TyLong]]

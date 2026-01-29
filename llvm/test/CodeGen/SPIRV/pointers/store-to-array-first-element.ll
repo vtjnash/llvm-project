@@ -3,14 +3,10 @@
 
 ; CHECK-DAG: %[[#Int:]] = OpTypeInt 32 0
 ; CHECK-DAG: %[[#IntPtr:]] = OpTypePointer Function %[[#Int]]
-; CHECK-DAG: %[[#Array:]] = OpTypeArray %[[#Int]] %[[#]]
-; CHECK-DAG: %[[#ArrayPtr:]] = OpTypePointer Function %[[#Array]]
 ; CHECK-DAG: %[[#Const:]] = OpConstant %[[#Int]] 123
-; CHECK-DAG: %[[#Zero:]] = OpConstant %[[#Int]] 0
 
-; CHECK: %[[#Var:]] = OpVariable %[[#ArrayPtr]] Function
-; CHECK: %[[#GEP:]] = OpInBoundsAccessChain %[[#IntPtr]] %[[#Var]] %[[#Zero]]
-; CHECK: OpStore %[[#GEP]] %[[#Const]]
+; CHECK: %[[#Var:]] = OpVariable %[[#IntPtr]] Function
+; CHECK: OpStore %[[#Var]] %[[#Const]]
 
 define spir_func void @test_array_store() #0 {
 entry:

@@ -12,21 +12,22 @@
 ; CHECK-SPIRV-DAG: %[[#Long:]] = OpTypeInt 64 0
 ; CHECK-SPIRV-DAG: %[[#FPtrLong:]] = OpTypePointer Function %[[#Long]]
 ; CHECK-SPIRV-DAG: %[[#GPtrLong:]] = OpTypePointer Generic %[[#Long]]
-; CHECK-SPIRV-DAG: %[[#C3:]] = OpConstant %[[#]] 3
-; CHECK-SPIRV-DAG: %[[#Array3:]] = OpTypeArray %[[#Long]] %[[#C3]]
-; CHECK-SPIRV-DAG: %[[#PtrArray3:]] = OpTypePointer Generic %[[#Array3]]
-; CHECK-SPIRV-DAG: %[[#FPtrPtrArray3:]] = OpTypePointer Function %[[#PtrArray3]]
-; CHECK-SPIRV-DAG: %[[#GPtrPtrArray3:]] = OpTypePointer Generic %[[#PtrArray3]]
+; CHECK-SPIRV-DAG: %[[#Char:]] = OpTypeInt 8 0
+; CHECK-SPIRV-DAG: %[[#FPtrChar:]] = OpTypePointer Function %[[#Char]]
+; CHECK-SPIRV-DAG: %[[#GPtrChar:]] = OpTypePointer Generic %[[#Char]]
+; CHECK-SPIRV-DAG: %[[#GPtrPtrChar:]] = OpTypePointer Generic %[[#GPtrChar]]
 
 ; CHECK-SPIRV: %[[#FH]] = OpFunction
-; CHECK-SPIRV: %[[#Arg1:]] = OpFunctionParameter %[[#PtrArray3]]
+; CHECK-SPIRV: %[[#Arg1:]] = OpFunctionParameter %[[#GPtrChar]]
 ; CHECK-SPIRV: %[[#Arg2:]] = OpFunctionParameter %[[#Long]]
-; CHECK-SPIRV: %[[#GrpIdAddr:]] = OpVariable %[[#FPtrPtrArray3]] Function
-; CHECK-SPIRV: %[[#WIId:]] = OpVariable %[[#FPtrLong]] Function
-; CHECK-SPIRV: %[[#GenGrpIdAddr:]] = OpPtrCastToGeneric %[[#GPtrPtrArray3]] %[[#GrpIdAddr]]
-; CHECK-SPIRV: %[[#GenWIId:]] = OpPtrCastToGeneric %[[#GPtrLong]] %[[#WIId]]
-; CHECK-SPIRV: OpStore %[[#GenGrpIdAddr]] %[[#Arg1]]
-; CHECK-SPIRV: OpStore %[[#GenWIId]] %[[#Arg2]]
+; CHECK-SPIRV: %[[#GrpIdAddr:]] = OpVariable %[[#FPtrChar]] Function
+; CHECK-SPIRV: %[[#WIId:]] = OpVariable %[[#FPtrChar]] Function
+; CHECK-SPIRV: %[[#GenGrpIdAddr:]] = OpPtrCastToGeneric %[[#GPtrChar]] %[[#GrpIdAddr]]
+; CHECK-SPIRV: %[[#GenWIId:]] = OpPtrCastToGeneric %[[#GPtrChar]] %[[#WIId]]
+; CHECK-SPIRV: %[[#CastGrpIdAddr:]] = OpBitcast %[[#GPtrPtrChar]] %[[#GenGrpIdAddr]]
+; CHECK-SPIRV: OpStore %[[#CastGrpIdAddr]] %[[#Arg1]]
+; CHECK-SPIRV: %[[#CastWIId:]] = OpBitcast %[[#GPtrLong]] %[[#GenWIId]]
+; CHECK-SPIRV: OpStore %[[#CastWIId]] %[[#Arg2]]
 ; CHECK-SPIRV: OpReturn
 ; CHECK-SPIRV: OpFunctionEnd
 

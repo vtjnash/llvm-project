@@ -10,9 +10,9 @@
 ; CHECK: %[[#load_gs1:]] = OpLoad %[[#vec3]] %[[#global_size_var]] Aligned 1
 ; CHECK: %[[#extract3:]] = OpCompositeExtract %[[#int64]] %[[#load_gs1]] 0
 
-; CHECK: %[[#bitcast1:]] = OpBitcast %[[#]] %[[#]]
-; CHECK: %[[#load_out1:]] = OpLoad %[[#]] %[[#bitcast1]] Aligned 8
-; CHECK: %[[#gep1:]] = OpInBoundsPtrAccessChain %[[#]] %[[#load_out1]] %[[#]]
+; CHECK: %[[#load_out1:]] = OpLoad %[[#]] %[[#]] Aligned 8
+; CHECK: %[[#bitcast1:]] = OpBitcast %[[#]] %[[#load_out1]]
+; CHECK: %[[#gep1:]] = OpInBoundsPtrAccessChain %[[#]] %[[#bitcast1]] %[[#]]
 ; CHECK: OpStore %[[#gep1]] %[[#extract3]] Aligned 8
 
 ; CHECK: %[[#load_param_x:]] = OpLoad %[[#int32]] %[[#]]
@@ -20,9 +20,9 @@
 ; CHECK: %[[#dyn_extract:]] = OpVectorExtractDynamic %[[#int64]] %[[#load_gs2]] %[[#load_param_x]]
 ; CHECK: %[[#cmp:]] = OpULessThan %[[#]] %[[#load_param_x]] %[[#]]
 ; CHECK: %[[#select2:]] = OpSelect %[[#int64]] %[[#cmp]] %[[#dyn_extract]] %[[#]]
-; CHECK: %[[#bitcast2:]] = OpBitcast %[[#]] %[[#]]
-; CHECK: %[[#load_out2:]] = OpLoad %[[#]] %[[#bitcast2]] Aligned 8
-; CHECK: %[[#gep2:]] = OpInBoundsPtrAccessChain %[[#]] %[[#load_out2]] %[[#]]
+; CHECK: %[[#load_out2:]] = OpLoad %[[#]] %[[#]] Aligned 8
+; CHECK: %[[#bitcast2:]] = OpBitcast %[[#]] %[[#load_out2]]
+; CHECK: %[[#gep2:]] = OpInBoundsPtrAccessChain %[[#]] %[[#bitcast2]] %[[#]]
 ; CHECK: OpStore %[[#gep2]] %[[#select2]] Aligned 8
 
 define dso_local spir_kernel void @ggs(ptr noundef align 8 %out, i32 noundef %x) {

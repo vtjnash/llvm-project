@@ -16,8 +16,8 @@
 ; CHECK-DAG:    %[[#szconst123:]] = OpConstant %[[#i64]] 123{{$}}
 ; CHECK-DAG:    %[[#const_i32x3_ptr:]] = OpTypePointer UniformConstant %[[#i32x3]]
 ; CHECK-DAG:    %[[#test_arr:]] = OpVariable %[[#const_i32x3_ptr]] UniformConstant %[[#test_arr_init]]
-; CHECK-DAG:    %[[#i32x3_ptr:]] = OpTypePointer Function %[[#i32x3]]
-; CHECK:        %[[#arr:]] = OpVariable %[[#i32x3_ptr]] Function
+; CHECK-DAG:    %[[#i8_ptr:]] = OpTypePointer Function %[[#i8]]
+; CHECK:        %[[#arr:]] = OpVariable %[[#i8_ptr]] Function
 
 ; CHECK-32:     OpCopyMemorySized %[[#arr]] %[[#test_arr]] %[[#szconst1024]]
 ; CHECK-32:     %[[#szconstext42:]] = OpUConvert %[[#i32:]] %[[#szconst42:]]

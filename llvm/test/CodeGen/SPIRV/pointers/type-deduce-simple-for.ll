@@ -9,37 +9,30 @@
 
 ; CHECK-SPIRV-DAG: %[[#CharTy:]] = OpTypeInt 8 0
 ; CHECK-SPIRV-DAG: %[[#IntTy:]] = OpTypeInt 32 0
-; CHECK-SPIRV-DAG: %[[#IntConst1:]] = OpConstant %[[#IntTy]] 1
-; CHECK-SPIRV-DAG: %[[#ArrTy:]] = OpTypeArray %[[#IntTy]] %[[#IntConst1]]
 ; CHECK-SPIRV-DAG: %[[#BoolTy:]] = OpTypeBool
 ; CHECK-SPIRV-DAG: %[[#LongTy:]] = OpTypeInt 64 0
 ; CHECK-SPIRV-DAG: %[[#LongConst4:]] = OpConstant %[[#LongTy]] 4
 ; CHECK-SPIRV-DAG: %[[#IntConst123:]] = OpConstant %[[#IntTy]] 123
 ; CHECK-SPIRV-DAG: %[[#CharPtrTy:]] = OpTypePointer Function %[[#CharTy]]
-; CHECK-SPIRV-DAG: %[[#ArrPtrTy:]] = OpTypePointer Function %[[#ArrTy]]
 ; CHECK-SPIRV-DAG: %[[#IntPtrTy:]] = OpTypePointer Function %[[#IntTy]]
 ; CHECK-SPIRV: OpFunction
 ; CHECK-SPIRV: %[[#LblEntry:]] = OpLabel
-; CHECK-SPIRV: %[[#Value:]] = OpVariable %[[#ArrPtrTy]] Function
-; CHECK-SPIRV: %[[#ValueAsCharPtr:]] = OpBitcast %[[#CharPtrTy]] %[[#Value]]
-; CHECK-SPIRV: %[[#Eof:]] = OpInBoundsPtrAccessChain %[[#CharPtrTy]] %[[#ValueAsCharPtr]] %[[#LongConst4]]
-; CHECK-SPIRV: %[[#EofAsArray:]] = OpBitcast %[[#ArrPtrTy]] %[[#Eof]]
+; CHECK-SPIRV: %[[#Value:]] = OpVariable %[[#CharPtrTy]] Function
+; CHECK-SPIRV: %[[#Eof:]] = OpInBoundsPtrAccessChain %[[#CharPtrTy]] %[[#Value]] %[[#LongConst4]]
 ; CHECK-SPIRV: OpBranch %[[#LblCond:]]
 ; CHECK-SPIRV: %[[#LblCond]] = OpLabel
-; CHECK-SPIRV: %[[#Iter:]] = OpPhi %[[#ArrPtrTy]] %[[#Value]] %[[#LblEntry]] %[[#CurrValue:]] %[[#LblBody:]]
+; CHECK-SPIRV: %[[#Iter:]] = OpPhi %[[#CharPtrTy]] %[[#Value]] %[[#LblEntry]] %[[#CurrValue:]] %[[#LblBody:]]
 ; CHECK-COMPAT64: %[[#IterInt:]] = OpConvertPtrToU %[[#LongTy]] %[[#Iter]]
-; CHECK-COMPAT64: %[[#EofInt:]] = OpConvertPtrToU %[[#LongTy]] %[[#EofAsArray]]
+; CHECK-COMPAT64: %[[#EofInt:]] = OpConvertPtrToU %[[#LongTy]] %[[#Eof]]
 ; CHECK-COMPAT32: %[[#IterInt:]] = OpConvertPtrToU %[[#IntTy]] %[[#Iter]]
-; CHECK-COMPAT32: %[[#EofInt:]] = OpConvertPtrToU %[[#IntTy]] %[[#EofAsArray]]
+; CHECK-COMPAT32: %[[#EofInt:]] = OpConvertPtrToU %[[#IntTy]] %[[#Eof]]
 ; CHECK-COMPAT: %[[#Is:]] = OpIEqual %[[#BoolTy]] %[[#IterInt]] %[[#EofInt]]
-; CHECK-DEFVER: %[[#Is:]] = OpPtrEqual %[[#BoolTy]] %[[#Iter]] %[[#EofAsArray]]
+; CHECK-DEFVER: %[[#Is:]] = OpPtrEqual %[[#BoolTy]] %[[#Iter]] %[[#Eof]]
 ; CHECK-SPIRV: OpBranchConditional %[[#Is]] %[[#LblExit:]] %[[#LblBody]]
 ; CHECK-SPIRV: %[[#LblBody]] = OpLabel
 ; CHECK-SPIRV: %[[#IterAsIntPtr:]] = OpBitcast %[[#IntPtrTy]] %[[#Iter]]
 ; CHECK-SPIRV: OpStore %[[#IterAsIntPtr]] %[[#IntConst123]] Aligned 4
-; CHECK-SPIRV: %[[#IterAsCharPtr:]] = OpBitcast %[[#CharPtrTy]] %[[#Iter]]
-; CHECK-SPIRV: %[[#CurrValueAsCharPtr:]] = OpInBoundsPtrAccessChain %[[#CharPtrTy]] %[[#IterAsCharPtr]] %[[#LongConst4]]
-; CHECK-SPIRV: %[[#CurrValue]] = OpBitcast %[[#ArrPtrTy]] %[[#CurrValueAsCharPtr]]
+; CHECK-SPIRV: %[[#CurrValue]] = OpInBoundsPtrAccessChain %[[#CharPtrTy]] %[[#Iter]] %[[#LongConst4]]
 ; CHECK-SPIRV: OpBranch %[[#LblCond]]
 ; CHECK-SPIRV: %[[#LblExit]] = OpLabel
 ; CHECK-SPIRV: OpFunctionEnd

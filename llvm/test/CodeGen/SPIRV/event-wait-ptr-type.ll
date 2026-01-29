@@ -5,14 +5,11 @@
 ; RUN: %if spirv-tools %{ llc -O0 -mtriple=spirv32-unknown-unknown %s -o - -filetype=obj | spirv-val %}
 
 ; CHECK-DAG: %[[#EventTy:]] = OpTypeEvent
-; CHECK-DAG: %[[#StructEventTy:]] = OpTypeStruct %[[#EventTy]]
-; CHECK-DAG: %[[#FunPtrStructEventTy:]] = OpTypePointer Function %[[#StructEventTy]]
 ; CHECK-DAG: %[[#GenPtrEventTy:]] = OpTypePointer Generic %[[#EventTy]]
 ; CHECK-DAG: %[[#FunPtrEventTy:]] = OpTypePointer Function %[[#EventTy]]
 ; CHECK: OpFunction
-; CHECK: %[[#Var:]] = OpVariable %[[#FunPtrStructEventTy]] Function
-; CHECK-NEXT: %[[#FunEvent:]] = OpBitcast %[[#FunPtrEventTy]] %[[#Var]]
-; CHECK-NEXT: %[[#GenEvent:]] = OpPtrCastToGeneric %[[#GenPtrEventTy]] %[[#FunEvent]]
+; CHECK: %[[#Var:]] = OpVariable %[[#FunPtrEventTy]] Function
+; CHECK-NEXT: %[[#GenEvent:]] = OpPtrCastToGeneric %[[#GenPtrEventTy]] %[[#Var]]
 ; CHECK-NEXT: OpGroupWaitEvents %[[#]] %[[#]] %[[#GenEvent]]
 
 %"class.sycl::_V1::device_event" = type { target("spirv.Event") }

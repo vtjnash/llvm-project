@@ -8,33 +8,31 @@
 ; CHECK-DAG: OpName %[[#Foo:]] "foo"
 ; CHECK-DAG: OpName %[[#Test:]] "test"
 ; CHECK-DAG: %[[#Void:]] = OpTypeVoid
-; CHECK-DAG: %[[#Long:]] = OpTypeInt 64 0
-; CHECK-DAG: %[[#LongArr:]] = OpTypeArray %[[#Long]] %[[#]]
-; CHECK-DAG: %[[#StructLongArr:]] = OpTypeStruct %[[#LongArr]]
-; CHECK-DAG: %[[#Struct:]] = OpTypeStruct %[[#StructLongArr]]
-; CHECK-DAG: %[[#StructGenPtr:]] = OpTypePointer Generic %[[#Struct]]
-; CHECK-DAG: %[[#StructFunPtr:]] = OpTypePointer Function %[[#Struct]]
-; CHECK-DAG: %[[#StructGenGenPtr:]] = OpTypePointer Generic %[[#StructGenPtr]]
-; CHECK-DAG: %[[#StructFunGenPtr:]] = OpTypePointer Function %[[#StructGenPtr]]
+; CHECK-DAG: %[[#Char:]] = OpTypeInt 8 0
+; CHECK-DAG: %[[#CharGenPtr:]] = OpTypePointer Generic %[[#Char]]
+; CHECK-DAG: %[[#CharFunPtr:]] = OpTypePointer Function %[[#Char]]
+; CHECK-DAG: %[[#CharGenGenPtr:]] = OpTypePointer Generic %[[#CharGenPtr]]
+; CHECK-DAG: %[[#CharFunGenPtr:]] = OpTypePointer Function %[[#CharGenPtr]]
 
 ; CHECK: %[[#Bar]] = OpFunction
-; CHECK: %[[#BarVar:]] = OpVariable %[[#StructFunPtr]] Function
-; CHECK: %[[#BarVarToGen:]] = OpPtrCastToGeneric %[[#StructGenPtr]] %[[#BarVar]]
+; CHECK: %[[#BarVar:]] = OpVariable %[[#CharFunPtr]] Function
+; CHECK: %[[#BarVarToGen:]] = OpPtrCastToGeneric %[[#CharGenPtr]] %[[#BarVar]]
 ; CHECK: %[[#]] = OpFunctionCall %[[#Void]] %[[#Foo]] %[[#BarVarToGen]]
 
 ; CHECK: %[[#Foo]] = OpFunction
-; CHECK: %[[#FooArg1:]] = OpFunctionParameter %[[#StructGenPtr]]
-; CHECK: %[[#FooVar:]] = OpVariable %[[#StructFunGenPtr]] Function
-; CHECK: %[[#FooVarToGen:]] = OpPtrCastToGeneric %[[#StructGenGenPtr]] %[[#FooVar]]
+; CHECK: %[[#FooArg1:]] = OpFunctionParameter %[[#CharGenPtr]]
+; CHECK: %[[#FooVar:]] = OpVariable %[[#CharFunGenPtr]] Function
+; CHECK: %[[#FooVarToGen:]] = OpPtrCastToGeneric %[[#CharGenGenPtr]] %[[#FooVar]]
 ; CHECK: OpStore %[[#FooVarToGen]] %[[#FooArg1]]
-; CHECK: %[[#FooLoad:]] = OpLoad %[[#StructGenPtr]] %[[#FooVarToGen]]
+; CHECK: %[[#FooLoad:]] = OpLoad %[[#CharGenPtr]] %[[#FooVarToGen]]
 ; CHECK: %[[#]] = OpFunctionCall %[[#Void:]] %[[#Test]] %[[#FooLoad:]]
 
 ; CHECK: %[[#Test]] = OpFunction
-; CHECK: %[[#TestArg1:]] = OpFunctionParameter %[[#StructGenPtr]]
-; CHECK: %[[#TestVar:]] = OpVariable %[[#StructFunGenPtr]] Function
-; CHECK: %[[#TestVarToGen:]] = OpPtrCastToGeneric %[[#StructGenGenPtr]] %[[#TestVar]]
-; CHECK: OpStore %[[#TestVarToGen]] %[[#TestArg1]]
+; CHECK: %[[#TestArg1:]] = OpFunctionParameter %[[#CharGenPtr]]
+; CHECK: %[[#TestVar:]] = OpVariable %[[#CharFunPtr]] Function
+; CHECK: %[[#TestVarToGen:]] = OpPtrCastToGeneric %[[#CharGenPtr]] %[[#TestVar]]
+; CHECK: %[[#TestVarCast:]] = OpBitcast %[[#CharGenGenPtr]] %[[#TestVarToGen]]
+; CHECK: OpStore %[[#TestVarCast]] %[[#TestArg1]]
 
 %t_range = type { %t_arr }
 %t_arr = type { [1 x i64] }

@@ -7,24 +7,8 @@
 ; CHECK-DAG:  %[[#float_pp:]] = OpTypePointer Private %[[#float]]
 ; CHECK-DAG:   %[[#uint_fp:]] = OpTypePointer Function %[[#uint]]
 ; CHECK-DAG:    %[[#uint_0:]] = OpConstant %[[#uint]] 0
-; CHECK-DAG:    %[[#uint_4:]] = OpConstant %[[#uint]] 4
 ; CHECK-DAG:    %[[#float_0:]] = OpConstant %[[#float]] 0
-; CHECK-DAG:        %[[#sf:]] = OpTypeStruct %[[#float]]
-; CHECK-DAG:        %[[#su:]] = OpTypeStruct %[[#uint]]
-; CHECK-DAG:       %[[#ssu:]] = OpTypeStruct %[[#su]]
 ; CHECK-DAG:        %[[#sfuf:]] = OpTypeStruct %[[#float]] %[[#uint]] %[[#float]]
-; CHECK-DAG:        %[[#uint4:]] = OpTypeVector %[[#uint]] 4
-; CHECK-DAG:        %[[#sv:]] = OpTypeStruct %[[#uint4]]
-; CHECK-DAG:        %[[#ssv:]] = OpTypeStruct %[[#sv]]
-; CHECK-DAG:        %[[#assv:]] = OpTypeArray %[[#ssv]] %[[#uint_4]]
-; CHECK-DAG:        %[[#sassv:]] = OpTypeStruct %[[#assv]]
-; CHECK-DAG:        %[[#ssassv:]] = OpTypeStruct %[[#sassv]]
-; CHECK-DAG:     %[[#sf_fp:]] = OpTypePointer Function %[[#sf]]
-; CHECK-DAG:     %[[#su_fp:]] = OpTypePointer Function %[[#su]]
-; CHECK-DAG:    %[[#ssu_fp:]] = OpTypePointer Function %[[#ssu]]
-; CHECK-DAG:    %[[#ssv_fp:]] = OpTypePointer Function %[[#ssv]]
-; CHECK-DAG: %[[#ssassv_fp:]] = OpTypePointer Function %[[#ssassv]]
-; CHECK-DAG:   %[[#sfuf_fp:]] = OpTypePointer Function %[[#sfuf]]
 ; CHECK-DAG:   %[[#sfuf_pp:]] = OpTypePointer Private %[[#sfuf]]
 
 %struct.SF = type { float }
@@ -41,33 +25,30 @@
 
 define internal spir_func void @foo() #0 {
   %1 = alloca %struct.SF, align 4
-; CHECK: %[[#var:]]  = OpVariable %[[#sf_fp]] Function
+; CHECK: %[[#var:]]  = OpVariable %[[#float_fp]] Function
 
   store float 0.0, ptr %1, align 4
-; CHECK: %[[#tmp:]]  = OpInBoundsAccessChain %[[#float_fp]] %[[#var]] %[[#uint_0]]
-; CHECK:               OpStore %[[#tmp]] %[[#float_0]] Aligned 4
+; CHECK:               OpStore %[[#var]] %[[#float_0]] Aligned 4
 
   ret void
 }
 
 define internal spir_func void @bar() #0 {
   %1 = alloca %struct.SU, align 4
-; CHECK: %[[#var:]]  = OpVariable %[[#su_fp]] Function
+; CHECK: %[[#var:]]  = OpVariable %[[#uint_fp]] Function
 
   store i32 0, ptr %1, align 4
-; CHECK: %[[#tmp:]]  = OpInBoundsAccessChain %[[#uint_fp]] %[[#var]] %[[#uint_0]]
-; CHECK:               OpStore %[[#tmp]] %[[#uint_0]] Aligned 4
+; CHECK:               OpStore %[[#var]] %[[#uint_0]] Aligned 4
 
   ret void
 }
 
 define internal spir_func void @baz() #0 {
   %1 = alloca %struct.SFUF, align 4
-; CHECK: %[[#var:]]  = OpVariable %[[#sfuf_fp]] Function
+; CHECK: %[[#var:]]  = OpVariable %[[#float_fp]] Function
 
   store float 0.0, ptr %1, align 4
-; CHECK: %[[#tmp:]]  = OpInBoundsAccessChain %[[#float_fp]] %[[#var]] %[[#uint_0]]
-; CHECK:               OpStore %[[#tmp]] %[[#float_0]] Aligned 4
+; CHECK:               OpStore %[[#var]] %[[#float_0]] Aligned 4
 
   ret void
 }
@@ -82,33 +63,30 @@ define internal spir_func void @biz() #0 {
 
 define internal spir_func void @nested_store() #0 {
   %1 = alloca %struct.SSU, align 4
-; CHECK: %[[#var:]]  = OpVariable %[[#ssu_fp]] Function
+; CHECK: %[[#var:]]  = OpVariable %[[#uint_fp]] Function
 
   store i32 0, ptr %1, align 4
-; CHECK: %[[#tmp:]]  = OpInBoundsAccessChain %[[#uint_fp]] %[[#var]] %[[#uint_0]] %[[#uint_0]]
-; CHECK:               OpStore %[[#tmp]] %[[#uint_0]] Aligned 4
+; CHECK:               OpStore %[[#var]] %[[#uint_0]] Aligned 4
 
   ret void
 }
 
 define internal spir_func void @nested_store_vector() #0 {
   %1 = alloca %struct.SSV, align 4
-; CHECK: %[[#var:]]  = OpVariable %[[#ssv_fp]] Function
+; CHECK: %[[#var:]]  = OpVariable %[[#uint_fp]] Function
 
   store i32 0, ptr %1, align 4
-; CHECK: %[[#tmp:]]  = OpInBoundsAccessChain %[[#uint_fp]] %[[#var]] %[[#uint_0]] %[[#uint_0]] %[[#uint_0]]
-; CHECK:               OpStore %[[#tmp]] %[[#uint_0]] Aligned 4
+; CHECK:               OpStore %[[#var]] %[[#uint_0]] Aligned 4
 
   ret void
 }
 
 define internal spir_func void @nested_array_vector() #0 {
   %1 = alloca %struct.SSASSV, align 4
-; CHECK: %[[#var:]]  = OpVariable %[[#ssassv_fp]] Function
+; CHECK: %[[#var:]]  = OpVariable %[[#uint_fp]] Function
 
   store i32 0, ptr %1, align 4
-; CHECK: %[[#tmp:]]  = OpInBoundsAccessChain %[[#uint_fp]] %[[#var]] %[[#uint_0]] %[[#uint_0]] %[[#uint_0]] %[[#uint_0]] %[[#uint_0]] %[[#uint_0]]
-; CHECK:               OpStore %[[#tmp]] %[[#uint_0]] Aligned 4
+; CHECK:               OpStore %[[#var]] %[[#uint_0]] Aligned 4
 
   ret void
 }
