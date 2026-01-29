@@ -14777,6 +14777,15 @@ LangAS ASTContext::getLangASForBuiltinAddressSpace(unsigned AS) const {
   if (LangOpts.CUDA)
     return getTargetInfo().getCUDABuiltinAddressSpace(AS);
 
+  if (getTargetInfo().getTriple().isWasm()) {
+    switch (AS) {
+    case 1:
+      return LangAS::wasm_var;
+    case 20:
+      return LangAS::wasm_funcref;
+    }
+  }
+
   return getLangASFromTargetAS(AS);
 }
 

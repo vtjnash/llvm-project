@@ -1475,9 +1475,11 @@ static bool shouldExtendLifetime(const ASTContext &Context,
 CodeGenFunction::AutoVarEmission
 CodeGenFunction::EmitAutoVarAlloca(const VarDecl &D) {
   QualType Ty = D.getType();
-  assert(
-      Ty.getAddressSpace() == LangAS::Default ||
-      (Ty.getAddressSpace() == LangAS::opencl_private && getLangOpts().OpenCL));
+  assert(Ty.getAddressSpace() == LangAS::Default ||
+         (Ty.getAddressSpace() == LangAS::opencl_private &&
+          getLangOpts().OpenCL) ||
+         (Ty.getAddressSpace() == LangAS::wasm_var &&
+          getTarget().getTriple().isWasm()));
 
   AutoVarEmission emission(D);
 

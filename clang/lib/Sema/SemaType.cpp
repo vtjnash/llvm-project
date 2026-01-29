@@ -2103,6 +2103,11 @@ QualType Sema::BuildArrayType(QualType T, ArraySizeModifier ASM,
       return QualType();
   }
 
+  // Prepare to propagate addrspace markers on the elements to the array pointer
+  LangAS AddrSpace = LangAS::Default;
+  if (T.hasAddressSpace())
+    AddrSpace = T.getAddressSpace();
+
   // Multi-dimensional arrays of WebAssembly references are not allowed.
   if (Context.getTargetInfo().getTriple().isWasm() && T->isArrayType()) {
     const auto *ATy = dyn_cast<ArrayType>(T);
@@ -2324,6 +2329,9 @@ QualType Sema::BuildArrayType(QualType T, ArraySizeModifier ASM,
       return QualType();
     }
   }
+
+  if (AddrSpace != LangAS::Default)
+    T = Context.getAddrSpaceQualType(T, AddrSpace);
 
   return T;
 }
