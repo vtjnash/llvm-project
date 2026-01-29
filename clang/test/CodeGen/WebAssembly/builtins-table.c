@@ -63,5 +63,5 @@ static __externref_t other_table[0];
 // CHECK-NEXT:    ret void
 //
 void test_table_copy(int dst_idx, int src_idx, int nelem) {
-  __builtin_wasm_table_copy(table, other_table, dst_idx, src_idx, nelem);
+  return __builtin_wasm_table_copy(table, other_table, dst_idx, src_idx, nelem);
 }

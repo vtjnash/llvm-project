@@ -1227,9 +1227,8 @@ public:
       auto C = Emitter.tryEmitPrivate(subExpr, subExpr->getType());
       if (!C)
         return nullptr;
-      LangAS srcAS = subExpr->getType()->getPointeeType().getAddressSpace();
       llvm::Type *destTy = ConvertType(E->getType());
-      return CGM.getTargetCodeGenInfo().performAddrSpaceCast(CGM, C, srcAS,
+      return CGM.getTargetCodeGenInfo().performAddrSpaceCast(CGM, C,
                                                              destTy);
     }
 

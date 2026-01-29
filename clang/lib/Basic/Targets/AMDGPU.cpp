@@ -54,6 +54,10 @@ const LangASMap AMDGPUTargetInfo::AMDGPUDefIsGenMap = {
     llvm::AMDGPUAS::GLOBAL_ADDRESS,  // hlsl_device
     llvm::AMDGPUAS::PRIVATE_ADDRESS, // hlsl_input
     llvm::AMDGPUAS::GLOBAL_ADDRESS,  // hlsl_push_constant
+    // Wasm address space values for this target are dummy values,
+    // as it is only enabled for Wasm targets.
+    llvm::AMDGPUAS::FLAT_ADDRESS,    // wasm_funcref
+    llvm::AMDGPUAS::FLAT_ADDRESS,    // wasm_var
 };
 
 const LangASMap AMDGPUTargetInfo::AMDGPUDefIsPrivMap = {
@@ -83,6 +87,10 @@ const LangASMap AMDGPUTargetInfo::AMDGPUDefIsPrivMap = {
     llvm::AMDGPUAS::GLOBAL_ADDRESS,   // hlsl_device
     llvm::AMDGPUAS::PRIVATE_ADDRESS,  // hlsl_input
     llvm::AMDGPUAS::GLOBAL_ADDRESS,   // hlsl_push_constant
+    // Wasm address space values for this target are dummy values,
+    // as it is only enabled for Wasm targets.
+    llvm::AMDGPUAS::FLAT_ADDRESS,     // wasm_funcref
+    llvm::AMDGPUAS::FLAT_ADDRESS,     // wasm_var
 };
 } // namespace targets
 } // namespace clang
@@ -215,7 +223,11 @@ void AMDGPUTargetInfo::fillValidCPUList(
 }
 
 void AMDGPUTargetInfo::setAddressSpaceMap(bool DefaultIsPrivate) {
-  AddrSpaceMap = DefaultIsPrivate ? &AMDGPUDefIsPrivMap : &AMDGPUDefIsGenMap;
+  // Use separate assignments so the compiler will enforce the size is correct.
+  if (DefaultIsPrivate)
+    AddrSpaceMap = &AMDGPUDefIsPrivMap;
+  else
+    AddrSpaceMap = &AMDGPUDefIsGenMap;
 }
 
 AMDGPUTargetInfo::AMDGPUTargetInfo(const llvm::Triple &Triple,

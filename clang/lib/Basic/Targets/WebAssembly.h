@@ -48,6 +48,7 @@ static const unsigned WebAssemblyAddrSpaceMap[] = {
     0,  // hlsl_input
     0,  // hlsl_push_constant
     20, // wasm_funcref
+    1,  // wasm_var
 };
 
 class LLVM_LIBRARY_VISIBILITY WebAssemblyTargetInfo : public TargetInfo {

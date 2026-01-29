@@ -30,7 +30,6 @@ ModulePass *createWebAssemblyAddMissingPrototypes();
 ModulePass *createWebAssemblyFixFunctionBitcasts();
 FunctionPass *createWebAssemblyOptimizeReturned();
 FunctionPass *createWebAssemblyLowerRefTypesIntPtrConv();
-FunctionPass *createWebAssemblyRefTypeMem2Local();
 
 // ISel and immediate followup passes.
 FunctionPass *createWebAssemblyISelDag(WebAssemblyTargetMachine &TM,
@@ -61,7 +60,6 @@ ModulePass *createWebAssemblyMCLowerPrePass();
 // PassRegistry initialization declarations.
 void initializeFixFunctionBitcastsPass(PassRegistry &);
 void initializeOptimizeReturnedPass(PassRegistry &);
-void initializeWebAssemblyRefTypeMem2LocalPass(PassRegistry &);
 void initializeWebAssemblyAddMissingPrototypesPass(PassRegistry &);
 void initializeWebAssemblyArgumentMovePass(PassRegistry &);
 void initializeWebAssemblyAsmPrinterPass(PassRegistry &);

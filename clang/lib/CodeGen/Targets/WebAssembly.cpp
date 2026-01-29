@@ -93,6 +93,13 @@ public:
   virtual llvm::Type *getWasmFuncrefReferenceType() const override {
     return llvm::Type::getWasm_FuncrefTy(getABIInfo().getVMContext());
   }
+
+  LangAS getASTAllocaAddressSpace(QualType Ty) const override {
+    // Check if this is a WebAssembly reference type (externref/funcref)
+    if (Ty.isWebAssemblyReferenceType())
+      return LangAS::wasm_var;
+    return LangAS::Default;
+  }
 };
 
 /// Classify argument of given type \p Ty.

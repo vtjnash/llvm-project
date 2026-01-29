@@ -87,7 +87,7 @@ public:
   CommonSPIRTargetCodeGenInfo(std::unique_ptr<ABIInfo> ABIInfo)
       : TargetCodeGenInfo(std::move(ABIInfo)) {}
 
-  LangAS getASTAllocaAddressSpace() const override {
+  LangAS getASTAllocaAddressSpace(QualType Ty) const override {
     return getLangASFromTargetAS(
         getABIInfo().getDataLayout().getAllocaAddrSpace());
   }

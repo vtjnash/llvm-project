@@ -1802,6 +1802,16 @@ static QualType deduceOpenCLPointeeAddrSpace(Sema &S, QualType PointeeType) {
   return PointeeType;
 }
 
+//// Helper to deduce addr space of a pointer/reference type in WebAssembly mode.
+//static QualType deduceWebAssemblyPtrAddrSpace(Sema &S, QualType PointeeType) {
+//  if (S.getASTContext().getTargetInfo().getTriple().isWasm() &&
+//      PointeeType.isWebAssemblyReferenceType() && !PointeeType.hasAddressSpace()) {
+//    PointeeType =
+//        S.getASTContext().getAddrSpaceQualType(PointeeType, LangAS::wasm_var);
+//  }
+//  return PointeeType;
+//}
+
 QualType Sema::BuildPointerType(QualType T,
                                 SourceLocation Loc, DeclarationName Entity) {
   if (T->isReferenceType()) {

@@ -2834,7 +2834,8 @@ private:
   /// If \p Alloca is not in the same address space as \p DestLangAS, insert an
   /// address space cast and return a new RawAddress based on this value.
   RawAddress MaybeCastStackAddressSpace(RawAddress Alloca, LangAS DestLangAS,
-                                        llvm::Value *ArraySize = nullptr);
+                                        llvm::Value *ArraySize = nullptr,
+                                        QualType AllocatedTy = QualType());
 
 public:
   /// CreateTempAlloca - This creates an alloca and inserts it into the entry
@@ -2861,10 +2862,11 @@ public:
   /// various ways, this function will perform the cast. The original alloca
   /// instruction is returned through \p Alloca if it is not nullptr.
   ///
-  /// The cast is not performaed in CreateTempAllocaWithoutCast. This is
+  /// The cast is not performed in CreateTempAllocaWithoutCast. This is
   /// more efficient if the caller knows that the address will not be exposed.
   llvm::AllocaInst *CreateTempAlloca(llvm::Type *Ty, const Twine &Name = "tmp",
-                                     llvm::Value *ArraySize = nullptr);
+                                     llvm::Value *ArraySize = nullptr,
+                                     QualType AllocatedTy = QualType());
 
   /// CreateTempAlloca - This creates a alloca and inserts it into the entry
   /// block. The alloca is casted to the address space of \p UseAddrSpace if
@@ -2872,7 +2874,8 @@ public:
   RawAddress CreateTempAlloca(llvm::Type *Ty, LangAS UseAddrSpace,
                               CharUnits align, const Twine &Name = "tmp",
                               llvm::Value *ArraySize = nullptr,
-                              RawAddress *Alloca = nullptr);
+                              RawAddress *Alloca = nullptr,
+                              QualType AllocatedTy = QualType());
 
   /// CreateTempAlloca - This creates a alloca and inserts it into the entry
   /// block. The alloca is casted to default address space if necessary.
@@ -2882,14 +2885,16 @@ public:
   RawAddress CreateTempAlloca(llvm::Type *Ty, CharUnits align,
                               const Twine &Name = "tmp",
                               llvm::Value *ArraySize = nullptr,
-                              RawAddress *Alloca = nullptr) {
+                              RawAddress *Alloca = nullptr,
+                              QualType AllocatedTy = QualType()) {
     return CreateTempAlloca(Ty, LangAS::Default, align, Name, ArraySize,
-                            Alloca);
+                            Alloca, AllocatedTy);
   }
 
   RawAddress CreateTempAllocaWithoutCast(llvm::Type *Ty, CharUnits align,
                                          const Twine &Name = "tmp",
-                                         llvm::Value *ArraySize = nullptr);
+                                         llvm::Value *ArraySize = nullptr,
+                                         QualType AllocatedTy = QualType());
 
   /// CreateDefaultAlignedTempAlloca - This creates an alloca with the
   /// default ABI alignment of the given LLVM type.
@@ -2904,7 +2909,7 @@ public:
   RawAddress CreateDefaultAlignTempAlloca(llvm::Type *Ty,
                                           const Twine &Name = "tmp");
 
-  /// CreateIRTemp - Create a temporary IR object of the given type, with
+  /// CreateIRTempWithoutCast - Create a temporary IR object of the given type, with
   /// appropriate alignment. This routine should only be used when an temporary
   /// value needs to be stored into an alloca (for example, to avoid explicit
   /// PHI construction), but the type is the IR type, not the type appropriate
@@ -2912,7 +2917,7 @@ public:
   ///
   /// That is, this is exactly equivalent to CreateMemTemp, but calling
   /// ConvertType instead of ConvertTypeForMem.
-  RawAddress CreateIRTemp(QualType T, const Twine &Name = "tmp");
+  RawAddress CreateIRTempWithoutCast(QualType T, const Twine &Name = "tmp");
 
   /// CreateMemTemp - Create a temporary memory object of the given type, with
   /// appropriate alignmen and cast it to the default address space. Returns

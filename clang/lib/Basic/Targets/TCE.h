@@ -59,6 +59,7 @@ static const unsigned TCEOpenCLAddrSpaceMap[] = {
     // Wasm address space values for this target are dummy values,
     // as it is only enabled for Wasm targets.
     20, // wasm_funcref
+    0,  // wasm_var
 };
 
 class LLVM_LIBRARY_VISIBILITY TCETargetInfo : public TargetInfo {

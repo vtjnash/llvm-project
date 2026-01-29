@@ -304,7 +304,7 @@ public:
   llvm::Constant *getNullPointer(const CodeGen::CodeGenModule &CGM,
       llvm::PointerType *T, QualType QT) const override;
 
-  LangAS getASTAllocaAddressSpace() const override {
+  LangAS getASTAllocaAddressSpace(QualType Ty) const override {
     return getLangASFromTargetAS(
         getABIInfo().getDataLayout().getAllocaAddrSpace());
   }

@@ -40,6 +40,19 @@ static bool CheckWasmBuiltinArgIsTable(Sema &S, CallExpr *E, unsigned ArgIndex,
   return false;
 }
 
+  
+static bool CheckWasmTableElement(Sema &S, QualType &ElTy, CallExpr *E, unsigned TableIndex, unsigned ArgIndex) {
+  Expr *NewElemArg = E->getArg(ArgIndex);
+  QualType QT = NewElemArg->getType();
+  // Compare the types after removing insignificant qualifiers
+  if (!S.getASTContext().hasSameType(ElTy.getTypePtr(), QT.getTypePtr())) {
+    return S.Diag(NewElemArg->getBeginLoc(),
+                diag::err_wasm_builtin_arg_must_match_table_element_type)
+           << (ArgIndex + 1) << (TableIndex + 1) << NewElemArg->getSourceRange();
+  }
+  return false;
+}
+
 /// Checks the argument at the given index is an integer.
 static bool CheckWasmBuiltinArgIsInteger(Sema &S, CallExpr *E,
                                          unsigned ArgIndex) {
@@ -115,7 +128,7 @@ bool SemaWasm::BuiltinWasmTableGet(CallExpr *TheCall) {
   return false;
 }
 
-/// Check that the first argumnet is a WebAssembly table, the second is
+/// Check that the first argument is a WebAssembly table, the second is
 /// an index to use as index into the table and the third is the reference
 /// type to set into the table.
 bool SemaWasm::BuiltinWasmTableSet(CallExpr *TheCall) {
@@ -129,8 +142,10 @@ bool SemaWasm::BuiltinWasmTableSet(CallExpr *TheCall) {
   if (CheckWasmBuiltinArgIsInteger(SemaRef, TheCall, 1))
     return true;
 
-  if (!getASTContext().hasSameType(ElTy, TheCall->getArg(2)->getType()))
+  if (CheckWasmTableElement(SemaRef, ElTy, TheCall, 0, 2))
     return true;
+
+  TheCall->setType(getASTContext().VoidTy);
 
   return false;
 }
@@ -158,12 +173,8 @@ bool SemaWasm::BuiltinWasmTableGrow(CallExpr *TheCall) {
   if (CheckWasmBuiltinArgIsTable(SemaRef, TheCall, 0, ElTy))
     return true;
 
-  Expr *NewElemArg = TheCall->getArg(1);
-  if (!getASTContext().hasSameType(ElTy, NewElemArg->getType())) {
-    return Diag(NewElemArg->getBeginLoc(),
-                diag::err_wasm_builtin_arg_must_match_table_element_type)
-           << 2 << 1 << NewElemArg->getSourceRange();
-  }
+  if (CheckWasmTableElement(SemaRef, ElTy, TheCall, 0, 1))
+    return true;
 
   if (CheckWasmBuiltinArgIsInteger(SemaRef, TheCall, 2))
     return true;
@@ -185,12 +196,8 @@ bool SemaWasm::BuiltinWasmTableFill(CallExpr *TheCall) {
   if (CheckWasmBuiltinArgIsInteger(SemaRef, TheCall, 1))
     return true;
 
-  Expr *NewElemArg = TheCall->getArg(2);
-  if (!getASTContext().hasSameType(ElTy, NewElemArg->getType())) {
-    return Diag(NewElemArg->getBeginLoc(),
-                diag::err_wasm_builtin_arg_must_match_table_element_type)
-           << 3 << 1 << NewElemArg->getSourceRange();
-  }
+  if (CheckWasmTableElement(SemaRef, ElTy, TheCall, 0, 2))
+    return true;
 
   if (CheckWasmBuiltinArgIsInteger(SemaRef, TheCall, 3))
     return true;
@@ -224,6 +231,8 @@ bool SemaWasm::BuiltinWasmTableCopy(CallExpr *TheCall) {
     if (CheckWasmBuiltinArgIsInteger(SemaRef, TheCall, I))
       return true;
   }
+
+  TheCall->setType(getASTContext().VoidTy);
 
   return false;
 }

@@ -28,6 +28,7 @@
 #include "clang/AST/Randstruct.h"
 #include "clang/AST/StmtCXX.h"
 #include "clang/AST/Type.h"
+#include "clang/Basic/AddressSpaces.h"
 #include "clang/Basic/Builtins.h"
 #include "clang/Basic/DiagnosticComment.h"
 #include "clang/Basic/HLSLRuntime.h"
@@ -7091,6 +7092,21 @@ void Sema::deduceOpenCLAddressSpace(ValueDecl *Decl) {
   }
 }
 
+void Sema::deduceWasmAddressSpace(VarDecl *Decl) {
+  if (Context.getTargetInfo().getTriple().isWasm()) {
+    // For WebAssembly, variables holding reference types must have a special
+    // address space when moved to the stack.
+    QualType Type = Decl->getType();
+    if (const auto *ATy = dyn_cast<ArrayType>(Type))
+      Type = ATy->getElementType();
+    if (Type.isWebAssemblyReferenceType()) {
+      QualType Type = Context.getAddrSpaceQualType(
+          Decl->getType(), LangAS::wasm_var);
+      Decl->setType(Type);
+    }
+  }
+}
+
 static void checkWeakAttr(Sema &S, NamedDecl &ND) {
   // 'weak' only applies to declarations with external linkage.
   if (WeakAttr *Attr = ND.getAttr<WeakAttr>()) {
@@ -8209,17 +8225,7 @@ NamedDecl *Sema::ActOnVariableDeclarator(
     }
   }
 
-  // WebAssembly tables are always in address space 1 (wasm_var). Don't apply
-  // address space if the table has local storage (semantic checks elsewhere
-  // will produce an error anyway).
-  if (const auto *ATy = dyn_cast<ArrayType>(NewVD->getType())) {
-    if (ATy && ATy->getElementType().isWebAssemblyReferenceType() &&
-        !NewVD->hasLocalStorage()) {
-      QualType Type = Context.getAddrSpaceQualType(
-          NewVD->getType(), Context.getLangASForBuiltinAddressSpace(1));
-      NewVD->setType(Type);
-    }
-  }
+  deduceWasmAddressSpace(NewVD);
 
   if (Expr *E = D.getAsmLabel()) {
     // The parser guarantees this is a string.
@@ -8906,7 +8912,15 @@ void Sema::CheckVariableDeclarationType(VarDecl *NewVD) {
   // This includes arrays of objects with address space qualifiers, but not
   // automatic variables that point to other address spaces.
   // ISO/IEC TR 18037 S5.1.2
-  if (!getLangOpts().OpenCL && NewVD->hasLocalStorage() &&
+  if (T.isWebAssemblyReferenceType() && Context.getTargetInfo().getTriple().isWasm()) {
+    // WebAssembly: reference types must be in
+    // wasm_var address space (AS 1) so they can be stored in WebAssembly locals.
+    if (T.getAddressSpace() != LangAS::wasm_var) {
+      Diag(NewVD->getLocation(), diag::err_as_qualified_auto_decl) << 1;
+      NewVD->setInvalidDecl();
+      return;
+    }
+  } else if (!getLangOpts().OpenCL && NewVD->hasLocalStorage() &&
       T.getAddressSpace() != LangAS::Default) {
     Diag(NewVD->getLocation(), diag::err_as_qualified_auto_decl) << 0;
     NewVD->setInvalidDecl();
@@ -13398,6 +13412,8 @@ bool Sema::DeduceVariableDeclarationType(VarDecl *VDecl, bool DirectInit,
   if (getLangOpts().HLSL)
     HLSL().deduceAddressSpace(VDecl);
 
+  deduceWasmAddressSpace(VDecl);
+
   // If this is a redeclaration, check that the type we just deduced matches
   // the previously declared type.
   if (VarDecl *Old = VDecl->getPreviousDecl()) {
@@ -15701,6 +15717,8 @@ Decl *Sema::ActOnParamDeclarator(Scope *S, Declarator &D,
   if (getLangOpts().OpenCL)
     deduceOpenCLAddressSpace(New);
 
+  deduceWasmAddressSpace(New);
+
   return New;
 }
 
@@ -15837,7 +15855,10 @@ ParmVarDecl *Sema::CheckParameter(DeclContext *DC, SourceLocation StartLoc,
       // WebAssembly allows reference types as parameters. Funcref in particular
       // lives in a different address space.
       !(T->isFunctionPointerType() &&
-        T.getAddressSpace() == LangAS::wasm_funcref)) {
+        T.getAddressSpace() == LangAS::wasm_funcref) &&
+      // WebAssembly reference types like __externref_t must be in wasm_var.
+      !(T.isWebAssemblyReferenceType() &&
+        T.getAddressSpace() == LangAS::wasm_var)) {
     Diag(NameLoc, diag::err_arg_with_address_space);
     New->setInvalidDecl();
   }

@@ -304,7 +304,7 @@ llvm::Constant *CodeGenModule::getOrCreateStaticVarDecl(
   llvm::Constant *Addr = GV;
   if (AS != ExpectedAS) {
     Addr = getTargetCodeGenInfo().performAddrSpaceCast(
-        *this, GV, AS,
+        *this, GV,
         llvm::PointerType::get(getLLVMContext(),
                                getContext().getTargetAddressSpace(ExpectedAS)));
   }
@@ -1357,9 +1357,6 @@ bool CodeGenFunction::EmitLifetimeStart(llvm::Value *Addr) {
   if (!ShouldEmitLifetimeMarkers)
     return false;
 
-  assert(Addr->getType()->getPointerAddressSpace() ==
-             CGM.getDataLayout().getAllocaAddrSpace() &&
-         "Pointer should be in alloca address space");
   llvm::CallInst *C = Builder.CreateCall(CGM.getLLVMLifetimeStartFn(), {Addr});
   C->setDoesNotThrow();
   return true;
@@ -1369,9 +1366,6 @@ void CodeGenFunction::EmitLifetimeEnd(llvm::Value *Addr) {
   if (!ShouldEmitLifetimeMarkers)
     return;
 
-  assert(Addr->getType()->getPointerAddressSpace() ==
-             CGM.getDataLayout().getAllocaAddrSpace() &&
-         "Pointer should be in alloca address space");
   llvm::CallInst *C = Builder.CreateCall(CGM.getLLVMLifetimeEndFn(), {Addr});
   C->setDoesNotThrow();
 }
@@ -1483,7 +1477,9 @@ CodeGenFunction::EmitAutoVarAlloca(const VarDecl &D) {
   QualType Ty = D.getType();
   assert(
       Ty.getAddressSpace() == LangAS::Default ||
-      (Ty.getAddressSpace() == LangAS::opencl_private && getLangOpts().OpenCL));
+      (Ty.getAddressSpace() == LangAS::opencl_private && getLangOpts().OpenCL) ||
+      (Ty.getAddressSpace() == LangAS::wasm_var &&
+       getTarget().getTriple().isWasm()));
 
   AutoVarEmission emission(D);
 
@@ -1602,7 +1598,8 @@ CodeGenFunction::EmitAutoVarAlloca(const VarDecl &D) {
       // builds.
       address = CreateTempAlloca(allocaTy, Ty.getAddressSpace(),
                                  allocaAlignment, D.getName(),
-                                 /*ArraySize=*/nullptr, &AllocaAddr);
+                                 /*ArraySize=*/nullptr, &AllocaAddr,
+                                 Ty);
 
       // Don't emit lifetime markers for MSVC catch parameters. The lifetime of
       // the catch parameter starts in the catchpad instruction, and we can't
@@ -2708,7 +2705,7 @@ void CodeGenFunction::EmitParmDecl(const VarDecl &D, ParamValue Arg,
     DeclPtr = DeclPtr.withElementType(ConvertTypeForMem(Ty));
     // Indirect argument is in alloca address space, which may be different
     // from the default address space.
-    auto AllocaAS = CGM.getASTAllocaAddressSpace();
+    auto AllocaAS = getTargetHooks().getASTAllocaAddressSpace(Ty);
     auto *V = DeclPtr.emitRawPointer(*this);
     AllocaPtr = RawAddress(V, DeclPtr.getElementType(), DeclPtr.getAlignment());
 
@@ -2733,7 +2730,7 @@ void CodeGenFunction::EmitParmDecl(const VarDecl &D, ParamValue Arg,
       auto DestAS = getContext().getTargetAddressSpace(DestLangAS);
       auto *T = llvm::PointerType::get(getLLVMContext(), DestAS);
       DeclPtr = DeclPtr.withPointer(
-          getTargetHooks().performAddrSpaceCast(*this, V, SrcLangAS, T, true),
+          getTargetHooks().performAddrSpaceCast(*this, V, T, true),
           DeclPtr.isKnownNonNull());
     }
 

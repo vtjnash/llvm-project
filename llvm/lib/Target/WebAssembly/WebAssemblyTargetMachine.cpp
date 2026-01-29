@@ -97,7 +97,6 @@ LLVMInitializeWebAssemblyTarget() {
   initializeLowerGlobalDtorsLegacyPassPass(PR);
   initializeFixFunctionBitcastsPass(PR);
   initializeOptimizeReturnedPass(PR);
-  initializeWebAssemblyRefTypeMem2LocalPass(PR);
   initializeWebAssemblyArgumentMovePass(PR);
   initializeWebAssemblyAsmPrinterPass(PR);
   initializeWebAssemblySetP2AlignOperandsPass(PR);
@@ -513,9 +512,6 @@ void WebAssemblyPassConfig::addIRPasses() {
 }
 
 void WebAssemblyPassConfig::addISelPrepare() {
-  // We need to move reference type allocas to WASM_ADDRESS_SPACE_VAR so that
-  // loads and stores are promoted to local.gets/local.sets.
-  addPass(createWebAssemblyRefTypeMem2Local());
   // Lower atomics and TLS if necessary
   addPass(new CoalesceFeaturesAndStripAtomics(&getWebAssemblyTargetMachine()));
 
