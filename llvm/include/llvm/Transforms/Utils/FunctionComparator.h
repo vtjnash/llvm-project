@@ -317,6 +317,7 @@ protected:
   LLVM_ABI int cmpTypes(Type *TyL, Type *TyR) const;
 
   LLVM_ABI int cmpNumbers(uint64_t L, uint64_t R) const;
+  LLVM_ABI int cmpTypeSizes(TypeSize L, TypeSize R) const;
   LLVM_ABI int cmpAligns(Align L, Align R) const;
   LLVM_ABI int cmpAPInts(const APInt &L, const APInt &R) const;
   LLVM_ABI int cmpConstantRanges(const ConstantRange &L,

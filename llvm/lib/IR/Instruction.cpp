@@ -895,10 +895,15 @@ bool Instruction::hasSameSpecialState(const Instruction *I2,
                : CB0->getAttributes() == CB1->getAttributes();
   };
 
-  if (const AllocaInst *AI = dyn_cast<AllocaInst>(I1))
-    return AI->getAllocatedType() == cast<AllocaInst>(I2)->getAllocatedType() &&
-           (AI->getAlign() == cast<AllocaInst>(I2)->getAlign() ||
-            IgnoreAlignment);
+  if (const AllocaInst *AI = dyn_cast<AllocaInst>(I1)) {
+    const AllocaInst *AI2 = cast<AllocaInst>(I2);
+    Type *T1 = AI->getAllocatedType();
+    Type *T2 = AI2->getAllocatedType();
+    const DataLayout &DL = I1->getDataLayout();
+    return (T1 == T2 || (DL.getTypeStoreSize(T1) == DL.getTypeStoreSize(T2) &&
+                         DL.getTypeAllocSize(T1) == DL.getTypeAllocSize(T2))) &&
+           (AI->getAlign() == AI2->getAlign() || IgnoreAlignment);
+  }
   if (const LoadInst *LI = dyn_cast<LoadInst>(I1))
     return LI->isVolatile() == cast<LoadInst>(I2)->isVolatile() &&
            (LI->getAlign() == cast<LoadInst>(I2)->getAlign() ||

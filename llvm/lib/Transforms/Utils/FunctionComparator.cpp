@@ -57,6 +57,12 @@ int FunctionComparator::cmpNumbers(uint64_t L, uint64_t R) const {
   return 0;
 }
 
+int FunctionComparator::cmpTypeSizes(TypeSize L, TypeSize R) const {
+  if (int Res = cmpNumbers(L.isScalable(), R.isScalable()))
+    return Res;
+  return cmpNumbers(L.getKnownMinValue(), R.getKnownMinValue());
+}
+
 int FunctionComparator::cmpAligns(Align L, Align R) const {
   if (L.value() < R.value())
     return -1;
@@ -691,10 +697,19 @@ int FunctionComparator::cmpOperations(const Instruction *L,
 
   // Check special state that is a part of some instructions.
   if (const AllocaInst *AI = dyn_cast<AllocaInst>(L)) {
-    if (int Res = cmpTypes(AI->getAllocatedType(),
-                           cast<AllocaInst>(R)->getAllocatedType()))
-      return Res;
-    return cmpAligns(AI->getAlign(), cast<AllocaInst>(R)->getAlign());
+    auto RAI = cast<AllocaInst>(R);
+    Type *LT = AI->getAllocatedType();
+    Type *RT = RAI->getAllocatedType();
+    if (LT != RT) {
+      const DataLayout &DL = FnL->getDataLayout();
+      if (int Res =
+              cmpTypeSizes(DL.getTypeStoreSize(LT), DL.getTypeStoreSize(RT)))
+        return Res;
+      if (int Res =
+              cmpTypeSizes(DL.getTypeAllocSize(LT), DL.getTypeAllocSize(RT)))
+        return Res;
+    }
+    return cmpAligns(AI->getAlign(), RAI->getAlign());
   }
   if (const LoadInst *LI = dyn_cast<LoadInst>(L)) {
     if (int Res = cmpNumbers(LI->isVolatile(), cast<LoadInst>(R)->isVolatile()))
