@@ -3125,7 +3125,7 @@
 {"_ZN5clang7CodeGen15CodeGenFunction17EmitCastToVoidPtrEPN4llvm5ValueE", "clang::CodeGen::CodeGenFunction::EmitCastToVoidPtr(llvm::Value*)"},
 {"_ZN5clang7CodeGen15CodeGenFunction16CreateTempAllocaEPKN4llvm4TypeERKNS2_5TwineE", "clang::CodeGen::CodeGenFunction::CreateTempAlloca(llvm::Type const*, llvm::Twine const&)"},
 {"_ZN5clang7CodeGen15CodeGenFunction14InitTempAllocaEPN4llvm10AllocaInstEPNS2_5ValueE", "clang::CodeGen::CodeGenFunction::InitTempAlloca(llvm::AllocaInst*, llvm::Value*)"},
-{"_ZN5clang7CodeGen15CodeGenFunction12CreateIRTempENS_8QualTypeERKN4llvm5TwineE", "clang::CodeGen::CodeGenFunction::CreateIRTemp(clang::QualType, llvm::Twine const&)"},
+{"_ZN5clang7CodeGen15CodeGenFunction12CreateIRTempENS_8QualTypeERKN4llvm5TwineE", "clang::CodeGen::CodeGenFunction::CreateIRTempWithoutCast(clang::QualType, llvm::Twine const&)"},
 {"_ZN5clang7CodeGen15CodeGenFunction13CreateMemTempENS_8QualTypeERKN4llvm5TwineE", "clang::CodeGen::CodeGenFunction::CreateMemTemp(clang::QualType, llvm::Twine const&)"},
 {"_ZN5clang7CodeGen15CodeGenFunction18EvaluateExprAsBoolEPKNS_4ExprE", "clang::CodeGen::CodeGenFunction::EvaluateExprAsBool(clang::Expr const*)"},
 {"_ZN5clang7CodeGen15CodeGenFunction15EmitIgnoredExprEPKNS_4ExprE", "clang::CodeGen::CodeGenFunction::EmitIgnoredExpr(clang::Expr const*)"},
