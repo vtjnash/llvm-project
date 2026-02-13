@@ -2868,7 +2868,8 @@ public:
   ///
   /// The cast is not performed in CreateTempAllocaWithoutCast. This is
   /// more efficient if the caller knows that the address will not be exposed.
-  llvm::AllocaInst *CreateTempAlloca(llvm::Type *Ty, const Twine &Name = "tmp",
+  llvm::AllocaInst *CreateTempAlloca(llvm::Type *Ty, LangAS UseAddrSpace,
+                                     const Twine &Name = "tmp",
                                      llvm::Value *ArraySize = nullptr);
 
   /// CreateTempAlloca - This creates a alloca and inserts it into the entry
@@ -2892,7 +2893,8 @@ public:
                             Alloca);
   }
 
-  RawAddress CreateTempAllocaWithoutCast(llvm::Type *Ty, CharUnits align,
+  RawAddress CreateTempAllocaWithoutCast(llvm::Type *Ty, LangAS UseAddrSpace,
+                                         CharUnits align,
                                          const Twine &Name = "tmp",
                                          llvm::Value *ArraySize = nullptr);
 
