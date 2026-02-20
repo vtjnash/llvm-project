@@ -9,6 +9,7 @@
 // SIMD-ONLY18-NOT: {{__kmpc|__tgt}}
 #ifdef CK19
 
+
 // CK19-LABEL: @.__omp_offloading_{{.*}}explicit_maps_single{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
 // CK19: [[SIZE00:@.+]] = private {{.*}}constant [1 x i64] [i64 4]
 // CK19-USE: [[MTYPE00:@.+]] = private {{.*}}constant [1 x i64] [i64 32]
