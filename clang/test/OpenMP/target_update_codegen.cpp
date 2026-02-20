@@ -4,23 +4,21 @@
 #define HEADER
 
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK1 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK1 --check-prefix CK1-64
+// RUN: %clang_cc1 -DCK1 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1,CK1-64,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-ONLY19-_19,CK1-64-_2-_3-32-CK19,CK1-64-_2-_3-32-CK2,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK1-64-_2-_3-CK19,CK1-64-_2-_3-CK2-CK9-CK15-CK19-CK20,CK1-64-_2-_3-SIMD-ONLY2-_4-_5-ONLY3-ONLY4
 // RUN: %clang_cc1 -DCK1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK1 --check-prefix CK1-64
-// RUN: %clang_cc1 -DCK1 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK1 --check-prefix CK1-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1,CK1-64,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-ONLY19-_19,CK1-64-_2-_3-32-CK19,CK1-64-_2-_3-32-CK2,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK1-64-_2-_3-CK19,CK1-64-_2-_3-CK2-CK9-CK15-CK19-CK20,CK1-64-_2-_3-SIMD-ONLY2-_4-_5-ONLY3-ONLY4
+// RUN: %clang_cc1 -DCK1 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1,CK1-32,CK1-32-_2-_3-CK17,CK1-32-_2-_3-CK6-CK16,CK1-32-_2-_3-CK6-CK7-CK16-CK17,CK1-32-_2-_3-CK7-CK16,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-ONLY19-_19,CK1-64-_2-_3-32-CK19,CK1-64-_2-_3-32-CK2,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5
 // RUN: %clang_cc1 -DCK1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK1 --check-prefix CK1-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1,CK1-32,CK1-32-_2-_3-CK17,CK1-32-_2-_3-CK6-CK16,CK1-32-_2-_3-CK6-CK7-CK16-CK17,CK1-32-_2-_3-CK7-CK16,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-ONLY19-_19,CK1-64-_2-_3-32-CK19,CK1-64-_2-_3-32-CK2,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5
 
-// RUN: %clang_cc1 -DCK1 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -DCK1 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,SIMD-ONLY0-_54-_21,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_28-_38,SIMD-ONLY0-_54-_21-_40-_60,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK24-64-_2-_3,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-_28-_38-_41-_5 %s
 // RUN: %clang_cc1 -DCK1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -DCK1 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,SIMD-ONLY0-_54-_21,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_28-_38,SIMD-ONLY0-_54-_21-_40-_60,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK24-64-_2-_3,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-_28-_38-_41-_5 %s
+// RUN: %clang_cc1 -DCK1 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,SIMD-ONLY0-_40-_60,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_40-_60-CK24-64-_2-_3-CK25,SIMD-ONLY0-_40-_60-_41-_5,SIMD-ONLY0-_54-_21-_40-_60,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK24-64-_2-_3,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-_28-_38-_41-_5 %s
 // RUN: %clang_cc1 -DCK1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,SIMD-ONLY0-_40-_60,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_40-_60-CK24-64-_2-_3-CK25,SIMD-ONLY0-_40-_60-_41-_5,SIMD-ONLY0-_54-_21-_40-_60,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK24-64-_2-_3,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-_28-_38-_41-_5 %s
 #ifdef CK1
 
-// CK1: [[ST:%.+]] = type { i32, ptr }
 template <typename T>
 struct ST {
   T a;
@@ -30,148 +28,65 @@ struct ST {
 ST<int> gb;
 double gc[100];
 
-// CK1: [[IDENT_T:%.+]] = type { i32, i32, i32, i32, ptr }
-// CK1: [[KMP_TASK_T_WITH_PRIVATES:%.+]] = type { [[KMP_TASK_T:%[^,]+]], [[KMP_PRIVATES_T:%.+]] }
-// CK1: [[KMP_TASK_T]] = type { ptr, ptr, i32, %{{[^,]+}}, %{{[^,]+}} }
-// CK1-32: [[KMP_PRIVATES_T]] = type { [1 x i64], [1 x ptr], [1 x ptr] }
-// CK1-64: [[KMP_PRIVATES_T]] = type { [1 x ptr], [1 x ptr], [1 x i64] }
 
-// CK1: [[SIZE00:@.+]] = {{.+}}constant [1 x i[[sz:64|32]]] [i{{64|32}} 800]
-// CK1: [[MTYPE00:@.+]] = {{.+}}constant [1 x i64] [i64 2]
 
-// CK1: [[SIZE02:@.+]] = {{.+}}constant [1 x i[[sz]]] [i[[sz]] 4]
-// CK1: [[MTYPE02:@.+]] = {{.+}}constant [1 x i64] [i64 1]
 
-// CK1: [[MTYPE03:@.+]] = {{.+}}constant [1 x i64] [i64 2]
 
-// CK1: [[SIZE04:@.+]] = {{.+}}constant [1 x i64] [i64 24]
-// CK1: [[MTYPE04:@.+]] = {{.+}}constant [1 x i64] [i64 1]
 
-// CK1-LABEL: _Z3fooi
 void foo(int arg) {
   int la;
   float lb[arg];
 
   // Region 00
-  // CK1-DAG: call i32 @__kmpc_omp_task(ptr @{{[^,]+}}, i32 %{{[^,]+}}, ptr [[TASK:%.+]])
-  // CK1-DAG: [[TASK]] = call ptr @__kmpc_omp_target_task_alloc(ptr @{{[^,]+}}, i32 %{{[^,]+}}, i32 1, i[[sz:32|64]] {{36|64}}, i{{32|64}} 4, ptr [[OMP_TASK_ENTRY:@[^,]+]], i64 [[DEV:%.+]])
-  // CK1-DAG: [[DEV]] = sext i32 [[DEV32:%.+]] to i64
-  // CK1-DAG: [[PRIVATES:%.+]] = getelementptr inbounds nuw [[KMP_TASK_T_WITH_PRIVATES]], ptr [[TASK]], i32 0, i32 1
-  // CK1-32-DAG: [[FPBPGEP:%.+]] = getelementptr inbounds nuw [[KMP_PRIVATES_T]], ptr [[PRIVATES]], i32 0, i32 1
-  // CK1-64-DAG: [[FPBPGEP:%.+]] = getelementptr inbounds nuw [[KMP_PRIVATES_T]], ptr [[PRIVATES]], i32 0, i32 0
-  // CK1-DAG: call void @llvm.memcpy.p0.p0.i[[sz]](ptr align {{4|8}} [[FPBPGEP]], ptr align {{4|8}} [[BPGEP:%.+]], i[[sz]] {{4|8}}, i1 false)
-  // CK1-DAG: [[BPGEP]] = getelementptr inbounds [1 x ptr], ptr [[BP:%.+]], i32 0, i32 0
-  // CK1-DAG: [[BPGEP:%.+]] = getelementptr inbounds [1 x ptr], ptr [[BP]], i32 0, i32 0
-  // CK1-DAG: store ptr [[GC:@[^,]+]], ptr [[BPGEP]], align
-  // CK1-32-DAG: [[FPPGEP:%.+]] = getelementptr inbounds nuw [[KMP_PRIVATES_T]], ptr [[PRIVATES]], i32 0, i32 2
-  // CK1-64-DAG: [[FPPGEP:%.+]] = getelementptr inbounds nuw [[KMP_PRIVATES_T]], ptr [[PRIVATES]], i32 0, i32 1
-  // CK1-DAG: call void @llvm.memcpy.p0.p0.i[[sz]](ptr align {{4|8}} [[FPPGEP]], ptr align {{4|8}} [[PGEP:%.+]], i[[sz]] {{4|8}}, i1 false)
-  // CK1-DAG: [[PGEP]] = getelementptr inbounds [1 x ptr], ptr [[P:%.+]], i32 0, i32 0
-  // CK1-DAG: [[PGEP:%.+]] = getelementptr inbounds [1 x ptr], ptr [[P]], i32 0, i32 0
-  // CK1-DAG: store ptr [[GC]], ptr [[PGEP]], align
-  // CK1-32-DAG: [[FPSZGEP:%.+]] = getelementptr inbounds nuw [[KMP_PRIVATES_T]], ptr [[PRIVATES]], i32 0, i32 0
-  // CK1-64-DAG: [[FPSZGEP:%.+]] = getelementptr inbounds nuw [[KMP_PRIVATES_T]], ptr [[PRIVATES]], i32 0, i32 2
-  // CK1-DAG: call void @llvm.memcpy.p0.p0.i[[sz]](ptr align {{4|8}} [[FPSZGEP]], ptr align {{4|8}} [[SIZE00]], i[[sz]] {{4|8}}, i1 false)
   #pragma omp target update if(1+3-5) device(arg) from(gc) nowait
   {++arg;}
 
   // Region 01
-  // CK1: %{{.+}} = add nsw i32 %{{[^,]+}}, 1
   #pragma omp target update to(la) if(1+3-4)
   {++arg;}
 
   // Region 02
-  // CK1: br i1 %{{[^,]+}}, label %[[IFTHEN:[^,]+]], label %[[IFELSE:[^,]+]]
-  // CK1: [[IFTHEN]]
-  // CK1-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 4, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE02]], ptr [[MTYPE02]]{{.+}}, ptr null)
-  // CK1-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK1-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-  // CK1-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK1-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK1-DAG: store ptr [[VAL0:%[^,]+]], ptr [[BP0]]
-  // CK1-DAG: store ptr [[VAL0]], ptr [[P0]]
-  // CK1: br label %[[IFEND:[^,]+]]
 
-  // CK1: [[IFELSE]]
-  // CK1: br label %[[IFEND]]
-  // CK1: [[IFEND]]
-  // CK1: %{{.+}} = add nsw i32 %{{[^,]+}}, 1
   #pragma omp target update to(arg) if(arg) device(4)
   {++arg;}
 
-  // CK1: %{{.+}} = add nsw i32 %{{[^,]+}}, 1
   {++arg;}
 
   // Region 03
-  // CK1-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[GEPS:%.+]], ptr [[MTYPE03]]{{.+}}, ptr null)
-  // CK1-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK1-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-  // CK1-DAG: [[GEPS]] = getelementptr inbounds {{.+}}[[S:%[^,]+]]
 
-  // CK1-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK1-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK1-DAG: [[S0:%.+]] = getelementptr inbounds {{.+}}[[S]], i{{.+}} 0, i{{.+}} 0
-  // CK1-DAG: store ptr [[VAL0:%[^,]+]], ptr [[BP0]]
-  // CK1-DAG: store ptr [[VAL0]], ptr [[P0]]
-  // CK1-DAG: store i64 [[CSVAL0:%[^,]+]], ptr [[S0]]
-  // CK1: %{{.+}} = add nsw i32 %{{[^,]+}}, 1
-  // CK1-NOT: __tgt_target_data_end
   #pragma omp target update from(lb)
   {++arg;}
 
-  // CK1: %{{.+}} = add nsw i32 %{{[^,]+}}, 1
   {++arg;}
 
   // Region 04
 
   // &gb.b[0], &gb.b[0], 3 * sizeof(gb.b[0]), TO
 
-  // CK1-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE04]], ptr [[MTYPE04]]{{.+}}, ptr null)
-  // CK1-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK1-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-  // CK1-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK1-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK1-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-  // CK1-DAG: store ptr [[SEC0:%.+]], ptr [[P0]]
-  // CK1-DAG: [[VAR0]] = load ptr, ptr getelementptr inbounds nuw ([[ST]], ptr @gb, i32 0, i32 1)
-  // CK1-DAG: [[SEC0]] = getelementptr inbounds nuw double, ptr [[SEC00:%.+]], i{{.*}} 0
-  // CK1-DAG: [[SEC00]] = load ptr, ptr getelementptr inbounds nuw ([[ST]], ptr @gb, i32 0, i32 1)
 
-  // CK1: %{{.+}} = add nsw i32 %{{[^,]+}}, 1
-  // CK1-NOT: __tgt_target_data_end
   #pragma omp target update to(gb.b[:3])
   {++arg;}
 }
 
-// CK1:     define internal {{.*}}i32 [[OMP_TASK_ENTRY]](i32 {{.*}}%{{[^,]+}}, ptr noalias noundef %{{[^,]+}})
-// CK1-DAG: call void @__tgt_target_data_update_nowait_mapper(ptr @{{.+}}, i64 %{{[^,]+}}, i32 1, ptr [[BP:%[^,]+]], ptr [[P:%[^,]+]], ptr [[SZ:%[^,]+]], ptr [[MTYPE00]], ptr null, ptr null, i32 0, ptr null, i32 0, ptr null)
-// CK1-DAG: [[BP]] = load ptr, ptr [[FPBPADDR:%[^,]+]], align
-// CK1-DAG: [[P]] = load ptr, ptr [[FPPADDR:%[^,]+]], align
-// CK1-DAG: [[SZ]] = load ptr, ptr [[FPSZADDR:%[^,]+]], align
-// CK1-DAG: call void {{%.*}}(ptr %{{[^,]+}}, ptr [[FPBPADDR]], ptr [[FPPADDR]], ptr [[FPSZADDR]])
-// CK1:     ret i32 0
-// CK1:     }
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK2 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK2 --check-prefix CK2-64
+// RUN: %clang_cc1 -DCK2 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-CK2-CK9-CK15-CK19-CK20,CK2,CK2-64,CK2-64-_2-_3-32-CK9-CK15,CK2-64-_2-_3-32-CK9-CK15-CK19,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-CK20,CK2-64-_2-_3-CK9-CK15-CK19,CK2-64-_2-_3-SIMD-ONLY1-_4,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22
 // RUN: %clang_cc1 -DCK2 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK2 --check-prefix CK2-64
-// RUN: %clang_cc1 -DCK2 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK2 --check-prefix CK2-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-CK2-CK9-CK15-CK19-CK20,CK2,CK2-64,CK2-64-_2-_3-32-CK9-CK15,CK2-64-_2-_3-32-CK9-CK15-CK19,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-CK20,CK2-64-_2-_3-CK9-CK15-CK19,CK2-64-_2-_3-SIMD-ONLY1-_4,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22
+// RUN: %clang_cc1 -DCK2 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK2,CK2-32,CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20,CK2-32-_2-_3-CK9-CK15-CK19,CK2-32-_2-_3-SIMD-ONLY1-_5,CK2-64-_2-_3-32-CK9-CK15,CK2-64-_2-_3-32-CK9-CK15-CK19,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-CK20,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10
 // RUN: %clang_cc1 -DCK2 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK2 --check-prefix CK2-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK2,CK2-32,CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20,CK2-32-_2-_3-CK9-CK15-CK19,CK2-32-_2-_3-SIMD-ONLY1-_5,CK2-64-_2-_3-32-CK9-CK15,CK2-64-_2-_3-32-CK9-CK15-CK19,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-CK20,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10
 
-// RUN: %clang_cc1 -DCK2 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY1 %s
+// RUN: %clang_cc1 -DCK2 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-CK20,CK2-64-_2-_3-SIMD-ONLY1-_4,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY1 %s
 // RUN: %clang_cc1 -DCK2 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY1 %s
-// RUN: %clang_cc1 -DCK2 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY1 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-CK20,CK2-64-_2-_3-SIMD-ONLY1-_4,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY1 %s
+// RUN: %clang_cc1 -DCK2 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK2-32-_2-_3-SIMD-ONLY1-_5,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-CK20,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY1 %s
 // RUN: %clang_cc1 -DCK2 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY1 %s
-// SIMD-ONLY1-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK2-32-_2-_3-SIMD-ONLY1-_5,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-CK20,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY1 %s
 #ifdef CK2
 
-// CK2: [[ST:%.+]] = type { i32, ptr }
 template <typename T>
 struct ST {
   T a;
@@ -185,10 +100,7 @@ struct ST {
   }
 };
 
-// CK2: [[SIZE00:@.+]] = {{.+}}constant [1 x i64] [i64 24]
-// CK2: [[MTYPE00:@.+]] = {{.+}}constant [1 x i64] [i64 2]
 
-// CK2-LABEL: _Z3bari
 int bar(int arg){
   ST<int> A;
   return A.foo(arg);
@@ -198,137 +110,91 @@ int bar(int arg){
 
 // &b[0], &b[1], 3 * sizeof(b[0]), FROM
 
-// CK2: br i1 %{{[^,]+}}, label %[[IFTHEN:[^,]+]], label %[[IFELSE:[^,]+]]
-// CK2: [[IFTHEN]]
-// CK2-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 [[DEV:%[^,]+]], i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE00]], ptr [[MTYPE00]]{{.+}}, ptr null)
-// CK2-DAG: [[DEV]] = sext i32 [[DEVi32:%[^,]+]] to i64
-// CK2-DAG: [[DEVi32]] = load i32, ptr %{{[^,]+}},
-// CK2-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK2-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK2-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK2-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK2-DAG: store ptr [[VAR0:%[^,]+]], ptr [[BP0]]
-// CK2-DAG: store ptr [[SEC0:%[^,]+]], ptr [[P0]]
-// CK2-DAG: [[VAR0]] = load ptr, ptr [[VAR00:%[^,]+]],
-// CK2-DAG: [[VAR00]] = getelementptr inbounds {{.*}}ptr [[THIS:%.+]], i32 0, i32 1
-// CK2-DAG: [[SEC0]] = getelementptr inbounds {{.*}}ptr [[SEC00:%[^,]+]], i{{.+}} 1
-// CK2-DAG: [[SEC00]] = load ptr, ptr [[SEC000:%[^,]+]],
-// CK2-DAG: [[SEC000]] = getelementptr inbounds {{.*}}ptr [[THIS]], i32 0, i32 1
 
-// CK2: br label %[[IFEND:[^,]+]]
 
-// CK2: [[IFELSE]]
-// CK2: br label %[[IFEND]]
-// CK2: [[IFEND]]
-// CK2: %{{.+}} = add nsw i32 %{{[^,]+}}, 1
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK3 -verify -Wno-vla -fopenmp -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK3 --check-prefix CK3-64
+// RUN: %clang_cc1 -DCK3 -verify -Wno-vla -fopenmp -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
 // RUN: %clang_cc1 -DCK3 -fopenmp -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK3 --check-prefix CK3-64
-// RUN: %clang_cc1 -DCK3 -verify -Wno-vla -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK3 --check-prefix CK3-32
+// RUN: %clang_cc1 -fopenmp -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
+// RUN: %clang_cc1 -DCK3 -verify -Wno-vla -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
 // RUN: %clang_cc1 -DCK3 -fopenmp -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK3 --check-prefix CK3-32
+// RUN: %clang_cc1 -fopenmp -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
 
-// RUN: %clang_cc1 -DCK3 -verify -Wno-vla -fopenmp-simd -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY2 %s
+// RUN: %clang_cc1 -DCK3 -verify -Wno-vla -fopenmp-simd -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-SIMD-ONLY2-_4-_5-ONLY3-ONLY4,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4,SIMD-ONLY2-_4-_5-_2-ONLY3-_3-ONLY4 %s
 // RUN: %clang_cc1 -DCK3 -fopenmp-simd -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY2 %s
-// RUN: %clang_cc1 -DCK3 -verify -Wno-vla -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY2 %s
+// RUN: %clang_cc1 -fopenmp-simd -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-SIMD-ONLY2-_4-_5-ONLY3-ONLY4,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4,SIMD-ONLY2-_4-_5-_2-ONLY3-_3-ONLY4 %s
+// RUN: %clang_cc1 -DCK3 -verify -Wno-vla -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10 %s
 // RUN: %clang_cc1 -DCK3 -fopenmp-simd -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY2 %s
-// SIMD-ONLY2-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4,SIMD-ONLY2-_4-_5-_2-ONLY3-_3-ONLY4 %s
 #ifdef CK3
 
-// CK3-LABEL: no_target_devices
 void no_target_devices(int arg) {
-  // CK3-NOT: tgt_target_data_update
-  // CK3: %{{.+}} = add nsw i32 %{{[^,]+}}, 1
-  // CK3: ret
   #pragma omp target update to(arg) if(arg) device(4)
   {++arg;}
 }
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK4 --check-prefix CK4-64
+// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK4,CK4-64,CK4-64-_2-_3-32-CK5-CK14,CK4-64-_2-_3-32-SIMD-ONLY3-_5-_4-ONLY4,CK4-64-_2-_3-CK5-CK14,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4
 // RUN: %clang_cc1 -DCK4 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK4 --check-prefix CK4-64
-// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK4 --check-prefix CK4-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK4,CK4-64,CK4-64-_2-_3-32-CK5-CK14,CK4-64-_2-_3-32-SIMD-ONLY3-_5-_4-ONLY4,CK4-64-_2-_3-CK5-CK14,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4
+// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK4,CK4-32,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,CK4-32-_2-_3-CK5-CK14,CK4-64-_2-_3-32-CK5-CK14,CK4-64-_2-_3-32-SIMD-ONLY3-_5-_4-ONLY4,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4
 // RUN: %clang_cc1 -DCK4 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK4 --check-prefix CK4-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK4,CK4-32,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,CK4-32-_2-_3-CK5-CK14,CK4-64-_2-_3-32-CK5-CK14,CK4-64-_2-_3-32-SIMD-ONLY3-_5-_4-ONLY4,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4
 
-// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY3 %s
+// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-SIMD-ONLY2-_4-_5-ONLY3-ONLY4,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK4-64-_2-_3-32-SIMD-ONLY3-_5-_4-ONLY4,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4,SIMD-ONLY2-_4-_5-_2-ONLY3-_3-ONLY4 %s
 // RUN: %clang_cc1 -DCK4 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY3 %s
-// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY3 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-SIMD-ONLY2-_4-_5-ONLY3-ONLY4,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK4-64-_2-_3-32-SIMD-ONLY3-_5-_4-ONLY4,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4,SIMD-ONLY2-_4-_5-_2-ONLY3-_3-ONLY4 %s
+// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK4-64-_2-_3-32-SIMD-ONLY3-_5-_4-ONLY4,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4,SIMD-ONLY2-_4-_5-_2-ONLY3-_3-ONLY4 %s
 // RUN: %clang_cc1 -DCK4 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY3 %s
-// SIMD-ONLY3-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK4-64-_2-_3-32-SIMD-ONLY3-_5-_4-ONLY4,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4,SIMD-ONLY2-_4-_5-_2-ONLY3-_3-ONLY4 %s
 
 // RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp -x c++ -triple powerpc64le-unknown-unknown -fopenmp-targets=powerpc64le-ibm-linux-gnu -emit-llvm-bc %s -o %t-ppc-host.bc
-// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp -x c++ -triple powerpc64le-unknown-unknown -fopenmp-targets=powerpc64le-ibm-linux-gnu -emit-llvm %s -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-ppc-host.bc -o - | FileCheck %s --check-prefix TCK4 --check-prefix TCK4-64
+// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp -x c++ -triple powerpc64le-unknown-unknown -fopenmp-targets=powerpc64le-ibm-linux-gnu -emit-llvm %s -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-ppc-host.bc -o - | FileCheck %s --check-prefix=TCK4
 // RUN: %clang_cc1 -DCK4 -fopenmp -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -fopenmp-targets=powerpc64le-ibm-linux-gnu -emit-pch -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-ppc-host.bc -o %t %s
-// RUN: %clang_cc1 -fopenmp -x c++ -triple powerpc64le-unknown-unknown -fopenmp-targets=powerpc64le-ibm-linux-gnu -std=c++11 -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-ppc-host.bc -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefix TCK4 --check-prefix TCK4-64
+// RUN: %clang_cc1 -fopenmp -x c++ -triple powerpc64le-unknown-unknown -fopenmp-targets=powerpc64le-ibm-linux-gnu -std=c++11 -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-ppc-host.bc -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefix=TCK4
 // RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp -x c++ -triple i386-unknown-unknown -fopenmp-targets=i386-pc-linux-gnu -emit-llvm-bc %s -o %t-x86-host.bc
-// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp -x c++ -triple i386-unknown-unknown -fopenmp-targets=i386-pc-linux-gnu -emit-llvm %s -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-x86-host.bc -o - | FileCheck %s --check-prefix TCK4 --check-prefix TCK4-32
+// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp -x c++ -triple i386-unknown-unknown -fopenmp-targets=i386-pc-linux-gnu -emit-llvm %s -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-x86-host.bc -o - | FileCheck %s --check-prefix=TCK4
 // RUN: %clang_cc1 -DCK4 -fopenmp -x c++ -std=c++11 -triple i386-unknown-unknown -fopenmp-targets=i386-pc-linux-gnu -emit-pch -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-x86-host.bc -o %t %s
-// RUN: %clang_cc1 -fopenmp -x c++ -triple i386-unknown-unknown -fopenmp-targets=i386-pc-linux-gnu -std=c++11 -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-x86-host.bc -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefix TCK4 --check-prefix TCK4-32
+// RUN: %clang_cc1 -fopenmp -x c++ -triple i386-unknown-unknown -fopenmp-targets=i386-pc-linux-gnu -std=c++11 -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-x86-host.bc -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefix=TCK4
 
 // RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp-simd -x c++ -triple powerpc64le-unknown-unknown -fopenmp-targets=powerpc64le-ibm-linux-gnu -emit-llvm-bc %s -o %t-ppc-host.bc
-// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp-simd -x c++ -triple powerpc64le-unknown-unknown -fopenmp-targets=powerpc64le-ibm-linux-gnu -emit-llvm %s -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-ppc-host.bc -o - | FileCheck --check-prefix SIMD-ONLY4 %s
+// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp-simd -x c++ -triple powerpc64le-unknown-unknown -fopenmp-targets=powerpc64le-ibm-linux-gnu -emit-llvm %s -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-ppc-host.bc -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-SIMD-ONLY2-_4-_5-ONLY3-ONLY4,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK4-64-_2-_3-32-SIMD-ONLY3-_5-_4-ONLY4,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4,SIMD-ONLY2-_4-_5-_2-ONLY3-_3-ONLY4 %s
 // RUN: %clang_cc1 -DCK4 -fopenmp-simd -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -fopenmp-targets=powerpc64le-ibm-linux-gnu -emit-pch -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-ppc-host.bc -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -x c++ -triple powerpc64le-unknown-unknown -fopenmp-targets=powerpc64le-ibm-linux-gnu -std=c++11 -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-ppc-host.bc -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY4 %s
+// RUN: %clang_cc1 -fopenmp-simd -x c++ -triple powerpc64le-unknown-unknown -fopenmp-targets=powerpc64le-ibm-linux-gnu -std=c++11 -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-ppc-host.bc -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-SIMD-ONLY2-_4-_5-ONLY3-ONLY4,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK4-64-_2-_3-32-SIMD-ONLY3-_5-_4-ONLY4,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4,SIMD-ONLY2-_4-_5-_2-ONLY3-_3-ONLY4 %s
 // RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp-simd -x c++ -triple i386-unknown-unknown -fopenmp-targets=i386-pc-linux-gnu -emit-llvm-bc %s -o %t-x86-host.bc
-// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp-simd -x c++ -triple i386-unknown-unknown -fopenmp-targets=i386-pc-linux-gnu -emit-llvm %s -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-x86-host.bc -o - | FileCheck --check-prefix SIMD-ONLY4 %s
+// RUN: %clang_cc1 -DCK4 -verify -Wno-vla -fopenmp-simd -x c++ -triple i386-unknown-unknown -fopenmp-targets=i386-pc-linux-gnu -emit-llvm %s -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-x86-host.bc -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK4-64-_2-_3-32-SIMD-ONLY3-_5-_4-ONLY4,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4,SIMD-ONLY2-_4-_5-_2-ONLY3-_3-ONLY4 %s
 // RUN: %clang_cc1 -DCK4 -fopenmp-simd -x c++ -std=c++11 -triple i386-unknown-unknown -fopenmp-targets=i386-pc-linux-gnu -emit-pch -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-x86-host.bc -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -x c++ -triple i386-unknown-unknown -fopenmp-targets=i386-pc-linux-gnu -std=c++11 -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-x86-host.bc -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY4 %s
-// SIMD-ONLY4-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -x c++ -triple i386-unknown-unknown -fopenmp-targets=i386-pc-linux-gnu -std=c++11 -fopenmp-is-target-device -fopenmp-host-ir-file-path %t-x86-host.bc -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK4-64-_2-_3-32-SIMD-ONLY3-_5-_4-ONLY4,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4,SIMD-ONLY2-_4-_5-_2-ONLY3-_3-ONLY4 %s
 #ifdef CK4
 
-// CK4-LABEL: device_side_scan
 void device_side_scan(int arg) {
-  // CK4: tgt_target_data_update
-  // CK4: %{{.+}} = add nsw i32 %{{[^,]+}}, 1
-  // CK4: ret
-  // TCK4-NOT: tgt_target_data_update
   #pragma omp target update from(arg) if(arg) device(4)
   {++arg;}
 }
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK5 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK5 --check-prefix CK5-64
+// RUN: %clang_cc1 -DCK5 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK4-64-_2-_3-32-CK5-CK14,CK4-64-_2-_3-CK5-CK14,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,CK5,CK5-64,CK5-64-_3-_2-32-CK14,CK5-64-_3-_2-32-CK7,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK5-64-_3-_2-CK14,CK5-64-_3-_2-CK7,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33
 // RUN: %clang_cc1 -DCK5 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK5 --check-prefix CK5-64
-// RUN: %clang_cc1 -DCK5 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK5 --check-prefix CK5-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK4-64-_2-_3-32-CK5-CK14,CK4-64-_2-_3-CK5-CK14,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,CK5,CK5-64,CK5-64-_3-_2-32-CK14,CK5-64-_3-_2-32-CK7,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK5-64-_3-_2-CK14,CK5-64-_3-_2-CK7,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33
+// RUN: %clang_cc1 -DCK5 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,CK4-32-_2-_3-CK5-CK14,CK4-64-_2-_3-32-CK5-CK14,CK5,CK5-32,CK5-32-_3-_2-CK14,CK5-32-_3-_2-CK18,CK5-32-_3-_2-CK6-CK7-CK8-SIMD-ONLY0-_37-_32,CK5-64-_3-_2-32-CK14,CK5-64-_3-_2-32-CK7,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12
 // RUN: %clang_cc1 -DCK5 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK5 --check-prefix CK5-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,CK4-32-_2-_3-CK5-CK14,CK4-64-_2-_3-32-CK5-CK14,CK5,CK5-32,CK5-32-_3-_2-CK14,CK5-32-_3-_2-CK18,CK5-32-_3-_2-CK6-CK7-CK8-SIMD-ONLY0-_37-_32,CK5-64-_3-_2-32-CK14,CK5-64-_3-_2-32-CK7,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12
 
-// RUN: %clang_cc1 -DCK5 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -DCK5 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33,SIMD-ONLY0-_8-_47-CK6-64-_3-_2-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_8-_47-_11-_9,SIMD-ONLY0-_8-_47-_11-_9-CK16-32-_2-_3,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
 // RUN: %clang_cc1 -DCK5 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -DCK5 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33,SIMD-ONLY0-_8-_47-CK6-64-_3-_2-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_8-_47-_11-_9,SIMD-ONLY0-_8-_47-_11-_9-CK16-32-_2-_3,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
+// RUN: %clang_cc1 -DCK5 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,SIMD-ONLY0-_11-_9-CK6-32-_3-_2-_7-_51-CK7-_26-_19,SIMD-ONLY0-_11-_9-_7-_51-_26-_19,SIMD-ONLY0-_8-_47-_11-_9,SIMD-ONLY0-_8-_47-_11-_9-CK16-32-_2-_3,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
 // RUN: %clang_cc1 -DCK5 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,SIMD-ONLY0-_11-_9-CK6-32-_3-_2-_7-_51-CK7-_26-_19,SIMD-ONLY0-_11-_9-_7-_51-_26-_19,SIMD-ONLY0-_8-_47-_11-_9,SIMD-ONLY0-_8-_47-_11-_9-CK16-32-_2-_3,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
 
 #ifdef CK5
 
-// CK5: [[SIZE00:@.+]] = {{.+}}constant [1 x i[[sz:64|32]]] [i{{64|32}} 4]
-// CK5: [[MTYPE00:@.+]] = {{.+}}constant [1 x i64] [i64 1]
 
-// CK5-LABEL: lvalue
 void lvalue(int *B, int l, int e) {
 
-  // CK5-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE00]], ptr [[MTYPE00]]{{.+}}, ptr null)
-  // CK5-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK5-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-  // CK5-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK5-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK5-DAG: store ptr [[B_VAL:%.+]], ptr [[BP0]]
-  // CK5-DAG: store ptr [[B_VAL_2:%.+]], ptr [[P0]]
-  // CK5-DAG: [[B_VAL]] = load ptr, ptr [[B_ADDR:%.+]]
-  // CK5-DAG: [[B_VAL_2]] = load ptr, ptr [[B_ADDR]]
   #pragma omp target update to(*B)
   *B += e;
   #pragma omp target update from(*B)
@@ -336,44 +202,26 @@ void lvalue(int *B, int l, int e) {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK6 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK6 --check-prefix CK6-64
+// RUN: %clang_cc1 -DCK6 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33,CK6,CK6-64,CK6-64-_3-_2-32-CK10-CK11,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,CK6-64-_3-_2-CK10-CK11,CK6-64-_3-_2-CK9,CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35,CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_8-_47-CK6-64-_3-_2-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
 // RUN: %clang_cc1 -DCK6 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK6 --check-prefix CK6-64
-// RUN: %clang_cc1 -DCK6 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK6 --check-prefix CK6-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33,CK6,CK6-64,CK6-64-_3-_2-32-CK10-CK11,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,CK6-64-_3-_2-CK10-CK11,CK6-64-_3-_2-CK9,CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35,CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_8-_47-CK6-64-_3-_2-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
+// RUN: %clang_cc1 -DCK6 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-32-_2-_3-CK6-CK16,CK1-32-_2-_3-CK6-CK7-CK16-CK17,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-32-_3-_2-CK6-CK7-CK8-SIMD-ONLY0-_37-_32,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6,CK6-32,CK6-32-_3-_2-CK7,CK6-32-_3-_2-CK7-SIMD-ONLY0-_37-_32,CK6-32-_3-_2-SIMD-ONLY0-_7-_51-CK7-_26-_19,CK6-64-_3-_2-32-CK10-CK11,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,SIMD-ONLY0-_11-_9-CK6-32-_3-_2-_7-_51-CK7-_26-_19,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
 // RUN: %clang_cc1 -DCK6 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK6 --check-prefix CK6-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-32-_2-_3-CK6-CK16,CK1-32-_2-_3-CK6-CK7-CK16-CK17,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-32-_3-_2-CK6-CK7-CK8-SIMD-ONLY0-_37-_32,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6,CK6-32,CK6-32-_3-_2-CK7,CK6-32-_3-_2-CK7-SIMD-ONLY0-_37-_32,CK6-32-_3-_2-SIMD-ONLY0-_7-_51-CK7-_26-_19,CK6-64-_3-_2-32-CK10-CK11,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,SIMD-ONLY0-_11-_9-CK6-32-_3-_2-_7-_51-CK7-_26-_19,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
 
-// RUN: %clang_cc1 -DCK6 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -DCK6 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35,CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_27-_18-_7-_51,SIMD-ONLY0-_8-_47-CK6-64-_3-_2-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
 // RUN: %clang_cc1 -DCK6 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -DCK6 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35,CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_27-_18-_7-_51,SIMD-ONLY0-_8-_47-CK6-64-_3-_2-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
+// RUN: %clang_cc1 -DCK6 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-32-_3-_2-SIMD-ONLY0-_7-_51-CK7-_26-_19,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,SIMD-ONLY0-_11-_9-CK6-32-_3-_2-_7-_51-CK7-_26-_19,SIMD-ONLY0-_11-_9-_7-_51-_26-_19,SIMD-ONLY0-_27-_18-_7-_51,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
 // RUN: %clang_cc1 -DCK6 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-32-_3-_2-SIMD-ONLY0-_7-_51-CK7-_26-_19,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,SIMD-ONLY0-_11-_9-CK6-32-_3-_2-_7-_51-CK7-_26-_19,SIMD-ONLY0-_11-_9-_7-_51-_26-_19,SIMD-ONLY0-_27-_18-_7-_51,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
 
 #ifdef CK6
 
-// CK6: [[SIZE00:@.+]] = {{.+}}constant [1 x i[[sz:64|32]]] [i{{64|32}} 4]
-// CK6: [[MTYPE00:@.+]] = {{.+}}constant [1 x i64] [i64 1]
 
-// CK6-LABEL: lvalue
 void lvalue(int *B, int l, int e) {
 
-  // CK6-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE00]], ptr [[MTYPE00]]{{.+}}, ptr null)
-  // CK6-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK6-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-  // CK6-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK6-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK6-DAG: store ptr [[TWO:%.+]], ptr [[BP0]]
-  // CK6-DAG: store ptr [[ADD_PTR:%.+]], ptr [[P0]]
-  // CK6-64-DAG: [[ADD_PTR]] = getelementptr inbounds i32, ptr [[ONE:%.+]], i{{32|64}} [[IDX_EXT:%.+]]
-  // CK6-32-DAG: [[ADD_PTR]] = getelementptr inbounds i32, ptr [[ONE:%.+]], i{{32|64}} [[L_VAL:%.+]]
-  // CK6-64-DAG: [[IDX_EXT]] = sext i32 [[L_VAL:%.+]] to i64
-  // CK6-DAG: [[L_VAL]] = load i32, ptr [[L_ADDR:%.+]]
-  // CK6-DAG: store i32 {{.+}}, ptr [[L_ADDR]]
-  // CK6-DAG: [[ONE]] = load ptr, ptr [[B_ADDR:%.+]]
-  // CK6-DAG: [[TWO]] = load ptr, ptr [[B_ADDR]]
   #pragma omp target update to(*(B+l))
   *(B+l) += e;
   #pragma omp target update from(*(B+l))
@@ -381,48 +229,26 @@ void lvalue(int *B, int l, int e) {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK7 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK7 --check-prefix CK7-64
+// RUN: %clang_cc1 -DCK7 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,CK5-64-_3-_2-32-CK7,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK5-64-_3-_2-CK7,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33,CK7-64,CK7-64-_2-_3-CK12,CK7-64-_2-_3-CK16,CK7-64-_2-_3-CK16-CK26-32,CK7-64-_2-_3-CK18
 // RUN: %clang_cc1 -DCK7 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK7 --check-prefix CK7-64
-// RUN: %clang_cc1 -DCK7 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK7 --check-prefix CK7-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,CK5-64-_3-_2-32-CK7,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK5-64-_3-_2-CK7,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33,CK7-64,CK7-64-_2-_3-CK12,CK7-64-_2-_3-CK16,CK7-64-_2-_3-CK16-CK26-32,CK7-64-_2-_3-CK18
+// RUN: %clang_cc1 -DCK7 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-32-_2-_3-CK6-CK7-CK16-CK17,CK1-32-_2-_3-CK7-CK16,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-32-_3-_2-CK6-CK7-CK8-SIMD-ONLY0-_37-_32,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-32-_3-_2-CK7,CK6-32-_3-_2-CK7-SIMD-ONLY0-_37-_32,CK6-32-_3-_2-SIMD-ONLY0-_7-_51-CK7-_26-_19,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,CK7-32,CK7-32-_2-_3-CK16,CK7-32-_2-_3-SIMD-ONLY0-_20-_35-_26-_19,CK7-32-_2-_3-SIMD-ONLY0-_26-_19,SIMD-ONLY0-_11-_9-CK6-32-_3-_2-_7-_51-CK7-_26-_19,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
 // RUN: %clang_cc1 -DCK7 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK7 --check-prefix CK7-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-32-_2-_3-CK6-CK7-CK16-CK17,CK1-32-_2-_3-CK7-CK16,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-32-_3-_2-CK6-CK7-CK8-SIMD-ONLY0-_37-_32,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-32-_3-_2-CK7,CK6-32-_3-_2-CK7-SIMD-ONLY0-_37-_32,CK6-32-_3-_2-SIMD-ONLY0-_7-_51-CK7-_26-_19,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,CK7-32,CK7-32-_2-_3-CK16,CK7-32-_2-_3-SIMD-ONLY0-_20-_35-_26-_19,CK7-32-_2-_3-SIMD-ONLY0-_26-_19,SIMD-ONLY0-_11-_9-CK6-32-_3-_2-_7-_51-CK7-_26-_19,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
 
-// RUN: %clang_cc1 -DCK7 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -DCK7 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35,CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35-_10-_33,CK7-32-_2-_3-SIMD-ONLY0-_20-_35-_26-_19,SIMD-ONLY0-_20-_35,SIMD-ONLY0-_20-_35-_26-_19,SIMD-ONLY0-_20-_35-_26-_19-_10-_33-_37-_32,SIMD-ONLY0-_8-_47-CK6-64-_3-_2-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
 // RUN: %clang_cc1 -DCK7 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -DCK7 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35,CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35-_10-_33,CK7-32-_2-_3-SIMD-ONLY0-_20-_35-_26-_19,SIMD-ONLY0-_20-_35,SIMD-ONLY0-_20-_35-_26-_19,SIMD-ONLY0-_20-_35-_26-_19-_10-_33-_37-_32,SIMD-ONLY0-_8-_47-CK6-64-_3-_2-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
+// RUN: %clang_cc1 -DCK7 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-32-_3-_2-SIMD-ONLY0-_7-_51-CK7-_26-_19,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,CK7-32-_2-_3-SIMD-ONLY0-_20-_35-_26-_19,CK7-32-_2-_3-SIMD-ONLY0-_26-_19,SIMD-ONLY0-_11-_9-CK6-32-_3-_2-_7-_51-CK7-_26-_19,SIMD-ONLY0-_11-_9-_7-_51-_26-_19,SIMD-ONLY0-_20-_35-_26-_19,SIMD-ONLY0-_20-_35-_26-_19-_10-_33-_37-_32,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
 // RUN: %clang_cc1 -DCK7 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-32-_3-_2-SIMD-ONLY0-_7-_51-CK7-_26-_19,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,CK7-32-_2-_3-SIMD-ONLY0-_20-_35-_26-_19,CK7-32-_2-_3-SIMD-ONLY0-_26-_19,SIMD-ONLY0-_11-_9-CK6-32-_3-_2-_7-_51-CK7-_26-_19,SIMD-ONLY0-_11-_9-_7-_51-_26-_19,SIMD-ONLY0-_20-_35-_26-_19,SIMD-ONLY0-_20-_35-_26-_19-_10-_33-_37-_32,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
 
 #ifdef CK7
 
-// CK7: [[SIZE00:@.+]] = {{.+}}constant [1 x i[[sz:64|32]]] [i{{64|32}} 4]
-// CK7: [[MTYPE00:@.+]] = {{.+}}constant [1 x i64] [i64 1]
 
-// CK7-LABEL: lvalue
 void lvalue(int *B, int l, int e) {
 
-  // CK7-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE00]], ptr [[MTYPE00]]{{.+}}, ptr null)
-  // CK7-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK7-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-  // CK7-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK7-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK7-DAG: store ptr [[B_VAL:%.+]], ptr [[BP0]]
-  // CK7-DAG: store ptr [[ARRAY_IDX:%.+]], ptr [[P0]]
-  // CK7-DAG: [[ARRAY_IDX]] = getelementptr inbounds i32, ptr [[ADD_PTR:%.+]], i{{32|64}} [[IDX_PROM:%.+]]
-  // CK7-64-DAG: [[ADD_PTR]] = getelementptr inbounds i32, ptr [[ONE:%.+]], i64 [[IDX_EXT:%.+]]
-  // CK7-32-DAG: [[ADD_PTR]] = getelementptr inbounds i32, ptr [[B_VAL_2:%.+]], i32 [[L_VAL:%.+]]
-  // CK7-32-DAG: [[B_VAL]] = load ptr, ptr [[B_ADDR:%.+]]
-  // CK7-32-DAG: [[B_VAL_2]] = load ptr, ptr [[B_ADDR]]
-  // CK7-32-DAG: [[L_VAL]] = load i32, ptr [[L_ADDR:%.+]]
-  // CK7-32-DAG: [[IDX_PROM]] = load i32, ptr [[L_ADDR]]
-  // CK7-64-DAG: [[IDX_EXT:%.+]] = sext i32 [[L_VAL:%.+]] to i64
-  // CK7-64-DAG: [[L_VAL:%.+]] = load i32, ptr [[L_ADDR:%.+]]
-  // CK7-64-DAG: [[IDX_PROM]] = sext i32 [[L_VAL_2:%.+]] to i64
-  // CK7-64-DAG: [[L_VAL_2]] = load i32, ptr [[L_ADDR]]
   #pragma omp target update to((B+l)[l])
   (B+l)[l] += e;
   #pragma omp target update from((B+l)[l])
@@ -430,51 +256,28 @@ void lvalue(int *B, int l, int e) {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK8 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK8 --check-prefix CK8-64
+// RUN: %clang_cc1 -DCK8 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33,CK8,CK8-64,CK8-64-_2-_3-32-CK13-SIMD-ONLY0-_31-_45-_12-_15,CK8-64-_2-_3-CK13,CK8-64-_2-_3-CK13-SIMD-ONLY0-_31-_45
 // RUN: %clang_cc1 -DCK8 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK8 --check-prefix CK8-64
-// RUN: %clang_cc1 -DCK8 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK8 --check-prefix CK8-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33,CK8,CK8-64,CK8-64-_2-_3-32-CK13-SIMD-ONLY0-_31-_45-_12-_15,CK8-64-_2-_3-CK13,CK8-64-_2-_3-CK13-SIMD-ONLY0-_31-_45
+// RUN: %clang_cc1 -DCK8 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK5-32-_3-_2-CK6-CK7-CK8-SIMD-ONLY0-_37-_32,CK8,CK8-32,CK8-32-_2-_3-CK13,CK8-32-_2-_3-CK13-SIMD-ONLY0-_12-_15,CK8-32-_2-_3-CK25,CK8-64-_2-_3-32-CK13-SIMD-ONLY0-_31-_45-_12-_15
 // RUN: %clang_cc1 -DCK8 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK8 --check-prefix CK8-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK5-32-_3-_2-CK6-CK7-CK8-SIMD-ONLY0-_37-_32,CK8,CK8-32,CK8-32-_2-_3-CK13,CK8-32-_2-_3-CK13-SIMD-ONLY0-_12-_15,CK8-32-_2-_3-CK25,CK8-64-_2-_3-32-CK13-SIMD-ONLY0-_31-_45-_12-_15
 
-// RUN: %clang_cc1 -DCK8 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -DCK8 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_10-_33,SIMD-ONLY0-_10-_33-_37-_32,SIMD-ONLY0-_20-_35-_26-_19-_10-_33-_37-_32,SIMD-ONLY0-_8-_47-CK6-64-_3-_2-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
 // RUN: %clang_cc1 -DCK8 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -DCK8 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_10-_33,SIMD-ONLY0-_10-_33-_37-_32,SIMD-ONLY0-_20-_35-_26-_19-_10-_33-_37-_32,SIMD-ONLY0-_8-_47-CK6-64-_3-_2-_27-_18-_20-_35-_10-_33,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
+// RUN: %clang_cc1 -DCK8 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-32-_3-_2-CK6-CK7-CK8-SIMD-ONLY0-_37-_32,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-32-_3-_2-CK7-SIMD-ONLY0-_37-_32,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,SIMD-ONLY0-_10-_33-_37-_32,SIMD-ONLY0-_20-_35-_26-_19-_10-_33-_37-_32,SIMD-ONLY0-_37-_32,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
 // RUN: %clang_cc1 -DCK8 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK5-32-_3-_2-CK6-CK7-CK8-SIMD-ONLY0-_37-_32,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-32-_3-_2-CK7-SIMD-ONLY0-_37-_32,CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32,SIMD-ONLY0-_10-_33-_37-_32,SIMD-ONLY0-_20-_35-_26-_19-_10-_33-_37-_32,SIMD-ONLY0-_37-_32,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11,SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32 %s
 
 #ifdef CK8
 
 // &(B+l)[1][0], &(B+l)[1][2], sizeof((B+l)[1][2]), TO
 
-// CK8: [[SIZE00:@.+]] = {{.+}}constant [1 x i[[sz:64|32]]] [i{{64|32}} 4]
-// CK8: [[MTYPE00:@.+]] = {{.+}}constant [1 x i64] [i64 1]
 
-// CK8-LABEL: lvalue
 void lvalue(int **B, int l, int e) {
 
-  // CK8-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE00]], ptr [[MTYPE00]]{{.+}}, ptr null)
-  // CK8-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK8-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-  // CK8-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK8-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK8-DAG: store ptr [[ARRAY_IDX_1_VAL:%.+]], ptr [[BP0]]
-  // CK8-DAG: store ptr [[ARRAY_IDX_4:%.+]], ptr [[P0]]
-  // CK8-DAG: [[ARRAY_IDX_1_VAL]] = load ptr, ptr [[ARRAY_IDX_1:%[^,]+]]
-  // CK8-DAG: [[ARRAY_IDX_1]] = getelementptr inbounds ptr, ptr [[ADD_PTR:%.+]], i{{.+}} 1
-  // CK8-64-DAG: [[ADD_PTR]] = getelementptr inbounds ptr, ptr [[B_VAL:%.+]], i{{.+}} [[IDX_EXT:%.+]]
-  // CK8-64-DAG: [[IDX_EXT]] = sext i32 [[L_VAL:%.+]] to i64
-  // CK8-DAG: [[ARRAY_IDX_4]] = getelementptr inbounds i32, ptr [[FIVE:%.+]], i{{.+}} 2
-  // CK8-DAG: [[FIVE]] = load ptr, ptr [[ARRAY_IDX_3:%.+]],
-  // CK8-64-DAG: [[ARRAY_IDX_3:%.+]] = getelementptr inbounds ptr, ptr [[ADD_PTR_2:%.+]], i{{.+}} 1
-  // CK8-64-DAG: [[ADD_PTR_2]] = getelementptr inbounds ptr, ptr [[B_VAL:%.+]], i{{.+}} [[IDX_EXT_1:%.+]]
-  // CK8-64-DAG: [[IDX_EXT_1]] = sext i32 [[L_VAL:%.+]] to i{{.+}}
-  // CK8-32-DAG: [[ADD_PTR]] = getelementptr inbounds ptr, ptr [[B_VAL:%.+]], i{{.+}} [[L_VAL:%.+]]
-  // CK8-32-DAG: [[ARRAY_IDX_4:%.+]] = getelementptr inbounds ptr, ptr [[ADD_PTR_2:%.+]], i{{.+}} 1
-  // CK8-32-DAG: [[ADD_PTR_2]] = getelementptr inbounds ptr, ptr [[B_VAL:%.+]], i{{.+}} [[L_VAL:%.+]]
   #pragma omp target update to((B+l)[1][2])
   (B+l)[1][2] += e;
   #pragma omp target update from((B+l)[1][2])
@@ -482,20 +285,19 @@ void lvalue(int **B, int l, int e) {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK9 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK9 --check-prefix CK9-64
+// RUN: %clang_cc1 -DCK9 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK1-64-_2-_3-CK2-CK9-CK15-CK19-CK20,CK2-64-_2-_3-32-CK9-CK15,CK2-64-_2-_3-32-CK9-CK15-CK19,CK2-64-_2-_3-CK9-CK15-CK19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-64-_3-_2-CK9,CK9,CK9-64,CK9-64-_3-_2-32-CK10-CK11,CK9-64-_3-_2-32-CK15,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,CK9-64-_3-_2-CK12,CK9-64-_3-_2-CK15,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
 // RUN: %clang_cc1 -DCK9 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK9 --check-prefix CK9-64
-// RUN: %clang_cc1 -DCK9 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK9 --check-prefix CK9-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK1-64-_2-_3-CK2-CK9-CK15-CK19-CK20,CK2-64-_2-_3-32-CK9-CK15,CK2-64-_2-_3-32-CK9-CK15-CK19,CK2-64-_2-_3-CK9-CK15-CK19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-64-_3-_2-CK9,CK9,CK9-64,CK9-64-_3-_2-32-CK10-CK11,CK9-64-_3-_2-32-CK15,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,CK9-64-_3-_2-CK12,CK9-64-_3-_2-CK15,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
+// RUN: %clang_cc1 -DCK9 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20,CK2-32-_2-_3-CK9-CK15-CK19,CK2-64-_2-_3-32-CK9-CK15,CK2-64-_2-_3-32-CK9-CK15-CK19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK9,CK9-32,CK9-32-_2-_3-CK10-CK11,CK9-32-_2-_3-CK10-CK11-CK12,CK9-32-_2-_3-CK10-CK11-CK15,CK9-32-_2-_3-CK15,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-CK10-CK11,CK9-64-_3-_2-32-CK15,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
 // RUN: %clang_cc1 -DCK9 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK9 --check-prefix CK9-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20,CK2-32-_2-_3-CK9-CK15-CK19,CK2-64-_2-_3-32-CK9-CK15,CK2-64-_2-_3-32-CK9-CK15-CK19,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK9,CK9-32,CK9-32-_2-_3-CK10-CK11,CK9-32-_2-_3-CK10-CK11-CK12,CK9-32-_2-_3-CK10-CK11-CK15,CK9-32-_2-_3-CK15,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-CK10-CK11,CK9-64-_3-_2-32-CK15,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
 
-// RUN: %clang_cc1 -DCK9 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -DCK9 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_29-_3,SIMD-ONLY0-_29-_3-CK10-64-_2-_24-_16-CK11-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_24-_16-_17-_6,SIMD-ONLY0-_29-_3-_24-_16-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_42-_44,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50 %s
 // RUN: %clang_cc1 -DCK9 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -DCK9 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_29-_3,SIMD-ONLY0-_29-_3-CK10-64-_2-_24-_16-CK11-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_24-_16-_17-_6,SIMD-ONLY0-_29-_3-_24-_16-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_42-_44,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50 %s
+// RUN: %clang_cc1 -DCK9 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_29-_3-_42-_44,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50,SIMD-ONLY0-_42-_44,SIMD-ONLY0-_42-_44-_2-_22-_4-_56,SIMD-ONLY0-_42-_44-_2-_22-_4-_56-_13-_50 %s
 // RUN: %clang_cc1 -DCK9 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_29-_3-_42-_44,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50,SIMD-ONLY0-_42-_44,SIMD-ONLY0-_42-_44-_2-_22-_4-_56,SIMD-ONLY0-_42-_44-_2-_22-_4-_56-_13-_50 %s
 
 #ifdef CK9
 
@@ -505,26 +307,9 @@ struct S {
 
 // &(s->p[0]), &(s->p[0]), sizeof(s->p[0]), TO
 
-// CK9: [[SIZE00:@.+]] = {{.+}}constant [1 x i64] [i64 8]
-// CK9: [[MTYPE00:@.+]] = {{.+}}constant [1 x i64] [i64 1]
 
-// CK9-LABEL: lvalue
 void lvalue(struct S *s, int l, int e) {
 
-  // CK9-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE00]], ptr [[MTYPE00]]{{.+}}, ptr null)
-  // CK9-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK9-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-  //
-  // CK9-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK9-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK9-DAG: store ptr [[P_VAL:%.+]], ptr [[BP0]]
-  // CK9-DAG: store ptr [[P_VAL_1:%.+]], ptr [[P0]]
-  // CK9-DAG: [[P_VAL]] = load ptr, ptr [[P:%.+]],
-  // CK9-DAG: [[P]] = getelementptr inbounds nuw [[STRUCT_S:%.+]], ptr [[S_VAL:%.+]], i32 0, i32 0
-  // CK9-DAG: [[S_VAL]] = load ptr, ptr [[S_ADDR:%.+]]
-  // CK9-DAG: [[P_VAL_1]] = load ptr, ptr [[P_1:%.+]],
-  // CK9-DAG: [[P_1]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[S_VAL_2:%.+]], i32 0, i32 0
-  // CK9-DAG: [[S_VAL_2]] = load ptr, ptr [[S_ADDR]]
   #pragma omp target update to(*(s->p))
     *(s->p) += e;
   #pragma omp target update from(*(s->p))
@@ -532,20 +317,19 @@ void lvalue(struct S *s, int l, int e) {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK10 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK10 --check-prefix CK10-64
+// RUN: %clang_cc1 -DCK10 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK10-64,CK10-64-_3-_2-32-CK11,CK10-64-_3-_2-CK11,CK10-64-_3-_2-CK11-32,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-64-_3-_2-32-CK10-CK11,CK6-64-_3-_2-CK10-CK11,CK9-64-_3-_2-32-CK10-CK11,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_29-_3-CK10-64-_2-_24-_16-CK11-_17-_6-_39-_34,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
 // RUN: %clang_cc1 -DCK10 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK10 --check-prefix CK10-64
-// RUN: %clang_cc1 -DCK10 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK10 --check-prefix CK10-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK10-64,CK10-64-_3-_2-32-CK11,CK10-64-_3-_2-CK11,CK10-64-_3-_2-CK11-32,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-64-_3-_2-32-CK10-CK11,CK6-64-_3-_2-CK10-CK11,CK9-64-_3-_2-32-CK10-CK11,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_29-_3-CK10-64-_2-_24-_16-CK11-_17-_6-_39-_34,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
+// RUN: %clang_cc1 -DCK10 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK10-32,CK10-32-_2-_3-CK11,CK10-32-_2-_3-CK15,CK10-64-_3-_2-32-CK11,CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-64-_3-_2-32-CK10-CK11,CK9-32-_2-_3-CK10-CK11,CK9-32-_2-_3-CK10-CK11-CK12,CK9-32-_2-_3-CK10-CK11-CK15,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-CK10-CK11,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
 // RUN: %clang_cc1 -DCK10 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK10 --check-prefix CK10-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK10-32,CK10-32-_2-_3-CK11,CK10-32-_2-_3-CK15,CK10-64-_3-_2-32-CK11,CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-64-_3-_2-32-CK10-CK11,CK9-32-_2-_3-CK10-CK11,CK9-32-_2-_3-CK10-CK11-CK12,CK9-32-_2-_3-CK10-CK11-CK15,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-CK10-CK11,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
 
-// RUN: %clang_cc1 -DCK10 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -DCK10 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_24-_16,SIMD-ONLY0-_24-_16-_17-_6,SIMD-ONLY0-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-CK10-64-_2-_24-_16-CK11-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_24-_16-_17-_6,SIMD-ONLY0-_29-_3-_24-_16-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50 %s
 // RUN: %clang_cc1 -DCK10 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -DCK10 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_24-_16,SIMD-ONLY0-_24-_16-_17-_6,SIMD-ONLY0-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-CK10-64-_2-_24-_16-CK11-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_24-_16-_17-_6,SIMD-ONLY0-_29-_3-_24-_16-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50 %s
+// RUN: %clang_cc1 -DCK10 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_2-_22,SIMD-ONLY0-_2-_22-_4-_56,SIMD-ONLY0-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50,SIMD-ONLY0-_42-_44-_2-_22-_4-_56,SIMD-ONLY0-_42-_44-_2-_22-_4-_56-_13-_50 %s
 // RUN: %clang_cc1 -DCK10 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_2-_22,SIMD-ONLY0-_2-_22-_4-_56,SIMD-ONLY0-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50,SIMD-ONLY0-_42-_44-_2-_22-_4-_56,SIMD-ONLY0-_42-_44-_2-_22-_4-_56-_13-_50 %s
 #ifdef CK10
 
 struct S {
@@ -554,29 +338,9 @@ struct S {
 
 // &((s->p + l)[0]), &((s->p + l)[0]), sizeof((s->p + l)[0]), TO
 
-// CK10: [[SIZE00:@.+]] = {{.+}}constant [1 x i64] [i64 8]
-// CK10: [[MTYPE00:@.+]] = {{.+}}constant [1 x i64] [i64 1]
 
-// CK10-LABEL: lvalue
 void lvalue(struct S *s, int l, int e) {
 
-  // CK10-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE00]], ptr [[MTYPE00]]{{.+}}, ptr null)
-  // CK10-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK10-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-  //
-  // CK10-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK10-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK10-DAG: store ptr [[S_P:%.+]], ptr [[BP0]]
-  // CK10-DAG: store ptr [[ADD_PTR:%.+]], ptr [[P0]]
-  // CK10-DAG: [[S_P]] = load ptr, ptr [[P_VAL:%.+]]
-  // CK10-DAG: getelementptr inbounds {{.+}}, ptr [[SS:%.+]], i32 0, i32 0
-  // CK10-DAG: [[SS]] = load ptr, ptr [[S_ADDR:%.+]]
-  // CK10-64-DAG: [[ADD_PTR]] = getelementptr inbounds double, ptr [[S_P_1:%.+]], i{{.+}} [[IDX_EXT:%.+]]
-  // CK10-32-DAG: [[ADD_PTR]] = getelementptr inbounds double, ptr [[S_P_1:%.+]], i{{.+}} [[L_VAL:%.+]]
-  // CK10-64-DAG: [[IDX_EXT]] = sext i32 [[L_VAL:%.+]] to i64
-  // CK10-DAG: [[S_P_1]] = load ptr, ptr [[P_VAL_1:%.+]]
-  // CK10-DAG: getelementptr inbounds {{.+}}, ptr [[SS_1:%.+]], i32 0, i32 0
-  // CK10-DAG: [[SS_1]] = load ptr, ptr [[S_ADDR]]
   #pragma omp target update to(*(s->p+l))
     *(s->p+l) += e;
   #pragma omp target update from(*(s->p+l))
@@ -584,20 +348,19 @@ void lvalue(struct S *s, int l, int e) {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK11 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK11 --check-prefix CK11-64
+// RUN: %clang_cc1 -DCK11 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK10-64-_3-_2-32-CK11,CK10-64-_3-_2-CK11,CK11-64,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-64-_3-_2-32-CK10-CK11,CK6-64-_3-_2-CK10-CK11,CK9-64-_3-_2-32-CK10-CK11,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_29-_3-CK10-64-_2-_24-_16-CK11-_17-_6-_39-_34,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
 // RUN: %clang_cc1 -DCK11 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK11 --check-prefix CK11-64
-// RUN: %clang_cc1 -DCK11 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK11 --check-prefix CK11-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK10-64-_3-_2-32-CK11,CK10-64-_3-_2-CK11,CK11-64,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-64-_3-_2-32-CK10-CK11,CK6-64-_3-_2-CK10-CK11,CK9-64-_3-_2-32-CK10-CK11,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_29-_3-CK10-64-_2-_24-_16-CK11-_17-_6-_39-_34,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
+// RUN: %clang_cc1 -DCK11 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK10-32-_2-_3-CK11,CK10-64-_3-_2-32-CK11,CK10-64-_3-_2-CK11-32,CK11-32,CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-64-_3-_2-32-CK10-CK11,CK9-32-_2-_3-CK10-CK11,CK9-32-_2-_3-CK10-CK11-CK12,CK9-32-_2-_3-CK10-CK11-CK15,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-CK10-CK11,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
 // RUN: %clang_cc1 -DCK11 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK11 --check-prefix CK11-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK10-32-_2-_3-CK11,CK10-64-_3-_2-32-CK11,CK10-64-_3-_2-CK11-32,CK11-32,CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK6-64-_3-_2-32-CK10-CK11,CK9-32-_2-_3-CK10-CK11,CK9-32-_2-_3-CK10-CK11-CK12,CK9-32-_2-_3-CK10-CK11-CK15,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-CK10-CK11,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11
 
-// RUN: %clang_cc1 -DCK11 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -DCK11 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_17-_6,SIMD-ONLY0-_24-_16-_17-_6,SIMD-ONLY0-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-CK10-64-_2-_24-_16-CK11-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_24-_16-_17-_6,SIMD-ONLY0-_29-_3-_24-_16-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50 %s
 // RUN: %clang_cc1 -DCK11 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -DCK11 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_17-_6,SIMD-ONLY0-_24-_16-_17-_6,SIMD-ONLY0-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-CK10-64-_2-_24-_16-CK11-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_24-_16-_17-_6,SIMD-ONLY0-_29-_3-_24-_16-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50 %s
+// RUN: %clang_cc1 -DCK11 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_2-_22-_4-_56,SIMD-ONLY0-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50,SIMD-ONLY0-_4-_56,SIMD-ONLY0-_42-_44-_2-_22-_4-_56,SIMD-ONLY0-_42-_44-_2-_22-_4-_56-_13-_50 %s
 // RUN: %clang_cc1 -DCK11 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_2-_22-_4-_56,SIMD-ONLY0-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50,SIMD-ONLY0-_4-_56,SIMD-ONLY0-_42-_44-_2-_22-_4-_56,SIMD-ONLY0-_42-_44-_2-_22-_4-_56-_13-_50 %s
 #ifdef CK11
 
 struct S {
@@ -606,28 +369,9 @@ struct S {
 
 // &((s->p + l)[0]), &((s->p + l)[3]), sizeof((s->p + l)[3]), TO
 
-// CK11: [[SIZE00:@.+]] = {{.+}}constant [1 x i64] [i64 8]
-// CK11: [[MTYPE00:@.+]] = {{.+}}constant [1 x i64] [i64 1]
 
-// CK11-LABEL: lvalue
 void lvalue(struct S *s, int l, int e) {
 
-  // CK11-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE00]], ptr [[MTYPE00]]{{.+}}, ptr null)
-  // CK11-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK11-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-  //
-  // CK11-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK11-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK11-DAG: store ptr [[S_P:%.+]], ptr [[BP0]]
-  // CK11-DAG: store ptr [[ARRAY_IDX:%.+]], ptr [[P0]]
-  // CK11-DAG: [[S_P]] = load ptr, ptr [[P:%.+]],
-  // CK11-DAG: [[P]] = getelementptr inbounds nuw [[STRUCT_S:%.+]], ptr [[SS_1:%.+]], i32 0, i32 0
-  // CK11-DAG: [[ARRAY_IDX]] = getelementptr inbounds double, ptr [[ADD_PTR:%.+]], i{{.+}} 3
-  // CK11-64-DAG: [[ADD_PTR]] = getelementptr inbounds double, ptr [[S_P:%.+]], i{{.+}} [[IDX_EXT:%.+]]
-  // CK11-32-DAG: [[ADD_PTR]] = getelementptr inbounds double, ptr [[S_P:%.+]], i{{.+}} [[L_VAL:%.+]]
-  // CK11-64-DAG: [[IDX_EXT]] = sext i32 [[L_VAL:%.+]] to i64
-  // CK11-DAG: [[S_P]] = load ptr, ptr [[P_1:%.+]],
-  // CK11-DAG: [[P_1]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[S_ADDR:%.+]], i32 0, i32 0
   #pragma omp target update to((s->p+l)[3])
     (s->p+l)[3] += e;
   #pragma omp target update from((s->p+l)[3])
@@ -635,20 +379,19 @@ void lvalue(struct S *s, int l, int e) {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK12 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK12 --check-prefix CK12-64
+// RUN: %clang_cc1 -DCK12 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK12,CK12-64,CK12-64-_3-_2-32-CK18,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK7-64-_2-_3-CK12,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,CK9-64-_3-_2-CK12
 // RUN: %clang_cc1 -DCK12 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK12 --check-prefix CK12-64
-// RUN: %clang_cc1 -DCK12 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK12 --check-prefix CK12-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK12,CK12-64,CK12-64-_3-_2-32-CK18,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK7-64-_2-_3-CK12,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,CK9-64-_3-_2-CK12
+// RUN: %clang_cc1 -DCK12 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK12,CK12-32,CK12-32-_3-_2-CK18,CK12-64-_3-_2-32-CK18,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK9-32-_2-_3-CK10-CK11-CK12,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50
 // RUN: %clang_cc1 -DCK12 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK12 --check-prefix CK12-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK12,CK12-32,CK12-32-_3-_2-CK18,CK12-64-_3-_2-32-CK18,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12,CK9-32-_2-_3-CK10-CK11-CK12,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50
 
-// RUN: %clang_cc1 -DCK12 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -DCK12 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_29-_3-CK10-64-_2-_24-_16-CK11-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_24-_16-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50,SIMD-ONLY0-_39-_34,SIMD-ONLY0-_39-_34-_13-_50 %s
 // RUN: %clang_cc1 -DCK12 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -DCK12 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_29-_3-CK10-64-_2-_24-_16-CK11-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_24-_16-_17-_6-_39-_34,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50,SIMD-ONLY0-_39-_34,SIMD-ONLY0-_39-_34-_13-_50 %s
+// RUN: %clang_cc1 -DCK12 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_13-_50,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50,SIMD-ONLY0-_39-_34-_13-_50,SIMD-ONLY0-_42-_44-_2-_22-_4-_56-_13-_50 %s
 // RUN: %clang_cc1 -DCK12 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50,CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50,SIMD-ONLY0-_13-_50,SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50,SIMD-ONLY0-_39-_34-_13-_50,SIMD-ONLY0-_42-_44-_2-_22-_4-_56-_13-_50 %s
 #ifdef CK12
 
 struct S {
@@ -658,30 +401,9 @@ struct S {
 
 // &((s->sp->p)[0]), &((s->sp->p)[0]), sizeof((s->sp->p)[0]), TO
 
-// CK12: [[SIZE00:@.+]] = {{.+}}constant [1 x i64] [i64 8]
-// CK12: [[MTYPE00:@.+]] = {{.+}}constant [1 x i64] [i64 1]
 
-// CK12-LABEL: lvalue
 void lvalue(struct S *s, int l, int e) {
 
-  // CK12-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE00]], ptr [[MTYPE00]]{{.+}}, ptr null)
-  // CK12-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK12-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-  //
-  // CK12-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK12-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK12-DAG: store ptr [[PVAL:%.+]], ptr [[BP0]]
-  // CK12-DAG: store ptr [[PVAL1:%.+]], ptr [[P0]]
-  // CK12-DAG: [[PVAL]] = load ptr, ptr [[P:%[^,]+]]
-  // CK12-DAG: [[P]] = getelementptr inbounds nuw %struct.S, ptr [[SPVAL:%.+]], i32 0, i32 0
-  // CK12-DAG: [[SPVAL]] = load ptr, ptr [[SP:%[^,]+]]
-  // CK12-DAG: [[SP]] = getelementptr inbounds nuw %struct.S, ptr [[SADDRVAL:%.+]], i32 0, i32 1
-  // CK12-DAG: [[SADDRVAL]] = load ptr, ptr %s.addr
-  // CK12-DAG: [[PVAL1]] = load ptr, ptr [[P1:%[^,]+]]
-  // CK12-DAG: [[P1]] = getelementptr inbounds nuw %struct.S, ptr [[SPVAL1:%.+]], i32 0, i32 0
-  // CK12-DAG: [[SPVAL1]] = load ptr, ptr [[SP1:%[^,]+]]
-  // CK12-DAG: [[SP1]] = getelementptr inbounds nuw %struct.S, ptr [[SADDRVAL1:%.+]], i32 0, i32 1
-  // CK12-DAG: [[SADDRVAL1]] = load ptr, ptr %s.addr
   #pragma omp target update to(*(s->sp->p))
     *(s->sp->p) = e;
   #pragma omp target update from(*(s->sp->p))
@@ -689,52 +411,28 @@ void lvalue(struct S *s, int l, int e) {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK13 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK13 --check-prefix CK13-64
+// RUN: %clang_cc1 -DCK13 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK13,CK13-64,CK13-64-_3-_2-32-CK24,CK13-64-_3-_2-32-SIMD-ONLY0-_31-_45-_12-_15,CK13-64-_3-_2-CK25,CK13-64-_3-_2-SIMD-ONLY0-_31-_45,CK8-64-_2-_3-32-CK13-SIMD-ONLY0-_31-_45-_12-_15,CK8-64-_2-_3-CK13,CK8-64-_2-_3-CK13-SIMD-ONLY0-_31-_45
 // RUN: %clang_cc1 -DCK13 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK13 --check-prefix CK13-64
-// RUN: %clang_cc1 -DCK13 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK13 --check-prefix CK13-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK13,CK13-64,CK13-64-_3-_2-32-CK24,CK13-64-_3-_2-32-SIMD-ONLY0-_31-_45-_12-_15,CK13-64-_3-_2-CK25,CK13-64-_3-_2-SIMD-ONLY0-_31-_45,CK8-64-_2-_3-32-CK13-SIMD-ONLY0-_31-_45-_12-_15,CK8-64-_2-_3-CK13,CK8-64-_2-_3-CK13-SIMD-ONLY0-_31-_45
+// RUN: %clang_cc1 -DCK13 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK13,CK13-32,CK13-32-_2-_3-SIMD-ONLY0-_12-_15,CK13-64-_3-_2-32-CK24,CK13-64-_3-_2-32-SIMD-ONLY0-_31-_45-_12-_15,CK8-32-_2-_3-CK13,CK8-32-_2-_3-CK13-SIMD-ONLY0-_12-_15,CK8-64-_2-_3-32-CK13-SIMD-ONLY0-_31-_45-_12-_15
 // RUN: %clang_cc1 -DCK13 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK13 --check-prefix CK13-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK13,CK13-32,CK13-32-_2-_3-SIMD-ONLY0-_12-_15,CK13-64-_3-_2-32-CK24,CK13-64-_3-_2-32-SIMD-ONLY0-_31-_45-_12-_15,CK8-32-_2-_3-CK13,CK8-32-_2-_3-CK13-SIMD-ONLY0-_12-_15,CK8-64-_2-_3-32-CK13-SIMD-ONLY0-_31-_45-_12-_15
 
-// RUN: %clang_cc1 -DCK13 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -DCK13 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK13-64-_3-_2-32-SIMD-ONLY0-_31-_45-_12-_15,CK13-64-_3-_2-SIMD-ONLY0-_31-_45,CK8-64-_2-_3-32-CK13-SIMD-ONLY0-_31-_45-_12-_15,CK8-64-_2-_3-CK13-SIMD-ONLY0-_31-_45,SIMD-ONLY0-_31-_45,SIMD-ONLY0-_31-_45-_12-_15 %s
 // RUN: %clang_cc1 -DCK13 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -DCK13 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK13-64-_3-_2-32-SIMD-ONLY0-_31-_45-_12-_15,CK13-64-_3-_2-SIMD-ONLY0-_31-_45,CK8-64-_2-_3-32-CK13-SIMD-ONLY0-_31-_45-_12-_15,CK8-64-_2-_3-CK13-SIMD-ONLY0-_31-_45,SIMD-ONLY0-_31-_45,SIMD-ONLY0-_31-_45-_12-_15 %s
+// RUN: %clang_cc1 -DCK13 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK13-32-_2-_3-SIMD-ONLY0-_12-_15,CK13-64-_3-_2-32-SIMD-ONLY0-_31-_45-_12-_15,CK8-32-_2-_3-CK13-SIMD-ONLY0-_12-_15,CK8-64-_2-_3-32-CK13-SIMD-ONLY0-_31-_45-_12-_15,SIMD-ONLY0-_12-_15,SIMD-ONLY0-_31-_45-_12-_15 %s
 // RUN: %clang_cc1 -DCK13 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK13-32-_2-_3-SIMD-ONLY0-_12-_15,CK13-64-_3-_2-32-SIMD-ONLY0-_31-_45-_12-_15,CK8-32-_2-_3-CK13-SIMD-ONLY0-_12-_15,CK8-64-_2-_3-32-CK13-SIMD-ONLY0-_31-_45-_12-_15,SIMD-ONLY0-_12-_15,SIMD-ONLY0-_31-_45-_12-_15 %s
 #ifdef CK13
 
 // &((*(BB+a))[0]), &((*(BB+a))[b]), sizeof((*(BB+a))[0]), TO
 
-// CK13: [[SIZE00:@.+]] = {{.+}}constant [1 x i64] [i64 4]
-// CK13: [[MTYPE00:@.+]] = {{.+}}constant [1 x i64] [i64 1]
 
-// CK13-LABEL: lvalue
 void lvalue(int **BB, int a, int b) {
 
-  // CK13-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE00]], ptr [[MTYPE00]]{{.+}}, ptr null)
-  // CK13-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK13-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-  // CK13-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK13-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK13-DAG: store ptr [[ADD_PTR_VAL:%.+]], ptr [[BP0]]
-  // CK13-DAG: store ptr [[ADD_PTR1:%.+]], ptr [[P0]]
-  // CK13-DAG: [[ADD_PTR_VAL]] = load ptr, ptr [[ADD_PTR:%[^,]+]]
-  // CK13-DAG: [[ADD_PTR]] = getelementptr inbounds ptr, ptr [[BB:%.+]], i{{.*}} [[A_VAL:%[^,]+]]
-  // CK13-DAG: [[BB]] = load ptr, ptr %BB.addr
-  // CK13-64-DAG: [[A_VAL:%.+]] = sext i32 [[A_VAL:%.+]] to i64
-  // CK13-DAG: [[A_VAL]] = load i32, ptr %a.addr
 
-  // CK13-DAG: [[ADD_PTR1]] = getelementptr inbounds i32, ptr [[ADD_PTR_VAL1:%.+]], i{{.*}} [[B_VAL:%[^,]+]]
-  // CK13-64-DAG: [[B_VAL]] = sext i32 [[B_VAL:.+]] to i64
-  // CK13-DAG: [[B_VAL]] = load i32, ptr %b.addr
-  // CK13-DAG: [[ADD_PTR_VAL1]] = load ptr, ptr [[ADD_PTR2:%[^,]+]]
-  // CK13-DAG: [[ADD_PTR2]] = getelementptr inbounds ptr, ptr [[BB1:%.+]], i{{.*}} [[A_VAL1:%[^,]+]]
-  // CK13-DAG: [[BB1]] = load ptr, ptr %BB.addr
-  // CK13-64-DAG: [[A_VAL1:%.+]] = sext i32 [[A_VAL1:%.+]] to i64
-  // CK13-DAG: [[A_VAL1]] = load i32, ptr %a.addr
   #pragma omp target update to(*(*(BB+a)+b))
   *(*(BB+a)+b) = 1;
   #pragma omp target update from(*(*(BB+a)+b))
@@ -742,26 +440,23 @@ void lvalue(int **BB, int a, int b) {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK14 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK14 --check-prefix CK14-64
+// RUN: %clang_cc1 -DCK14 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-ONLY19-_19,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14,CK14-64,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK14-64-_2-_3-SIMD-ONLY0-_30-_43,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK15,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK21-ONLY19-_16-_12-CK22-_13,CK14-64-_2-_3-SIMD-ONLY0-_36-_59,CK4-64-_2-_3-32-CK5-CK14,CK4-64-_2-_3-CK5-CK14,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,CK5-64-_3-_2-32-CK14,CK5-64-_3-_2-CK14
 // RUN: %clang_cc1 -DCK14 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK14 --check-prefix CK14-64
-// RUN: %clang_cc1 -DCK14 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK14 --check-prefix CK14-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-ONLY19-_19,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14,CK14-64,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK14-64-_2-_3-SIMD-ONLY0-_30-_43,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK15,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK21-ONLY19-_16-_12-CK22-_13,CK14-64-_2-_3-SIMD-ONLY0-_36-_59,CK4-64-_2-_3-32-CK5-CK14,CK4-64-_2-_3-CK5-CK14,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,CK5-64-_3-_2-32-CK14,CK5-64-_3-_2-CK14
+// RUN: %clang_cc1 -DCK14 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-ONLY19-_19,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14,CK14-32,CK14-32-_3-_2-CK25,CK14-32-_3-_2-SIMD-ONLY0-_36-_59,CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK15,CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK21-CK22,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,CK4-32-_2-_3-CK5-CK14,CK4-64-_2-_3-32-CK5-CK14,CK5-32-_3-_2-CK14,CK5-64-_3-_2-32-CK14
 // RUN: %clang_cc1 -DCK14 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK14 --check-prefix CK14-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-ONLY19-_19,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14,CK14-32,CK14-32-_3-_2-CK25,CK14-32-_3-_2-SIMD-ONLY0-_36-_59,CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK15,CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK21-CK22,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,CK4-32-_2-_3-CK5-CK14,CK4-64-_2-_3-32-CK5-CK14,CK5-32-_3-_2-CK14,CK5-64-_3-_2-32-CK14
 
-// RUN: %clang_cc1 -DCK14 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -DCK14 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-ONLY19-_19,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK14-64-_2-_3-SIMD-ONLY0-_30-_43,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK15,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK21-ONLY19-_16-_12-CK22-_13,SIMD-ONLY0-_30-_43 %s
 // RUN: %clang_cc1 -DCK14 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -DCK14 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-ONLY19-_19,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK14-64-_2-_3-SIMD-ONLY0-_30-_43,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK15,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK21-ONLY19-_16-_12-CK22-_13,SIMD-ONLY0-_30-_43 %s
+// RUN: %clang_cc1 -DCK14 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-ONLY19-_19,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-32-_3-_2-SIMD-ONLY0-_36-_59,CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK15,CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK21-CK22,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK14-64-_2-_3-SIMD-ONLY0-_36-_59,SIMD-ONLY0-_36-_59 %s
 // RUN: %clang_cc1 -DCK14 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-ONLY19-_19,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-32-_3-_2-SIMD-ONLY0-_36-_59,CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK15,CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK21-CK22,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK14-64-_2-_3-SIMD-ONLY0-_36-_59,SIMD-ONLY0-_36-_59 %s
 #ifdef CK14
 
 // &(this->d[0]), &(this->d[1]), sizeof(this->d[1]), TO
 
-// CK14: [[SIZE00:@.+]] = {{.+}}constant [1 x i64] [i64 8]
-// CK14: [[MTYPE00:@.+]] = private {{.*}}constant [1 x i64] [i64 1]
 
 struct SSA {
   double *p;
@@ -775,22 +470,9 @@ struct SSB {
   SSA *&pr;
   SSB(SSA *&pr) : pr(pr) {}
 
-  // CK14-LABEL: define {{.+}}foo
   void foo() {
 
-    // CK14-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE00]], ptr [[MTYPE00]]{{.+}}, ptr null)
-    // CK14-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-    // CK14-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-    // CK14-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-    // CK14-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-    // CK14-DAG: store ptr [[D_VAL:%.+]], ptr [[BP0]]
-    // CK14-DAG: store ptr [[ADD_PTR:%.+]], ptr [[P0]]
-    // CK14-DAG: [[D_VAL]] = load ptr, ptr [[D:%[^,]+]]
-    // CK14-DAG: [[D]] = getelementptr inbounds nuw [[SSB:%struct.SSB]], ptr [[THIS:%.+]], i32 0, i32 0
-    // CK14-DAG: [[ADD_PTR]] = getelementptr inbounds double, ptr [[D_VAL1:%.+]], i{{.+}} 1
-    // CK14-DAG: [[D_VAL1]] = load ptr, ptr [[D1:%[^,]+]]
-    // CK14-DAG: [[D1]] = getelementptr inbounds nuw [[SSB]], ptr [[THIS]], i32 0, i32 0
 
     #pragma omp target update to(*(this->d+1))
     *(this->d+1) = 1;
@@ -807,26 +489,23 @@ void lvalue_member(SSA *sap) {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK15 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK15 --check-prefix CK15-64
+// RUN: %clang_cc1 -DCK15 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK1-64-_2-_3-CK2-CK9-CK15-CK19-CK20,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK15,CK15,CK15-64,CK15-64-_2-_3-32-SIMD-ONLY0-_61-_53-_58-_14,CK2-64-_2-_3-32-CK9-CK15,CK2-64-_2-_3-32-CK9-CK15-CK19,CK2-64-_2-_3-CK9-CK15-CK19,CK9-64-_3-_2-32-CK15,CK9-64-_3-_2-CK15
 // RUN: %clang_cc1 -DCK15 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK15 --check-prefix CK15-64
-// RUN: %clang_cc1 -DCK15 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK15 --check-prefix CK15-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK1-64-_2-_3-CK2-CK9-CK15-CK19-CK20,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK15,CK15,CK15-64,CK15-64-_2-_3-32-SIMD-ONLY0-_61-_53-_58-_14,CK2-64-_2-_3-32-CK9-CK15,CK2-64-_2-_3-32-CK9-CK15-CK19,CK2-64-_2-_3-CK9-CK15-CK19,CK9-64-_3-_2-32-CK15,CK9-64-_3-_2-CK15
+// RUN: %clang_cc1 -DCK15 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK10-32-_2-_3-CK15,CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK15,CK15,CK15-32,CK15-64-_2-_3-32-SIMD-ONLY0-_61-_53-_58-_14,CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20,CK2-32-_2-_3-CK9-CK15-CK19,CK2-64-_2-_3-32-CK9-CK15,CK2-64-_2-_3-32-CK9-CK15-CK19,CK9-32-_2-_3-CK10-CK11-CK15,CK9-32-_2-_3-CK15,CK9-64-_3-_2-32-CK15
 // RUN: %clang_cc1 -DCK15 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK15 --check-prefix CK15-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK10-32-_2-_3-CK15,CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK15,CK15,CK15-32,CK15-64-_2-_3-32-SIMD-ONLY0-_61-_53-_58-_14,CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20,CK2-32-_2-_3-CK9-CK15-CK19,CK2-64-_2-_3-32-CK9-CK15,CK2-64-_2-_3-32-CK9-CK15-CK19,CK9-32-_2-_3-CK10-CK11-CK15,CK9-32-_2-_3-CK15,CK9-64-_3-_2-32-CK15
 
-// RUN: %clang_cc1 -DCK15 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -DCK15 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK15-64-_2-_3-32-SIMD-ONLY0-_61-_53-_58-_14,SIMD-ONLY0-_61-_53,SIMD-ONLY0-_61-_53-_58-_14 %s
 // RUN: %clang_cc1 -DCK15 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -DCK15 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK15-64-_2-_3-32-SIMD-ONLY0-_61-_53-_58-_14,SIMD-ONLY0-_61-_53,SIMD-ONLY0-_61-_53-_58-_14 %s
+// RUN: %clang_cc1 -DCK15 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK15-64-_2-_3-32-SIMD-ONLY0-_61-_53-_58-_14,SIMD-ONLY0-_58-_14,SIMD-ONLY0-_61-_53-_58-_14 %s
 // RUN: %clang_cc1 -DCK15 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK15-64-_2-_3-32-SIMD-ONLY0-_61-_53-_58-_14,SIMD-ONLY0-_58-_14,SIMD-ONLY0-_61-_53-_58-_14 %s
 #ifdef CK15
 
 // &(sap->p[0]), &(sap->p[3]), sizeof(sap->p[1]), TO
 
-// CK15: [[SIZE00:@.+]] = {{.+}}constant [1 x i64] [i64 8]
-// CK15: [[MTYPE00:@.+]] = {{.+}}constant [1 x i64] [i64 1]
 
 struct SSA {
   double *p;
@@ -837,21 +516,7 @@ struct SSA {
 //CK-15-LABEL: lvalue_member
 void lvalue_member(SSA *sap) {
 
-  // CK15-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE00]], ptr [[MTYPE00]]{{.+}}, ptr null)
-  // CK15-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK15-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-  // CK15-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK15-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK15-DAG: store ptr [[P_VAL:%.+]], ptr [[BP0]]
-  // CK15-DAG: store ptr [[ADD_PTR:%.+]], ptr [[P0]]
-  // CK15-DAG: [[P_VAL]] = load ptr, ptr [[P:%[^,]+]]
-  // CK15-DAG: [[P]] = getelementptr inbounds nuw %struct.SSA, ptr [[SAP_VAL:%.+]], i32 0, i32 0
-  // CK15-DAG: [[SAP_VAL]] = load ptr, ptr %sap.addr
-  // CK15-DAG: [[ADD_PTR]] = getelementptr inbounds double, ptr [[P_VAL1:%.+]], i{{.*}} 3
-  // CK15-DAG: [[P_VAL1]] = load ptr, ptr [[P1:%[^,]+]]
-  // CK15-DAG: [[P1]] = getelementptr inbounds nuw %struct.SSA, ptr [[SAP_VAL1:%.+]], i32 0, i32 0
-  // CK15-DAG: [[SAP_VAL1]] = load ptr, ptr %sap.addr
   #pragma omp target update to(*(3+sap->p))
   *(3+sap->p) = 1;
   #pragma omp target update from(*(3+sap->p))
@@ -859,41 +524,25 @@ void lvalue_member(SSA *sap) {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK16 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK16 --check-prefix CK16-64
+// RUN: %clang_cc1 -DCK16 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK16-64,CK16-64-_2-_3-CK17-CK18-SIMD-ONLY18-_4,CK16-64-_2-_3-CK18,CK16-64-_2-_3-CK18-SIMD-ONLY18-_4,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,CK7-64-_2-_3-CK16,CK7-64-_2-_3-CK16-CK26-32
 // RUN: %clang_cc1 -DCK16 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK16 --check-prefix CK16-64
-// RUN: %clang_cc1 -DCK16 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK16 --check-prefix CK16-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK16-64,CK16-64-_2-_3-CK17-CK18-SIMD-ONLY18-_4,CK16-64-_2-_3-CK18,CK16-64-_2-_3-CK18-SIMD-ONLY18-_4,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,CK7-64-_2-_3-CK16,CK7-64-_2-_3-CK16-CK26-32
+// RUN: %clang_cc1 -DCK16 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-32-_2-_3-CK6-CK16,CK1-32-_2-_3-CK6-CK7-CK16-CK17,CK1-32-_2-_3-CK7-CK16,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK16-32,CK16-32-_2-_3-CK17-SIMD-ONLY0-_25-_55,CK16-32-_2-_3-SIMD-ONLY0-_49-_23-_57-_48,CK7-32-_2-_3-CK16,SIMD-ONLY0-_8-_47-_11-_9-CK16-32-_2-_3
 // RUN: %clang_cc1 -DCK16 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK16 --check-prefix CK16-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-32-_2-_3-CK6-CK16,CK1-32-_2-_3-CK6-CK7-CK16-CK17,CK1-32-_2-_3-CK7-CK16,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK16-32,CK16-32-_2-_3-CK17-SIMD-ONLY0-_25-_55,CK16-32-_2-_3-SIMD-ONLY0-_49-_23-_57-_48,CK7-32-_2-_3-CK16,SIMD-ONLY0-_8-_47-_11-_9-CK16-32-_2-_3
 
-// RUN: %clang_cc1 -DCK16 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -DCK16 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK16-32-_2-_3-SIMD-ONLY0-_49-_23-_57-_48,SIMD-ONLY0-_49-_23,SIMD-ONLY0-_49-_23-_57-_48 %s
 // RUN: %clang_cc1 -DCK16 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -DCK16 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK16-32-_2-_3-SIMD-ONLY0-_49-_23-_57-_48,SIMD-ONLY0-_49-_23,SIMD-ONLY0-_49-_23-_57-_48 %s
+// RUN: %clang_cc1 -DCK16 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK16-32-_2-_3-SIMD-ONLY0-_49-_23-_57-_48,SIMD-ONLY0-_49-_23-_57-_48,SIMD-ONLY0-_57-_48 %s
 // RUN: %clang_cc1 -DCK16 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK16-32-_2-_3-SIMD-ONLY0-_49-_23-_57-_48,SIMD-ONLY0-_49-_23-_57-_48,SIMD-ONLY0-_57-_48 %s
 #ifdef CK16
 
-// CK16: [[SIZE00:@.+]] = {{.+}}constant [1 x i64] [i64 4]
-// CK16: [[MTYPE00:@.+]] = {{.+}}constant [1 x i64] [i64 1]
 
-//CK16-LABEL: lvalue_find_base
 void lvalue_find_base(float *f, int *i) {
 
-  // CK16-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE00]], ptr [[MTYPE00]]{{.+}}, ptr null)
-  // CK16-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK16-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-  // CK16-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK16-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK16-DAG: store ptr [[F:%.+]], ptr [[BP0]]
-  // CK16-DAG: store ptr [[ADD_PTR:%.+]], ptr [[P0]]
-  // CK16-32-DAG: [[ADD_PTR]] = getelementptr inbounds float, ptr [[THREE:%.+]], i32 [[I:%.+]]
-  // CK16-64-DAG: [[ADD_PTR]] = getelementptr inbounds float, ptr [[THREE:%.+]], i64 [[IDX_EXT:%.+]]
-  // CK16-DAG: [[THREE]] = load ptr, ptr [[F_ADDR:%.+]],
-  // CK16-DAG: [[F]] = load ptr, ptr [[F_ADDR]],
-  // CK16-64-DAG: [[IDX_EXT]] = sext i32 [[I:%.+]] to i64
 
   #pragma omp target update to(*(*i+f))
   *(*i+f) = 1.0;
@@ -902,65 +551,33 @@ void lvalue_find_base(float *f, int *i) {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK17 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK17 --check-prefix CK17-64
+// RUN: %clang_cc1 -DCK17 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK16-64-_2-_3-CK17-CK18-SIMD-ONLY18-_4,CK17-64,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26
 // RUN: %clang_cc1 -DCK17 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK17 --check-prefix CK17-64
-// RUN: %clang_cc1 -DCK17 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK17 --check-prefix CK17-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK16-64-_2-_3-CK17-CK18-SIMD-ONLY18-_4,CK17-64,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26
+// RUN: %clang_cc1 -DCK17 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-32-_2-_3-CK17,CK1-32-_2-_3-CK6-CK7-CK16-CK17,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK16-32-_2-_3-CK17-SIMD-ONLY0-_25-_55,CK17-32,CK17-32-_3-_2-SIMD-ONLY0-_25-_55,CK17-32-_3-_2-SIMD-ONLY0-_52-_46-_25-_55
 // RUN: %clang_cc1 -DCK17 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK17 --check-prefix CK17-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-32-_2-_3-CK17,CK1-32-_2-_3-CK6-CK7-CK16-CK17,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK16-32-_2-_3-CK17-SIMD-ONLY0-_25-_55,CK17-32,CK17-32-_3-_2-SIMD-ONLY0-_25-_55,CK17-32-_3-_2-SIMD-ONLY0-_52-_46-_25-_55
 
-// RUN: %clang_cc1 -DCK17 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -DCK17 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK17-32-_3-_2-SIMD-ONLY0-_52-_46-_25-_55,SIMD-ONLY0-_52-_46,SIMD-ONLY0-_52-_46-_25-_55 %s
 // RUN: %clang_cc1 -DCK17 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -DCK17 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK17-32-_3-_2-SIMD-ONLY0-_52-_46-_25-_55,SIMD-ONLY0-_52-_46,SIMD-ONLY0-_52-_46-_25-_55 %s
+// RUN: %clang_cc1 -DCK17 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK16-32-_2-_3-CK17-SIMD-ONLY0-_25-_55,CK17-32-_3-_2-SIMD-ONLY0-_25-_55,CK17-32-_3-_2-SIMD-ONLY0-_52-_46-_25-_55,SIMD-ONLY0-_25-_55,SIMD-ONLY0-_52-_46-_25-_55 %s
 // RUN: %clang_cc1 -DCK17 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK16-32-_2-_3-CK17-SIMD-ONLY0-_25-_55,CK17-32-_3-_2-SIMD-ONLY0-_25-_55,CK17-32-_3-_2-SIMD-ONLY0-_52-_46-_25-_55,SIMD-ONLY0-_25-_55,SIMD-ONLY0-_52-_46-_25-_55 %s
 #ifdef CK17
 
 // &((*(1+sa->i+f))[0]), &((*(1+sa->i+f))[sa->sa->i]), sizeof((sa->sa->i + *(1+sa->i+f))[0]), TO
 
-// CK17: [[SIZE00:@.+]] = {{.+}}constant [1 x i64] [i64 4]
-// CK17: [[MTYPE00:@.+]] = {{.+}}constant [1 x i64] [i64 1]
 
 struct SSA {
   int i;
   SSA *sa;
 };
 
-//CK17-LABEL: lvalue_find_base
 void lvalue_find_base(float **f, SSA *sa) {
 
-  // CK17-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[SIZE00]], ptr [[MTYPE00]]{{.+}}, ptr null)
-  // CK17-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK17-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-  // CK17-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK17-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK17-DAG: store ptr [[ADD_PTR_VAL:%.+]], ptr [[BP0]],
-  // CK17-DAG: store ptr [[ADD_PTR_I:%.+]], ptr [[P0]],
-  // CK17-DAG: [[ADD_PTR_VAL]] = load ptr, ptr [[ADD_PTR:%[^,]+]]
-  // CK17-DAG: [[ADD_PTR]] = getelementptr inbounds ptr, ptr [[F:%.+]], i{{.*}} [[I_PLUS_ONE:[^,]*]]
-  // CK17-DAG: [[F]] = load ptr, ptr %f.addr
-  // CK17-64-DAG: [[I_PLUS_ONE]] = sext i32 [[I_PLUS_ONE:%.+]] to i64
-  // CK17-DAG: [[I_PLUS_ONE]] = add nsw i32 1, [[IVAL:%.+]]
-  // CK17-DAG: [[IVAL]] = load i32, ptr [[I:%[^,]+]]
-  // CK17-DAG: [[I]] = getelementptr inbounds nuw %struct.SSA, ptr [[SA:%.+]], i32 0, i32 0
 
-  // CK17-DAG: [[ADD_PTR_I]] = getelementptr inbounds float, ptr [[ADD_PTR_VAL1:%.+]], i{{.*}} [[I_VAL1:%.+]]
-  // CK17-64-DAG: [[I_VAL1]] = sext i32 [[I_VAL1:%.+]] to i64
-  // CK17-DAG: [[I_VAL1]] = load i32, ptr [[I1:%[^,]+]]
-  // CK17-DAG: [[I1]] = getelementptr inbounds nuw %struct.SSA, ptr [[SA_VAL1:%.+]], i32 0, i32 0
-  // CK17-DAG: [[SA_VAL1]] = load ptr, ptr [[SA1:%[^,]+]]
-  // CK17-DAG: [[SA1]] = getelementptr inbounds nuw %struct.SSA, ptr [[SA_VAL2:%.+]], i32 0, i32 1
-  // CK17-DAG: [[SA_VAL2]] = load ptr, ptr %sa.addr
-  // CK17-DAG: [[ADD_PTR_VAL1]] = load ptr, ptr [[ADD_PTR1:%[^,]+]]
-  // CK17-DAG: [[ADD_PTR1]] = getelementptr inbounds ptr, ptr [[F1:%.+]], i{{.*}} [[I_PLUS_ONE1:[^,]*]]
-  // CK17-DAG: [[F1]] = load ptr, ptr %f.addr
-  // CK17-64-DAG: [[I_PLUS_ONE1]] = sext i32 [[I_PLUS_ONE1:%.+]] to i64
-  // CK17-DAG: [[I_PLUS_ONE1]] = add nsw i32 1, [[IVAL1:%.+]]
-  // CK17-DAG: [[IVAL1]] = load i32, ptr [[I2:%[^,]+]]
-  // CK17-DAG: [[I2]] = getelementptr inbounds nuw %struct.SSA, ptr [[SA:%.+]], i32 0, i32 0
 
   #pragma omp target update to(*(sa->sa->i+*(1+sa->i+f)))
   *(sa->sa->i+*(1+sa->i+f)) = 1;
@@ -969,149 +586,86 @@ void lvalue_find_base(float **f, SSA *sa) {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK18 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK18 --check-prefix CK18-64
+// RUN: %clang_cc1 -DCK18 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK16-64-_2-_3-CK17-CK18-SIMD-ONLY18-_4,CK16-64-_2-_3-CK18,CK16-64-_2-_3-CK18-SIMD-ONLY18-_4,CK18,CK18-64,CK18-64-_3-_2-32-SIMD-ONLY18-_4-_5,CK18-64-_3-_2-SIMD-ONLY18-_4,CK18-64-_3-_2-SIMD-ONLY18-_4-_5,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,CK7-64-_2-_3-CK18
 // RUN: %clang_cc1 -DCK18 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK18 --check-prefix CK18-64
-// RUN: %clang_cc1 -DCK18 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK18 --check-prefix CK18-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK16-64-_2-_3-CK17-CK18-SIMD-ONLY18-_4,CK16-64-_2-_3-CK18,CK16-64-_2-_3-CK18-SIMD-ONLY18-_4,CK18,CK18-64,CK18-64-_3-_2-32-SIMD-ONLY18-_4-_5,CK18-64-_3-_2-SIMD-ONLY18-_4,CK18-64-_3-_2-SIMD-ONLY18-_4-_5,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,CK7-64-_2-_3-CK18
+// RUN: %clang_cc1 -DCK18 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK12-32-_3-_2-CK18,CK12-64-_3-_2-32-CK18,CK18,CK18-32,CK18-32-_3-_2-SIMD-ONLY18-_5,CK18-64-_3-_2-32-SIMD-ONLY18-_4-_5,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,CK5-32-_3-_2-CK18
 // RUN: %clang_cc1 -DCK18 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK18 --check-prefix CK18-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK12-32-_3-_2-CK18,CK12-64-_3-_2-32-CK18,CK18,CK18-32,CK18-32-_3-_2-SIMD-ONLY18-_5,CK18-64-_3-_2-32-SIMD-ONLY18-_4-_5,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,CK5-32-_3-_2-CK18
 
-// RUN: %clang_cc1 -DCK18 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY18 %s
+// RUN: %clang_cc1 -DCK18 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK16-64-_2-_3-CK17-CK18-SIMD-ONLY18-_4,CK16-64-_2-_3-CK18-SIMD-ONLY18-_4,CK18-64-_3-_2-32-SIMD-ONLY18-_4-_5,CK18-64-_3-_2-SIMD-ONLY18-_4,CK18-64-_3-_2-SIMD-ONLY18-_4-_5 %s
 // RUN: %clang_cc1 -DCK18 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY18 %s
-// RUN: %clang_cc1 -DCK18 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY18 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK16-64-_2-_3-CK17-CK18-SIMD-ONLY18-_4,CK16-64-_2-_3-CK18-SIMD-ONLY18-_4,CK18-64-_3-_2-32-SIMD-ONLY18-_4-_5,CK18-64-_3-_2-SIMD-ONLY18-_4,CK18-64-_3-_2-SIMD-ONLY18-_4-_5 %s
+// RUN: %clang_cc1 -DCK18 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK18-32-_3-_2-SIMD-ONLY18-_5,CK18-64-_3-_2-32-SIMD-ONLY18-_4-_5,CK18-64-_3-_2-SIMD-ONLY18-_4-_5,SIMD-ONLY18-_3-_5 %s
 // RUN: %clang_cc1 -DCK18 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY18 %s
-// SIMD-ONLY18-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK18-32-_3-_2-SIMD-ONLY18-_5,CK18-64-_3-_2-32-SIMD-ONLY18-_4-_5,CK18-64-_3-_2-SIMD-ONLY18-_4-_5,SIMD-ONLY18-_3-_5 %s
 #ifdef CK18
 
-// CK18-DAG: [[MTYPE_TO:@.+]] = {{.+}}constant [1 x i64] [i64 1]
-// CK18-DAG: [[MTYPE_FROM:@.+]] = {{.+}}constant [1 x i64] [i64 2]
 
-//CK18-LABEL: array_shaping
 void array_shaping(float *f, int sa) {
 
-  // CK18-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[GEPS:%.+]], ptr [[MTYPE_TO]]{{.+}}, ptr null)
-  // CK18-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK18-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-  // CK18-DAG: [[GEPS]] = getelementptr inbounds {{.+}}[[S:%[^,]+]]
 
-  // CK18-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK18-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK18-DAG: [[S0:%.+]] = getelementptr inbounds {{.+}}[[S]], i{{.+}} 0, i{{.+}} 0
 
-  // CK18-DAG: store ptr [[F1:%.+]], ptr [[BP0]],
-  // CK18-DAG: store ptr [[F2:%.+]], ptr [[P0]],
-  // CK18-DAG: store i64 [[SIZE:%.+]], ptr [[S0]],
-  // CK18-DAG: [[F1]] = load ptr, ptr [[F_ADDR:%.+]],
-  // CK18-DAG: [[F2]] = load ptr, ptr [[F_ADDR]],
 
-  // CK18-64-DAG: [[SIZE]] = mul nuw i64 [[SZ1:%.+]], 4
-  // CK18-64-DAG: [[SZ1]] = mul nuw i64 12, %{{.+}}
-  // CK18-32-DAG: [[SIZE]] = sext i32 [[SZ1:%.+]] to i64
-  // CK18-32-DAG: [[SZ1]] = mul nuw i32 [[SZ2:%.+]], 4
-  // CK18-32-DAG: [[SZ2]] = mul nuw i32 12, %{{.+}}
   #pragma omp target update to(([3][sa][4])f)
   sa = 1;
-  // CK18-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[GEPS:%.+]], ptr [[MTYPE_FROM]]{{.+}}, ptr null)
-  // CK18-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK18-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-  // CK18-DAG: [[GEPS]] = getelementptr inbounds {{.+}}[[S:%[^,]+]]
 
-  // CK18-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK18-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK18-DAG: [[S0:%.+]] = getelementptr inbounds {{.+}}[[S]], i{{.+}} 0, i{{.+}} 0
 
-  // CK18-DAG: store ptr [[F1:%.+]], ptr [[BP0]],
-  // CK18-DAG: store ptr [[F2:%.+]], ptr [[P0]],
-  // CK18-DAG: store i64 [[SIZE:%.+]], ptr [[S0]],
-  // CK18-DAG: [[F1]] = load ptr, ptr [[F_ADDR]],
-  // CK18-DAG: [[F2]] = load ptr, ptr [[F_ADDR]],
 
-  // CK18-64-DAG: [[SIZE]] = mul nuw i64 [[SZ1:%.+]], 5
-  // CK18-64-DAG: [[SZ1]] = mul nuw i64 4, %{{.+}}
-  // CK18-32-DAG: [[SIZE]] = sext i32 [[SZ1:%.+]] to i64
-  // CK18-32-DAG: [[SZ1]] = mul nuw i32 [[SZ2:%.+]], 5
-  // CK18-32-DAG: [[SZ2]] = mul nuw i32 4, %{{.+}}
   #pragma omp target update from(([sa][5])f)
 }
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK19 -verify -Wno-vla -fopenmp -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK19 --check-prefix CK19-64
+// RUN: %clang_cc1 -DCK19 -verify -Wno-vla -fopenmp -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK19,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK1-64-_2-_3-CK19,CK1-64-_2-_3-CK2-CK9-CK15-CK19-CK20,CK19,CK19-64,CK19-64-_3-_2-32-SIMD-ONLY0-_28-_38-_41-_5,CK2-64-_2-_3-32-CK9-CK15-CK19,CK2-64-_2-_3-CK9-CK15-CK19,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22
 // RUN: %clang_cc1 -DCK19 -fopenmp -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK19 --check-prefix CK19-64
-// RUN: %clang_cc1 -DCK19 -verify -Wno-vla -fopenmp -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK19 --check-prefix CK19-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK19,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK1-64-_2-_3-CK19,CK1-64-_2-_3-CK2-CK9-CK15-CK19-CK20,CK19,CK19-64,CK19-64-_3-_2-32-SIMD-ONLY0-_28-_38-_41-_5,CK2-64-_2-_3-32-CK9-CK15-CK19,CK2-64-_2-_3-CK9-CK15-CK19,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22
+// RUN: %clang_cc1 -DCK19 -verify -Wno-vla -fopenmp -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK19,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK19,CK19-32,CK19-64-_3-_2-32-SIMD-ONLY0-_28-_38-_41-_5,CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20,CK2-32-_2-_3-CK9-CK15-CK19,CK2-64-_2-_3-32-CK9-CK15-CK19,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10
 // RUN: %clang_cc1 -DCK19 -fopenmp -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK19 --check-prefix CK19-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK19,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK19,CK19-32,CK19-64-_3-_2-32-SIMD-ONLY0-_28-_38-_41-_5,CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20,CK2-32-_2-_3-CK9-CK15-CK19,CK2-64-_2-_3-32-CK9-CK15-CK19,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10
 
-// RUN: %clang_cc1 -DCK19 -verify -Wno-vla -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -DCK19 -verify -Wno-vla -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK19-64-_3-_2-32-SIMD-ONLY0-_28-_38-_41-_5,SIMD-ONLY0-_28-_38,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_28-_38,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-_28-_38-_41-_5 %s
 // RUN: %clang_cc1 -DCK19 -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -DCK19 -verify -Wno-vla -fopenmp-version=51 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK19-64-_3-_2-32-SIMD-ONLY0-_28-_38-_41-_5,SIMD-ONLY0-_28-_38,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_28-_38,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-_28-_38-_41-_5 %s
+// RUN: %clang_cc1 -DCK19 -verify -Wno-vla -fopenmp-version=51 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK19-64-_3-_2-32-SIMD-ONLY0-_28-_38-_41-_5,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_40-_60-_41-_5,SIMD-ONLY0-_41-_5,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-_28-_38-_41-_5 %s
 // RUN: %clang_cc1 -DCK19 -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK19-64-_3-_2-32-SIMD-ONLY0-_28-_38-_41-_5,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_40-_60-_41-_5,SIMD-ONLY0-_41-_5,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-_28-_38-_41-_5 %s
 #ifdef CK19
 
 // PRESENT=0x1000 | TO=0x1 = 0x1001
-// CK19: [[MTYPE00:@.+]] = {{.+}}constant [1 x i64] [i64 [[#0x1001]]]
 
 // PRESENT=0x1000 | FROM=0x2 = 0x1002
-// CK19: [[MTYPE01:@.+]] = {{.+}}constant [1 x i64] [i64 [[#0x1002]]]
 
-// CK19-LABEL: _Z13check_presenti
 void check_present(int arg) {
   int la;
   float lb[arg];
 
   // Region 00
-  // CK19-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[GEPS:%.+]], ptr [[MTYPE00]]{{.+}}, ptr null)
-  // CK19-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK19-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-  // CK19-DAG: [[GEPS]] = getelementptr inbounds {{.+}}[[S:%[^,]+]]
 
-  // CK19-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK19-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK19-DAG: [[S0:%.+]] = getelementptr inbounds {{.+}}[[S]], i{{.+}} 0, i{{.+}} 0
-  // CK19-DAG: store ptr [[VAL0:%[^,]+]], ptr [[BP0]]
-  // CK19-DAG: store ptr [[VAL0]], ptr [[P0]]
-  // CK19-DAG: store i64 [[CSVAL0:%[^,]+]], ptr [[S0]]
   #pragma omp target update to(present: lb)
   ;
 
   // Region 01
-  // CK19-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[GEPS:%.+]], ptr [[MTYPE01]]{{.+}}, ptr null)
-  // CK19-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK19-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-  // CK19-DAG: [[GEPS]] = getelementptr inbounds {{.+}}[[S:%[^,]+]]
 
-  // CK19-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK19-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK19-DAG: [[S0:%.+]] = getelementptr inbounds {{.+}}[[S]], i{{.+}} 0, i{{.+}} 0
-  // CK19-DAG: store ptr [[VAL0:%[^,]+]], ptr [[BP0]]
-  // CK19-DAG: store ptr [[VAL0]], ptr [[P0]]
-  // CK19-DAG: store i64 [[CSVAL0:%[^,]+]], ptr [[S0]]
   #pragma omp target update from(present: lb)
   ;
 }
 #endif
 
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK20 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK20 --check-prefix CK20-64
+// RUN: %clang_cc1 -DCK20 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK1-64-_2-_3-CK2-CK9-CK15-CK19-CK20,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-CK20,CK20,CK20-64,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
 // RUN: %clang_cc1 -DCK20 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK20 --check-prefix CK20-64
-// RUN: %clang_cc1 -DCK20 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK20 --check-prefix CK20-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK1-64-_2-_3-CK2-CK9-CK15-CK19-CK20,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-CK20,CK20,CK20-64,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
+// RUN: %clang_cc1 -DCK20 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-CK20,CK20,CK20-32,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
 // RUN: %clang_cc1 -DCK20 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK20 --check-prefix CK20-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20,CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-CK20,CK20,CK20-32,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
 
-// RUN: %clang_cc1 -DCK20 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -DCK20 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY19-_29-_23 %s
 // RUN: %clang_cc1 -DCK20 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY19 %s
-// RUN: %clang_cc1 -DCK20 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY19-_29-_23 %s
+// RUN: %clang_cc1 -DCK20 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY19-_21-_3 %s
 // RUN: %clang_cc1 -DCK20 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY19 %s
-// SIMD-ONLY19-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK3-64-_2-_3-32-SIMD-ONLY2-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY19-_21-_3 %s
 #ifdef CK20
 
 struct ST {
@@ -1119,49 +673,10 @@ struct ST {
   double *b;
 };
 
-// CK20: [[STRUCT_ST:%.+]] = type { i32, ptr }
-// CK20: [[STRUCT_DESCRIPTOR:%.+]]  = type { i64, i64, i64 }
 
-// CK20: [[MSIZE:@.+]] = {{.+}}constant [1 x i64] [i64 3]
-// CK20: [[MTYPE:@.+]] = {{.+}}constant [1 x i64] [i64 17592186044417]
 
-// CK20-LABEL: _Z3foo
 void foo(int arg) {
   ST arr[3][4];
-  // CK20: [[DIMS:%.+]] = alloca [3 x [[STRUCT_DESCRIPTOR]]],
-  // CK20: [[ARRAY_IDX:%.+]] = getelementptr inbounds nuw [3 x [4 x [[STRUCT_ST]]]], ptr [[ARR:%.+]], {{.+}} 0, {{.+}} 0
-  // CK20: [[ARRAY_DECAY:%.+]] = getelementptr inbounds [4 x [[STRUCT_ST]]], ptr [[ARRAY_IDX]], {{.+}} 0, {{.+}} 0
-  // CK20: [[ARRAY_IDX_1:%.+]] = getelementptr inbounds nuw [[STRUCT_ST]], ptr [[ARRAY_DECAY]], {{.+}}
-  // CK20: [[BP0:%.+]] = getelementptr inbounds [1 x ptr], ptr [[BP:%.+]], {{.+}} 0, {{.+}} 0
-  // CK20: store ptr [[ARR]], ptr [[BP0]],
-  // CK20: [[P0:%.+]] = getelementptr inbounds [1 x ptr], ptr [[P:%.+]], {{.+}} 0, {{.+}} 0
-  // CK20: store ptr [[ARRAY_IDX_1]], ptr [[P0]],
-  // CK20: [[DIM_1:%.+]] = getelementptr inbounds [3 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 0
-  // CK20: [[OFFSET:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 0
-  // CK20: store i64 0, ptr [[OFFSET]],
-  // CK20: [[COUNT:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 1
-  // CK20: store i64 2, ptr [[COUNT]],
-  // CK20: [[STRIDE:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 2
-  // CK20: store i64 {{32|64}}, ptr [[STRIDE]],
-  // CK20: [[DIM_2:%.+]] = getelementptr inbounds [3 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 1
-  // CK20: [[OFFSET_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 0
-  // CK20: store i64 1, ptr [[OFFSET_2]],
-  // CK20: [[COUNT_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 1
-  // CK20: store i64 4, ptr [[COUNT_2]],
-  // CK20: [[STRIDE_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 2
-  // CK20: store i64 {{8|16}}, ptr [[STRIDE_2]],
-  // CK20: [[DIM_3:%.+]] = getelementptr inbounds [3 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 2
-  // CK20: [[OFFSET_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 0
-  // CK20: store i64 0, ptr [[OFFSET_3]],
-  // CK20: [[COUNT_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 1
-  // CK20: store i64 1, ptr [[COUNT_3]],
-  // CK20: [[STRIDE_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 2
-  // CK20: store i64 {{8|16}}, ptr [[STRIDE_3]],
-  // CK20-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[MSIZE]], ptr [[MTYPE]]{{.+}})
-  // CK20-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP]]
-  // CK20-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-  // CK20-DAG: [[PTRS:%.+]] = getelementptr inbounds [1 x ptr], ptr %.offload_ptrs, i32 0, i32 0
-  // CK20-DAG: store ptr [[DIMS]], ptr [[PTRS]],
 
 #pragma omp target update to(arr[0:2][1:4])
   { ++arg; }
@@ -1169,75 +684,27 @@ void foo(int arg) {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK21 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK21 --check-prefix CK21-64
+// RUN: %clang_cc1 -DCK21 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK21-ONLY19-_16-_12-CK22-_13,CK21,CK21-64,CK21-64-_2-_3-32-CK22,CK21-64-_2-_3-32-CK22-CK23-CK24,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK21-64-_2-_3-32-CK24,CK21-64-_2-_3-32-SIMD-ONLY19-_16-_12-_24-_27,CK21-64-_2-_3-CK24,CK21-64-_2-_3-SIMD-ONLY19-_16-_12,CK21-64-_2-_3-SIMD-ONLY19-_16-_12-CK22-_13
 // RUN: %clang_cc1 -DCK21 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK21 --check-prefix CK21-64
-// RUN: %clang_cc1 -DCK21 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK21 --check-prefix CK21-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK21-ONLY19-_16-_12-CK22-_13,CK21,CK21-64,CK21-64-_2-_3-32-CK22,CK21-64-_2-_3-32-CK22-CK23-CK24,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK21-64-_2-_3-32-CK24,CK21-64-_2-_3-32-SIMD-ONLY19-_16-_12-_24-_27,CK21-64-_2-_3-CK24,CK21-64-_2-_3-SIMD-ONLY19-_16-_12,CK21-64-_2-_3-SIMD-ONLY19-_16-_12-CK22-_13
+// RUN: %clang_cc1 -DCK21 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK21-CK22,CK21,CK21-32,CK21-32-_3-_2-SIMD-ONLY19-_24-_27,CK21-32-_3-_2-SIMD-ONLY19-_24-_27-CK22-_17-_5,CK21-64-_2-_3-32-CK22,CK21-64-_2-_3-32-CK22-CK23-CK24,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK21-64-_2-_3-32-CK24,CK21-64-_2-_3-32-SIMD-ONLY19-_16-_12-_24-_27
 // RUN: %clang_cc1 -DCK21 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK21 --check-prefix CK21-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK21-CK22,CK21,CK21-32,CK21-32-_3-_2-SIMD-ONLY19-_24-_27,CK21-32-_3-_2-SIMD-ONLY19-_24-_27-CK22-_17-_5,CK21-64-_2-_3-32-CK22,CK21-64-_2-_3-32-CK22-CK23-CK24,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK21-64-_2-_3-32-CK24,CK21-64-_2-_3-32-SIMD-ONLY19-_16-_12-_24-_27
 
-// RUN: %clang_cc1 -DCK21 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -DCK21 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK21-ONLY19-_16-_12-CK22-_13,CK21-64-_2-_3-32-SIMD-ONLY19-_16-_12-_24-_27,CK21-64-_2-_3-SIMD-ONLY19-_16-_12,CK21-64-_2-_3-SIMD-ONLY19-_16-_12-CK22-_13,SIMD-ONLY19-_16-_12-_24-_27-_13-_2-_17-_5 %s
 // RUN: %clang_cc1 -DCK21 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY19 %s
-// RUN: %clang_cc1 -DCK21 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK21-ONLY19-_16-_12-CK22-_13,CK21-64-_2-_3-32-SIMD-ONLY19-_16-_12-_24-_27,CK21-64-_2-_3-SIMD-ONLY19-_16-_12,CK21-64-_2-_3-SIMD-ONLY19-_16-_12-CK22-_13,SIMD-ONLY19-_16-_12-_24-_27-_13-_2-_17-_5 %s
+// RUN: %clang_cc1 -DCK21 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK21-32-_3-_2-SIMD-ONLY19-_24-_27,CK21-32-_3-_2-SIMD-ONLY19-_24-_27-CK22-_17-_5,CK21-64-_2-_3-32-SIMD-ONLY19-_16-_12-_24-_27,SIMD-ONLY19-_16-_12-_24-_27-_13-_2-_17-_5,SIMD-ONLY19-_24-_27-_17-_5 %s
 // RUN: %clang_cc1 -DCK21 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY19 %s
-// SIMD-ONLY19-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK21-32-_3-_2-SIMD-ONLY19-_24-_27,CK21-32-_3-_2-SIMD-ONLY19-_24-_27-CK22-_17-_5,CK21-64-_2-_3-32-SIMD-ONLY19-_16-_12-_24-_27,SIMD-ONLY19-_16-_12-_24-_27-_13-_2-_17-_5,SIMD-ONLY19-_24-_27-_17-_5 %s
 #ifdef CK21
 
-// CK21: [[STRUCT_ST:%.+]] = type { [10 x [10 x [10 x ptr]]] }
-// CK21: [[STRUCT_DESCRIPTOR:%.+]]  = type { i64, i64, i64 }
 
-// CK21: [[SIZE:@.+]] = private unnamed_addr constant [2 x i64] [i64 0, i64 4]
-// CK21: [[MTYPE:@.+]] = {{.+}}constant [2 x i64] [i64 0, i64 299067162755073]
 
 struct ST {
   double *dptr[10][10][10];
 
-  // CK21: _ZN2ST3fooEv
   void foo() {
-    // CK21: [[DIMS:%.+]] = alloca [4 x [[STRUCT_DESCRIPTOR]]],
-    // CK21: [[ARRAY_IDX:%.+]] = getelementptr inbounds nuw [10 x [10 x [10 x ptr]]], ptr [[DPTR:%.+]], {{.+}} 0, {{.+}} 0
-    // CK21: [[ARRAY_DECAY:%.+]] = getelementptr inbounds [10 x [10 x ptr]], ptr [[ARRAY_IDX]], {{.+}} 0, {{.+}} 0
-    // CK21: [[ARRAY_IDX_1:%.+]] = getelementptr inbounds nuw [10 x ptr], ptr [[ARRAY_DECAY]], {{.+}} 1
-    // CK21: [[ARRAY_DECAY_2:%.+]] = getelementptr inbounds [10 x ptr], ptr [[ARRAY_IDX_1]], {{.+}} 0, {{.+}} 0
-    // CK21: [[ARRAY_IDX_3:%.+]] = getelementptr inbounds {{.+}}, ptr [[ARRAY_DECAY_2]], {{.+}} 0
-    // CK21: [[BP0:%.+]] = getelementptr inbounds [2 x ptr], ptr [[BP:%.+]], {{.+}} 0, {{.+}} 0
-    // CK21: [[P0:%.+]] = getelementptr inbounds [2 x ptr], ptr [[P:%.+]], i{{.+}} 0, i{{.+}} 0
-    // CK21: [[DIM_1:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 0
-    // CK21: [[OFFSET_1:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 0
-    // CK21: store i64 0, ptr [[OFFSET_1]],
-    // CK21: [[COUNT_1:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 1
-    // CK21: store i64 2, ptr [[COUNT_1]],
-    // CK21: [[STRIDE_1:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 2
-    // CK21: store i64 {{400|800}}, ptr [[STRIDE_1]],
-    // CK21: [[DIM_2:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 1
-    // CK21: [[OFFSET_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 0
-    // CK21: store i64 1, ptr [[OFFSET_2]],
-    // CK21: [[COUNT_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 1
-    // CK21: store i64 3, ptr [[COUNT_2]],
-    // CK21: [[STRIDE_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 2
-    // CK21: store i64 {{40|80}}, ptr [[STRIDE_2]],
-    // CK21: [[DIM_3:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 2
-    // CK21: [[OFFSET_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 0
-    // CK21: store i64 0, ptr [[OFFSET_3]],
-    // CK21: [[COUNT_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 1
-    // CK21: store i64 4, ptr [[COUNT_3]],
-    // CK21: [[STRIDE_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 2
-    // CK21: store i64 {{4|8}}, ptr [[STRIDE_3]],
-    // CK21: [[DIM_4:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 3
-    // CK21: [[OFFSET_4:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_4]], {{.+}} 0, {{.+}} 0
-    // CK21: store i64 0, ptr [[OFFSET_4]],
-    // CK21: [[COUNT_4:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_4]], {{.+}} 0, {{.+}} 1
-    // CK21: store i64 1, ptr [[COUNT_4]],
-    // CK21: [[STRIDE_4:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_4]], {{.+}} 0, {{.+}} 2
-    // CK21: store i64 {{4|8}}, ptr [[STRIDE_4]],
-    // CK21-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 2, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[GEPSZ:%.+]], ptr [[MTYPE]]{{.+}})
-    // CK21-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP]]
-    // CK21-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-    // CK21-DAG: store ptr [[DIMS]], ptr [[PTRS1:%.+]],
-    // CK21-DAG: [[PTRS1]] = getelementptr inbounds [2 x ptr], ptr [[P]], i32 0, i32 1
-    // CK21: ret void
 #pragma omp target update to(dptr[0:2][1:3][0:4])
   }
 };
@@ -1249,69 +716,25 @@ void bar() {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK22 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK22 --check-prefix CK22-64
+// RUN: %clang_cc1 -DCK22 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK21-ONLY19-_16-_12-CK22-_13,CK21-64-_2-_3-32-CK22,CK21-64-_2-_3-32-CK22-CK23-CK24,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK21-64-_2-_3-SIMD-ONLY19-_16-_12-CK22-_13,CK22-64,CK22-64-_2-_3-32-CK23,CK22-64-_2-_3-32-CK23-CK25,CK22-64-_2-_3-32-SIMD-ONLY19-_13-_17-_5,CK22-64-_2-_3-CK23,CK22-64-_2-_3-CK23-CK25,CK22-64-_2-_3-SIMD-ONLY19-_13,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26
 // RUN: %clang_cc1 -DCK22 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK22 --check-prefix CK22-64
-// RUN: %clang_cc1 -DCK22 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK22 --check-prefix CK22-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK21-ONLY19-_16-_12-CK22-_13,CK21-64-_2-_3-32-CK22,CK21-64-_2-_3-32-CK22-CK23-CK24,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK21-64-_2-_3-SIMD-ONLY19-_16-_12-CK22-_13,CK22-64,CK22-64-_2-_3-32-CK23,CK22-64-_2-_3-32-CK23-CK25,CK22-64-_2-_3-32-SIMD-ONLY19-_13-_17-_5,CK22-64-_2-_3-CK23,CK22-64-_2-_3-CK23-CK25,CK22-64-_2-_3-SIMD-ONLY19-_13,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26
+// RUN: %clang_cc1 -DCK22 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK21-CK22,CK21-32-_3-_2-SIMD-ONLY19-_24-_27-CK22-_17-_5,CK21-64-_2-_3-32-CK22,CK21-64-_2-_3-32-CK22-CK23-CK24,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK22-32,CK22-32-_3-_2-CK23,CK22-32-_3-_2-SIMD-ONLY19-_17-_5,CK22-64-_2-_3-32-CK23,CK22-64-_2-_3-32-CK23-CK25,CK22-64-_2-_3-32-SIMD-ONLY19-_13-_17-_5,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26
 // RUN: %clang_cc1 -DCK22 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK22 --check-prefix CK22-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK21-CK22,CK21-32-_3-_2-SIMD-ONLY19-_24-_27-CK22-_17-_5,CK21-64-_2-_3-32-CK22,CK21-64-_2-_3-32-CK22-CK23-CK24,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK22-32,CK22-32-_3-_2-CK23,CK22-32-_3-_2-SIMD-ONLY19-_17-_5,CK22-64-_2-_3-32-CK23,CK22-64-_2-_3-32-CK23-CK25,CK22-64-_2-_3-32-SIMD-ONLY19-_13-_17-_5,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26
 
-// RUN: %clang_cc1 -DCK22 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -DCK22 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK21-ONLY19-_16-_12-CK22-_13,CK21-64-_2-_3-SIMD-ONLY19-_16-_12-CK22-_13,CK22-64-_2-_3-32-SIMD-ONLY19-_13-_17-_5,CK22-64-_2-_3-SIMD-ONLY19-_13,SIMD-ONLY19-_16-_12-_24-_27-_13-_2-_17-_5 %s
 // RUN: %clang_cc1 -DCK22 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY19 %s
-// RUN: %clang_cc1 -DCK22 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK21-ONLY19-_16-_12-CK22-_13,CK21-64-_2-_3-SIMD-ONLY19-_16-_12-CK22-_13,CK22-64-_2-_3-32-SIMD-ONLY19-_13-_17-_5,CK22-64-_2-_3-SIMD-ONLY19-_13,SIMD-ONLY19-_16-_12-_24-_27-_13-_2-_17-_5 %s
+// RUN: %clang_cc1 -DCK22 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK21-32-_3-_2-SIMD-ONLY19-_24-_27-CK22-_17-_5,CK22-32-_3-_2-SIMD-ONLY19-_17-_5,CK22-64-_2-_3-32-SIMD-ONLY19-_13-_17-_5,SIMD-ONLY19-_16-_12-_24-_27-_13-_2-_17-_5,SIMD-ONLY19-_17-_5,SIMD-ONLY19-_24-_27-_17-_5 %s
 // RUN: %clang_cc1 -DCK22 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY19 %s
-// SIMD-ONLY19-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5,CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5,CK21-32-_3-_2-SIMD-ONLY19-_24-_27-CK22-_17-_5,CK22-32-_3-_2-SIMD-ONLY19-_17-_5,CK22-64-_2-_3-32-SIMD-ONLY19-_13-_17-_5,SIMD-ONLY19-_16-_12-_24-_27-_13-_2-_17-_5,SIMD-ONLY19-_17-_5,SIMD-ONLY19-_24-_27-_17-_5 %s
 #ifdef CK22
 
-// CK22: [[STRUCT_DESCRIPTOR:%.+]]  = type { i64, i64, i64 }
 
-// CK22: [[MSIZE:@.+]] = {{.+}}constant [1 x i64] [i64 4]
-// CK22: [[MTYPE:@.+]] = {{.+}}constant [1 x i64] [i64 17592186044417]
 
 struct ST {
-  // CK22: _ZN2ST3fooEPA10_Pi
   void foo(int *arr[5][10]) {
-    // CK22: [[DIMS:%.+]] = alloca [4 x [[STRUCT_DESCRIPTOR]]],
-    // CK22: [[ARRAY_IDX:%.+]] = getelementptr inbounds nuw [10 x ptr], ptr [[ARR:%.+]], {{.+}} 0
-    // CK22: [[ARRAY_DECAY:%.+]] = getelementptr inbounds [10 x ptr], ptr [[ARRAY_IDX]], {{.+}} 0, {{.+}} 0
-    // CK22: [[ARRAY_IDX_2:%.+]] = getelementptr inbounds nuw ptr, ptr [[ARRAY_DECAY:%.+]], {{.+}} 1
-    // CK22: [[BP0:%.+]] = getelementptr inbounds [1 x ptr], ptr [[BP:%.+]], {{.+}} 0, {{.+}} 0
-    // CK22: [[P0:%.+]] = getelementptr inbounds [1 x ptr], ptr [[P:%.+]], i{{.+}} 0, i{{.+}} 0
-    // CK22: [[DIM_1:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 0
-    // CK22: [[OFFSET:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 0
-    // CK22: store i64 0, ptr [[OFFSET]],
-    // CK22: [[COUNT:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 1
-    // CK22: store i64 2, ptr [[COUNT]],
-    // CK22: [[STRIDE:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 2
-    // CK22: store i64 200, ptr [[STRIDE]],
-    // CK22: [[DIM_2:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 1
-    // CK22: [[OFFSET:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 0
-    // CK22: store i64 1, ptr [[OFFSET]],
-    // CK22: [[COUNT:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 1
-    // CK22: store i64 3, ptr [[COUNT]],
-    // CK22: [[STRIDE:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 2
-    // CK22: store i64 40, ptr [[STRIDE]],
-    // CK22: [[DIM_3:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 2
-    // CK22: [[OFFSET:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 0
-    // CK22: store i64 0, ptr [[OFFSET]],
-    // CK22: [[COUNT:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 1
-    // CK22: store i64 4, ptr [[COUNT]],
-    // CK22: [[STRIDE:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 2
-    // CK22: store i64 4, ptr [[STRIDE]],
-    // CK22: [[DIM_4:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 3
-    // CK22: [[OFFSET:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_4]], {{.+}} 0, {{.+}} 0
-    // CK22: store i64 0, ptr [[OFFSET]],
-    // CK22: [[COUNT:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_4]], {{.+}} 0, {{.+}} 1
-    // CK22: store i64 1, ptr [[COUNT]],
-    // CK22: [[STRIDE:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_4]], {{.+}} 0, {{.+}} 2
-    // CK22: store i64 4, ptr [[STRIDE]],
-    // CK22-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[MSIZE]], ptr [[MTYPE]]{{.+}})
-    // CK22-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP]]
-    // CK22-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-    // CK22-DAG: [[PTRS:%.+]] = getelementptr inbounds [1 x ptr], ptr %.offload_ptrs, i32 0, i32 0
-    // CK22-DAG: store ptr [[DIMS]], ptr [[PTRS]],
 #pragma omp target update to(arr[0:2][1:3][0:4])
   }
 };
@@ -1324,285 +747,2622 @@ void bar() {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK23 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK23 --check-prefix CK23-64
+// RUN: %clang_cc1 -DCK23 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK21-64-_2-_3-32-CK22-CK23-CK24,CK22-64-_2-_3-32-CK23,CK22-64-_2-_3-32-CK23-CK25,CK22-64-_2-_3-CK23,CK22-64-_2-_3-CK23-CK25,CK23,CK23-64,CK23-64-_3-_2-CK25,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
 // RUN: %clang_cc1 -DCK23 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK23 --check-prefix CK23-64
-// RUN: %clang_cc1 -DCK23 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK23 --check-prefix CK23-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK21-64-_2-_3-32-CK22-CK23-CK24,CK22-64-_2-_3-32-CK23,CK22-64-_2-_3-32-CK23-CK25,CK22-64-_2-_3-CK23,CK22-64-_2-_3-CK23-CK25,CK23,CK23-64,CK23-64-_3-_2-CK25,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
+// RUN: %clang_cc1 -DCK23 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK21-64-_2-_3-32-CK22-CK23-CK24,CK22-32-_3-_2-CK23,CK22-64-_2-_3-32-CK23,CK22-64-_2-_3-32-CK23-CK25,CK23,CK23-32,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
 // RUN: %clang_cc1 -DCK23 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK23 --check-prefix CK23-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK21-64-_2-_3-32-CK22-CK23-CK24,CK22-32-_3-_2-CK23,CK22-64-_2-_3-32-CK23,CK22-64-_2-_3-32-CK23-CK25,CK23,CK23-32,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
 
-// RUN: %clang_cc1 -DCK23 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -DCK23 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY19-_4-_7-_25-_8 %s
 // RUN: %clang_cc1 -DCK23 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY19 %s
-// RUN: %clang_cc1 -DCK23 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY19-_4-_7-_25-_8 %s
+// RUN: %clang_cc1 -DCK23 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY19-_4-_7-_25-_8 %s
 // RUN: %clang_cc1 -DCK23 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY19 %s
-// SIMD-ONLY19-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY19-_4-_7-_25-_8 %s
 #ifdef CK23
 
-// CK23: [[STRUCT_DESCRIPTOR:%.+]]  = type { i64, i64, i64 }
 
-// CK23: [[MSIZE:@.+]] = {{.+}}constant [1 x i64] [i64 4]
-// CK23: [[MTYPE:@.+]] = {{.+}}constant [1 x i64] [i64 17592186044417]
 
-// CK23: foo
 void foo(int arg) {
   float farr[5][5][5];
-  // CK23: [[ARG_ADDR:%.+]] = alloca i32,
-  // CK23: [[DIMS:%.+]] = alloca [4 x [[STRUCT_DESCRIPTOR]]],
-  // CK23: [[ARRAY_IDX:%.+]] = getelementptr inbounds nuw [5 x [5 x [5 x float]]], ptr [[ARR:%.+]], {{.+}} 0, {{.+}} 0
-  // CK23: [[ARRAY_DECAY:%.+]] = getelementptr inbounds [5 x [5 x float]], ptr [[ARRAY_IDX]], {{.+}} 0, {{.+}} 0
-  // CK23: [[ARRAY_IDX_1:%.+]] = getelementptr inbounds nuw [5 x float], ptr [[ARRAY_DECAY]], {{.+}}
-  // CK23: [[ARRAY_DECAY_2:%.+]] = getelementptr inbounds [5 x float], ptr [[ARRAY_IDX_1]], {{.+}} 0, {{.+}} 0
-  // CK23: [[ARRAY_IDX_2:%.+]] = getelementptr inbounds nuw float, ptr [[ARRAY_DECAY_2]], {{.+}}
-  // CK23: [[MUL:%.+]] = mul nuw i64 4,
-  // CK23: [[BP0:%.+]] = getelementptr inbounds [1 x ptr], ptr [[BP:%.+]], {{.+}} 0, {{.+}} 0
-  // CK23: store ptr [[ARR]], ptr [[BP0]],
-  // CK23: [[P0:%.+]] = getelementptr inbounds [1 x ptr], ptr [[P:%.+]], {{.+}} 0, {{.+}} 0
-  // CK23: store ptr [[ARRAY_IDX_2]], ptr [[P0]],
-  // CK23: [[DIM_1:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 0
-  // CK23: [[OFFSET:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 0
-  // CK23: store i64 0, ptr [[OFFSET]],
-  // CK23: [[COUNT:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 1
-  // CK23: store i64 2, ptr [[COUNT]],
-  // CK23: [[STRIDE:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 2
-  // CK23: store i64 200, ptr [[STRIDE]],
-  // CK23: [[DIM_2:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 1
-  // CK23: [[OFFSET_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 0
-  // CK23: store i64 1, ptr [[OFFSET_2]],
-  // CK23: [[COUNT_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 1
-  // CK23: store i64 2, ptr [[COUNT_2]],
-  // CK23: [[STRIDE_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 2
-  // CK23: store i64 20, ptr [[STRIDE_2]],
-  // CK23: [[DIM_3:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 2
-  // CK23: [[OFFSET_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 0
-  // CK23: store i64 0, ptr [[OFFSET_3]],
-  // CK23: [[COUNT_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 1
-  // CK23: store i64 2, ptr [[COUNT_3]],
-  // CK23: [[STRIDE_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 2
-  // CK23: store i64 [[MUL]], ptr [[STRIDE_3]],
-  // CK23: [[DIM_4:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 3
-  // CK23: [[OFFSET_4:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_4]], {{.+}} 0, {{.+}} 0
-  // CK23: store i64 0, ptr [[OFFSET_4]],
-  // CK23: [[COUNT_4:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_4]], {{.+}} 0, {{.+}} 1
-  // CK23: store i64 1, ptr [[COUNT_4]],
-  // CK23: [[STRIDE_4:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_4]], {{.+}} 0, {{.+}} 2
-  // CK23: store i64 4, ptr [[STRIDE_4]],
-  // CK23-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[MSIZE]], ptr [[MTYPE]]{{.+}})
-  // CK23-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP]]
-  // CK23-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-  // CK23-DAG: [[PTRS:%.+]] = getelementptr inbounds [1 x ptr], ptr %.offload_ptrs, i32 0, i32 0
-  // CK23-DAG: store ptr [[DIMS]], ptr [[PTRS]],
 #pragma omp target update to(farr[0:2:2][1:2:1][0:2:arg])
 }
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK24 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK24 --check-prefix CK24-64
+// RUN: %clang_cc1 -DCK24 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK21-64-_2-_3-32-CK22-CK23-CK24,CK21-64-_2-_3-32-CK24,CK21-64-_2-_3-CK24,CK24,CK24-64,CK24-64-_2-_3-CK25,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,SIMD-ONLY0-_40-_60-CK24-64-_2-_3-CK25,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK24-64-_2-_3,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
 // RUN: %clang_cc1 -DCK24 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK24 --check-prefix CK24-64
-// RUN: %clang_cc1 -DCK24 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK24 --check-prefix CK24-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK21-64-_2-_3-32-CK22-CK23-CK24,CK21-64-_2-_3-32-CK24,CK21-64-_2-_3-CK24,CK24,CK24-64,CK24-64-_2-_3-CK25,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,SIMD-ONLY0-_40-_60-CK24-64-_2-_3-CK25,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK24-64-_2-_3,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
+// RUN: %clang_cc1 -DCK24 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK13-64-_3-_2-32-CK24,CK21-64-_2-_3-32-CK22-CK23-CK24,CK24,CK24-32,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
 // RUN: %clang_cc1 -DCK24 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK24 --check-prefix CK24-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK13-64-_3-_2-32-CK24,CK21-64-_2-_3-32-CK22-CK23-CK24,CK24,CK24-32,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
 
-// RUN: %clang_cc1 -DCK24 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -DCK24 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY19-_6-_15-_18-_20 %s
 // RUN: %clang_cc1 -DCK24 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY19 %s
-// RUN: %clang_cc1 -DCK24 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY19-_6-_15-_18-_20 %s
+// RUN: %clang_cc1 -DCK24 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY19-_6-_15-_18-_20 %s
 // RUN: %clang_cc1 -DCK24 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY19 %s
-// SIMD-ONLY19-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY19-_6-_15-_18-_20 %s
 #ifdef CK24
 
-// CK24: [[STRUCT_DESCRIPTOR:%.+]]  = type { i64, i64, i64 }
 
-// CK24: [[MSIZE:@.+]] = {{.+}}constant [1 x i64] [i64 4]
-// CK24: [[MTYPE:@.+]] = {{.+}}constant [1 x i64] [i64 17592186044417]
 
-// CK24: foo
 void foo(int arg) {
   double darr[3][4][5];
-  // CK24: [[DIMS:%.+]] = alloca [4 x [[STRUCT_DESCRIPTOR]]],
-  // CK24: [[ARRAY_IDX:%.+]] = getelementptr inbounds nuw [3 x [4 x [5 x double]]], ptr [[ARR:%.+]], {{.+}} 0, {{.+}} 0
-  // CK24: [[ARRAY_DECAY:%.+]] = getelementptr inbounds [4 x [5 x double]], ptr [[ARRAY_IDX]], {{.+}} 0, {{.+}} 0
-  // CK24: [[ARRAY_IDX_1:%.+]] = getelementptr inbounds nuw [5 x double], ptr [[ARRAY_DECAY]], {{.+}}
-  // CK24: [[ARRAY_DECAY_2:%.+]] = getelementptr inbounds [5 x double], ptr [[ARRAY_IDX_1]], {{.+}} 0, {{.+}} 0
-  // CK24: [[ARRAY_IDX_2:%.+]] = getelementptr inbounds nuw double, ptr [[ARRAY_DECAY_2]], {{.+}}
-  // CK24: [[MUL:%.+]] = mul nuw i64 8,
-  // CK24: [[SUB:%.+]] = sub nuw i64 4, [[ARG:%.+]]
-  // CK24: [[LEN:%.+]] = udiv {{.+}} [[SUB]], 1
-  // CK24: [[BP0:%.+]] = getelementptr inbounds [1 x ptr], ptr [[BP:%.+]], {{.+}} 0, {{.+}} 0
-  // CK24: store ptr [[ARR]], ptr [[BP0]],
-  // CK24: [[P0:%.+]] = getelementptr inbounds [1 x ptr], ptr [[P:%.+]], {{.+}} 0, {{.+}} 0
-  // CK24: store ptr [[ARRAY_IDX_2]], ptr [[P0]],
-  // CK24: [[DIM_1:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 0
-  // CK24: [[OFFSET:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 0
-  // CK24: store i64 0, ptr [[OFFSET]],
-  // CK24: [[COUNT:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 1
-  // CK24: store i64 2, ptr [[COUNT]],
-  // CK24: [[STRIDE:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 2
-  // CK24: store i64 320, ptr [[STRIDE]],
-  // CK24: [[DIM_2:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 1
-  // CK24: [[OFFSET_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 0
-  // CK24: store i64 [[ARG]], ptr [[OFFSET_2]],
-  // CK24: [[COUNT_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 1
-  // CK24: store i64 [[LEN]], ptr [[COUNT_2]],
-  // CK24: [[STRIDE_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 2
-  // CK24: store i64 40, ptr [[STRIDE_2]],
-  // CK24: [[DIM_3:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 2
-  // CK24: [[OFFSET_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 0
-  // CK24: store i64 0, ptr [[OFFSET_3]],
-  // CK24: [[COUNT_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 1
-  // CK24: store i64 2, ptr [[COUNT_3]],
-  // CK24: [[STRIDE_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 2
-  // CK24: store i64 [[MUL]], ptr [[STRIDE_3]],
-  // CK24: [[DIM_4:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 3
-  // CK24: [[OFFSET_4:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_4]], {{.+}} 0, {{.+}} 0
-  // CK24: store i64 0, ptr [[OFFSET_4]],
-  // CK24: [[COUNT_4:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_4]], {{.+}} 0, {{.+}} 1
-  // CK24: store i64 1, ptr [[COUNT_4]],
-  // CK24: [[STRIDE_4:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_4]], {{.+}} 0, {{.+}} 2
-  // CK24: store i64 8, ptr [[STRIDE_4]],
-  // CK24-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 1, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[MSIZE]], ptr [[MTYPE]]{{.+}})
-  // CK24-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP]]
-  // CK24-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-  // CK24-DAG: [[PTRS:%.+]] = getelementptr inbounds [1 x ptr], ptr %.offload_ptrs, i32 0, i32 0
-  // CK24-DAG: store ptr [[DIMS]], ptr [[PTRS]],
 #pragma omp target update to(darr[0:2:2][arg: :1][:2:arg])
 }
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK25 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK25 --check-prefix CK25-64
+// RUN: %clang_cc1 -DCK25 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK13-64-_3-_2-CK25,CK22-64-_2-_3-32-CK23-CK25,CK22-64-_2-_3-CK23-CK25,CK23-64-_3-_2-CK25,CK24-64-_2-_3-CK25,CK25,CK25-64,CK25-64-_2-_3-32-SIMD-ONLY19-_26-_22-_9-_10,SIMD-ONLY0-_40-_60-CK24-64-_2-_3-CK25,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
 // RUN: %clang_cc1 -DCK25 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK25 --check-prefix CK25-64
-// RUN: %clang_cc1 -DCK25 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK25 --check-prefix CK25-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK13-64-_3-_2-CK25,CK22-64-_2-_3-32-CK23-CK25,CK22-64-_2-_3-CK23-CK25,CK23-64-_3-_2-CK25,CK24-64-_2-_3-CK25,CK25,CK25-64,CK25-64-_2-_3-32-SIMD-ONLY19-_26-_22-_9-_10,SIMD-ONLY0-_40-_60-CK24-64-_2-_3-CK25,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
+// RUN: %clang_cc1 -DCK25 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK14-32-_3-_2-CK25,CK25,CK25-32,CK25-64-_2-_3-32-SIMD-ONLY19-_26-_22-_9-_10,CK8-32-_2-_3-CK25,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
 // RUN: %clang_cc1 -DCK25 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK25 --check-prefix CK25-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK14-32-_3-_2-CK25,CK25,CK25-32,CK25-64-_2-_3-32-SIMD-ONLY19-_26-_22-_9-_10,CK8-32-_2-_3-CK25,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10
 
-// RUN: %clang_cc1 -DCK25 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -DCK25 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK25-64-_2-_3-32-SIMD-ONLY19-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10 %s
 // RUN: %clang_cc1 -DCK25 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY19 %s
-// RUN: %clang_cc1 -DCK25 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK25-64-_2-_3-32-SIMD-ONLY19-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10 %s
+// RUN: %clang_cc1 -DCK25 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK25-64-_2-_3-32-SIMD-ONLY19-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10 %s
 // RUN: %clang_cc1 -DCK25 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY19 %s
-// SIMD-ONLY19-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK25-64-_2-_3-32-SIMD-ONLY19-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-ONLY19-_29-_23-_21-_26-_22-_9-_10,CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10,SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10,SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10 %s
 #ifdef CK25
 
-// CK25: [[STRUCT_DESCRIPTOR:%.+]]  = type { i64, i64, i64 }
 
-// CK25: [[MSIZE:@.+]] = {{.+}}constant [3 x i64] [i64 4, i64 4, i64 3]
-// CK25: [[MTYPE:@.+]] = {{.+}}constant [3 x i64] [i64 17592186044417, i64 1, i64 17592186044417]
 
-// CK25-LABEL: _Z3foo
 void foo(int arg) {
   int arr[3][4][5], x;
   float farr[4][3];
 
-  // CK25: [[DIMS:%.+]] = alloca [4 x [[STRUCT_DESCRIPTOR]]],
-  // CK25: [[DIMS_2:%.+]] = alloca [3 x [[STRUCT_DESCRIPTOR]]],
-  // CK25: [[ARRAY_IDX:%.+]] = getelementptr inbounds nuw [3 x [4 x [5 x i32]]], ptr [[ARR:%.+]], {{.+}} 0, {{.+}} 0
-  // CK25: [[ARRAY_DECAY:%.+]] = getelementptr inbounds [4 x [5 x i32]], ptr [[ARRAY_IDX]], {{.+}} 0, {{.+}} 0
-  // CK25: [[ARRAY_IDX_1:%.+]] = getelementptr inbounds nuw [5 x i32], ptr [[ARRAY_DECAY]], {{.+}}
-  // CK25: [[ARRAY_DECAY_2:%.+]] = getelementptr inbounds [5 x i32], ptr [[ARRAY_IDX_1]], {{.+}} 0, {{.+}} 0
-  // CK25: [[ARRAY_IDX_3:%.+]] = getelementptr inbounds nuw {{.+}}, ptr [[ARRAY_DECAY_2]], {{.+}} 1
-  // CK25: [[LEN:%.+]] = sub nuw i64 4, [[ARG_ADDR:%.+]]
-  // CK25: [[ARRAY_IDX_4:%.+]] = getelementptr inbounds nuw [4 x [3 x float]], ptr [[FARR:%.+]], {{.+}} 0, {{.+}} 0
-  // CK25: [[ARRAY_DECAY_5:%.+]] = getelementptr inbounds [3 x float], ptr [[ARRAY_IDX_4]], {{.+}} 0, {{.+}} 0
-  // CK25: [[ARRAY_IDX_6:%.+]] = getelementptr inbounds nuw float, ptr [[ARRAY_DECAY_5:%.+]], {{.+}} 1
-  // CK25: [[BP0:%.+]] = getelementptr inbounds [3 x ptr], ptr [[BP:%.+]], i{{.+}} 0, i{{.+}} 0
-  // CK25: [[P0:%.+]] = getelementptr inbounds [3 x ptr], ptr [[P:%.+]], i{{.+}} 0, i{{.+}} 0
-  // CK25: [[DIM_1:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 0
-  // CK25: [[OFFSET:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 0
-  // CK25: store i64 0, ptr [[OFFSET]],
-  // CK25: [[COUNT:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 1
-  // CK25: store i64 2, ptr [[COUNT]],
-  // CK25: [[STRIDE:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_1]], {{.+}} 0, {{.+}} 2
-  // CK25: store i64 80, ptr [[STRIDE]],
-  // CK25: [[DIM_2:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 1
-  // CK25: [[OFFSET_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 0
-  // CK25: store i64 [[ARG:%.+]], ptr [[OFFSET_2]],
-  // CK25: [[COUNT_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 1
-  // CK25: store i64 [[LEN]], ptr [[COUNT_2]],
-  // CK25: [[STRIDE_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_2]], {{.+}} 0, {{.+}} 2
-  // CK25: store i64 20, ptr [[STRIDE_2]],
-  // CK25: [[DIM_3:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 2
-  // CK25: [[OFFSET_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 0
-  // CK25: store i64 1, ptr [[OFFSET_3]],
-  // CK25: [[COUNT_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 1
-  // CK25: store i64 4, ptr [[COUNT_3]],
-  // CK25: [[STRIDE_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_3]], {{.+}} 0, {{.+}} 2
-  // CK25: store i64 4, ptr [[STRIDE_3]],
-  // CK25: [[DIM_4:%.+]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS]], {{.+}} 0, {{.+}} 3
-  // CK25: [[OFFSET_4:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_4]], {{.+}} 0, {{.+}} 0
-  // CK25: store i64 0, ptr [[OFFSET_4]],
-  // CK25: [[COUNT_4:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_4]], {{.+}} 0, {{.+}} 1
-  // CK25: store i64 1, ptr [[COUNT_4]],
-  // CK25: [[STRIDE_4:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_4]], {{.+}} 0, {{.+}} 2
-  // CK25: store i64 4, ptr [[STRIDE_4]],
-  // CK25: [[PTRS:%.+]] = getelementptr inbounds [3 x ptr], ptr %.offload_ptrs, i32 0, i32 0
-  // CK25: store ptr [[DIMS]], ptr [[PTRS]],
-  // CK25: [[DIM_5:%.+]] = getelementptr inbounds [3 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS_2]], {{.+}} 0, {{.+}} 0
-  // CK25: [[OFFSET_2_1:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_5]], {{.+}} 0, {{.+}} 0
-  // CK25: store i64 0, ptr [[OFFSET_2_1]],
-  // CK25: [[COUNT_2_1:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_5]], {{.+}} 0, {{.+}} 1
-  // CK25: store i64 2, ptr [[COUNT_2_1]],
-  // CK25: [[STRIDE_2_1:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_5]], {{.+}} 0, {{.+}} 2
-  // CK25: store i64 12, ptr [[STRIDE_2_1]],
-  // CK25: [[DIM_6:%.+]] = getelementptr inbounds [3 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS_2]], {{.+}} 0, {{.+}} 1
-  // CK25: [[OFFSET_2_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_6]], {{.+}} 0, {{.+}} 0
-  // CK25: store i64 1, ptr [[OFFSET_2_2]],
-  // CK25: [[COUNT_2_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_6]], {{.+}} 0, {{.+}} 1
-  // CK25: store i64 2, ptr [[COUNT_2_2]],
-  // CK25: [[STRIDE_2_2:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_6]], {{.+}} 0, {{.+}} 2
-  // CK25: store i64 4, ptr [[STRIDE_2_2]],
-  // CK25: [[DIM_7:%.+]] = getelementptr inbounds [3 x [[STRUCT_DESCRIPTOR]]], ptr [[DIMS_2]], {{.+}} 0, {{.+}} 2
-  // CK25: [[OFFSET_2_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_7]], {{.+}} 0, {{.+}} 0
-  // CK25: store i64 0, ptr [[OFFSET_2_3]],
-  // CK25: [[COUNT_2_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_7]], {{.+}} 0, {{.+}} 1
-  // CK25: store i64 1, ptr [[COUNT_2_3]],
-  // CK25: [[STRIDE_2_3:%.+]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR]], ptr [[DIM_7]], {{.+}} 0, {{.+}} 2
-  // CK25: store i64 4, ptr [[STRIDE_2_3]],
-  // CK25: [[PTRS_2:%.+]] = getelementptr inbounds [3 x ptr], ptr %.offload_ptrs, i32 0, i32 2
-  // CK25: store ptr [[DIMS_2]], ptr [[PTRS_2]],
-  // CK25-DAG: call void @__tgt_target_data_update_mapper(ptr @{{.+}}, i64 -1, i32 3, ptr [[GEPBP:%.+]], ptr [[GEPP:%.+]], ptr [[MSIZE]], ptr [[MTYPE]]{{.+}})
-  // CK25-DAG: [[GEPBP]] = getelementptr inbounds {{.+}}[[BP]]
-  // CK25-DAG: [[GEPP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
 #pragma omp target update to(arr[0:2][arg:][1:4], x, farr[0:2][1:2])
   { ++arg; }
 }
 
 #endif
-// RUN: %clang_cc1 -DCK26 -verify -Wno-vla -fopenmp -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK26 --check-prefix CK26-64
+// RUN: %clang_cc1 -DCK26 -verify -Wno-vla -fopenmp -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK26,CK26-64,CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11,CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11-_19,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,CK7-64-_2-_3-CK16-CK26-32
 // RUN: %clang_cc1 -DCK26 -fopenmp -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK26 --check-prefix CK26-64
-// RUN: %clang_cc1 -DCK26 -fopenmp-version=51 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK26 --check-prefix CK26-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK26,CK26-64,CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11,CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11-_19,CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26,CK7-64-_2-_3-CK16-CK26-32
+// RUN: %clang_cc1 -DCK26 -fopenmp-version=51 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK26,CK26-32,CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11,CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11-_19,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,CK7-64-_2-_3-CK16-CK26-32
 // RUN: %clang_cc1 -DCK26 -fopenmp -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s  --check-prefix CK26 --check-prefix CK26-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK26,CK26-32,CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11,CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11-_19,CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26,CK7-64-_2-_3-CK16-CK26-32
 
-// RUN: %clang_cc1 -DCK26 -verify -Wno-vla -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -DCK26 -verify -Wno-vla -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11,CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11-_19,SIMD-ONLY19-_14-_28-_11-_19 %s
 // RUN: %clang_cc1 -DCK26 -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY19 %s
-// RUN: %clang_cc1 -DCK26 -verify -Wno-vla -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11,CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11-_19,SIMD-ONLY19-_14-_28-_11-_19 %s
+// RUN: %clang_cc1 -DCK26 -verify -Wno-vla -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11,CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11-_19,SIMD-ONLY19-_14-_28-_11-_19 %s
 // RUN: %clang_cc1 -DCK26 -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY19 %s
-// SIMD-ONLY19-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-version=51 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-ONLY19-_19,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26,CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19,CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19,CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19,CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11-_19,SIMD-ONLY19-_14-_28-_11-_19 %s
 #ifdef CK26
 void foo() {
 int a[10];
 #pragma omp target update to(iterator(int it = 0:10) : a[it])
-// CK26-LABEL: define {{.+}}foo
-// CK26: %[[ITER:[a-zA-Z0-9_]+]] = alloca i32, align 4
-// CK26: %[[LOAD2:.*]] = load i32, ptr %[[ITER]], align 4
 }
 
 void foo1() {
 int a[10];
 #pragma omp target update from(iterator(int it = 0:10) : a[it])
-// CK26-LABEL: define {{.+}}foo1
-// CK26: %[[ITER:[a-zA-Z0-9_]+]] = alloca i32, align 4
-// CK26: %[[LOAD2:.*]] = load i32, ptr %[[ITER]], align 4
 }
 
 #endif
 #endif
+// CK18-32-LABEL: define dso_local void @_Z13array_shapingPfi(
+// CK18-32-SAME: ptr noundef [[F:%.*]], i32 noundef [[SA:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11-_19-LABEL: define dso_local void @_Z3foov(
+// CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-LABEL: define dso_local void @_Z17no_target_devicesi(
+// CK4-64-_2-_3-32-SIMD-ONLY3-_5-_4-ONLY4-LABEL: define dso_local void @_Z16device_side_scani(
+// CK21-64-_2-_3-32-CK22-LABEL: define dso_local void @_Z3barv(
+// CK21-64-_2-_3-32-CK22-CK26-SIMD-ONLY19-_14-_28-_11-_19-SAME: ) #[[ATTR0:[0-9]+]] {
+// CK18-64-_3-_2-SIMD-ONLY18-_4-_5-LABEL: define dso_local void @_Z13array_shapingPfi(
+// CK18-64-_3-_2-SIMD-ONLY18-_4-SAME: ptr noundef [[F:%.*]], i32 noundef signext [[SA:%.*]]) #[[ATTR0:[0-9]+]] {
+// SIMD-ONLY18-_3-_5-SAME: ptr noundef [[F:%.*]], i32 noundef [[SA:%.*]]) #[[ATTR0:[0-9]+]] {
+// SIMD-ONLY0-_54-_21-_40-_60-CK20-64-_2-_3-32-ONLY19-_29-_23-CK23-_4-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10-LABEL: define dso_local void @_Z3fooi(
+// CK2-64-_2-_3-SIMD-ONLY1-_4-LABEL: define dso_local noundef signext i32 @_Z3bari(
+// CK19-64-_3-_2-32-SIMD-ONLY0-_28-_38-_41-_5-LABEL: define dso_local void @_Z13check_presenti(
+// SIMD-ONLY0-_54-_21-CK2-64-_2-_3-ONLY1-_4-CK3-CK4-CK19-_28-_38-CK20-ONLY19-_29-_23-CK23-_7-CK24-_6-_15-CK25-_26-_22-SAME: i32 noundef signext [[ARG:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK2-32-_2-_3-SIMD-ONLY1-_5-LABEL: define dso_local noundef i32 @_Z3bari(
+// SIMD-ONLY0-_40-_60-CK2-32-_2-_3-ONLY1-_5-CK3-ONLY2-CK4-ONLY3-_4-ONLY4-CK19-_41-CK20-ONLY19-_21-CK23-_25-_8-CK24-_18-_20-CK25-_9-_10-SAME: i32 noundef [[ARG:%.*]]) #[[ATTR0:[0-9]+]] {
+// SIMD-ONLY19-_16-_12-_24-_27-_13-_2-_17-_5-LABEL: define dso_local void @_Z3barv(
+// SIMD-ONLY19-_16-_12-_24-_27-_13-_2-_17-_5-SAME: ) #[[ATTR0:[0-9]+]] {
+// CK15-64-_2-_3-32-SIMD-ONLY0-_61-_53-_58-_14-LABEL: define dso_local void @_Z13lvalue_memberP3SSA(
+// CK15-64-_2-_3-32-SIMD-ONLY0-_61-_53-_58-_14-SAME: ptr noundef [[SAP:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK8-64-_2-_3-32-CK13-SIMD-ONLY0-_31-_45-_12-_15-LABEL: define dso_local void @_Z6lvaluePPiii(
+// CK13-64-_3-_2-SIMD-ONLY0-_31-_45-SAME: ptr noundef [[BB:%.*]], i32 noundef signext [[A:%.*]], i32 noundef signext [[B:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK13-32-_2-_3-SIMD-ONLY0-_12-_15-SAME: ptr noundef [[BB:%.*]], i32 noundef [[A:%.*]], i32 noundef [[B:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK16-64-LABEL: define dso_local void @_Z16lvalue_find_basePfPi(
+// CK16-64-SAME: ptr noundef [[F:%.*]], ptr noundef [[I:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK17-64-LABEL: define dso_local void @_Z16lvalue_find_basePPfP3SSA(
+// CK17-64-SAME: ptr noundef [[F:%.*]], ptr noundef [[SA:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK9-64-_3-_2-32-SIMD-ONLY0-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_4-_56-CK12-_39-_34-_13-_50-LABEL: define dso_local void @_Z6lvalueP1Sii(
+// CK9-64-_3-_2-CK12-SAME: ptr noundef [[S:%.*]], i32 noundef signext [[L:%.*]], i32 noundef signext [[E:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK9-32-_2-_3-SIMD-ONLY0-_42-_44-CK10-_22-CK11-_4-_56-CK12-_13-_50-SAME: ptr noundef [[S:%.*]], i32 noundef [[L:%.*]], i32 noundef [[E:%.*]]) #[[ATTR0:[0-9]+]] {
+// SIMD-ONLY0-_29-_3-CK10-64-_2-_24-_16-CK11-_17-_6-_39-_34-SAME: ptr noundef [[S:%.*]], i32 noundef signext [[L:%.*]], i32 noundef signext [[E:%.*]]) #[[ATTR0:[0-9]+]] {
+// SIMD-ONLY0-_10-_33-_37-_32-LABEL: define dso_local void @_Z6lvaluePPiii(
+// CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-LABEL: define dso_local void @_Z6lvaluePiii(
+// SIMD-ONLY0-_11-_9-_7-_51-_26-_19-SAME: ptr noundef [[B:%.*]], i32 noundef [[L:%.*]], i32 noundef [[E:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK5-64-_3-_2-SIMD-ONLY0-_8-_47-CK6-_27-_18-CK7-_20-_35-CK8-_10-_33-SAME: ptr noundef [[B:%.*]], i32 noundef signext [[L:%.*]], i32 noundef signext [[E:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK5-32-_3-_2-CK6-CK7-CK8-SIMD-ONLY0-_37-_32-SAME: ptr noundef [[B:%.*]], i32 noundef [[L:%.*]], i32 noundef [[E:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK16-32-_2-_3-SIMD-ONLY0-_49-_23-_57-_48-LABEL: define dso_local void @_Z16lvalue_find_basePfPi(
+// CK16-32-_2-_3-SIMD-ONLY0-_49-_23-_57-_48-SAME: ptr noundef [[F:%.*]], ptr noundef [[I:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK17-32-_3-_2-SIMD-ONLY0-_52-_46-_25-_55-LABEL: define dso_local void @_Z16lvalue_find_basePPfP3SSA(
+// CK17-32-_3-_2-SIMD-ONLY0-_52-_46-_25-_55-SAME: ptr noundef [[F:%.*]], ptr noundef [[SA:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK1-LABEL: define dso_local void @_Z3fooi(
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-LABEL: define dso_local void @_Z13lvalue_memberP3SSA(
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-SAME: ptr noundef [[SAP:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK1-64-_2-_3-SIMD-ONLY2-_4-_5-ONLY3-ONLY4-SAME: i32 noundef signext [[ARG:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK1-32-SAME: i32 noundef [[ARG:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK2-ONLY1-_4-_5-CK3-ONLY2-CK4-ONLY3-ONLY4-CK5-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-CK8-_10-_33-_37-_32-CK9-_29-_42-_44-CK10-_24-_16-_22-CK11-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK18-ONLY18-CK19-_28-_38-_41-CK20-ONLY19-CK21-CK22-CK23-CK24-CK25-CK26-NEXT:  [[ENTRY:.*:]]
+// CK15-64-NEXT:    [[SAP_ADDR:%.*]] = alloca ptr, align 8
+// SIMD-ONLY19-_14-_28-_11-_19-NEXT:    [[A:%.*]] = alloca [10 x i32], align 4
+// CK16-64-_2-_3-CK17-CK18-SIMD-ONLY18-_4-NEXT:    [[F_ADDR:%.*]] = alloca ptr, align 8
+// CK18-32-_3-_2-SIMD-ONLY18-_5-NEXT:    [[F_ADDR:%.*]] = alloca ptr, align 4
+// CK18-64-_3-_2-32-SIMD-ONLY18-_4-_5-NEXT:    [[SA_ADDR:%.*]] = alloca i32, align 4
+// CK16-64-NEXT:    [[I_ADDR:%.*]] = alloca ptr, align 8
+// CK26-NEXT:    [[A:%.*]] = alloca [10 x i32], align 4
+// CK26-NEXT:    [[IT:%.*]] = alloca i32, align 4
+// CK5-64-_3-_2-CK7-NEXT:    [[B_ADDR:%.*]] = alloca ptr, align 8
+// CK5-32-NEXT:    [[B_ADDR:%.*]] = alloca ptr, align 4
+// CK17-64-NEXT:    [[SA_ADDR:%.*]] = alloca ptr, align 8
+// CK9-64-_3-_2-CK12-NEXT:    [[S_ADDR:%.*]] = alloca ptr, align 8
+// CK9-32-_2-_3-CK10-CK11-CK12-NEXT:    [[S_ADDR:%.*]] = alloca ptr, align 4
+// CK10-64-_3-_2-CK11-NEXT:    [[S_ADDR:%.*]] = alloca ptr, align 8
+// SIMD-ONLY0-_11-_9-CK6-32-_3-_2-_7-_51-CK7-_26-_19-NEXT:    [[B_ADDR:%.*]] = alloca ptr, align 4
+// SIMD-ONLY0-_8-_47-CK6-64-_3-_2-_27-_18-_20-_35-_10-_33-NEXT:    [[B_ADDR:%.*]] = alloca ptr, align 8
+// SIMD-ONLY0-_37-_32-NEXT:    [[B_ADDR:%.*]] = alloca ptr, align 4
+// CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12-NEXT:    [[L_ADDR:%.*]] = alloca i32, align 4
+// CK5-64-_3-_2-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK12-NEXT:    [[E_ADDR:%.*]] = alloca i32, align 4
+// SIMD-ONLY0-_52-_46-NEXT:    [[F_ADDR:%.*]] = alloca ptr, align 8
+// SIMD-ONLY0-_52-_46-NEXT:    [[SA_ADDR:%.*]] = alloca ptr, align 8
+// SIMD-ONLY0-_52-_46-NEXT:    store ptr [[F]], ptr [[F_ADDR]], align 8
+// SIMD-ONLY0-_52-_46-NEXT:    store ptr [[SA]], ptr [[SA_ADDR]], align 8
+// SIMD-ONLY0-_52-_46-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[SA_ADDR]], align 8
+// CK16-32-_2-_3-CK17-SIMD-ONLY0-_25-_55-NEXT:    [[F_ADDR:%.*]] = alloca ptr, align 4
+// CK17-32-NEXT:    [[SA_ADDR:%.*]] = alloca ptr, align 4
+// CK16-32-NEXT:    [[I_ADDR:%.*]] = alloca ptr, align 4
+// CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20-NEXT:    [[ARG_ADDR:%.*]] = alloca i32, align 4
+// CK20-64-NEXT:    [[ARR:%.*]] = alloca [3 x [4 x [[STRUCT_ST:%.*]]]], align 8
+// CK2-64-_2-_3-SIMD-ONLY1-_4-NEXT:    [[A:%.*]] = alloca [[STRUCT_ST:%.*]], align 8
+// CK2-32-_2-_3-SIMD-ONLY1-_5-NEXT:    [[A:%.*]] = alloca [[STRUCT_ST:%.*]], align 4
+// CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-NEXT:    store i32 [[ARG]], ptr [[ARG_ADDR]], align 4
+// CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-NEXT:    [[TMP0:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK2-64-_2-_3-SIMD-ONLY1-_4-NEXT:    [[CALL:%.*]] = call noundef signext i32 @_ZN2STIiE3fooEi(ptr noundef nonnull align 8 dereferenceable(16) [[A]], i32 noundef signext [[TMP0]])
+// CK2-32-_2-_3-SIMD-ONLY1-_5-NEXT:    [[CALL:%.*]] = call noundef i32 @_ZN2STIiE3fooEi(ptr noundef nonnull align 4 dereferenceable(8) [[A]], i32 noundef [[TMP0]])
+// CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-NEXT:    ret i32 [[CALL]]
+//
+//
+// CK2-64-_2-_3-SIMD-ONLY1-_4-LABEL: define linkonce_odr noundef signext i32 @_ZN2STIiE3fooEi(
+// CK2-64-_2-_3-SIMD-ONLY1-_4-SAME: ptr noundef nonnull align 8 dereferenceable(16) [[THIS:%.*]], i32 noundef signext [[ARG:%.*]]) #[[ATTR0]] comdat {
+// CK2-32-_2-_3-SIMD-ONLY1-_5-LABEL: define linkonce_odr noundef i32 @_ZN2STIiE3fooEi(
+// CK2-32-_2-_3-SIMD-ONLY1-_5-SAME: ptr noundef nonnull align 4 dereferenceable(8) [[THIS:%.*]], i32 noundef [[ARG:%.*]]) #[[ATTR0]] comdat align 2 {
+// CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-NEXT:  [[ENTRY:.*:]]
+// CK2-64-_2-_3-SIMD-ONLY1-_4-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 8
+// CK2-32-_2-_3-SIMD-ONLY1-_5-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 4
+// CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-NEXT:    [[ARG_ADDR:%.*]] = alloca i32, align 4
+// CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-NEXT:    [[DOTCAPTURE_EXPR_:%.*]] = alloca i8, align 1
+// CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-NEXT:    [[DOTCAPTURE_EXPR_2:%.*]] = alloca i32, align 4
+// CK1-64-_2-_3-32-CK19-NEXT:    [[LA:%.*]] = alloca i32, align 4
+// CK1-64-_2-_3-CK19-NEXT:    [[SAVED_STACK:%.*]] = alloca ptr, align 8
+// CK1-64-_2-_3-CK19-NEXT:    [[__VLA_EXPR0:%.*]] = alloca i64, align 8
+// CK1-32-NEXT:    [[SAVED_STACK:%.*]] = alloca ptr, align 4
+// CK1-32-NEXT:    [[__VLA_EXPR0:%.*]] = alloca i32, align 4
+// CK1-NEXT:    [[DOTCAPTURE_EXPR_:%.*]] = alloca i32, align 4
+// CK1-64-_2-_3-CK2-CK9-CK15-CK19-CK20-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 8
+// CK1-64-_2-_3-CK2-CK9-CK15-CK19-CK20-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 8
+// CK1-64-_2-_3-CK2-CK9-CK15-CK19-CK20-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 8
+// CK15-64-NEXT:    [[DOTOFFLOAD_BASEPTRS7:%.*]] = alloca [1 x ptr], align 8
+// CK15-64-NEXT:    [[DOTOFFLOAD_PTRS8:%.*]] = alloca [1 x ptr], align 8
+// CK15-64-NEXT:    [[DOTOFFLOAD_MAPPERS9:%.*]] = alloca [1 x ptr], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[SAP_ADDR:%.*]] = alloca ptr, align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[D:%.*]] = alloca ptr, align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[SA:%.*]] = alloca [[STRUCT_SSA:%.*]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[SB:%.*]] = alloca [[STRUCT_SSB:%.*]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK15-NEXT:    store ptr [[SAP]], ptr [[SAP_ADDR]], align 8
+// CK15-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[SAP_ADDR]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    call void @_ZN3SSAC1ERPd(ptr noundef nonnull align 8 dereferenceable(16) [[SA]], ptr noundef nonnull align 8 dereferenceable(8) [[D]])
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    call void @_ZN3SSBC1ERP3SSA(ptr noundef nonnull align 8 dereferenceable(24) [[SB]], ptr noundef nonnull align 8 dereferenceable(8) [[SAP_ADDR]])
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    call void @_ZN3SSB3fooEv(ptr noundef nonnull align 8 dereferenceable(24) [[SB]])
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK15-NEXT:    [[SAP_ADDR:%.*]] = alloca ptr, align 4
+// CK1-32-_2-_3-CK6-CK7-CK16-CK17-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 4
+// CK1-32-_2-_3-CK6-CK7-CK16-CK17-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 4
+// CK1-32-_2-_3-CK6-CK7-CK16-CK17-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 4
+// CK17-32-NEXT:    [[DOTOFFLOAD_BASEPTRS22:%.*]] = alloca [1 x ptr], align 4
+// CK17-32-NEXT:    [[DOTOFFLOAD_PTRS23:%.*]] = alloca [1 x ptr], align 4
+// CK17-32-NEXT:    [[DOTOFFLOAD_MAPPERS24:%.*]] = alloca [1 x ptr], align 4
+// CK1-NEXT:    [[AGG_CAPTURED:%.*]] = alloca [[STRUCT_ANON:%.*]], align 4
+// CK1-NEXT:    [[DOTCAPTURE_EXPR_2:%.*]] = alloca i8, align 1
+// CK1-64-NEXT:    [[DOTOFFLOAD_BASEPTRS3:%.*]] = alloca [1 x ptr], align 8
+// CK1-64-NEXT:    [[DOTOFFLOAD_PTRS4:%.*]] = alloca [1 x ptr], align 8
+// CK1-64-NEXT:    [[DOTOFFLOAD_MAPPERS5:%.*]] = alloca [1 x ptr], align 8
+// CK1-64-NEXT:    [[DOTOFFLOAD_BASEPTRS8:%.*]] = alloca [1 x ptr], align 8
+// CK1-64-NEXT:    [[DOTOFFLOAD_PTRS9:%.*]] = alloca [1 x ptr], align 8
+// CK1-64-NEXT:    [[DOTOFFLOAD_MAPPERS10:%.*]] = alloca [1 x ptr], align 8
+// CK1-32-_2-_3-CK6-CK16-NEXT:    [[DOTOFFLOAD_BASEPTRS3:%.*]] = alloca [1 x ptr], align 4
+// CK1-32-_2-_3-CK6-CK16-NEXT:    [[DOTOFFLOAD_PTRS4:%.*]] = alloca [1 x ptr], align 4
+// CK1-32-_2-_3-CK6-CK16-NEXT:    [[DOTOFFLOAD_MAPPERS5:%.*]] = alloca [1 x ptr], align 4
+// CK7-32-NEXT:    [[DOTOFFLOAD_BASEPTRS5:%.*]] = alloca [1 x ptr], align 4
+// CK7-32-NEXT:    [[DOTOFFLOAD_PTRS6:%.*]] = alloca [1 x ptr], align 4
+// CK7-32-NEXT:    [[DOTOFFLOAD_MAPPERS7:%.*]] = alloca [1 x ptr], align 4
+// CK6-64-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 8
+// CK6-64-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 8
+// CK6-64-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 8
+// CK6-64-_3-_2-CK9-NEXT:    [[DOTOFFLOAD_BASEPTRS5:%.*]] = alloca [1 x ptr], align 8
+// CK6-64-_3-_2-CK9-NEXT:    [[DOTOFFLOAD_PTRS6:%.*]] = alloca [1 x ptr], align 8
+// CK6-64-_3-_2-CK9-NEXT:    [[DOTOFFLOAD_MAPPERS7:%.*]] = alloca [1 x ptr], align 8
+// CK9-64-NEXT:    store ptr [[S]], ptr [[S_ADDR]], align 8
+// CK20-32-NEXT:    [[ARR:%.*]] = alloca [3 x [4 x [[STRUCT_ST:%.*]]]], align 4
+// CK2-64-_2-_3-SIMD-ONLY1-_4-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 8
+// CK19-32-NEXT:    [[SAVED_STACK:%.*]] = alloca ptr, align 4
+// CK19-32-NEXT:    [[__VLA_EXPR0:%.*]] = alloca i32, align 4
+// CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 4
+// CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 4
+// CK2-32-_2-_3-CK9-CK10-CK11-CK15-CK19-CK20-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 4
+// CK10-32-_2-_3-CK15-NEXT:    [[DOTOFFLOAD_BASEPTRS7:%.*]] = alloca [1 x ptr], align 4
+// CK10-32-_2-_3-CK15-NEXT:    [[DOTOFFLOAD_PTRS8:%.*]] = alloca [1 x ptr], align 4
+// CK10-32-_2-_3-CK15-NEXT:    [[DOTOFFLOAD_MAPPERS9:%.*]] = alloca [1 x ptr], align 4
+// CK11-32-NEXT:    [[DOTOFFLOAD_BASEPTRS9:%.*]] = alloca [1 x ptr], align 4
+// CK11-32-NEXT:    [[DOTOFFLOAD_PTRS10:%.*]] = alloca [1 x ptr], align 4
+// CK11-32-NEXT:    [[DOTOFFLOAD_MAPPERS11:%.*]] = alloca [1 x ptr], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[D:%.*]] = alloca ptr, align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[SA:%.*]] = alloca [[STRUCT_SSA:%.*]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[SB:%.*]] = alloca [[STRUCT_SSB:%.*]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK15-NEXT:    store ptr [[SAP]], ptr [[SAP_ADDR]], align 4
+// CK15-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[SAP_ADDR]], align 4
+// CK15-NEXT:    [[P:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA:%.*]], ptr [[TMP0]], i32 0, i32 0
+// CK9-32-NEXT:    [[DOTOFFLOAD_BASEPTRS5:%.*]] = alloca [1 x ptr], align 4
+// CK9-32-NEXT:    [[DOTOFFLOAD_PTRS6:%.*]] = alloca [1 x ptr], align 4
+// CK9-32-NEXT:    [[DOTOFFLOAD_MAPPERS7:%.*]] = alloca [1 x ptr], align 4
+// CK9-32-_2-_3-CK10-CK11-NEXT:    store ptr [[S]], ptr [[S_ADDR]], align 4
+// CK10-64-_3-_2-CK11-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 8
+// CK10-64-_3-_2-CK11-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 8
+// CK10-64-_3-_2-CK11-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 8
+// CK10-64-NEXT:    [[DOTOFFLOAD_BASEPTRS9:%.*]] = alloca [1 x ptr], align 8
+// CK10-64-NEXT:    [[DOTOFFLOAD_PTRS10:%.*]] = alloca [1 x ptr], align 8
+// CK10-64-NEXT:    [[DOTOFFLOAD_MAPPERS11:%.*]] = alloca [1 x ptr], align 8
+// CK11-64-NEXT:    [[DOTOFFLOAD_BASEPTRS11:%.*]] = alloca [1 x ptr], align 8
+// CK11-64-NEXT:    [[DOTOFFLOAD_PTRS12:%.*]] = alloca [1 x ptr], align 8
+// CK11-64-NEXT:    [[DOTOFFLOAD_MAPPERS13:%.*]] = alloca [1 x ptr], align 8
+// CK10-64-_3-_2-CK11-NEXT:    store ptr [[S]], ptr [[S_ADDR]], align 8
+// SIMD-ONLY0-_11-_9-_7-_51-_26-_19-NEXT:    store ptr [[B]], ptr [[B_ADDR]], align 4
+// SIMD-ONLY0-_8-_47-CK6-64-_3-_2-_27-_18-_20-_35-_10-_33-NEXT:    store ptr [[B]], ptr [[B_ADDR]], align 8
+// CK6-32-_3-_2-CK7-SIMD-ONLY0-_37-_32-NEXT:    store ptr [[B]], ptr [[B_ADDR]], align 4
+// SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-NEXT:    store i32 [[L]], ptr [[L_ADDR]], align 4
+// SIMD-ONLY0-_8-_47-_11-_9-CK6-64-_3-_2-32-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-NEXT:    store i32 [[E]], ptr [[E_ADDR]], align 4
+// CK9-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK9-32-_2-_3-CK10-CK11-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK10-64-_3-_2-CK11-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK9-64-_3-_2-32-CK10-CK11-NEXT:    [[P:%.*]] = getelementptr inbounds nuw [[STRUCT_S:%.*]], ptr [[TMP0]], i32 0, i32 0
+// CK9-64-_3-_2-CK15-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[P]], align 8
+// CK15-64-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[SAP_ADDR]], align 8
+// CK15-64-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[SAP_ADDR]], align 8
+// CK9-64-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK9-64-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK9-32-_2-_3-CK10-CK11-CK15-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[P]], align 4
+// CK15-32-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[SAP_ADDR]], align 4
+// CK15-32-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[SAP_ADDR]], align 4
+// CK15-NEXT:    [[P1:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP3]], i32 0, i32 0
+// CK9-32-_2-_3-CK10-CK11-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK9-32-_2-_3-CK10-CK11-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK10-64-_3-_2-CK11-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[P]], align 8
+// CK10-64-_3-_2-CK11-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK10-64-_3-_2-CK11-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK9-64-_3-_2-32-CK10-CK11-NEXT:    [[P1:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP3]], i32 0, i32 0
+// CK9-64-_3-_2-CK15-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[P1]], align 8
+// CK15-64-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds double, ptr [[TMP4]], i64 3
+// CK9-32-_2-_3-CK10-CK11-CK15-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[P1]], align 4
+// CK10-64-_3-_2-CK11-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[P1]], align 8
+// CK10-64-_3-_2-32-CK11-NEXT:    [[TMP5:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK10-32-_2-_3-CK11-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds double, ptr [[TMP4]], i32 [[TMP5]]
+// CK11-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds double, ptr [[ADD_PTR]], i32 3
+// CK10-64-_3-_2-CK11-NEXT:    [[IDX_EXT:%.*]] = sext i32 [[TMP5]] to i64
+// CK10-64-_3-_2-CK11-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds double, ptr [[TMP4]], i64 [[IDX_EXT]]
+// CK11-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds double, ptr [[ADD_PTR]], i64 3
+// CK6-32-_3-_2-CK7-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK6-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// SIMD-ONLY0-_8-_47-_11-_9-_27-_18-_7-_51-_20-_35-_26-_19-_10-_33-_37-_32-NEXT:    [[TMP0:%.*]] = load i32, ptr [[E_ADDR]], align 4
+// SIMD-ONLY0-_11-_9-CK6-32-_3-_2-_7-_51-CK7-_26-_19-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// SIMD-ONLY0-_8-_47-CK6-64-_3-_2-_27-_18-_20-_35-_10-_33-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// SIMD-ONLY0-_37-_32-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// SIMD-ONLY0-_25-_55-NEXT:    [[SA_ADDR:%.*]] = alloca ptr, align 4
+// CK16-32-_2-_3-CK17-SIMD-ONLY0-_25-_55-NEXT:    store ptr [[F]], ptr [[F_ADDR]], align 4
+// CK16-32-NEXT:    store ptr [[I]], ptr [[I_ADDR]], align 4
+// CK16-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK16-32-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[I_ADDR]], align 4
+// SIMD-ONLY0-_8-_47-_11-_9-CK16-32-_2-_3-NEXT:    [[TMP2:%.*]] = load i32, ptr [[TMP1]], align 4
+// SIMD-ONLY0-_8-_47-_11-_9-NEXT:    [[ADD:%.*]] = add nsw i32 [[TMP2]], [[TMP0]]
+// SIMD-ONLY0-_8-_47-_11-_9-NEXT:    store i32 [[ADD]], ptr [[TMP1]], align 4
+// CK6-64-_3-_2-32-SIMD-ONLY0-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-NEXT:    [[TMP2:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK6-32-_3-_2-SIMD-ONLY0-_7-_51-CK7-_26-_19-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds i32, ptr [[TMP1]], i32 [[TMP2]]
+// CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35-_10-_33-NEXT:    [[IDX_EXT:%.*]] = sext i32 [[TMP2]] to i64
+// SIMD-ONLY0-_10-_33-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds ptr, ptr [[TMP1]], i64 [[IDX_EXT]]
+// SIMD-ONLY0-_10-_33-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds ptr, ptr [[ADD_PTR]], i64 1
+// SIMD-ONLY0-_10-_33-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[ARRAYIDX]], align 8
+// SIMD-ONLY0-_10-_33-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds i32, ptr [[TMP3]], i64 2
+// SIMD-ONLY0-_37-_32-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds ptr, ptr [[TMP1]], i32 [[TMP2]]
+// SIMD-ONLY0-_37-_32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds ptr, ptr [[ADD_PTR]], i32 1
+// SIMD-ONLY0-_37-_32-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY0-_37-_32-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds i32, ptr [[TMP3]], i32 2
+// SIMD-ONLY0-_10-_33-_37-_32-NEXT:    [[TMP4:%.*]] = load i32, ptr [[ARRAYIDX1]], align 4
+// CK6-64-_3-_2-SIMD-ONLY0-_27-_18-_20-_35-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds i32, ptr [[TMP1]], i64 [[IDX_EXT]]
+// CK6-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK6-32-NEXT:    store ptr [[TMP0]], ptr [[TMP3]], align 4
+// CK6-64-NEXT:    store ptr [[TMP0]], ptr [[TMP3]], align 8
+// CK6-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK6-32-NEXT:    store ptr [[ADD_PTR]], ptr [[TMP4]], align 4
+// CK6-32-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK6-32-NEXT:    store ptr null, ptr [[TMP5]], align 4
+// CK6-64-NEXT:    store ptr [[ADD_PTR]], ptr [[TMP4]], align 8
+// CK6-64-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK6-64-NEXT:    store ptr null, ptr [[TMP5]], align 8
+// CK6-64-_3-_2-32-CK10-CK11-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK10-32-_2-_3-CK11-NEXT:    store ptr [[TMP1]], ptr [[TMP6]], align 4
+// CK10-64-_3-_2-CK11-NEXT:    store ptr [[TMP1]], ptr [[TMP6]], align 8
+// CK6-64-_3-_2-32-CK10-CK11-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK10-32-NEXT:    store ptr [[ADD_PTR]], ptr [[TMP7]], align 4
+// CK11-32-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP7]], align 4
+// CK10-32-_2-_3-CK11-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK10-32-_2-_3-CK11-NEXT:    store ptr null, ptr [[TMP8]], align 4
+// CK10-64-NEXT:    store ptr [[ADD_PTR]], ptr [[TMP7]], align 8
+// CK11-64-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP7]], align 8
+// CK10-64-_3-_2-CK11-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK10-64-_3-_2-CK11-NEXT:    store ptr null, ptr [[TMP8]], align 8
+// CK10-64-_3-_2-32-CK11-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK10-64-_3-_2-32-CK11-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK10-64-_3-_2-32-CK11-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP9]], ptr [[TMP10]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK10-64-_3-_2-32-CK11-NEXT:    [[TMP11:%.*]] = load i32, ptr [[E_ADDR]], align 4
+// CK10-64-_3-_2-32-CK11-NEXT:    [[CONV:%.*]] = sitofp i32 [[TMP11]] to double
+// CK10-32-_2-_3-CK11-NEXT:    [[TMP12:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK10-64-_3-_2-CK11-NEXT:    [[TMP12:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK10-64-_3-_2-32-CK11-NEXT:    [[P2:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP12]], i32 0, i32 0
+// CK10-32-_2-_3-CK11-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[P2]], align 4
+// CK10-64-_3-_2-CK11-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[P2]], align 8
+// CK6-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP6]], ptr [[TMP7]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK6-NEXT:    [[TMP8:%.*]] = load i32, ptr [[E_ADDR]], align 4
+// CK6-32-NEXT:    [[TMP9:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK6-64-NEXT:    [[TMP9:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK6-NEXT:    [[TMP10:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK6-32-NEXT:    [[ADD_PTR1:%.*]] = getelementptr inbounds i32, ptr [[TMP9]], i32 [[TMP10]]
+// CK6-32-NEXT:    [[TMP11:%.*]] = load i32, ptr [[ADD_PTR1]], align 4
+// CK6-64-NEXT:    [[IDX_EXT1:%.*]] = sext i32 [[TMP10]] to i64
+// CK6-64-NEXT:    [[ADD_PTR2:%.*]] = getelementptr inbounds i32, ptr [[TMP9]], i64 [[IDX_EXT1]]
+// CK6-64-NEXT:    [[TMP11:%.*]] = load i32, ptr [[ADD_PTR2]], align 4
+// CK6-NEXT:    [[ADD:%.*]] = add nsw i32 [[TMP11]], [[TMP8]]
+// CK6-32-NEXT:    store i32 [[ADD]], ptr [[ADD_PTR1]], align 4
+// CK6-32-NEXT:    [[TMP12:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK6-32-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK6-64-NEXT:    store i32 [[ADD]], ptr [[ADD_PTR2]], align 4
+// CK6-64-NEXT:    [[TMP12:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK6-64-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK6-64-_3-_2-32-CK10-CK11-NEXT:    [[TMP14:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK10-32-_2-_3-CK11-NEXT:    [[ADD_PTR3:%.*]] = getelementptr inbounds double, ptr [[TMP13]], i32 [[TMP14]]
+// CK10-32-NEXT:    [[TMP15:%.*]] = load double, ptr [[ADD_PTR3]], align 4
+// CK11-32-NEXT:    [[ARRAYIDX4:%.*]] = getelementptr inbounds double, ptr [[ADD_PTR3]], i32 3
+// CK11-32-NEXT:    [[TMP15:%.*]] = load double, ptr [[ARRAYIDX4]], align 4
+// CK6-32-NEXT:    [[ADD_PTR2:%.*]] = getelementptr inbounds i32, ptr [[TMP13]], i32 [[TMP14]]
+// CK6-32-NEXT:    [[TMP15:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS3]], i32 0, i32 0
+// CK6-32-NEXT:    store ptr [[TMP12]], ptr [[TMP15]], align 4
+// CK6-32-NEXT:    [[TMP16:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS4]], i32 0, i32 0
+// CK6-32-NEXT:    store ptr [[ADD_PTR2]], ptr [[TMP16]], align 4
+// CK6-32-NEXT:    [[TMP17:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS5]], i32 0, i32 0
+// CK6-32-NEXT:    store ptr null, ptr [[TMP17]], align 4
+// CK6-32-NEXT:    [[TMP18:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS3]], i32 0, i32 0
+// CK6-32-NEXT:    [[TMP19:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS4]], i32 0, i32 0
+// CK6-64-_3-_2-CK10-CK11-NEXT:    [[IDX_EXT3:%.*]] = sext i32 [[TMP14]] to i64
+// CK10-64-_3-_2-CK11-NEXT:    [[ADD_PTR4:%.*]] = getelementptr inbounds double, ptr [[TMP13]], i64 [[IDX_EXT3]]
+// CK10-64-NEXT:    [[TMP15:%.*]] = load double, ptr [[ADD_PTR4]], align 8
+// CK11-64-NEXT:    [[ARRAYIDX5:%.*]] = getelementptr inbounds double, ptr [[ADD_PTR4]], i64 3
+// CK11-64-NEXT:    [[TMP15:%.*]] = load double, ptr [[ARRAYIDX5]], align 8
+// CK10-64-_3-_2-32-CK11-NEXT:    [[ADD:%.*]] = fadd double [[TMP15]], [[CONV]]
+// CK10-32-NEXT:    store double [[ADD]], ptr [[ADD_PTR3]], align 4
+// CK11-32-NEXT:    store double [[ADD]], ptr [[ARRAYIDX4]], align 4
+// CK15-32-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds double, ptr [[TMP4]], i32 3
+// CK20-NEXT:    [[DIMS:%.*]] = alloca [3 x [[STRUCT_DESCRIPTOR_DIM:%.*]]], align 8
+// CK2-32-_2-_3-SIMD-ONLY1-_5-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 4
+// CK6-64-NEXT:    [[ADD_PTR4:%.*]] = getelementptr inbounds i32, ptr [[TMP13]], i64 [[IDX_EXT3]]
+// CK6-64-NEXT:    [[TMP15:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS5]], i32 0, i32 0
+// CK6-64-NEXT:    store ptr [[TMP12]], ptr [[TMP15]], align 8
+// CK6-64-NEXT:    [[TMP16:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS6]], i32 0, i32 0
+// CK6-64-NEXT:    store ptr [[ADD_PTR4]], ptr [[TMP16]], align 8
+// CK6-64-NEXT:    [[TMP17:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS7]], i64 0, i64 0
+// CK6-64-NEXT:    store ptr null, ptr [[TMP17]], align 8
+// CK6-64-NEXT:    [[TMP18:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS5]], i32 0, i32 0
+// CK6-64-NEXT:    [[TMP19:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS6]], i32 0, i32 0
+// CK6-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP18]], ptr [[TMP19]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// CK7-32-_2-_3-SIMD-ONLY0-_20-_35-_26-_19-NEXT:    [[TMP3:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK7-32-_2-_3-SIMD-ONLY0-_26-_19-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds i32, ptr [[ADD_PTR]], i32 [[TMP3]]
+// CK16-32-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK16-32-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds float, ptr [[TMP3]], i32 [[TMP2]]
+// CK1-32-NEXT:    [[DOTOFFLOAD_BASEPTRS8:%.*]] = alloca [1 x ptr], align 4
+// CK1-32-NEXT:    [[DOTOFFLOAD_PTRS9:%.*]] = alloca [1 x ptr], align 4
+// CK1-32-NEXT:    [[DOTOFFLOAD_MAPPERS10:%.*]] = alloca [1 x ptr], align 4
+// CK1-64-_2-_3-32-CK19-NEXT:    [[DOTOFFLOAD_SIZES:%.*]] = alloca [1 x i64], align 8
+// CK19-64-NEXT:    [[DOTOFFLOAD_BASEPTRS1:%.*]] = alloca [1 x ptr], align 8
+// CK19-64-NEXT:    [[DOTOFFLOAD_PTRS2:%.*]] = alloca [1 x ptr], align 8
+// CK19-64-NEXT:    [[DOTOFFLOAD_MAPPERS3:%.*]] = alloca [1 x ptr], align 8
+// CK19-32-NEXT:    [[DOTOFFLOAD_BASEPTRS1:%.*]] = alloca [1 x ptr], align 4
+// CK19-32-NEXT:    [[DOTOFFLOAD_PTRS2:%.*]] = alloca [1 x ptr], align 4
+// CK19-32-NEXT:    [[DOTOFFLOAD_MAPPERS3:%.*]] = alloca [1 x ptr], align 4
+// CK19-NEXT:    [[DOTOFFLOAD_SIZES4:%.*]] = alloca [1 x i64], align 8
+// CK1-64-NEXT:    [[DOTOFFLOAD_BASEPTRS13:%.*]] = alloca [1 x ptr], align 8
+// CK1-64-NEXT:    [[DOTOFFLOAD_PTRS14:%.*]] = alloca [1 x ptr], align 8
+// CK1-64-NEXT:    [[DOTOFFLOAD_MAPPERS15:%.*]] = alloca [1 x ptr], align 8
+// CK1-32-NEXT:    [[DOTOFFLOAD_BASEPTRS13:%.*]] = alloca [1 x ptr], align 4
+// CK1-32-NEXT:    [[DOTOFFLOAD_PTRS14:%.*]] = alloca [1 x ptr], align 4
+// CK1-32-NEXT:    [[DOTOFFLOAD_MAPPERS15:%.*]] = alloca [1 x ptr], align 4
+// CK1-NEXT:    [[TMP0:%.*]] = call i32 @__kmpc_global_thread_num(ptr @[[GLOB1:[0-9]+]])
+// CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-CK19-CK20-NEXT:    store i32 [[ARG]], ptr [[ARG_ADDR]], align 4
+// CK20-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw [3 x [4 x [[STRUCT_ST]]]], ptr [[ARR]], i64 0, i64 0
+// CK20-64-NEXT:    [[ARRAYDECAY:%.*]] = getelementptr inbounds [4 x [[STRUCT_ST]]], ptr [[ARRAYIDX]], i64 0, i64 0
+// CK20-64-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds nuw [[STRUCT_ST]], ptr [[ARRAYDECAY]], i64 1
+// CK20-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw [3 x [4 x [[STRUCT_ST]]]], ptr [[ARR]], i32 0, i32 0
+// CK20-32-NEXT:    [[ARRAYDECAY:%.*]] = getelementptr inbounds [4 x [[STRUCT_ST]]], ptr [[ARRAYIDX]], i32 0, i32 0
+// CK20-32-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds nuw [[STRUCT_ST]], ptr [[ARRAYDECAY]], i32 1
+// CK20-NEXT:    [[TMP0:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK20-64-NEXT:    store ptr [[ARR]], ptr [[TMP0]], align 8
+// CK20-32-NEXT:    store ptr [[ARR]], ptr [[TMP0]], align 4
+// CK20-NEXT:    [[TMP1:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK20-64-NEXT:    store ptr [[ARRAYIDX1]], ptr [[TMP1]], align 8
+// CK20-64-NEXT:    [[TMP2:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK20-64-NEXT:    store ptr null, ptr [[TMP2]], align 8
+// CK20-32-NEXT:    store ptr [[ARRAYIDX1]], ptr [[TMP1]], align 4
+// CK20-32-NEXT:    [[TMP2:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK20-32-NEXT:    store ptr null, ptr [[TMP2]], align 4
+// CK20-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [3 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 0
+// CK20-NEXT:    [[TMP4:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP3]], i32 0, i32 0
+// CK20-64-NEXT:    store i64 0, ptr [[TMP4]], align 8
+// CK20-32-NEXT:    store i64 0, ptr [[TMP4]], align 4
+// CK20-NEXT:    [[TMP5:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP3]], i32 0, i32 1
+// CK20-64-NEXT:    store i64 2, ptr [[TMP5]], align 8
+// CK20-32-NEXT:    store i64 2, ptr [[TMP5]], align 4
+// CK20-NEXT:    [[TMP6:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP3]], i32 0, i32 2
+// CK20-64-NEXT:    store i64 64, ptr [[TMP6]], align 8
+// CK20-32-NEXT:    store i64 32, ptr [[TMP6]], align 4
+// CK20-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [3 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 1
+// CK20-NEXT:    [[TMP8:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP7]], i32 0, i32 0
+// CK20-64-NEXT:    store i64 1, ptr [[TMP8]], align 8
+// CK20-32-NEXT:    store i64 1, ptr [[TMP8]], align 4
+// CK20-NEXT:    [[TMP9:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP7]], i32 0, i32 1
+// CK20-64-NEXT:    store i64 4, ptr [[TMP9]], align 8
+// CK20-32-NEXT:    store i64 4, ptr [[TMP9]], align 4
+// CK20-NEXT:    [[TMP10:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP7]], i32 0, i32 2
+// CK20-64-NEXT:    store i64 16, ptr [[TMP10]], align 8
+// CK20-32-NEXT:    store i64 8, ptr [[TMP10]], align 4
+// CK20-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [3 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 2
+// CK20-NEXT:    [[TMP12:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP11]], i32 0, i32 0
+// CK20-64-NEXT:    store i64 0, ptr [[TMP12]], align 8
+// CK20-32-NEXT:    store i64 0, ptr [[TMP12]], align 4
+// CK20-NEXT:    [[TMP13:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP11]], i32 0, i32 1
+// CK20-64-NEXT:    store i64 1, ptr [[TMP13]], align 8
+// CK20-32-NEXT:    store i64 1, ptr [[TMP13]], align 4
+// CK20-NEXT:    [[TMP14:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP11]], i32 0, i32 2
+// CK20-64-NEXT:    store i64 16, ptr [[TMP14]], align 8
+// CK20-32-NEXT:    store i64 8, ptr [[TMP14]], align 4
+// CK20-NEXT:    [[TMP15:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK20-64-NEXT:    store ptr [[DIMS]], ptr [[TMP15]], align 8
+// CK20-32-NEXT:    store ptr [[DIMS]], ptr [[TMP15]], align 4
+// CK20-NEXT:    [[TMP16:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK20-NEXT:    [[TMP17:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK20-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP16]], ptr [[TMP17]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK20-NEXT:    [[TMP18:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK20-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP18]], 1
+// CK2-64-_2-_3-SIMD-ONLY1-_4-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 8
+// CK2-32-_2-_3-SIMD-ONLY1-_5-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 4
+// CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-NEXT:    [[A:%.*]] = getelementptr inbounds nuw [[STRUCT_ST:%.*]], ptr [[THIS1]], i32 0, i32 0
+// CK2-64-_2-_3-SIMD-ONLY1-_4-NEXT:    [[TMP0:%.*]] = load i32, ptr [[A]], align 8
+// CK2-32-_2-_3-SIMD-ONLY1-_5-NEXT:    [[TMP0:%.*]] = load i32, ptr [[A]], align 4
+// CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-NEXT:    [[CMP:%.*]] = icmp sgt i32 [[TMP0]], 123
+// CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-NEXT:    [[STOREDV:%.*]] = zext i1 [[CMP]] to i8
+// CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-NEXT:    store i8 [[STOREDV]], ptr [[DOTCAPTURE_EXPR_]], align 1
+// CK1-64-_2-_3-32-CK2-SIMD-ONLY1-_4-_5-NEXT:    [[TMP1:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-NEXT:    store i32 [[TMP1]], ptr [[DOTCAPTURE_EXPR_2]], align 4
+// SIMD-ONLY1-NEXT:    [[TMP2:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY1-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP2]], 1
+// CK2-NEXT:    [[TMP2:%.*]] = load i8, ptr [[DOTCAPTURE_EXPR_]], align 1
+// CK2-NEXT:    [[LOADEDV:%.*]] = trunc i8 [[TMP2]] to i1
+// CK1-64-NEXT:    [[TMP2:%.*]] = zext i32 [[TMP1]] to i64
+// CK1-64-NEXT:    [[TMP3:%.*]] = call ptr @llvm.stacksave.p0()
+// CK1-64-NEXT:    store ptr [[TMP3]], ptr [[SAVED_STACK]], align 8
+// CK1-64-NEXT:    [[VLA:%.*]] = alloca float, i64 [[TMP2]], align 4
+// CK1-64-NEXT:    store i64 [[TMP2]], ptr [[__VLA_EXPR0]], align 8
+// CK1-64-NEXT:    [[TMP4:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK1-64-NEXT:    store i32 [[TMP4]], ptr [[DOTCAPTURE_EXPR_]], align 4
+// CK1-64-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK1-64-NEXT:    store ptr @gc, ptr [[TMP5]], align 8
+// CK1-64-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK1-64-NEXT:    store ptr @gc, ptr [[TMP6]], align 8
+// CK1-64-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK1-64-NEXT:    store ptr null, ptr [[TMP7]], align 8
+// CK1-64-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK1-64-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK1-64-NEXT:    [[TMP10:%.*]] = getelementptr inbounds nuw [[STRUCT_ANON]], ptr [[AGG_CAPTURED]], i32 0, i32 0
+// CK1-32-NEXT:    [[TMP2:%.*]] = call ptr @llvm.stacksave.p0()
+// CK1-32-NEXT:    store ptr [[TMP2]], ptr [[SAVED_STACK]], align 4
+// CK1-32-NEXT:    [[VLA:%.*]] = alloca float, i32 [[TMP1]], align 4
+// CK1-32-NEXT:    store i32 [[TMP1]], ptr [[__VLA_EXPR0]], align 4
+// CK1-32-NEXT:    [[TMP3:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK1-32-NEXT:    store i32 [[TMP3]], ptr [[DOTCAPTURE_EXPR_]], align 4
+// CK1-32-_2-_3-CK7-CK16-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK7-32-_2-_3-CK16-NEXT:    store ptr [[TMP0]], ptr [[TMP4]], align 4
+// CK1-32-NEXT:    store ptr @gc, ptr [[TMP4]], align 4
+// CK1-32-_2-_3-CK7-CK16-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK7-32-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP5]], align 4
+// CK16-32-NEXT:    store ptr [[ADD_PTR]], ptr [[TMP5]], align 4
+// CK1-32-NEXT:    store ptr @gc, ptr [[TMP5]], align 4
+// CK1-32-_2-_3-CK7-CK16-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK1-32-_2-_3-CK7-CK16-NEXT:    store ptr null, ptr [[TMP6]], align 4
+// CK1-32-_2-_3-CK7-CK16-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK1-32-_2-_3-CK7-CK16-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK7-32-_2-_3-CK16-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP7]], ptr [[TMP8]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK7-32-NEXT:    [[TMP9:%.*]] = load i32, ptr [[E_ADDR]], align 4
+// CK7-32-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK7-32-NEXT:    [[TMP11:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK7-32-NEXT:    [[ADD_PTR1:%.*]] = getelementptr inbounds i32, ptr [[TMP10]], i32 [[TMP11]]
+// CK7-32-NEXT:    [[TMP12:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK7-32-NEXT:    [[ARRAYIDX2:%.*]] = getelementptr inbounds i32, ptr [[ADD_PTR1]], i32 [[TMP12]]
+// CK7-32-NEXT:    [[TMP13:%.*]] = load i32, ptr [[ARRAYIDX2]], align 4
+// CK7-32-NEXT:    [[ADD:%.*]] = add nsw i32 [[TMP13]], [[TMP9]]
+// CK7-32-NEXT:    store i32 [[ADD]], ptr [[ARRAYIDX2]], align 4
+// CK7-32-NEXT:    [[TMP14:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK7-32-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK7-32-NEXT:    [[TMP16:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK7-32-NEXT:    [[ADD_PTR3:%.*]] = getelementptr inbounds i32, ptr [[TMP15]], i32 [[TMP16]]
+// CK7-32-NEXT:    [[TMP17:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK7-32-NEXT:    [[ARRAYIDX4:%.*]] = getelementptr inbounds i32, ptr [[ADD_PTR3]], i32 [[TMP17]]
+// CK7-32-NEXT:    [[TMP18:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS5]], i32 0, i32 0
+// CK7-32-NEXT:    store ptr [[TMP14]], ptr [[TMP18]], align 4
+// CK7-32-NEXT:    [[TMP19:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS6]], i32 0, i32 0
+// CK7-32-NEXT:    store ptr [[ARRAYIDX4]], ptr [[TMP19]], align 4
+// CK7-32-NEXT:    [[TMP20:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS7]], i32 0, i32 0
+// CK7-32-NEXT:    store ptr null, ptr [[TMP20]], align 4
+// CK7-32-NEXT:    [[TMP21:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS5]], i32 0, i32 0
+// CK7-32-NEXT:    [[TMP22:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS6]], i32 0, i32 0
+// CK7-32-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP21]], ptr [[TMP22]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// SIMD-ONLY0-_20-_35-NEXT:    [[IDXPROM:%.*]] = sext i32 [[TMP3]] to i64
+// SIMD-ONLY0-_20-_35-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds i32, ptr [[ADD_PTR]], i64 [[IDXPROM]]
+// SIMD-ONLY0-_20-_35-_26-_19-NEXT:    [[TMP4:%.*]] = load i32, ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY0-_20-_35-_26-_19-_10-_33-_37-_32-NEXT:    [[ADD:%.*]] = add nsw i32 [[TMP4]], [[TMP0]]
+// SIMD-ONLY0-_10-_33-_37-_32-NEXT:    store i32 [[ADD]], ptr [[ARRAYIDX1]], align 4
+// SIMD-ONLY0-_20-_35-_26-_19-NEXT:    store i32 [[ADD]], ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY0-_27-_18-_7-_51-NEXT:    [[TMP3:%.*]] = load i32, ptr [[ADD_PTR]], align 4
+// SIMD-ONLY0-_27-_18-_7-_51-NEXT:    [[ADD:%.*]] = add nsw i32 [[TMP3]], [[TMP0]]
+// SIMD-ONLY0-_27-_18-_7-_51-NEXT:    store i32 [[ADD]], ptr [[ADD_PTR]], align 4
+// CK16-32-NEXT:    [[TMP9:%.*]] = load ptr, ptr [[I_ADDR]], align 4
+// CK16-32-NEXT:    [[TMP10:%.*]] = load i32, ptr [[TMP9]], align 4
+// CK16-32-NEXT:    [[TMP11:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK16-32-NEXT:    [[ADD_PTR1:%.*]] = getelementptr inbounds float, ptr [[TMP11]], i32 [[TMP10]]
+// CK16-32-NEXT:    store float 1.000000e+00, ptr [[ADD_PTR1]], align 4
+// CK16-32-NEXT:    [[TMP12:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK16-32-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[I_ADDR]], align 4
+// CK16-32-NEXT:    [[TMP14:%.*]] = load i32, ptr [[TMP13]], align 4
+// CK16-32-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK16-32-NEXT:    [[ADD_PTR2:%.*]] = getelementptr inbounds float, ptr [[TMP15]], i32 [[TMP14]]
+// CK16-32-NEXT:    [[TMP16:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS3]], i32 0, i32 0
+// CK16-32-NEXT:    store ptr [[TMP12]], ptr [[TMP16]], align 4
+// CK16-32-NEXT:    [[TMP17:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS4]], i32 0, i32 0
+// CK16-32-NEXT:    store ptr [[ADD_PTR2]], ptr [[TMP17]], align 4
+// CK16-32-NEXT:    [[TMP18:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS5]], i32 0, i32 0
+// CK16-32-NEXT:    store ptr null, ptr [[TMP18]], align 4
+// CK16-32-NEXT:    [[TMP19:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS3]], i32 0, i32 0
+// CK16-32-NEXT:    [[TMP20:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS4]], i32 0, i32 0
+// CK16-32-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP19]], ptr [[TMP20]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// CK17-32-_3-_2-SIMD-ONLY0-_25-_55-NEXT:    store ptr [[SA]], ptr [[SA_ADDR]], align 4
+// CK17-32-_3-_2-SIMD-ONLY0-_25-_55-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[SA_ADDR]], align 4
+// CK17-32-NEXT:    [[I:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA:%.*]], ptr [[TMP0]], i32 0, i32 0
+// CK17-32-NEXT:    [[TMP1:%.*]] = load i32, ptr [[I]], align 4
+// CK17-32-NEXT:    [[ADD:%.*]] = add nsw i32 1, [[TMP1]]
+// CK17-32-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK17-32-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds ptr, ptr [[TMP2]], i32 [[ADD]]
+// CK17-32-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[ADD_PTR]], align 4
+// CK17-32-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK17-32-NEXT:    [[TMP5:%.*]] = load ptr, ptr [[SA_ADDR]], align 4
+// CK17-32-NEXT:    [[SA1:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP5]], i32 0, i32 1
+// CK17-32-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[SA1]], align 4
+// CK17-32-NEXT:    [[I2:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP6]], i32 0, i32 0
+// CK17-32-NEXT:    [[TMP7:%.*]] = load i32, ptr [[I2]], align 4
+// CK17-32-NEXT:    [[TMP8:%.*]] = load ptr, ptr [[SA_ADDR]], align 4
+// CK17-32-NEXT:    [[I3:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP8]], i32 0, i32 0
+// CK17-32-NEXT:    [[TMP9:%.*]] = load i32, ptr [[I3]], align 4
+// CK17-32-NEXT:    [[ADD4:%.*]] = add nsw i32 1, [[TMP9]]
+// CK17-32-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK17-32-NEXT:    [[ADD_PTR5:%.*]] = getelementptr inbounds ptr, ptr [[TMP10]], i32 [[ADD4]]
+// CK17-32-NEXT:    [[TMP11:%.*]] = load ptr, ptr [[ADD_PTR5]], align 4
+// CK17-32-NEXT:    [[ADD_PTR6:%.*]] = getelementptr inbounds float, ptr [[TMP11]], i32 [[TMP7]]
+// CK17-32-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK17-32-NEXT:    store ptr [[TMP3]], ptr [[TMP12]], align 4
+// CK17-32-NEXT:    [[TMP13:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK17-32-NEXT:    store ptr [[ADD_PTR6]], ptr [[TMP13]], align 4
+// CK17-32-NEXT:    [[TMP14:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK17-32-NEXT:    store ptr null, ptr [[TMP14]], align 4
+// CK17-32-NEXT:    [[TMP15:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK17-32-NEXT:    [[TMP16:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK17-32-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP15]], ptr [[TMP16]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK17-32-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[SA_ADDR]], align 4
+// CK17-32-NEXT:    [[SA7:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP17]], i32 0, i32 1
+// CK17-32-NEXT:    [[TMP18:%.*]] = load ptr, ptr [[SA7]], align 4
+// CK17-32-NEXT:    [[I8:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP18]], i32 0, i32 0
+// CK17-32-NEXT:    [[TMP19:%.*]] = load i32, ptr [[I8]], align 4
+// CK17-32-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[SA_ADDR]], align 4
+// CK17-32-NEXT:    [[I9:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP20]], i32 0, i32 0
+// CK17-32-NEXT:    [[TMP21:%.*]] = load i32, ptr [[I9]], align 4
+// CK17-32-NEXT:    [[ADD10:%.*]] = add nsw i32 1, [[TMP21]]
+// CK17-32-NEXT:    [[TMP22:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK17-32-NEXT:    [[ADD_PTR11:%.*]] = getelementptr inbounds ptr, ptr [[TMP22]], i32 [[ADD10]]
+// CK17-32-NEXT:    [[TMP23:%.*]] = load ptr, ptr [[ADD_PTR11]], align 4
+// CK17-32-NEXT:    [[ADD_PTR12:%.*]] = getelementptr inbounds float, ptr [[TMP23]], i32 [[TMP19]]
+// CK17-32-NEXT:    store float 1.000000e+00, ptr [[ADD_PTR12]], align 4
+// CK17-32-NEXT:    [[TMP24:%.*]] = load ptr, ptr [[SA_ADDR]], align 4
+// CK17-32-NEXT:    [[I13:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP24]], i32 0, i32 0
+// CK17-32-NEXT:    [[TMP25:%.*]] = load i32, ptr [[I13]], align 4
+// CK17-32-NEXT:    [[ADD14:%.*]] = add nsw i32 1, [[TMP25]]
+// CK17-32-NEXT:    [[TMP26:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK17-32-NEXT:    [[ADD_PTR15:%.*]] = getelementptr inbounds ptr, ptr [[TMP26]], i32 [[ADD14]]
+// CK17-32-NEXT:    [[TMP27:%.*]] = load ptr, ptr [[ADD_PTR15]], align 4
+// CK17-32-NEXT:    [[TMP28:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK17-32-NEXT:    [[TMP29:%.*]] = load ptr, ptr [[SA_ADDR]], align 4
+// CK17-32-NEXT:    [[SA16:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP29]], i32 0, i32 1
+// CK17-32-NEXT:    [[TMP30:%.*]] = load ptr, ptr [[SA16]], align 4
+// CK17-32-NEXT:    [[I17:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP30]], i32 0, i32 0
+// CK17-32-NEXT:    [[TMP31:%.*]] = load i32, ptr [[I17]], align 4
+// CK17-32-NEXT:    [[TMP32:%.*]] = load ptr, ptr [[SA_ADDR]], align 4
+// CK17-32-NEXT:    [[I18:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP32]], i32 0, i32 0
+// CK17-32-NEXT:    [[TMP33:%.*]] = load i32, ptr [[I18]], align 4
+// CK17-32-NEXT:    [[ADD19:%.*]] = add nsw i32 1, [[TMP33]]
+// CK17-32-NEXT:    [[TMP34:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK17-32-NEXT:    [[ADD_PTR20:%.*]] = getelementptr inbounds ptr, ptr [[TMP34]], i32 [[ADD19]]
+// CK17-32-NEXT:    [[TMP35:%.*]] = load ptr, ptr [[ADD_PTR20]], align 4
+// CK17-32-NEXT:    [[ADD_PTR21:%.*]] = getelementptr inbounds float, ptr [[TMP35]], i32 [[TMP31]]
+// CK17-32-NEXT:    [[TMP36:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS22]], i32 0, i32 0
+// CK17-32-NEXT:    store ptr [[TMP27]], ptr [[TMP36]], align 4
+// CK17-32-NEXT:    [[TMP37:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS23]], i32 0, i32 0
+// CK17-32-NEXT:    store ptr [[ADD_PTR21]], ptr [[TMP37]], align 4
+// CK17-32-NEXT:    [[TMP38:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS24]], i32 0, i32 0
+// CK1-32-NEXT:    [[TMP9:%.*]] = getelementptr inbounds nuw [[STRUCT_ANON]], ptr [[AGG_CAPTURED]], i32 0, i32 0
+// CK1-32-NEXT:    [[TMP10:%.*]] = load i32, ptr [[DOTCAPTURE_EXPR_]], align 4
+// CK1-32-NEXT:    store i32 [[TMP10]], ptr [[TMP9]], align 4
+// CK1-NEXT:    [[TMP11:%.*]] = load i32, ptr [[DOTCAPTURE_EXPR_]], align 4
+// CK1-64-NEXT:    store i32 [[TMP11]], ptr [[TMP10]], align 4
+// CK1-64-NEXT:    [[TMP12:%.*]] = load i32, ptr [[DOTCAPTURE_EXPR_]], align 4
+// CK1-64-NEXT:    [[TMP13:%.*]] = sext i32 [[TMP12]] to i64
+// CK1-64-NEXT:    [[TMP14:%.*]] = call ptr @__kmpc_omp_target_task_alloc(ptr @[[GLOB1]], i32 [[TMP0]], i32 1, i64 64, i64 4, ptr @.omp_task_entry., i64 [[TMP13]])
+// CK1-64-NEXT:    [[TMP15:%.*]] = getelementptr inbounds nuw [[STRUCT_KMP_TASK_T_WITH_PRIVATES:%.*]], ptr [[TMP14]], i32 0, i32 0
+// CK1-64-NEXT:    [[TMP16:%.*]] = getelementptr inbounds nuw [[STRUCT_KMP_TASK_T:%.*]], ptr [[TMP15]], i32 0, i32 0
+// CK1-64-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[TMP16]], align 8
+// CK1-64-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 4 [[TMP17]], ptr align 4 [[AGG_CAPTURED]], i64 4, i1 false)
+// CK1-64-NEXT:    [[TMP18:%.*]] = getelementptr inbounds nuw [[STRUCT_KMP_TASK_T_WITH_PRIVATES]], ptr [[TMP14]], i32 0, i32 1
+// CK1-64-NEXT:    [[TMP19:%.*]] = getelementptr inbounds nuw [[STRUCT__KMP_PRIVATES_T:%.*]], ptr [[TMP18]], i32 0, i32 0
+// CK1-64-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 8 [[TMP19]], ptr align 8 [[TMP8]], i64 8, i1 false)
+// CK1-64-NEXT:    [[TMP20:%.*]] = getelementptr inbounds nuw [[STRUCT__KMP_PRIVATES_T]], ptr [[TMP18]], i32 0, i32 1
+// CK1-64-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 8 [[TMP20]], ptr align 8 [[TMP9]], i64 8, i1 false)
+// CK1-64-NEXT:    [[TMP21:%.*]] = getelementptr inbounds nuw [[STRUCT__KMP_PRIVATES_T]], ptr [[TMP18]], i32 0, i32 2
+// CK1-64-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 8 [[TMP21]], ptr align 8 @.offload_sizes, i64 8, i1 false)
+// CK1-64-NEXT:    [[TMP22:%.*]] = call i32 @__kmpc_omp_task(ptr @[[GLOB1]], i32 [[TMP0]], ptr [[TMP14]])
+// CK1-32-NEXT:    [[TMP12:%.*]] = sext i32 [[TMP11]] to i64
+// CK1-32-NEXT:    [[TMP13:%.*]] = call ptr @__kmpc_omp_target_task_alloc(ptr @[[GLOB1]], i32 [[TMP0]], i32 1, i32 36, i32 4, ptr @.omp_task_entry., i64 [[TMP12]])
+// CK1-32-NEXT:    [[TMP14:%.*]] = getelementptr inbounds nuw [[STRUCT_KMP_TASK_T_WITH_PRIVATES:%.*]], ptr [[TMP13]], i32 0, i32 0
+// CK1-32-NEXT:    [[TMP15:%.*]] = getelementptr inbounds nuw [[STRUCT_KMP_TASK_T:%.*]], ptr [[TMP14]], i32 0, i32 0
+// CK1-32-NEXT:    [[TMP16:%.*]] = load ptr, ptr [[TMP15]], align 4
+// CK1-32-NEXT:    call void @llvm.memcpy.p0.p0.i32(ptr align 4 [[TMP16]], ptr align 4 [[AGG_CAPTURED]], i32 4, i1 false)
+// CK1-32-NEXT:    [[TMP17:%.*]] = getelementptr inbounds nuw [[STRUCT_KMP_TASK_T_WITH_PRIVATES]], ptr [[TMP13]], i32 0, i32 1
+// CK1-32-NEXT:    [[TMP18:%.*]] = getelementptr inbounds nuw [[STRUCT__KMP_PRIVATES_T:%.*]], ptr [[TMP17]], i32 0, i32 0
+// CK1-32-NEXT:    call void @llvm.memcpy.p0.p0.i32(ptr align 4 [[TMP18]], ptr align 4 @.offload_sizes, i32 8, i1 false)
+// CK1-32-NEXT:    [[TMP19:%.*]] = getelementptr inbounds nuw [[STRUCT__KMP_PRIVATES_T]], ptr [[TMP17]], i32 0, i32 1
+// CK1-32-NEXT:    call void @llvm.memcpy.p0.p0.i32(ptr align 4 [[TMP19]], ptr align 4 [[TMP7]], i32 4, i1 false)
+// CK1-32-NEXT:    [[TMP20:%.*]] = getelementptr inbounds nuw [[STRUCT__KMP_PRIVATES_T]], ptr [[TMP17]], i32 0, i32 2
+// CK1-32-NEXT:    call void @llvm.memcpy.p0.p0.i32(ptr align 4 [[TMP20]], ptr align 4 [[TMP8]], i32 4, i1 false)
+// CK1-32-NEXT:    [[TMP21:%.*]] = call i32 @__kmpc_omp_task(ptr @[[GLOB1]], i32 [[TMP0]], ptr [[TMP13]])
+// CK1-32-NEXT:    [[TMP22:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK1-32-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP22]], 1
+// CK1-32-NEXT:    store i32 [[INC]], ptr [[ARG_ADDR]], align 4
+// CK1-NEXT:    [[TMP23:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK1-64-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP23]], 1
+// CK1-64-NEXT:    store i32 [[INC]], ptr [[ARG_ADDR]], align 4
+// CK1-32-NEXT:    [[INC1:%.*]] = add nsw i32 [[TMP23]], 1
+// CK1-32-NEXT:    store i32 [[INC1]], ptr [[ARG_ADDR]], align 4
+// CK1-NEXT:    [[TMP24:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK1-64-NEXT:    [[INC1:%.*]] = add nsw i32 [[TMP24]], 1
+// CK1-64-NEXT:    store i32 [[INC1]], ptr [[ARG_ADDR]], align 4
+// CK1-64-NEXT:    [[TMP25:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK1-64-NEXT:    [[TOBOOL:%.*]] = icmp ne i32 [[TMP25]], 0
+// CK1-32-NEXT:    [[TOBOOL:%.*]] = icmp ne i32 [[TMP24]], 0
+// CK1-NEXT:    [[STOREDV:%.*]] = zext i1 [[TOBOOL]] to i8
+// CK1-NEXT:    store i8 [[STOREDV]], ptr [[DOTCAPTURE_EXPR_2]], align 1
+// CK1-64-NEXT:    [[TMP26:%.*]] = load i8, ptr [[DOTCAPTURE_EXPR_2]], align 1
+// CK1-64-NEXT:    [[LOADEDV:%.*]] = trunc i8 [[TMP26]] to i1
+// CK1-32-NEXT:    [[TMP25:%.*]] = load i8, ptr [[DOTCAPTURE_EXPR_2]], align 1
+// CK1-32-NEXT:    [[LOADEDV:%.*]] = trunc i8 [[TMP25]] to i1
+// CK1-64-_2-_3-32-CK2-NEXT:    br i1 [[LOADEDV]], label %[[OMP_IF_THEN:.*]], label %[[OMP_IF_ELSE:.*]]
+// CK1-64-_2-_3-32-CK2:       [[OMP_IF_THEN]]:
+// CK2-NEXT:    [[B:%.*]] = getelementptr inbounds nuw [[STRUCT_ST]], ptr [[THIS1]], i32 0, i32 1
+// CK2-64-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[B]], align 8
+// CK2-32-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[B]], align 4
+// CK2-NEXT:    [[B3:%.*]] = getelementptr inbounds nuw [[STRUCT_ST]], ptr [[THIS1]], i32 0, i32 1
+// CK2-64-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[B3]], align 8
+// CK2-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw double, ptr [[TMP4]], i64 1
+// CK2-32-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[B3]], align 4
+// CK2-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw double, ptr [[TMP4]], i32 1
+// CK2-64-_2-_3-32-CK9-CK15-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK9-64-_3-_2-CK15-NEXT:    store ptr [[TMP1]], ptr [[TMP5]], align 8
+// CK9-32-_2-_3-CK15-NEXT:    store ptr [[TMP1]], ptr [[TMP5]], align 4
+// CK2-64-NEXT:    store ptr [[TMP3]], ptr [[TMP5]], align 8
+// CK2-32-NEXT:    store ptr [[TMP3]], ptr [[TMP5]], align 4
+// CK2-64-_2-_3-32-CK9-CK15-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK15-64-NEXT:    store ptr [[ADD_PTR]], ptr [[TMP6]], align 8
+// CK9-64-NEXT:    store ptr [[TMP4]], ptr [[TMP6]], align 8
+// CK2-64-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP6]], align 8
+// CK19-NEXT:    [[TMP0:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK19-64-NEXT:    [[TMP1:%.*]] = zext i32 [[TMP0]] to i64
+// CK19-64-NEXT:    [[TMP2:%.*]] = call ptr @llvm.stacksave.p0()
+// CK19-64-NEXT:    store ptr [[TMP2]], ptr [[SAVED_STACK]], align 8
+// CK19-64-NEXT:    [[VLA:%.*]] = alloca float, i64 [[TMP1]], align 4
+// CK19-64-NEXT:    store i64 [[TMP1]], ptr [[__VLA_EXPR0]], align 8
+// CK19-64-NEXT:    [[TMP3:%.*]] = mul nuw i64 [[TMP1]], 4
+// CK19-32-NEXT:    [[TMP1:%.*]] = call ptr @llvm.stacksave.p0()
+// CK19-32-NEXT:    store ptr [[TMP1]], ptr [[SAVED_STACK]], align 4
+// CK19-32-NEXT:    [[VLA:%.*]] = alloca float, i32 [[TMP0]], align 4
+// CK19-32-NEXT:    store i32 [[TMP0]], ptr [[__VLA_EXPR0]], align 4
+// CK19-32-NEXT:    [[TMP2:%.*]] = mul nuw i32 [[TMP0]], 4
+// CK19-32-NEXT:    [[TMP3:%.*]] = sext i32 [[TMP2]] to i64
+// CK19-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK19-64-NEXT:    store ptr [[VLA]], ptr [[TMP4]], align 8
+// CK19-32-NEXT:    store ptr [[VLA]], ptr [[TMP4]], align 4
+// CK19-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK19-64-NEXT:    store ptr [[VLA]], ptr [[TMP5]], align 8
+// CK19-32-NEXT:    store ptr [[VLA]], ptr [[TMP5]], align 4
+// CK19-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK19-64-NEXT:    store i64 [[TMP3]], ptr [[TMP6]], align 8
+// CK2-64-_2-_3-CK9-CK15-CK19-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK2-64-_2-_3-CK9-CK15-CK19-NEXT:    store ptr null, ptr [[TMP7]], align 8
+// CK15-32-NEXT:    store ptr [[ADD_PTR]], ptr [[TMP6]], align 4
+// CK9-32-NEXT:    store ptr [[TMP4]], ptr [[TMP6]], align 4
+// CK2-32-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP6]], align 4
+// CK19-32-NEXT:    store i64 [[TMP3]], ptr [[TMP6]], align 4
+// CK2-32-_2-_3-CK9-CK15-CK19-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK2-32-_2-_3-CK9-CK15-CK19-NEXT:    store ptr null, ptr [[TMP7]], align 4
+// CK2-64-_2-_3-32-CK9-CK15-CK19-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK2-64-_2-_3-32-CK9-CK15-CK19-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK9-64-_3-_2-32-CK15-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP8]], ptr [[TMP9]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK15-64-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[SAP_ADDR]], align 8
+// CK15-32-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[SAP_ADDR]], align 4
+// CK15-NEXT:    [[P2:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP10]], i32 0, i32 0
+// CK15-64-NEXT:    [[TMP11:%.*]] = load ptr, ptr [[P2]], align 8
+// CK15-64-NEXT:    [[ADD_PTR3:%.*]] = getelementptr inbounds double, ptr [[TMP11]], i64 3
+// CK15-64-NEXT:    store double 1.000000e+00, ptr [[ADD_PTR3]], align 8
+// CK15-64-NEXT:    [[TMP12:%.*]] = load ptr, ptr [[SAP_ADDR]], align 8
+// CK15-32-NEXT:    [[TMP11:%.*]] = load ptr, ptr [[P2]], align 4
+// CK15-32-NEXT:    [[ADD_PTR3:%.*]] = getelementptr inbounds double, ptr [[TMP11]], i32 3
+// CK15-32-NEXT:    store double 1.000000e+00, ptr [[ADD_PTR3]], align 4
+// CK15-32-NEXT:    [[TMP12:%.*]] = load ptr, ptr [[SAP_ADDR]], align 4
+// CK15-NEXT:    [[P4:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP12]], i32 0, i32 0
+// CK15-64-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[P4]], align 8
+// CK15-64-NEXT:    [[TMP14:%.*]] = load ptr, ptr [[SAP_ADDR]], align 8
+// CK15-64-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[SAP_ADDR]], align 8
+// CK15-32-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[P4]], align 4
+// CK15-32-NEXT:    [[TMP14:%.*]] = load ptr, ptr [[SAP_ADDR]], align 4
+// CK15-32-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[SAP_ADDR]], align 4
+// CK15-NEXT:    [[P5:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP15]], i32 0, i32 0
+// CK15-64-NEXT:    [[TMP16:%.*]] = load ptr, ptr [[P5]], align 8
+// CK15-64-NEXT:    [[ADD_PTR6:%.*]] = getelementptr inbounds double, ptr [[TMP16]], i64 3
+// CK15-32-NEXT:    [[TMP16:%.*]] = load ptr, ptr [[P5]], align 4
+// CK15-32-NEXT:    [[ADD_PTR6:%.*]] = getelementptr inbounds double, ptr [[TMP16]], i32 3
+// CK15-NEXT:    [[TMP17:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS7]], i32 0, i32 0
+// CK15-64-NEXT:    store ptr [[TMP13]], ptr [[TMP17]], align 8
+// CK15-32-NEXT:    store ptr [[TMP13]], ptr [[TMP17]], align 4
+// CK15-NEXT:    [[TMP18:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS8]], i32 0, i32 0
+// CK15-64-NEXT:    store ptr [[ADD_PTR6]], ptr [[TMP18]], align 8
+// CK15-64-NEXT:    [[TMP19:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS9]], i64 0, i64 0
+// CK15-64-NEXT:    store ptr null, ptr [[TMP19]], align 8
+// CK15-32-NEXT:    store ptr [[ADD_PTR6]], ptr [[TMP18]], align 4
+// CK15-32-NEXT:    [[TMP19:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS9]], i32 0, i32 0
+// CK15-32-NEXT:    store ptr null, ptr [[TMP19]], align 4
+// CK15-NEXT:    [[TMP20:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS7]], i32 0, i32 0
+// CK15-NEXT:    [[TMP21:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS8]], i32 0, i32 0
+// CK15-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP20]], ptr [[TMP21]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// CK9-NEXT:    [[TMP10:%.*]] = load i32, ptr [[E_ADDR]], align 4
+// CK9-NEXT:    [[CONV:%.*]] = sitofp i32 [[TMP10]] to double
+// CK9-64-NEXT:    [[TMP11:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK9-32-NEXT:    [[TMP11:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK9-NEXT:    [[P2:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP11]], i32 0, i32 0
+// CK9-64-NEXT:    [[TMP12:%.*]] = load ptr, ptr [[P2]], align 8
+// CK9-64-NEXT:    [[TMP13:%.*]] = load double, ptr [[TMP12]], align 8
+// CK9-32-NEXT:    [[TMP12:%.*]] = load ptr, ptr [[P2]], align 4
+// CK9-32-NEXT:    [[TMP13:%.*]] = load double, ptr [[TMP12]], align 4
+// CK9-NEXT:    [[ADD:%.*]] = fadd double [[TMP13]], [[CONV]]
+// CK9-64-NEXT:    store double [[ADD]], ptr [[TMP12]], align 8
+// CK9-64-NEXT:    [[TMP14:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK9-32-NEXT:    store double [[ADD]], ptr [[TMP12]], align 4
+// CK9-32-NEXT:    [[TMP14:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK9-NEXT:    [[P3:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP14]], i32 0, i32 0
+// CK9-64-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[P3]], align 8
+// CK9-64-NEXT:    [[TMP16:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK9-64-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK9-32-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[P3]], align 4
+// CK9-32-_2-_3-CK10-CK11-NEXT:    [[TMP16:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK10-32-NEXT:    [[P4:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP16]], i32 0, i32 0
+// CK10-32-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[P4]], align 4
+// CK10-64-NEXT:    store double [[ADD]], ptr [[ADD_PTR4]], align 8
+// CK11-64-NEXT:    store double [[ADD]], ptr [[ARRAYIDX5]], align 8
+// CK10-64-_3-_2-CK11-NEXT:    [[TMP16:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK10-64-_3-_2-CK11-32-NEXT:    [[P5:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP16]], i32 0, i32 0
+// CK11-32-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[P5]], align 4
+// CK10-32-_2-_3-CK11-NEXT:    [[TMP18:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK10-32-_2-_3-CK11-NEXT:    [[TMP19:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK10-32-NEXT:    [[P5:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP19]], i32 0, i32 0
+// CK10-32-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[P5]], align 4
+// CK10-64-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[P5]], align 8
+// CK11-64-NEXT:    [[P6:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP16]], i32 0, i32 0
+// CK11-64-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[P6]], align 8
+// CK10-64-_3-_2-CK11-NEXT:    [[TMP18:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK10-64-_3-_2-CK11-NEXT:    [[TMP19:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK10-64-_3-_2-CK11-32-NEXT:    [[P6:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP19]], i32 0, i32 0
+// CK11-32-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[P6]], align 4
+// CK10-64-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[P6]], align 8
+// CK11-64-NEXT:    [[P7:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP19]], i32 0, i32 0
+// CK11-64-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[P7]], align 8
+// CK10-64-_3-_2-32-CK11-NEXT:    [[TMP21:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK10-32-NEXT:    [[ADD_PTR6:%.*]] = getelementptr inbounds double, ptr [[TMP20]], i32 [[TMP21]]
+// CK10-32-NEXT:    [[TMP22:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS7]], i32 0, i32 0
+// CK11-32-NEXT:    [[ADD_PTR7:%.*]] = getelementptr inbounds double, ptr [[TMP20]], i32 [[TMP21]]
+// CK11-32-NEXT:    [[ARRAYIDX8:%.*]] = getelementptr inbounds double, ptr [[ADD_PTR7]], i32 3
+// CK10-64-NEXT:    [[IDX_EXT7:%.*]] = sext i32 [[TMP21]] to i64
+// CK10-64-NEXT:    [[ADD_PTR8:%.*]] = getelementptr inbounds double, ptr [[TMP20]], i64 [[IDX_EXT7]]
+// CK10-64-_3-_2-CK11-32-NEXT:    [[TMP22:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS9]], i32 0, i32 0
+// CK10-32-_2-_3-CK11-NEXT:    store ptr [[TMP17]], ptr [[TMP22]], align 4
+// CK10-32-NEXT:    [[TMP23:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS8]], i32 0, i32 0
+// CK10-32-NEXT:    store ptr [[ADD_PTR6]], ptr [[TMP23]], align 4
+// CK10-32-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS9]], i32 0, i32 0
+// CK11-64-NEXT:    [[IDX_EXT8:%.*]] = sext i32 [[TMP21]] to i64
+// CK11-64-NEXT:    [[ADD_PTR9:%.*]] = getelementptr inbounds double, ptr [[TMP20]], i64 [[IDX_EXT8]]
+// CK11-64-NEXT:    [[ARRAYIDX10:%.*]] = getelementptr inbounds double, ptr [[ADD_PTR9]], i64 3
+// CK11-64-NEXT:    [[TMP22:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS11]], i32 0, i32 0
+// CK10-64-_3-_2-CK11-NEXT:    store ptr [[TMP17]], ptr [[TMP22]], align 8
+// CK10-64-_3-_2-CK11-32-NEXT:    [[TMP23:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS10]], i32 0, i32 0
+// CK11-32-NEXT:    store ptr [[ARRAYIDX8]], ptr [[TMP23]], align 4
+// CK11-32-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS11]], i32 0, i32 0
+// CK10-32-_2-_3-CK11-NEXT:    store ptr null, ptr [[TMP24]], align 4
+// CK10-32-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS7]], i32 0, i32 0
+// CK10-32-NEXT:    [[TMP26:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS8]], i32 0, i32 0
+// CK10-64-NEXT:    store ptr [[ADD_PTR8]], ptr [[TMP23]], align 8
+// CK10-64-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS11]], i64 0, i64 0
+// CK11-64-NEXT:    [[TMP23:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS12]], i32 0, i32 0
+// CK11-64-NEXT:    store ptr [[ARRAYIDX10]], ptr [[TMP23]], align 8
+// CK11-64-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS13]], i64 0, i64 0
+// CK10-64-_3-_2-CK11-NEXT:    store ptr null, ptr [[TMP24]], align 8
+// CK10-64-_3-_2-CK11-32-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS9]], i32 0, i32 0
+// CK10-64-_3-_2-CK11-32-NEXT:    [[TMP26:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS10]], i32 0, i32 0
+// CK11-64-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS11]], i32 0, i32 0
+// CK11-64-NEXT:    [[TMP26:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS12]], i32 0, i32 0
+// CK10-64-_3-_2-32-CK11-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP25]], ptr [[TMP26]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// CK9-32-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK9-NEXT:    [[P4:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP17]], i32 0, i32 0
+// CK9-64-NEXT:    [[TMP18:%.*]] = load ptr, ptr [[P4]], align 8
+// CK9-32-NEXT:    [[TMP18:%.*]] = load ptr, ptr [[P4]], align 4
+// CK9-NEXT:    [[TMP19:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS5]], i32 0, i32 0
+// CK9-64-NEXT:    store ptr [[TMP15]], ptr [[TMP19]], align 8
+// CK9-32-NEXT:    store ptr [[TMP15]], ptr [[TMP19]], align 4
+// CK9-NEXT:    [[TMP20:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS6]], i32 0, i32 0
+// CK9-64-NEXT:    store ptr [[TMP18]], ptr [[TMP20]], align 8
+// CK9-64-NEXT:    [[TMP21:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS7]], i64 0, i64 0
+// CK9-64-NEXT:    store ptr null, ptr [[TMP21]], align 8
+// CK9-32-NEXT:    store ptr [[TMP18]], ptr [[TMP20]], align 4
+// CK9-32-NEXT:    [[TMP21:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS7]], i32 0, i32 0
+// CK9-32-NEXT:    store ptr null, ptr [[TMP21]], align 4
+// CK9-NEXT:    [[TMP22:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS5]], i32 0, i32 0
+// CK9-NEXT:    [[TMP23:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS6]], i32 0, i32 0
+// CK9-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP22]], ptr [[TMP23]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// CK2-NEXT:    [[TMP10:%.*]] = load i32, ptr [[DOTCAPTURE_EXPR_2]], align 4
+// CK2-NEXT:    [[TMP11:%.*]] = sext i32 [[TMP10]] to i64
+// CK2-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 [[TMP11]], i32 1, ptr [[TMP8]], ptr [[TMP9]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK1-64-NEXT:    [[TMP27:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS3]], i32 0, i32 0
+// CK1-64-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP27]], align 8
+// CK1-64-NEXT:    [[TMP28:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS4]], i32 0, i32 0
+// CK1-64-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP28]], align 8
+// CK1-64-NEXT:    [[TMP29:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS5]], i64 0, i64 0
+// CK1-64-NEXT:    store ptr null, ptr [[TMP29]], align 8
+// CK1-64-NEXT:    [[TMP30:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS3]], i32 0, i32 0
+// CK1-64-NEXT:    [[TMP31:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS4]], i32 0, i32 0
+// CK1-64-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 4, i32 1, ptr [[TMP30]], ptr [[TMP31]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// CK1-32-NEXT:    [[TMP26:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS3]], i32 0, i32 0
+// CK1-32-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP26]], align 4
+// CK1-32-NEXT:    [[TMP27:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS4]], i32 0, i32 0
+// CK1-32-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP27]], align 4
+// CK1-32-NEXT:    [[TMP28:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS5]], i32 0, i32 0
+// CK1-32-NEXT:    store ptr null, ptr [[TMP28]], align 4
+// CK1-32-NEXT:    [[TMP29:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS3]], i32 0, i32 0
+// CK1-32-NEXT:    [[TMP30:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS4]], i32 0, i32 0
+// CK1-32-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 4, i32 1, ptr [[TMP29]], ptr [[TMP30]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// CK1-64-_2-_3-32-CK2-NEXT:    br label %[[OMP_IF_END:.*]]
+// CK1-64-_2-_3-32-CK2:       [[OMP_IF_ELSE]]:
+// CK1-64-_2-_3-32-CK2-NEXT:    br label %[[OMP_IF_END]]
+// CK1-64-_2-_3-32-CK2:       [[OMP_IF_END]]:
+// CK2-NEXT:    [[TMP12:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK2-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP12]], 1
+// CK2-64-_2-_3-32-SIMD-ONLY1-_4-_5-CK20-NEXT:    store i32 [[INC]], ptr [[ARG_ADDR]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    call void @_ZN3SSAC1ERPd(ptr noundef nonnull align 4 dereferenceable(8) [[SA]], ptr noundef nonnull align 4 dereferenceable(4) [[D]])
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    call void @_ZN3SSBC1ERP3SSA(ptr noundef nonnull align 4 dereferenceable(12) [[SB]], ptr noundef nonnull align 4 dereferenceable(4) [[SAP_ADDR]])
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    call void @_ZN3SSB3fooEv(ptr noundef nonnull align 4 dereferenceable(12) [[SB]])
+// CK21-64-_2-_3-SIMD-ONLY19-_16-_12-NEXT:    [[ST:%.*]] = alloca [[STRUCT_ST:%.*]], align 8
+// CK21-64-_2-_3-SIMD-ONLY19-_16-_12-NEXT:    call void @_ZN2ST3fooEv(ptr noundef nonnull align 8 dereferenceable(8000) [[ST]])
+// CK21-32-_3-_2-SIMD-ONLY19-_24-_27-NEXT:    [[ST:%.*]] = alloca [[STRUCT_ST:%.*]], align 4
+// CK21-32-_3-_2-SIMD-ONLY19-_24-_27-NEXT:    call void @_ZN2ST3fooEv(ptr noundef nonnull align 4 dereferenceable(4000) [[ST]])
+// CK22-64-_2-_3-32-SIMD-ONLY19-_13-_17-_5-NEXT:    [[ST:%.*]] = alloca [[STRUCT_ST:%.*]], align 1
+// CK22-64-_2-_3-SIMD-ONLY19-_13-NEXT:    [[ARR:%.*]] = alloca [5 x [10 x ptr]], align 8
+// CK22-64-_2-_3-SIMD-ONLY19-_13-NEXT:    [[ARRAYDECAY:%.*]] = getelementptr inbounds [5 x [10 x ptr]], ptr [[ARR]], i64 0, i64 0
+// CK22-32-_3-_2-SIMD-ONLY19-_17-_5-NEXT:    [[ARR:%.*]] = alloca [5 x [10 x ptr]], align 4
+// CK22-32-_3-_2-SIMD-ONLY19-_17-_5-NEXT:    [[ARRAYDECAY:%.*]] = getelementptr inbounds [5 x [10 x ptr]], ptr [[ARR]], i32 0, i32 0
+// CK22-64-_2-_3-32-SIMD-ONLY19-_13-_17-_5-NEXT:    call void @_ZN2ST3fooEPA10_Pi(ptr noundef nonnull align 1 dereferenceable(1) [[ST]], ptr noundef [[ARRAYDECAY]])
+// SIMD-ONLY0-_61-_53-NEXT:    [[SAP_ADDR:%.*]] = alloca ptr, align 8
+// SIMD-ONLY0-_61-_53-NEXT:    store ptr [[SAP]], ptr [[SAP_ADDR]], align 8
+// SIMD-ONLY0-_61-_53-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[SAP_ADDR]], align 8
+// SIMD-ONLY0-_58-_14-NEXT:    [[SAP_ADDR:%.*]] = alloca ptr, align 4
+// SIMD-ONLY0-_58-_14-NEXT:    store ptr [[SAP]], ptr [[SAP_ADDR]], align 4
+// SIMD-ONLY0-_58-_14-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[SAP_ADDR]], align 4
+// SIMD-ONLY0-_61-_53-_58-_14-NEXT:    [[P:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA:%.*]], ptr [[TMP0]], i32 0, i32 0
+// SIMD-ONLY0-_61-_53-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[P]], align 8
+// SIMD-ONLY0-_61-_53-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds double, ptr [[TMP1]], i64 3
+// SIMD-ONLY0-_61-_53-NEXT:    store double 1.000000e+00, ptr [[ADD_PTR]], align 8
+// SIMD-ONLY0-_58-_14-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[P]], align 4
+// SIMD-ONLY0-_58-_14-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds double, ptr [[TMP1]], i32 3
+// SIMD-ONLY0-_58-_14-NEXT:    store double 1.000000e+00, ptr [[ADD_PTR]], align 4
+// SIMD-ONLY0-_49-_23-NEXT:    [[F_ADDR:%.*]] = alloca ptr, align 8
+// SIMD-ONLY0-_49-_23-NEXT:    [[I_ADDR:%.*]] = alloca ptr, align 8
+// SIMD-ONLY0-_49-_23-NEXT:    store ptr [[F]], ptr [[F_ADDR]], align 8
+// SIMD-ONLY0-_49-_23-NEXT:    store ptr [[I]], ptr [[I_ADDR]], align 8
+// SIMD-ONLY0-_49-_23-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[I_ADDR]], align 8
+// SIMD-ONLY0-_57-_48-NEXT:    [[F_ADDR:%.*]] = alloca ptr, align 4
+// SIMD-ONLY0-_57-_48-NEXT:    [[I_ADDR:%.*]] = alloca ptr, align 4
+// SIMD-ONLY0-_57-_48-NEXT:    store ptr [[F]], ptr [[F_ADDR]], align 4
+// SIMD-ONLY0-_57-_48-NEXT:    store ptr [[I]], ptr [[I_ADDR]], align 4
+// SIMD-ONLY0-_57-_48-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[I_ADDR]], align 4
+// SIMD-ONLY0-_49-_23-_57-_48-NEXT:    [[TMP1:%.*]] = load i32, ptr [[TMP0]], align 4
+// SIMD-ONLY0-_49-_23-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// SIMD-ONLY0-_49-_23-NEXT:    [[IDX_EXT:%.*]] = sext i32 [[TMP1]] to i64
+// SIMD-ONLY0-_49-_23-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds float, ptr [[TMP2]], i64 [[IDX_EXT]]
+// SIMD-ONLY0-_57-_48-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// SIMD-ONLY0-_57-_48-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds float, ptr [[TMP2]], i32 [[TMP1]]
+// SIMD-ONLY0-_49-_23-_57-_48-NEXT:    store float 1.000000e+00, ptr [[ADD_PTR]], align 4
+// SIMD-ONLY1-NEXT:    [[TMP3:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY1-NEXT:    ret i32 [[TMP3]]
+// CK2-NEXT:    [[TMP13:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK2-NEXT:    ret i32 [[TMP13]]
+// CK19-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK19-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP8]], ptr [[TMP9]], ptr [[TMP10]], ptr @.offload_maptypes, ptr null, ptr null)
+// CK19-64-NEXT:    [[TMP11:%.*]] = mul nuw i64 [[TMP1]], 4
+// CK19-64-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS1]], i32 0, i32 0
+// CK19-64-NEXT:    store ptr [[VLA]], ptr [[TMP12]], align 8
+// CK19-64-NEXT:    [[TMP13:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS2]], i32 0, i32 0
+// CK19-64-NEXT:    store ptr [[VLA]], ptr [[TMP13]], align 8
+// CK19-64-NEXT:    [[TMP14:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES4]], i32 0, i32 0
+// CK19-64-NEXT:    store i64 [[TMP11]], ptr [[TMP14]], align 8
+// CK19-64-NEXT:    [[TMP15:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS3]], i64 0, i64 0
+// CK19-64-NEXT:    store ptr null, ptr [[TMP15]], align 8
+// CK19-64-NEXT:    [[TMP16:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS1]], i32 0, i32 0
+// CK19-64-NEXT:    [[TMP17:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS2]], i32 0, i32 0
+// CK19-64-NEXT:    [[TMP18:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES4]], i32 0, i32 0
+// CK19-64-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP16]], ptr [[TMP17]], ptr [[TMP18]], ptr @.offload_maptypes.1, ptr null, ptr null)
+// CK19-64-NEXT:    [[TMP19:%.*]] = load ptr, ptr [[SAVED_STACK]], align 8
+// CK19-64-NEXT:    call void @llvm.stackrestore.p0(ptr [[TMP19]])
+// CK19-32-NEXT:    [[TMP11:%.*]] = mul nuw i32 [[TMP0]], 4
+// CK19-32-NEXT:    [[TMP12:%.*]] = sext i32 [[TMP11]] to i64
+// CK19-32-NEXT:    [[TMP13:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS1]], i32 0, i32 0
+// CK19-32-NEXT:    store ptr [[VLA]], ptr [[TMP13]], align 4
+// CK19-32-NEXT:    [[TMP14:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS2]], i32 0, i32 0
+// CK19-32-NEXT:    store ptr [[VLA]], ptr [[TMP14]], align 4
+// CK19-32-NEXT:    [[TMP15:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES4]], i32 0, i32 0
+// CK19-32-NEXT:    store i64 [[TMP12]], ptr [[TMP15]], align 4
+// CK19-32-NEXT:    [[TMP16:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS3]], i32 0, i32 0
+// CK19-32-NEXT:    store ptr null, ptr [[TMP16]], align 4
+// CK19-32-NEXT:    [[TMP17:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS1]], i32 0, i32 0
+// CK19-32-NEXT:    [[TMP18:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS2]], i32 0, i32 0
+// CK19-32-NEXT:    [[TMP19:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES4]], i32 0, i32 0
+// CK19-32-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP17]], ptr [[TMP18]], ptr [[TMP19]], ptr @.offload_maptypes.1, ptr null, ptr null)
+// CK19-32-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[SAVED_STACK]], align 4
+// CK19-32-NEXT:    call void @llvm.stackrestore.p0(ptr [[TMP20]])
+// CK1-32-NEXT:    [[TMP31:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK1-32-NEXT:    [[INC6:%.*]] = add nsw i32 [[TMP31]], 1
+// CK1-32-NEXT:    store i32 [[INC6]], ptr [[ARG_ADDR]], align 4
+// CK1-NEXT:    [[TMP32:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK1-64-NEXT:    [[INC6:%.*]] = add nsw i32 [[TMP32]], 1
+// CK1-64-NEXT:    store i32 [[INC6]], ptr [[ARG_ADDR]], align 4
+// CK1-64-NEXT:    [[TMP33:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK1-64-NEXT:    [[INC7:%.*]] = add nsw i32 [[TMP33]], 1
+// CK1-32-NEXT:    [[INC7:%.*]] = add nsw i32 [[TMP32]], 1
+// CK1-NEXT:    store i32 [[INC7]], ptr [[ARG_ADDR]], align 4
+// CK1-64-NEXT:    [[TMP34:%.*]] = mul nuw i64 [[TMP2]], 4
+// CK1-32-NEXT:    [[TMP33:%.*]] = mul nuw i32 [[TMP1]], 4
+// CK1-32-NEXT:    [[TMP34:%.*]] = sext i32 [[TMP33]] to i64
+// CK1-NEXT:    [[TMP35:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS8]], i32 0, i32 0
+// CK1-64-NEXT:    store ptr [[VLA]], ptr [[TMP35]], align 8
+// CK1-32-NEXT:    store ptr [[VLA]], ptr [[TMP35]], align 4
+// CK1-NEXT:    [[TMP36:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS9]], i32 0, i32 0
+// CK1-64-NEXT:    store ptr [[VLA]], ptr [[TMP36]], align 8
+// CK1-32-NEXT:    store ptr [[VLA]], ptr [[TMP36]], align 4
+// CK1-NEXT:    [[TMP37:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK1-64-NEXT:    store i64 [[TMP34]], ptr [[TMP37]], align 8
+// CK1-64-NEXT:    [[TMP38:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS10]], i64 0, i64 0
+// CK1-64-NEXT:    store ptr null, ptr [[TMP38]], align 8
+// CK1-32-NEXT:    store i64 [[TMP34]], ptr [[TMP37]], align 4
+// CK1-32-NEXT:    [[TMP38:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS10]], i32 0, i32 0
+// CK1-32-_2-_3-CK17-NEXT:    store ptr null, ptr [[TMP38]], align 4
+// CK17-32-NEXT:    [[TMP39:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS22]], i32 0, i32 0
+// CK17-32-NEXT:    [[TMP40:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS23]], i32 0, i32 0
+// CK17-32-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP39]], ptr [[TMP40]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// SIMD-ONLY0-_52-_46-_25-_55-NEXT:    [[SA1:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA:%.*]], ptr [[TMP0]], i32 0, i32 1
+// SIMD-ONLY0-_52-_46-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[SA1]], align 8
+// SIMD-ONLY0-_25-_55-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[SA1]], align 4
+// SIMD-ONLY0-_52-_46-_25-_55-NEXT:    [[I:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP1]], i32 0, i32 0
+// SIMD-ONLY0-_52-_46-NEXT:    [[TMP2:%.*]] = load i32, ptr [[I]], align 8
+// SIMD-ONLY0-_52-_46-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[SA_ADDR]], align 8
+// SIMD-ONLY0-_25-_55-NEXT:    [[TMP2:%.*]] = load i32, ptr [[I]], align 4
+// SIMD-ONLY0-_25-_55-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[SA_ADDR]], align 4
+// SIMD-ONLY0-_52-_46-_25-_55-NEXT:    [[I2:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP3]], i32 0, i32 0
+// SIMD-ONLY0-_52-_46-NEXT:    [[TMP4:%.*]] = load i32, ptr [[I2]], align 8
+// SIMD-ONLY0-_25-_55-NEXT:    [[TMP4:%.*]] = load i32, ptr [[I2]], align 4
+// SIMD-ONLY0-_52-_46-_25-_55-NEXT:    [[ADD:%.*]] = add nsw i32 1, [[TMP4]]
+// SIMD-ONLY0-_52-_46-NEXT:    [[TMP5:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// SIMD-ONLY0-_52-_46-NEXT:    [[IDX_EXT:%.*]] = sext i32 [[ADD]] to i64
+// SIMD-ONLY0-_52-_46-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds ptr, ptr [[TMP5]], i64 [[IDX_EXT]]
+// SIMD-ONLY0-_52-_46-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[ADD_PTR]], align 8
+// SIMD-ONLY0-_52-_46-NEXT:    [[IDX_EXT3:%.*]] = sext i32 [[TMP2]] to i64
+// SIMD-ONLY0-_52-_46-NEXT:    [[ADD_PTR4:%.*]] = getelementptr inbounds float, ptr [[TMP6]], i64 [[IDX_EXT3]]
+// SIMD-ONLY0-_52-_46-NEXT:    store float 1.000000e+00, ptr [[ADD_PTR4]], align 4
+// SIMD-ONLY0-_25-_55-NEXT:    [[TMP5:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// SIMD-ONLY0-_25-_55-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds ptr, ptr [[TMP5]], i32 [[ADD]]
+// SIMD-ONLY0-_25-_55-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[ADD_PTR]], align 4
+// SIMD-ONLY0-_25-_55-NEXT:    [[ADD_PTR3:%.*]] = getelementptr inbounds float, ptr [[TMP6]], i32 [[TMP2]]
+// SIMD-ONLY0-_25-_55-NEXT:    store float 1.000000e+00, ptr [[ADD_PTR3]], align 4
+// CK1-NEXT:    [[TMP39:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS8]], i32 0, i32 0
+// CK1-NEXT:    [[TMP40:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS9]], i32 0, i32 0
+// CK1-NEXT:    [[TMP41:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK1-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP39]], ptr [[TMP40]], ptr [[TMP41]], ptr @.offload_maptypes.3, ptr null, ptr null)
+// CK1-NEXT:    [[TMP42:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK1-NEXT:    [[INC11:%.*]] = add nsw i32 [[TMP42]], 1
+// CK1-NEXT:    store i32 [[INC11]], ptr [[ARG_ADDR]], align 4
+// CK1-NEXT:    [[TMP43:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK1-NEXT:    [[INC12:%.*]] = add nsw i32 [[TMP43]], 1
+// CK1-NEXT:    store i32 [[INC12]], ptr [[ARG_ADDR]], align 4
+// CK1-64-NEXT:    [[TMP44:%.*]] = load ptr, ptr getelementptr inbounds nuw ([[STRUCT_ST:%.*]], ptr @gb, i32 0, i32 1), align 8
+// CK1-64-NEXT:    [[TMP45:%.*]] = load ptr, ptr getelementptr inbounds nuw ([[STRUCT_ST]], ptr @gb, i32 0, i32 1), align 8
+// CK1-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw double, ptr [[TMP45]], i64 0
+// CK1-32-NEXT:    [[TMP44:%.*]] = load ptr, ptr getelementptr inbounds nuw ([[STRUCT_ST:%.*]], ptr @gb, i32 0, i32 1), align 4
+// CK1-32-NEXT:    [[TMP45:%.*]] = load ptr, ptr getelementptr inbounds nuw ([[STRUCT_ST]], ptr @gb, i32 0, i32 1), align 4
+// CK1-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw double, ptr [[TMP45]], i32 0
+// CK1-NEXT:    [[TMP46:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS13]], i32 0, i32 0
+// CK1-64-NEXT:    store ptr [[TMP44]], ptr [[TMP46]], align 8
+// CK1-32-NEXT:    store ptr [[TMP44]], ptr [[TMP46]], align 4
+// CK1-NEXT:    [[TMP47:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS14]], i32 0, i32 0
+// CK1-64-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP47]], align 8
+// CK1-64-NEXT:    [[TMP48:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS15]], i64 0, i64 0
+// CK1-64-NEXT:    store ptr null, ptr [[TMP48]], align 8
+// CK1-32-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP47]], align 4
+// CK1-32-NEXT:    [[TMP48:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS15]], i32 0, i32 0
+// CK1-32-NEXT:    store ptr null, ptr [[TMP48]], align 4
+// CK1-NEXT:    [[TMP49:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS13]], i32 0, i32 0
+// CK1-NEXT:    [[TMP50:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS14]], i32 0, i32 0
+// CK1-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP49]], ptr [[TMP50]], ptr @.offload_sizes.4, ptr @.offload_maptypes.5, ptr null, ptr null)
+// CK1-NEXT:    [[TMP51:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK1-NEXT:    [[INC16:%.*]] = add nsw i32 [[TMP51]], 1
+// CK1-NEXT:    store i32 [[INC16]], ptr [[ARG_ADDR]], align 4
+// CK1-64-NEXT:    [[TMP52:%.*]] = load ptr, ptr [[SAVED_STACK]], align 8
+// CK1-32-NEXT:    [[TMP52:%.*]] = load ptr, ptr [[SAVED_STACK]], align 4
+// CK1-NEXT:    call void @llvm.stackrestore.p0(ptr [[TMP52]])
+// CK1-64-_2-_3-32-SIMD-ONLY0-_8-_47-_11-_9-CK6-_27-_18-_7-_51-CK7-_20-_35-_26-_19-_10-_33-_37-_32-CK9-CK10-CK11-CK14-_30-_43-_36-_59-CK15-_61-_53-_58-_14-CK16-_49-_23-_57-_48-CK17-_52-_46-_25-_55-CK19-CK20-CK21-ONLY19-_16-_12-_24-CK22-_13-_17-_5-NEXT:    ret void
+//
+//
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-LABEL: define linkonce_odr void @_ZN3SSAC1ERPd(
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-SAME: ptr noundef nonnull align 8 dereferenceable(16) [[THIS:%.*]], ptr noundef nonnull align 8 dereferenceable(8) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat {
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-SAME: ptr noundef nonnull align 4 dereferenceable(8) [[THIS:%.*]], ptr noundef nonnull align 4 dereferenceable(4) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat align 2 {
+// CK21-64-_2-_3-32-SIMD-ONLY19-_16-_12-_24-_27-LABEL: define linkonce_odr void @_ZN2ST3fooEv(
+// CK21-64-_2-_3-SIMD-ONLY19-_16-_12-SAME: ptr noundef nonnull align 8 dereferenceable(8000) [[THIS:%.*]]) #[[ATTR0]] comdat {
+// CK21-32-_3-_2-SIMD-ONLY19-_24-_27-SAME: ptr noundef nonnull align 4 dereferenceable(4000) [[THIS:%.*]]) #[[ATTR0]] comdat align 2 {
+// CK22-64-_2-_3-32-SIMD-ONLY19-_13-_17-_5-LABEL: define linkonce_odr void @_ZN2ST3fooEPA10_Pi(
+// CK22-64-_2-_3-SIMD-ONLY19-_13-SAME: ptr noundef nonnull align 1 dereferenceable(1) [[THIS:%.*]], ptr noundef [[ARR:%.*]]) #[[ATTR0]] comdat {
+// CK22-32-_3-_2-SIMD-ONLY19-_17-_5-SAME: ptr noundef nonnull align 1 dereferenceable(1) [[THIS:%.*]], ptr noundef [[ARR:%.*]]) #[[ATTR0]] comdat align 2 {
+// CK1-LABEL: define internal void @.omp_task_privates_map.(
+// CK1-SAME: ptr noalias noundef [[TMP0:%.*]], ptr noalias noundef [[TMP1:%.*]], ptr noalias noundef [[TMP2:%.*]], ptr noalias noundef [[TMP3:%.*]]) #[[ATTR3:[0-9]+]] {
+// CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK21-ONLY19-_16-_12-_24-_27-CK22-_13-_17-_5-NEXT:  [[ENTRY:.*:]]
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-CK21-ONLY19-_16-_12-CK22-_13-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    call void @_ZN3SSAC2ERPd(ptr noundef nonnull align 8 dereferenceable(16) [[THIS1]], ptr noundef nonnull align 8 dereferenceable(8) [[TMP0]])
+// CK21-64-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [2 x ptr], align 8
+// CK21-64-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [2 x ptr], align 8
+// CK21-64-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [2 x ptr], align 8
+// CK21-64-NEXT:    [[DOTOFFLOAD_SIZES:%.*]] = alloca [2 x i64], align 8
+// CK22-64-_2-_3-SIMD-ONLY19-_13-NEXT:    [[ARR_ADDR:%.*]] = alloca ptr, align 8
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-CK21-CK22-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    call void @_ZN3SSAC2ERPd(ptr noundef nonnull align 4 dereferenceable(8) [[THIS1]], ptr noundef nonnull align 4 dereferenceable(4) [[TMP0]])
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-NEXT:    ret void
+//
+//
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-LABEL: define linkonce_odr void @_ZN3SSBC1ERP3SSA(
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-SAME: ptr noundef nonnull align 8 dereferenceable(24) [[THIS:%.*]], ptr noundef nonnull align 8 dereferenceable(8) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat {
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-SAME: ptr noundef nonnull align 4 dereferenceable(12) [[THIS:%.*]], ptr noundef nonnull align 4 dereferenceable(4) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat align 2 {
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-NEXT:  [[ENTRY:.*:]]
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    call void @_ZN3SSBC2ERP3SSA(ptr noundef nonnull align 8 dereferenceable(24) [[THIS1]], ptr noundef nonnull align 8 dereferenceable(8) [[TMP0]])
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    call void @_ZN3SSBC2ERP3SSA(ptr noundef nonnull align 4 dereferenceable(12) [[THIS1]], ptr noundef nonnull align 4 dereferenceable(4) [[TMP0]])
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-NEXT:    ret void
+//
+//
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-LABEL: define linkonce_odr void @_ZN3SSB3fooEv(
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-SAME: ptr noundef nonnull align 8 dereferenceable(24) [[THIS:%.*]]) #[[ATTR0]] comdat {
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-SAME: ptr noundef nonnull align 4 dereferenceable(12) [[THIS:%.*]]) #[[ATTR0]] comdat align 2 {
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-NEXT:  [[ENTRY:.*:]]
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 8
+// CK21-32-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [2 x ptr], align 4
+// CK21-32-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [2 x ptr], align 4
+// CK21-32-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [2 x ptr], align 4
+// CK21-32-NEXT:    [[DOTOFFLOAD_SIZES:%.*]] = alloca [2 x i64], align 4
+// CK22-32-NEXT:    [[ARR_ADDR:%.*]] = alloca ptr, align 4
+// SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10-NEXT:    [[ARG_ADDR:%.*]] = alloca i32, align 4
+// CK24-NEXT:    [[DARR:%.*]] = alloca [3 x [4 x [5 x double]]], align 8
+// SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4-NEXT:    [[DOTCAPTURE_EXPR_:%.*]] = alloca i8, align 1
+// CK23-NEXT:    [[FARR:%.*]] = alloca [5 x [5 x [5 x float]]], align 4
+// CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 8
+// CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 8
+// CK4-64-_2-_3-CK5-CK7-CK12-CK14-CK16-CK17-CK18-CK22-CK23-CK24-CK26-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 8
+// CK17-64-NEXT:    [[DOTOFFLOAD_BASEPTRS29:%.*]] = alloca [1 x ptr], align 8
+// CK17-64-NEXT:    [[DOTOFFLOAD_PTRS30:%.*]] = alloca [1 x ptr], align 8
+// CK17-64-NEXT:    [[DOTOFFLOAD_MAPPERS31:%.*]] = alloca [1 x ptr], align 8
+// CK17-64-NEXT:    store ptr [[F]], ptr [[F_ADDR]], align 8
+// CK17-64-NEXT:    store ptr [[SA]], ptr [[SA_ADDR]], align 8
+// CK17-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[SA_ADDR]], align 8
+// CK17-64-NEXT:    [[I:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA:%.*]], ptr [[TMP0]], i32 0, i32 0
+// CK17-64-NEXT:    [[TMP1:%.*]] = load i32, ptr [[I]], align 8
+// CK17-64-NEXT:    [[ADD:%.*]] = add nsw i32 1, [[TMP1]]
+// CK17-64-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// CK17-64-NEXT:    [[IDX_EXT:%.*]] = sext i32 [[ADD]] to i64
+// CK17-64-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds ptr, ptr [[TMP2]], i64 [[IDX_EXT]]
+// CK17-64-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[ADD_PTR]], align 8
+// CK17-64-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// CK17-64-NEXT:    [[TMP5:%.*]] = load ptr, ptr [[SA_ADDR]], align 8
+// CK17-64-NEXT:    [[SA1:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP5]], i32 0, i32 1
+// CK17-64-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[SA1]], align 8
+// CK17-64-NEXT:    [[I2:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP6]], i32 0, i32 0
+// CK17-64-NEXT:    [[TMP7:%.*]] = load i32, ptr [[I2]], align 8
+// CK17-64-NEXT:    [[TMP8:%.*]] = load ptr, ptr [[SA_ADDR]], align 8
+// CK17-64-NEXT:    [[I3:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP8]], i32 0, i32 0
+// CK17-64-NEXT:    [[TMP9:%.*]] = load i32, ptr [[I3]], align 8
+// CK17-64-NEXT:    [[ADD4:%.*]] = add nsw i32 1, [[TMP9]]
+// CK17-64-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// CK17-64-NEXT:    [[IDX_EXT5:%.*]] = sext i32 [[ADD4]] to i64
+// CK17-64-NEXT:    [[ADD_PTR6:%.*]] = getelementptr inbounds ptr, ptr [[TMP10]], i64 [[IDX_EXT5]]
+// CK17-64-NEXT:    [[TMP11:%.*]] = load ptr, ptr [[ADD_PTR6]], align 8
+// CK17-64-NEXT:    [[IDX_EXT7:%.*]] = sext i32 [[TMP7]] to i64
+// CK17-64-NEXT:    [[ADD_PTR8:%.*]] = getelementptr inbounds float, ptr [[TMP11]], i64 [[IDX_EXT7]]
+// CK17-64-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK17-64-NEXT:    store ptr [[TMP3]], ptr [[TMP12]], align 8
+// CK17-64-NEXT:    [[TMP13:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK17-64-NEXT:    store ptr [[ADD_PTR8]], ptr [[TMP13]], align 8
+// CK17-64-NEXT:    [[TMP14:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK17-64-NEXT:    store ptr null, ptr [[TMP14]], align 8
+// CK17-64-NEXT:    [[TMP15:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK17-64-NEXT:    [[TMP16:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK17-64-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP15]], ptr [[TMP16]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK17-64-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[SA_ADDR]], align 8
+// CK17-64-NEXT:    [[SA9:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP17]], i32 0, i32 1
+// CK17-64-NEXT:    [[TMP18:%.*]] = load ptr, ptr [[SA9]], align 8
+// CK17-64-NEXT:    [[I10:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP18]], i32 0, i32 0
+// CK17-64-NEXT:    [[TMP19:%.*]] = load i32, ptr [[I10]], align 8
+// CK17-64-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[SA_ADDR]], align 8
+// CK17-64-NEXT:    [[I11:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP20]], i32 0, i32 0
+// CK17-64-NEXT:    [[TMP21:%.*]] = load i32, ptr [[I11]], align 8
+// CK17-64-NEXT:    [[ADD12:%.*]] = add nsw i32 1, [[TMP21]]
+// CK17-64-NEXT:    [[TMP22:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// CK17-64-NEXT:    [[IDX_EXT13:%.*]] = sext i32 [[ADD12]] to i64
+// CK17-64-NEXT:    [[ADD_PTR14:%.*]] = getelementptr inbounds ptr, ptr [[TMP22]], i64 [[IDX_EXT13]]
+// CK17-64-NEXT:    [[TMP23:%.*]] = load ptr, ptr [[ADD_PTR14]], align 8
+// CK17-64-NEXT:    [[IDX_EXT15:%.*]] = sext i32 [[TMP19]] to i64
+// CK17-64-NEXT:    [[ADD_PTR16:%.*]] = getelementptr inbounds float, ptr [[TMP23]], i64 [[IDX_EXT15]]
+// CK17-64-NEXT:    store float 1.000000e+00, ptr [[ADD_PTR16]], align 4
+// CK17-64-NEXT:    [[TMP24:%.*]] = load ptr, ptr [[SA_ADDR]], align 8
+// CK17-64-NEXT:    [[I17:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP24]], i32 0, i32 0
+// CK17-64-NEXT:    [[TMP25:%.*]] = load i32, ptr [[I17]], align 8
+// CK17-64-NEXT:    [[ADD18:%.*]] = add nsw i32 1, [[TMP25]]
+// CK17-64-NEXT:    [[TMP26:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// CK17-64-NEXT:    [[IDX_EXT19:%.*]] = sext i32 [[ADD18]] to i64
+// CK17-64-NEXT:    [[ADD_PTR20:%.*]] = getelementptr inbounds ptr, ptr [[TMP26]], i64 [[IDX_EXT19]]
+// CK17-64-NEXT:    [[TMP27:%.*]] = load ptr, ptr [[ADD_PTR20]], align 8
+// CK17-64-NEXT:    [[TMP28:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// CK17-64-NEXT:    [[TMP29:%.*]] = load ptr, ptr [[SA_ADDR]], align 8
+// CK17-64-NEXT:    [[SA21:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP29]], i32 0, i32 1
+// CK17-64-NEXT:    [[TMP30:%.*]] = load ptr, ptr [[SA21]], align 8
+// CK17-64-NEXT:    [[I22:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP30]], i32 0, i32 0
+// CK17-64-NEXT:    [[TMP31:%.*]] = load i32, ptr [[I22]], align 8
+// CK17-64-NEXT:    [[TMP32:%.*]] = load ptr, ptr [[SA_ADDR]], align 8
+// CK17-64-NEXT:    [[I23:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP32]], i32 0, i32 0
+// CK17-64-NEXT:    [[TMP33:%.*]] = load i32, ptr [[I23]], align 8
+// CK17-64-NEXT:    [[ADD24:%.*]] = add nsw i32 1, [[TMP33]]
+// CK17-64-NEXT:    [[TMP34:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// CK17-64-NEXT:    [[IDX_EXT25:%.*]] = sext i32 [[ADD24]] to i64
+// CK17-64-NEXT:    [[ADD_PTR26:%.*]] = getelementptr inbounds ptr, ptr [[TMP34]], i64 [[IDX_EXT25]]
+// CK17-64-NEXT:    [[TMP35:%.*]] = load ptr, ptr [[ADD_PTR26]], align 8
+// CK17-64-NEXT:    [[IDX_EXT27:%.*]] = sext i32 [[TMP31]] to i64
+// CK17-64-NEXT:    [[ADD_PTR28:%.*]] = getelementptr inbounds float, ptr [[TMP35]], i64 [[IDX_EXT27]]
+// CK17-64-NEXT:    [[TMP36:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS29]], i32 0, i32 0
+// CK17-64-NEXT:    store ptr [[TMP27]], ptr [[TMP36]], align 8
+// CK17-64-NEXT:    [[TMP37:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS30]], i32 0, i32 0
+// CK17-64-NEXT:    store ptr [[ADD_PTR28]], ptr [[TMP37]], align 8
+// CK17-64-NEXT:    [[TMP38:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS31]], i64 0, i64 0
+// CK17-64-NEXT:    store ptr null, ptr [[TMP38]], align 8
+// CK17-64-NEXT:    [[TMP39:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS29]], i32 0, i32 0
+// CK17-64-NEXT:    [[TMP40:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS30]], i32 0, i32 0
+// CK17-64-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP39]], ptr [[TMP40]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// CK7-64-_2-_3-CK12-NEXT:    [[DOTOFFLOAD_BASEPTRS9:%.*]] = alloca [1 x ptr], align 8
+// CK7-64-_2-_3-CK12-NEXT:    [[DOTOFFLOAD_PTRS10:%.*]] = alloca [1 x ptr], align 8
+// CK7-64-_2-_3-CK12-NEXT:    [[DOTOFFLOAD_MAPPERS11:%.*]] = alloca [1 x ptr], align 8
+// CK5-64-NEXT:    [[DOTOFFLOAD_BASEPTRS1:%.*]] = alloca [1 x ptr], align 8
+// CK5-64-NEXT:    [[DOTOFFLOAD_PTRS2:%.*]] = alloca [1 x ptr], align 8
+// CK5-64-NEXT:    [[DOTOFFLOAD_MAPPERS3:%.*]] = alloca [1 x ptr], align 8
+// CK5-64-_3-_2-CK7-NEXT:    store ptr [[B]], ptr [[B_ADDR]], align 8
+// CK12-64-NEXT:    store ptr [[S]], ptr [[S_ADDR]], align 8
+// CK14-64-NEXT:    [[DOTOFFLOAD_BASEPTRS8:%.*]] = alloca [1 x ptr], align 8
+// CK14-64-NEXT:    [[DOTOFFLOAD_PTRS9:%.*]] = alloca [1 x ptr], align 8
+// CK14-64-NEXT:    [[DOTOFFLOAD_MAPPERS10:%.*]] = alloca [1 x ptr], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 8
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 4
+// CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 4
+// CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 4
+// CK4-32-_2-_3-CK5-CK12-CK14-CK18-CK22-CK23-CK24-CK26-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 4
+// CK18-NEXT:    [[DOTOFFLOAD_SIZES:%.*]] = alloca [1 x i64], align 8
+// CK18-64-NEXT:    [[DOTOFFLOAD_BASEPTRS2:%.*]] = alloca [1 x ptr], align 8
+// CK18-64-NEXT:    [[DOTOFFLOAD_PTRS3:%.*]] = alloca [1 x ptr], align 8
+// CK18-64-NEXT:    [[DOTOFFLOAD_MAPPERS4:%.*]] = alloca [1 x ptr], align 8
+// CK18-64-NEXT:    [[DOTOFFLOAD_SIZES5:%.*]] = alloca [1 x i64], align 8
+// CK16-64-NEXT:    [[DOTOFFLOAD_BASEPTRS5:%.*]] = alloca [1 x ptr], align 8
+// CK16-64-NEXT:    [[DOTOFFLOAD_PTRS6:%.*]] = alloca [1 x ptr], align 8
+// CK16-64-NEXT:    [[DOTOFFLOAD_MAPPERS7:%.*]] = alloca [1 x ptr], align 8
+// CK16-64-_2-_3-CK18-SIMD-ONLY18-_4-NEXT:    store ptr [[F]], ptr [[F_ADDR]], align 8
+// CK5-32-_3-_2-CK18-NEXT:    [[DOTOFFLOAD_BASEPTRS1:%.*]] = alloca [1 x ptr], align 4
+// CK5-32-_3-_2-CK18-NEXT:    [[DOTOFFLOAD_PTRS2:%.*]] = alloca [1 x ptr], align 4
+// CK5-32-_3-_2-CK18-NEXT:    [[DOTOFFLOAD_MAPPERS3:%.*]] = alloca [1 x ptr], align 4
+// CK18-32-NEXT:    [[DOTOFFLOAD_SIZES4:%.*]] = alloca [1 x i64], align 8
+// CK18-32-_3-_2-SIMD-ONLY18-_5-NEXT:    store ptr [[F]], ptr [[F_ADDR]], align 4
+// CK18-64-_3-_2-32-SIMD-ONLY18-_4-_5-NEXT:    store i32 [[SA]], ptr [[SA_ADDR]], align 4
+// CK16-64-NEXT:    store ptr [[I]], ptr [[I_ADDR]], align 8
+// CK16-64-_2-_3-CK18-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// CK18-64-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// CK18-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK18-32-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK18-NEXT:    [[TMP2:%.*]] = load i32, ptr [[SA_ADDR]], align 4
+// CK18-64-NEXT:    [[CONV:%.*]] = sext i32 [[TMP2]] to i64
+// CK18-64-NEXT:    [[TMP3:%.*]] = mul nuw i64 12, [[CONV]]
+// CK18-64-NEXT:    [[TMP4:%.*]] = mul nuw i64 [[TMP3]], 4
+// CK18-64-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK18-64-NEXT:    store ptr [[TMP0]], ptr [[TMP5]], align 8
+// CK18-64-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK18-64-NEXT:    store ptr [[TMP1]], ptr [[TMP6]], align 8
+// CK18-64-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK18-64-NEXT:    store i64 [[TMP4]], ptr [[TMP7]], align 8
+// CK18-64-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK18-64-NEXT:    store ptr null, ptr [[TMP8]], align 8
+// CK18-64-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK18-64-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK18-64-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK18-64-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP9]], ptr [[TMP10]], ptr [[TMP11]], ptr @.offload_maptypes, ptr null, ptr null)
+// CK18-32-NEXT:    [[TMP3:%.*]] = mul nuw i32 12, [[TMP2]]
+// CK18-32-NEXT:    [[TMP4:%.*]] = mul nuw i32 [[TMP3]], 4
+// CK18-32-NEXT:    [[TMP5:%.*]] = sext i32 [[TMP4]] to i64
+// CK18-32-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK18-32-NEXT:    store ptr [[TMP0]], ptr [[TMP6]], align 4
+// CK18-32-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK18-32-NEXT:    store ptr [[TMP1]], ptr [[TMP7]], align 4
+// CK18-32-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK18-32-NEXT:    store i64 [[TMP5]], ptr [[TMP8]], align 4
+// CK12-32-NEXT:    [[DOTOFFLOAD_BASEPTRS9:%.*]] = alloca [1 x ptr], align 4
+// CK12-32-NEXT:    [[DOTOFFLOAD_PTRS10:%.*]] = alloca [1 x ptr], align 4
+// CK12-32-NEXT:    [[DOTOFFLOAD_MAPPERS11:%.*]] = alloca [1 x ptr], align 4
+// CK12-32-NEXT:    store ptr [[S]], ptr [[S_ADDR]], align 4
+// CK12-NEXT:    store i32 [[L]], ptr [[L_ADDR]], align 4
+// CK12-NEXT:    store i32 [[E]], ptr [[E_ADDR]], align 4
+// CK12-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK12-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK12-NEXT:    [[SP:%.*]] = getelementptr inbounds nuw [[STRUCT_S:%.*]], ptr [[TMP0]], i32 0, i32 1
+// CK12-64-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[SP]], align 8
+// CK12-32-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[SP]], align 4
+// CK12-NEXT:    [[P:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP1]], i32 0, i32 0
+// CK12-64-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[P]], align 8
+// CK12-64-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK12-64-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK12-32-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[P]], align 4
+// CK12-32-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK12-32-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK12-NEXT:    [[SP1:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP4]], i32 0, i32 1
+// CK12-64-NEXT:    [[TMP5:%.*]] = load ptr, ptr [[SP1]], align 8
+// CK12-32-NEXT:    [[TMP5:%.*]] = load ptr, ptr [[SP1]], align 4
+// CK12-NEXT:    [[P2:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP5]], i32 0, i32 0
+// CK12-64-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[P2]], align 8
+// CK12-32-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[P2]], align 4
+// CK12-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK12-64-NEXT:    store ptr [[TMP2]], ptr [[TMP7]], align 8
+// CK12-32-NEXT:    store ptr [[TMP2]], ptr [[TMP7]], align 4
+// CK12-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK12-64-NEXT:    store ptr [[TMP6]], ptr [[TMP8]], align 8
+// CK12-64-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK12-64-NEXT:    store ptr null, ptr [[TMP9]], align 8
+// CK12-32-NEXT:    store ptr [[TMP6]], ptr [[TMP8]], align 4
+// CK12-32-_3-_2-CK18-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK12-32-_3-_2-CK18-NEXT:    store ptr null, ptr [[TMP9]], align 4
+// CK12-64-_3-_2-32-CK18-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK12-64-_3-_2-32-CK18-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK18-32-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK18-32-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP10]], ptr [[TMP11]], ptr [[TMP12]], ptr @.offload_maptypes, ptr null, ptr null)
+// CK18-64-_3-_2-32-SIMD-ONLY18-_4-_5-NEXT:    store i32 1, ptr [[SA_ADDR]], align 4
+// CK16-64-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[I_ADDR]], align 8
+// CK16-64-NEXT:    [[TMP2:%.*]] = load i32, ptr [[TMP1]], align 4
+// CK16-64-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// CK18-32-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK18-32-NEXT:    [[TMP14:%.*]] = load ptr, ptr [[F_ADDR]], align 4
+// CK18-32-NEXT:    [[TMP15:%.*]] = load i32, ptr [[SA_ADDR]], align 4
+// CK18-32-NEXT:    [[TMP16:%.*]] = mul nuw i32 4, [[TMP15]]
+// CK18-32-NEXT:    [[TMP17:%.*]] = mul nuw i32 [[TMP16]], 5
+// CK18-32-NEXT:    [[TMP18:%.*]] = sext i32 [[TMP17]] to i64
+// CK18-32-NEXT:    [[TMP19:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS1]], i32 0, i32 0
+// CK18-32-NEXT:    store ptr [[TMP13]], ptr [[TMP19]], align 4
+// CK18-32-NEXT:    [[TMP20:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS2]], i32 0, i32 0
+// CK18-32-NEXT:    store ptr [[TMP14]], ptr [[TMP20]], align 4
+// CK18-32-NEXT:    [[TMP21:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES4]], i32 0, i32 0
+// CK18-32-NEXT:    store i64 [[TMP18]], ptr [[TMP21]], align 4
+// CK18-32-NEXT:    [[TMP22:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS3]], i32 0, i32 0
+// CK18-32-NEXT:    store ptr null, ptr [[TMP22]], align 4
+// CK18-32-NEXT:    [[TMP23:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS1]], i32 0, i32 0
+// CK18-32-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS2]], i32 0, i32 0
+// CK18-32-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES4]], i32 0, i32 0
+// CK18-32-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP23]], ptr [[TMP24]], ptr [[TMP25]], ptr @.offload_maptypes.1, ptr null, ptr null)
+// CK26-NEXT:    [[TMP0:%.*]] = load i32, ptr [[IT]], align 4
+// CK26-64-NEXT:    [[IDXPROM:%.*]] = sext i32 [[TMP0]] to i64
+// CK26-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [10 x i32], ptr [[A]], i64 0, i64 [[IDXPROM]]
+// CK26-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [10 x i32], ptr [[A]], i32 0, i32 [[TMP0]]
+// CK26-NEXT:    [[TMP1:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK26-64-NEXT:    store ptr [[A]], ptr [[TMP1]], align 8
+// CK26-32-NEXT:    store ptr [[A]], ptr [[TMP1]], align 4
+// CK26-NEXT:    [[TMP2:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK26-64-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP2]], align 8
+// CK26-64-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK26-64-NEXT:    store ptr null, ptr [[TMP3]], align 8
+// CK26-32-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP2]], align 4
+// CK26-32-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK26-32-NEXT:    store ptr null, ptr [[TMP3]], align 4
+// CK5-32-NEXT:    store ptr [[B]], ptr [[B_ADDR]], align 4
+// CK5-64-_3-_2-32-CK7-NEXT:    store i32 [[L]], ptr [[L_ADDR]], align 4
+// CK5-64-_3-_2-32-CK7-NEXT:    store i32 [[E]], ptr [[E_ADDR]], align 4
+// CK5-64-_3-_2-CK7-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK5-64-_3-_2-CK7-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK7-64-NEXT:    [[TMP2:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK7-64-_2-_3-CK16-NEXT:    [[IDX_EXT:%.*]] = sext i32 [[TMP2]] to i64
+// CK16-64-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds float, ptr [[TMP3]], i64 [[IDX_EXT]]
+// CK7-64-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds i32, ptr [[TMP1]], i64 [[IDX_EXT]]
+// CK7-64-NEXT:    [[TMP3:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK7-64-NEXT:    [[IDXPROM:%.*]] = sext i32 [[TMP3]] to i64
+// CK7-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds i32, ptr [[ADD_PTR]], i64 [[IDXPROM]]
+// CK7-64-_2-_3-CK16-CK26-32-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK7-64-_2-_3-CK16-NEXT:    store ptr [[TMP0]], ptr [[TMP4]], align 8
+// CK7-64-_2-_3-CK16-CK26-32-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK16-64-NEXT:    store ptr [[ADD_PTR]], ptr [[TMP5]], align 8
+// CK26-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP4]], ptr [[TMP5]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK7-64-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP5]], align 8
+// CK7-64-_2-_3-CK16-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK7-64-_2-_3-CK16-NEXT:    store ptr null, ptr [[TMP6]], align 8
+// CK7-64-_2-_3-CK16-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK7-64-_2-_3-CK16-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK7-64-_2-_3-CK16-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP7]], ptr [[TMP8]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK16-64-NEXT:    [[TMP9:%.*]] = load ptr, ptr [[I_ADDR]], align 8
+// CK16-64-NEXT:    [[TMP10:%.*]] = load i32, ptr [[TMP9]], align 4
+// CK16-64-NEXT:    [[TMP11:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// CK16-64-NEXT:    [[IDX_EXT1:%.*]] = sext i32 [[TMP10]] to i64
+// CK16-64-NEXT:    [[ADD_PTR2:%.*]] = getelementptr inbounds float, ptr [[TMP11]], i64 [[IDX_EXT1]]
+// CK16-64-NEXT:    store float 1.000000e+00, ptr [[ADD_PTR2]], align 4
+// CK16-64-_2-_3-CK18-NEXT:    [[TMP12:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// CK18-64-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// CK18-64-NEXT:    [[TMP14:%.*]] = load i32, ptr [[SA_ADDR]], align 4
+// CK18-64-NEXT:    [[CONV1:%.*]] = sext i32 [[TMP14]] to i64
+// CK18-64-NEXT:    [[TMP15:%.*]] = mul nuw i64 4, [[CONV1]]
+// CK18-64-NEXT:    [[TMP16:%.*]] = mul nuw i64 [[TMP15]], 5
+// CK18-64-NEXT:    [[TMP17:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS2]], i32 0, i32 0
+// CK18-64-NEXT:    store ptr [[TMP12]], ptr [[TMP17]], align 8
+// CK18-64-NEXT:    [[TMP18:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS3]], i32 0, i32 0
+// CK18-64-NEXT:    store ptr [[TMP13]], ptr [[TMP18]], align 8
+// CK18-64-NEXT:    [[TMP19:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES5]], i32 0, i32 0
+// CK18-64-NEXT:    store i64 [[TMP16]], ptr [[TMP19]], align 8
+// CK18-64-NEXT:    [[TMP20:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS4]], i64 0, i64 0
+// CK7-64-NEXT:    [[TMP9:%.*]] = load i32, ptr [[E_ADDR]], align 4
+// CK5-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK5-32-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK12-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP10]], ptr [[TMP11]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK12-NEXT:    [[TMP12:%.*]] = load i32, ptr [[E_ADDR]], align 4
+// CK12-NEXT:    [[CONV:%.*]] = sitofp i32 [[TMP12]] to double
+// CK12-64-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK12-32-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK12-NEXT:    [[SP3:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP13]], i32 0, i32 1
+// CK12-64-NEXT:    [[TMP14:%.*]] = load ptr, ptr [[SP3]], align 8
+// CK12-32-NEXT:    [[TMP14:%.*]] = load ptr, ptr [[SP3]], align 4
+// CK12-NEXT:    [[P4:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP14]], i32 0, i32 0
+// CK12-64-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[P4]], align 8
+// CK12-64-NEXT:    store double [[CONV]], ptr [[TMP15]], align 8
+// CK12-64-NEXT:    [[TMP16:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK12-32-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[P4]], align 4
+// CK12-32-NEXT:    store double [[CONV]], ptr [[TMP15]], align 4
+// CK12-32-NEXT:    [[TMP16:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK12-NEXT:    [[SP5:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP16]], i32 0, i32 1
+// CK12-64-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[SP5]], align 8
+// CK12-32-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[SP5]], align 4
+// CK12-NEXT:    [[P6:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP17]], i32 0, i32 0
+// CK12-64-NEXT:    [[TMP18:%.*]] = load ptr, ptr [[P6]], align 8
+// CK12-64-NEXT:    [[TMP19:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK12-64-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// CK12-32-NEXT:    [[TMP18:%.*]] = load ptr, ptr [[P6]], align 4
+// CK12-32-NEXT:    [[TMP19:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK12-32-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// CK12-NEXT:    [[SP7:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP20]], i32 0, i32 1
+// CK12-64-NEXT:    [[TMP21:%.*]] = load ptr, ptr [[SP7]], align 8
+// CK12-32-NEXT:    [[TMP21:%.*]] = load ptr, ptr [[SP7]], align 4
+// CK12-NEXT:    [[P8:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP21]], i32 0, i32 0
+// CK12-64-NEXT:    [[TMP22:%.*]] = load ptr, ptr [[P8]], align 8
+// CK12-32-NEXT:    [[TMP22:%.*]] = load ptr, ptr [[P8]], align 4
+// CK12-NEXT:    [[TMP23:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS9]], i32 0, i32 0
+// CK12-64-NEXT:    store ptr [[TMP18]], ptr [[TMP23]], align 8
+// CK12-32-NEXT:    store ptr [[TMP18]], ptr [[TMP23]], align 4
+// CK12-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS10]], i32 0, i32 0
+// CK12-64-NEXT:    store ptr [[TMP22]], ptr [[TMP24]], align 8
+// CK12-64-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS11]], i64 0, i64 0
+// CK12-64-NEXT:    store ptr null, ptr [[TMP25]], align 8
+// CK12-32-NEXT:    store ptr [[TMP22]], ptr [[TMP24]], align 4
+// CK12-32-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS11]], i32 0, i32 0
+// CK12-32-NEXT:    store ptr null, ptr [[TMP25]], align 4
+// CK12-NEXT:    [[TMP26:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS9]], i32 0, i32 0
+// CK12-NEXT:    [[TMP27:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS10]], i32 0, i32 0
+// CK12-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP26]], ptr [[TMP27]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// CK14-32-NEXT:    [[DOTOFFLOAD_BASEPTRS8:%.*]] = alloca [1 x ptr], align 4
+// CK14-32-NEXT:    [[DOTOFFLOAD_PTRS9:%.*]] = alloca [1 x ptr], align 4
+// CK14-32-NEXT:    [[DOTOFFLOAD_MAPPERS10:%.*]] = alloca [1 x ptr], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 4
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-NEXT:    [[D:%.*]] = getelementptr inbounds nuw [[STRUCT_SSB:%.*]], ptr [[THIS1]], i32 0, i32 0
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[D]], align 8
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[D]], align 4
+// CK14-NEXT:    [[D2:%.*]] = getelementptr inbounds nuw [[STRUCT_SSB]], ptr [[THIS1]], i32 0, i32 0
+// CK14-64-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[D2]], align 8
+// CK14-64-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds double, ptr [[TMP1]], i64 1
+// CK14-32-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[D2]], align 4
+// CK14-32-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds double, ptr [[TMP1]], i32 1
+// CK21-64-_2-_3-32-CK22-CK23-CK24-NEXT:    [[DIMS:%.*]] = alloca [4 x [[STRUCT_DESCRIPTOR_DIM:%.*]]], align 8
+// SIMD-ONLY19-_4-_7-_25-_8-NEXT:    [[FARR:%.*]] = alloca [5 x [5 x [5 x float]]], align 4
+// SIMD-ONLY19-_6-_15-_18-_20-NEXT:    [[DARR:%.*]] = alloca [3 x [4 x [5 x double]]], align 8
+// CK25-64-_2-_3-32-SIMD-ONLY19-_26-_22-_9-_10-NEXT:    [[ARR:%.*]] = alloca [3 x [4 x [5 x i32]]], align 4
+// CK25-64-_2-_3-32-SIMD-ONLY19-_26-_22-_9-_10-NEXT:    [[X:%.*]] = alloca i32, align 4
+// CK25-64-_2-_3-32-SIMD-ONLY19-_26-_22-_9-_10-NEXT:    [[FARR:%.*]] = alloca [4 x [3 x float]], align 4
+// CK25-64-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [3 x ptr], align 8
+// CK25-64-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [3 x ptr], align 8
+// CK25-64-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [3 x ptr], align 8
+// CK25-32-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [3 x ptr], align 4
+// CK25-32-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [3 x ptr], align 4
+// CK25-32-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [3 x ptr], align 4
+// CK25-NEXT:    [[DIMS:%.*]] = alloca [4 x [[STRUCT_DESCRIPTOR_DIM:%.*]]], align 8
+// CK25-NEXT:    [[DIMS7:%.*]] = alloca [3 x [[STRUCT_DESCRIPTOR_DIM]]], align 8
+// SIMD-ONLY19-_29-_23-NEXT:    [[ARR:%.*]] = alloca [3 x [4 x [[STRUCT_ST:%.*]]]], align 8
+// SIMD-ONLY19-_21-_3-NEXT:    [[ARR:%.*]] = alloca [3 x [4 x [[STRUCT_ST:%.*]]]], align 4
+// SIMD-ONLY0-_54-_21-_40-_60-_28-_38-_41-_5-NEXT:    [[LA:%.*]] = alloca i32, align 4
+// SIMD-ONLY0-_54-_21-_28-_38-NEXT:    [[SAVED_STACK:%.*]] = alloca ptr, align 8
+// SIMD-ONLY0-_54-_21-_28-_38-NEXT:    [[__VLA_EXPR0:%.*]] = alloca i64, align 8
+// SIMD-ONLY0-_40-_60-_41-_5-NEXT:    [[SAVED_STACK:%.*]] = alloca ptr, align 4
+// SIMD-ONLY0-_40-_60-_41-_5-NEXT:    [[__VLA_EXPR0:%.*]] = alloca i32, align 4
+// SIMD-ONLY0-_54-_21-_40-_60-NEXT:    [[DOTCAPTURE_EXPR_:%.*]] = alloca i32, align 4
+// SIMD-ONLY0-_54-_21-_40-_60-NEXT:    [[DOTCAPTURE_EXPR_2:%.*]] = alloca i8, align 1
+// SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-_7-_25-_8-CK24-_6-_15-_18-_20-CK25-_26-_22-_9-_10-NEXT:    store i32 [[ARG]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-_40-_60-CK3-64-_2-_3-32-ONLY2-_4-_5-CK4-ONLY3-ONLY4-_28-_38-_41-ONLY19-_29-_23-CK24-CK25-_26-_22-_9-_10-NEXT:    [[TMP0:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK24-64-_2-_3-CK25-NEXT:    [[TMP1:%.*]] = sext i32 [[TMP0]] to i64
+// CK25-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw [3 x [4 x [5 x i32]]], ptr [[ARR]], i64 0, i64 0
+// CK25-64-NEXT:    [[ARRAYDECAY:%.*]] = getelementptr inbounds [4 x [5 x i32]], ptr [[ARRAYIDX]], i64 0, i64 0
+// CK25-64-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds nuw [5 x i32], ptr [[ARRAYDECAY]], i64 [[TMP1]]
+// CK25-64-NEXT:    [[ARRAYDECAY2:%.*]] = getelementptr inbounds [5 x i32], ptr [[ARRAYIDX1]], i64 0, i64 0
+// CK25-64-NEXT:    [[ARRAYIDX3:%.*]] = getelementptr inbounds nuw i32, ptr [[ARRAYDECAY2]], i64 1
+// CK24-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw [3 x [4 x [5 x double]]], ptr [[DARR]], i64 0, i64 0
+// CK24-64-NEXT:    [[ARRAYDECAY:%.*]] = getelementptr inbounds [4 x [5 x double]], ptr [[ARRAYIDX]], i64 0, i64 0
+// CK24-64-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds nuw [5 x double], ptr [[ARRAYDECAY]], i64 [[TMP1]]
+// CK24-64-NEXT:    [[ARRAYDECAY2:%.*]] = getelementptr inbounds [5 x double], ptr [[ARRAYIDX1]], i64 0, i64 0
+// CK24-64-NEXT:    [[ARRAYIDX3:%.*]] = getelementptr inbounds nuw double, ptr [[ARRAYDECAY2]], i64 0
+// SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4-NEXT:    [[TOBOOL:%.*]] = icmp ne i32 [[TMP0]], 0
+// SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4-NEXT:    [[STOREDV:%.*]] = zext i1 [[TOBOOL]] to i8
+// SIMD-ONLY2-_4-_5-_2-CK4-64-_3-32-ONLY3-ONLY4-NEXT:    store i8 [[STOREDV]], ptr [[DOTCAPTURE_EXPR_]], align 1
+// CK4-NEXT:    [[TMP1:%.*]] = load i8, ptr [[DOTCAPTURE_EXPR_]], align 1
+// CK4-NEXT:    [[LOADEDV:%.*]] = trunc i8 [[TMP1]] to i1
+// CK4-NEXT:    br i1 [[LOADEDV]], label %[[OMP_IF_THEN:.*]], label %[[OMP_IF_ELSE:.*]]
+// CK4:       [[OMP_IF_THEN]]:
+// CK4-64-_2-_3-32-CK5-CK14-NEXT:    [[TMP2:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK5-64-_3-_2-CK14-NEXT:    store ptr [[TMP0]], ptr [[TMP2]], align 8
+// CK5-32-_3-_2-CK14-NEXT:    store ptr [[TMP0]], ptr [[TMP2]], align 4
+// CK4-64-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP2]], align 8
+// CK4-32-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP2]], align 4
+// CK4-64-_2-_3-32-CK5-CK14-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK5-64-NEXT:    store ptr [[TMP1]], ptr [[TMP3]], align 8
+// CK14-64-NEXT:    store ptr [[ADD_PTR]], ptr [[TMP3]], align 8
+// CK4-64-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP3]], align 8
+// CK4-64-_2-_3-CK5-CK14-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK4-64-_2-_3-CK5-CK14-NEXT:    store ptr null, ptr [[TMP4]], align 8
+// CK5-32-NEXT:    store ptr [[TMP1]], ptr [[TMP3]], align 4
+// CK14-32-NEXT:    store ptr [[ADD_PTR]], ptr [[TMP3]], align 4
+// CK4-32-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP3]], align 4
+// CK4-32-_2-_3-CK5-CK14-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK4-32-_2-_3-CK5-CK14-NEXT:    store ptr null, ptr [[TMP4]], align 4
+// CK4-64-_2-_3-32-CK5-CK14-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK4-64-_2-_3-32-CK5-CK14-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK5-64-_3-_2-32-CK14-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP5]], ptr [[TMP6]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK5-NEXT:    [[TMP7:%.*]] = load i32, ptr [[E_ADDR]], align 4
+// CK5-64-NEXT:    [[TMP8:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK5-32-NEXT:    [[TMP8:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK5-NEXT:    [[TMP9:%.*]] = load i32, ptr [[TMP8]], align 4
+// CK5-NEXT:    [[ADD:%.*]] = add nsw i32 [[TMP9]], [[TMP7]]
+// CK5-NEXT:    store i32 [[ADD]], ptr [[TMP8]], align 4
+// CK5-64-_3-_2-CK7-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK7-64-NEXT:    [[TMP11:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK7-64-NEXT:    [[IDX_EXT1:%.*]] = sext i32 [[TMP11]] to i64
+// CK7-64-NEXT:    [[ADD_PTR2:%.*]] = getelementptr inbounds i32, ptr [[TMP10]], i64 [[IDX_EXT1]]
+// CK7-64-NEXT:    [[TMP12:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK7-64-NEXT:    [[IDXPROM3:%.*]] = sext i32 [[TMP12]] to i64
+// CK7-64-NEXT:    [[ARRAYIDX4:%.*]] = getelementptr inbounds i32, ptr [[ADD_PTR2]], i64 [[IDXPROM3]]
+// CK7-64-NEXT:    [[TMP13:%.*]] = load i32, ptr [[ARRAYIDX4]], align 4
+// CK7-64-NEXT:    [[ADD:%.*]] = add nsw i32 [[TMP13]], [[TMP9]]
+// CK7-64-NEXT:    store i32 [[ADD]], ptr [[ARRAYIDX4]], align 4
+// CK7-64-NEXT:    [[TMP14:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK7-64-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK7-64-NEXT:    [[TMP16:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK7-64-NEXT:    [[IDX_EXT5:%.*]] = sext i32 [[TMP16]] to i64
+// CK7-64-NEXT:    [[ADD_PTR6:%.*]] = getelementptr inbounds i32, ptr [[TMP15]], i64 [[IDX_EXT5]]
+// CK7-64-NEXT:    [[TMP17:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK7-64-NEXT:    [[IDXPROM7:%.*]] = sext i32 [[TMP17]] to i64
+// CK7-64-NEXT:    [[ARRAYIDX8:%.*]] = getelementptr inbounds i32, ptr [[ADD_PTR6]], i64 [[IDXPROM7]]
+// CK7-64-NEXT:    [[TMP18:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS9]], i32 0, i32 0
+// CK7-64-NEXT:    store ptr [[TMP14]], ptr [[TMP18]], align 8
+// CK7-64-NEXT:    [[TMP19:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS10]], i32 0, i32 0
+// CK7-64-NEXT:    store ptr [[ARRAYIDX8]], ptr [[TMP19]], align 8
+// CK7-64-NEXT:    [[TMP20:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS11]], i64 0, i64 0
+// CK7-64-_2-_3-CK18-NEXT:    store ptr null, ptr [[TMP20]], align 8
+// CK18-64-NEXT:    [[TMP21:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS2]], i32 0, i32 0
+// CK18-64-NEXT:    [[TMP22:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS3]], i32 0, i32 0
+// CK18-64-NEXT:    [[TMP23:%.*]] = getelementptr inbounds [1 x i64], ptr [[DOTOFFLOAD_SIZES5]], i32 0, i32 0
+// CK18-64-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP21]], ptr [[TMP22]], ptr [[TMP23]], ptr @.offload_maptypes.1, ptr null, ptr null)
+// CK4-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 4, i32 1, ptr [[TMP5]], ptr [[TMP6]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK4-NEXT:    br label %[[OMP_IF_END:.*]]
+// CK4:       [[OMP_IF_ELSE]]:
+// CK4-NEXT:    br label %[[OMP_IF_END]]
+// CK4:       [[OMP_IF_END]]:
+// CK4-NEXT:    [[TMP7:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK4-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP7]], 1
+// SIMD-ONLY2-_4-_5-_2-ONLY3-_3-ONLY4-NEXT:    [[TMP1:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY2-_4-_5-_2-ONLY3-_3-ONLY4-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP1]], 1
+// CK3-64-_2-_3-32-SIMD-ONLY2-ONLY19-_29-_23-_21-_26-_22-_9-_10-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP0]], 1
+// CK3-64-_2-_3-32-SIMD-ONLY2-_4-_5-CK4-ONLY3-ONLY4-ONLY19-_29-_23-_21-_26-_22-_9-_10-NEXT:    store i32 [[INC]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-_28-_38-NEXT:    [[TMP1:%.*]] = zext i32 [[TMP0]] to i64
+// SIMD-ONLY0-_54-_21-_28-_38-NEXT:    [[TMP2:%.*]] = call ptr @llvm.stacksave.p0()
+// SIMD-ONLY0-_54-_21-_28-_38-NEXT:    store ptr [[TMP2]], ptr [[SAVED_STACK]], align 8
+// SIMD-ONLY0-_54-_21-_28-_38-NEXT:    [[VLA:%.*]] = alloca float, i64 [[TMP1]], align 4
+// SIMD-ONLY0-_54-_21-_28-_38-NEXT:    store i64 [[TMP1]], ptr [[__VLA_EXPR0]], align 8
+// SIMD-ONLY0-_28-_38-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[SAVED_STACK]], align 8
+// SIMD-ONLY0-_28-_38-NEXT:    call void @llvm.stackrestore.p0(ptr [[TMP3]])
+// SIMD-ONLY0-_40-_60-_41-_5-NEXT:    [[TMP1:%.*]] = call ptr @llvm.stacksave.p0()
+// SIMD-ONLY0-_40-_60-_41-_5-NEXT:    store ptr [[TMP1]], ptr [[SAVED_STACK]], align 4
+// SIMD-ONLY0-_40-_60-_41-_5-NEXT:    [[VLA:%.*]] = alloca float, i32 [[TMP0]], align 4
+// SIMD-ONLY0-_40-_60-_41-_5-NEXT:    store i32 [[TMP0]], ptr [[__VLA_EXPR0]], align 4
+// SIMD-ONLY0-_40-_60-CK24-64-_2-_3-CK25-NEXT:    [[TMP2:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK24-64-_2-_3-CK25-NEXT:    [[TMP3:%.*]] = zext i32 [[TMP2]] to i64
+// CK25-64-NEXT:    [[TMP4:%.*]] = sub nuw i64 4, [[TMP3]]
+// CK25-64-NEXT:    [[ARRAYIDX4:%.*]] = getelementptr inbounds nuw [4 x [3 x float]], ptr [[FARR]], i64 0, i64 0
+// CK25-64-NEXT:    [[ARRAYDECAY5:%.*]] = getelementptr inbounds [3 x float], ptr [[ARRAYIDX4]], i64 0, i64 0
+// CK25-64-NEXT:    [[ARRAYIDX6:%.*]] = getelementptr inbounds nuw float, ptr [[ARRAYDECAY5]], i64 1
+// CK25-64-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK25-64-NEXT:    store ptr [[ARR]], ptr [[TMP5]], align 8
+// CK25-64-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK25-64-NEXT:    store ptr [[ARRAYIDX3]], ptr [[TMP6]], align 8
+// CK25-64-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK25-64-NEXT:    store ptr null, ptr [[TMP7]], align 8
+// CK25-64-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 1
+// CK25-64-NEXT:    store ptr [[X]], ptr [[TMP8]], align 8
+// CK25-64-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 1
+// CK25-64-NEXT:    store ptr [[X]], ptr [[TMP9]], align 8
+// CK25-64-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 1
+// CK13-64-_3-_2-SIMD-ONLY0-_31-_45-NEXT:    [[BB_ADDR:%.*]] = alloca ptr, align 8
+// CK13-32-_2-_3-SIMD-ONLY0-_12-_15-NEXT:    [[BB_ADDR:%.*]] = alloca ptr, align 4
+// CK13-64-_3-_2-32-SIMD-ONLY0-_31-_45-_12-_15-NEXT:    [[A_ADDR:%.*]] = alloca i32, align 4
+// CK13-64-_3-_2-32-SIMD-ONLY0-_31-_45-_12-_15-NEXT:    [[B_ADDR:%.*]] = alloca i32, align 4
+// CK8-64-NEXT:    [[B_ADDR:%.*]] = alloca ptr, align 8
+// CK8-32-NEXT:    [[B_ADDR:%.*]] = alloca ptr, align 4
+// CK8-NEXT:    [[L_ADDR:%.*]] = alloca i32, align 4
+// CK8-NEXT:    [[E_ADDR:%.*]] = alloca i32, align 4
+// CK8-64-_2-_3-CK13-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 8
+// CK8-64-_2-_3-CK13-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 8
+// CK8-64-_2-_3-CK13-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 8
+// CK13-64-NEXT:    [[DOTOFFLOAD_BASEPTRS15:%.*]] = alloca [1 x ptr], align 8
+// CK13-64-NEXT:    [[DOTOFFLOAD_PTRS16:%.*]] = alloca [1 x ptr], align 8
+// CK13-64-NEXT:    [[DOTOFFLOAD_MAPPERS17:%.*]] = alloca [1 x ptr], align 8
+// CK13-64-_3-_2-SIMD-ONLY0-_31-_45-NEXT:    store ptr [[BB]], ptr [[BB_ADDR]], align 8
+// CK8-64-NEXT:    [[DOTOFFLOAD_BASEPTRS16:%.*]] = alloca [1 x ptr], align 8
+// CK8-64-NEXT:    [[DOTOFFLOAD_PTRS17:%.*]] = alloca [1 x ptr], align 8
+// CK8-64-NEXT:    [[DOTOFFLOAD_MAPPERS18:%.*]] = alloca [1 x ptr], align 8
+// CK8-64-NEXT:    store ptr [[B]], ptr [[B_ADDR]], align 8
+// CK8-32-_2-_3-CK13-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 4
+// CK8-32-_2-_3-CK13-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 4
+// CK8-32-_2-_3-CK13-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 4
+// CK13-32-NEXT:    [[DOTOFFLOAD_BASEPTRS8:%.*]] = alloca [1 x ptr], align 4
+// CK13-32-NEXT:    [[DOTOFFLOAD_PTRS9:%.*]] = alloca [1 x ptr], align 4
+// CK13-32-NEXT:    [[DOTOFFLOAD_MAPPERS10:%.*]] = alloca [1 x ptr], align 4
+// CK13-32-_2-_3-SIMD-ONLY0-_12-_15-NEXT:    store ptr [[BB]], ptr [[BB_ADDR]], align 4
+// CK13-64-_3-_2-32-SIMD-ONLY0-_31-_45-_12-_15-NEXT:    store i32 [[A]], ptr [[A_ADDR]], align 4
+// CK13-64-_3-_2-32-SIMD-ONLY0-_31-_45-_12-_15-NEXT:    store i32 [[B]], ptr [[B_ADDR]], align 4
+// CK13-64-_3-_2-SIMD-ONLY0-_31-_45-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[BB_ADDR]], align 8
+// CK13-32-_2-_3-SIMD-ONLY0-_12-_15-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[BB_ADDR]], align 4
+// CK13-64-_3-_2-32-SIMD-ONLY0-_31-_45-_12-_15-NEXT:    [[TMP1:%.*]] = load i32, ptr [[A_ADDR]], align 4
+// CK8-32-NEXT:    [[DOTOFFLOAD_BASEPTRS12:%.*]] = alloca [1 x ptr], align 4
+// CK8-32-NEXT:    [[DOTOFFLOAD_PTRS13:%.*]] = alloca [1 x ptr], align 4
+// CK8-32-NEXT:    [[DOTOFFLOAD_MAPPERS14:%.*]] = alloca [1 x ptr], align 4
+// CK8-32-NEXT:    store ptr [[B]], ptr [[B_ADDR]], align 4
+// CK8-NEXT:    store i32 [[L]], ptr [[L_ADDR]], align 4
+// CK8-NEXT:    store i32 [[E]], ptr [[E_ADDR]], align 4
+// CK8-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK8-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK8-NEXT:    [[TMP1:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK8-64-_2-_3-CK13-SIMD-ONLY0-_31-_45-NEXT:    [[IDX_EXT:%.*]] = sext i32 [[TMP1]] to i64
+// CK8-64-_2-_3-CK13-SIMD-ONLY0-_31-_45-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds ptr, ptr [[TMP0]], i64 [[IDX_EXT]]
+// CK13-64-_3-_2-SIMD-ONLY0-_31-_45-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[ADD_PTR]], align 8
+// CK13-64-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[BB_ADDR]], align 8
+// CK13-64-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[BB_ADDR]], align 8
+// CK8-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds ptr, ptr [[ADD_PTR]], i64 1
+// CK8-64-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[ARRAYIDX]], align 8
+// CK8-64-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK8-64-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK8-32-_2-_3-CK13-SIMD-ONLY0-_12-_15-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds ptr, ptr [[TMP0]], i32 [[TMP1]]
+// CK13-32-_2-_3-SIMD-ONLY0-_12-_15-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[ADD_PTR]], align 4
+// SIMD-ONLY0-_31-_45-_12-_15-NEXT:    [[TMP3:%.*]] = load i32, ptr [[B_ADDR]], align 4
+// SIMD-ONLY0-_31-_45-NEXT:    [[IDX_EXT1:%.*]] = sext i32 [[TMP3]] to i64
+// SIMD-ONLY0-_31-_45-NEXT:    [[ADD_PTR2:%.*]] = getelementptr inbounds i32, ptr [[TMP2]], i64 [[IDX_EXT1]]
+// SIMD-ONLY0-_31-_45-NEXT:    store i32 1, ptr [[ADD_PTR2]], align 4
+// SIMD-ONLY0-_12-_15-NEXT:    [[ADD_PTR1:%.*]] = getelementptr inbounds i32, ptr [[TMP2]], i32 [[TMP3]]
+// SIMD-ONLY0-_12-_15-NEXT:    store i32 1, ptr [[ADD_PTR1]], align 4
+// CK16-64-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[I_ADDR]], align 8
+// CK16-64-NEXT:    [[TMP14:%.*]] = load i32, ptr [[TMP13]], align 4
+// CK16-64-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[F_ADDR]], align 8
+// CK16-64-NEXT:    [[IDX_EXT3:%.*]] = sext i32 [[TMP14]] to i64
+// CK16-64-NEXT:    [[ADD_PTR4:%.*]] = getelementptr inbounds float, ptr [[TMP15]], i64 [[IDX_EXT3]]
+// CK16-64-NEXT:    [[TMP16:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS5]], i32 0, i32 0
+// CK16-64-NEXT:    store ptr [[TMP12]], ptr [[TMP16]], align 8
+// CK16-64-NEXT:    [[TMP17:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS6]], i32 0, i32 0
+// CK16-64-NEXT:    store ptr [[ADD_PTR4]], ptr [[TMP17]], align 8
+// CK16-64-NEXT:    [[TMP18:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS7]], i64 0, i64 0
+// CK16-64-NEXT:    store ptr null, ptr [[TMP18]], align 8
+// CK16-64-NEXT:    [[TMP19:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS5]], i32 0, i32 0
+// CK16-64-NEXT:    [[TMP20:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS6]], i32 0, i32 0
+// CK16-64-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP19]], ptr [[TMP20]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// SIMD-ONLY0-_42-_44-_2-_22-_4-_56-_13-_50-NEXT:    [[S_ADDR:%.*]] = alloca ptr, align 4
+// SIMD-ONLY0-_29-_3-_24-_16-_17-_6-_39-_34-NEXT:    [[S_ADDR:%.*]] = alloca ptr, align 8
+// SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50-NEXT:    [[L_ADDR:%.*]] = alloca i32, align 4
+// SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50-NEXT:    [[E_ADDR:%.*]] = alloca i32, align 4
+// SIMD-ONLY0-_42-_44-_2-_22-_4-_56-_13-_50-NEXT:    store ptr [[S]], ptr [[S_ADDR]], align 4
+// SIMD-ONLY0-_29-_3-_24-_16-_17-_6-_39-_34-NEXT:    store ptr [[S]], ptr [[S_ADDR]], align 8
+// SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50-NEXT:    store i32 [[L]], ptr [[L_ADDR]], align 4
+// SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50-NEXT:    store i32 [[E]], ptr [[E_ADDR]], align 4
+// SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50-NEXT:    [[TMP0:%.*]] = load i32, ptr [[E_ADDR]], align 4
+// SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-_39-_34-_13-_50-NEXT:    [[CONV:%.*]] = sitofp i32 [[TMP0]] to double
+// SIMD-ONLY0-_42-_44-_2-_22-_4-_56-_13-_50-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[S_ADDR]], align 4
+// SIMD-ONLY0-_29-_3-_24-_16-_17-_6-_39-_34-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[S_ADDR]], align 8
+// SIMD-ONLY0-_29-_3-_42-_44-_24-_16-_2-_22-_17-_6-_4-_56-NEXT:    [[P:%.*]] = getelementptr inbounds nuw [[STRUCT_S:%.*]], ptr [[TMP1]], i32 0, i32 0
+// SIMD-ONLY0-_42-_44-_2-_22-_4-_56-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[P]], align 4
+// SIMD-ONLY0-_29-_3-_24-_16-_17-_6-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[P]], align 8
+// SIMD-ONLY0-_24-_16-_2-_22-_17-_6-_4-_56-NEXT:    [[TMP3:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// SIMD-ONLY0-_2-_22-_4-_56-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds double, ptr [[TMP2]], i32 [[TMP3]]
+// SIMD-ONLY0-_2-_22-NEXT:    [[TMP4:%.*]] = load double, ptr [[ADD_PTR]], align 4
+// SIMD-ONLY0-_4-_56-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds double, ptr [[ADD_PTR]], i32 3
+// SIMD-ONLY0-_4-_56-NEXT:    [[TMP4:%.*]] = load double, ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY0-_24-_16-_17-_6-NEXT:    [[IDX_EXT:%.*]] = sext i32 [[TMP3]] to i64
+// SIMD-ONLY0-_24-_16-_17-_6-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds double, ptr [[TMP2]], i64 [[IDX_EXT]]
+// SIMD-ONLY0-_24-_16-NEXT:    [[TMP4:%.*]] = load double, ptr [[ADD_PTR]], align 8
+// SIMD-ONLY0-_17-_6-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds double, ptr [[ADD_PTR]], i64 3
+// SIMD-ONLY0-_17-_6-NEXT:    [[TMP4:%.*]] = load double, ptr [[ARRAYIDX]], align 8
+// SIMD-ONLY0-_24-_16-_2-_22-_17-_6-_4-_56-NEXT:    [[ADD:%.*]] = fadd double [[TMP4]], [[CONV]]
+// SIMD-ONLY0-_2-_22-NEXT:    store double [[ADD]], ptr [[ADD_PTR]], align 4
+// SIMD-ONLY0-_4-_56-NEXT:    store double [[ADD]], ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY0-_42-_44-NEXT:    [[TMP3:%.*]] = load double, ptr [[TMP2]], align 4
+// SIMD-ONLY0-_24-_16-NEXT:    store double [[ADD]], ptr [[ADD_PTR]], align 8
+// SIMD-ONLY0-_17-_6-NEXT:    store double [[ADD]], ptr [[ARRAYIDX]], align 8
+// SIMD-ONLY0-_29-_3-NEXT:    [[TMP3:%.*]] = load double, ptr [[TMP2]], align 8
+// SIMD-ONLY0-_29-_3-_42-_44-NEXT:    [[ADD:%.*]] = fadd double [[TMP3]], [[CONV]]
+// SIMD-ONLY0-_42-_44-NEXT:    store double [[ADD]], ptr [[TMP2]], align 4
+// SIMD-ONLY0-_29-_3-NEXT:    store double [[ADD]], ptr [[TMP2]], align 8
+// SIMD-ONLY0-_39-_34-_13-_50-NEXT:    [[SP:%.*]] = getelementptr inbounds nuw [[STRUCT_S:%.*]], ptr [[TMP1]], i32 0, i32 1
+// SIMD-ONLY0-_13-_50-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[SP]], align 4
+// SIMD-ONLY0-_39-_34-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[SP]], align 8
+// SIMD-ONLY0-_39-_34-_13-_50-NEXT:    [[P:%.*]] = getelementptr inbounds nuw [[STRUCT_S]], ptr [[TMP2]], i32 0, i32 0
+// SIMD-ONLY0-_13-_50-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[P]], align 4
+// SIMD-ONLY0-_13-_50-NEXT:    store double [[CONV]], ptr [[TMP3]], align 4
+// SIMD-ONLY0-_39-_34-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[P]], align 8
+// SIMD-ONLY0-_39-_34-NEXT:    store double [[CONV]], ptr [[TMP3]], align 8
+// CK7-64-NEXT:    [[TMP21:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS9]], i32 0, i32 0
+// CK7-64-NEXT:    [[TMP22:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS10]], i32 0, i32 0
+// CK7-64-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP21]], ptr [[TMP22]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// CK5-64-NEXT:    [[TMP11:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK5-32-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK5-32-NEXT:    [[TMP11:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK5-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS1]], i32 0, i32 0
+// CK5-64-NEXT:    store ptr [[TMP10]], ptr [[TMP12]], align 8
+// CK5-32-NEXT:    store ptr [[TMP10]], ptr [[TMP12]], align 4
+// CK5-NEXT:    [[TMP13:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS2]], i32 0, i32 0
+// CK5-64-NEXT:    store ptr [[TMP11]], ptr [[TMP13]], align 8
+// CK5-64-NEXT:    [[TMP14:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS3]], i64 0, i64 0
+// CK5-64-NEXT:    store ptr null, ptr [[TMP14]], align 8
+// CK5-32-NEXT:    store ptr [[TMP11]], ptr [[TMP13]], align 4
+// CK5-32-NEXT:    [[TMP14:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS3]], i32 0, i32 0
+// CK5-32-NEXT:    store ptr null, ptr [[TMP14]], align 4
+// CK5-NEXT:    [[TMP15:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS1]], i32 0, i32 0
+// CK5-NEXT:    [[TMP16:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS2]], i32 0, i32 0
+// CK5-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP15]], ptr [[TMP16]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// CK14-NEXT:    [[D3:%.*]] = getelementptr inbounds nuw [[STRUCT_SSB]], ptr [[THIS1]], i32 0, i32 0
+// CK14-64-NEXT:    [[TMP7:%.*]] = load ptr, ptr [[D3]], align 8
+// CK14-64-NEXT:    [[ADD_PTR4:%.*]] = getelementptr inbounds double, ptr [[TMP7]], i64 1
+// CK14-64-NEXT:    store double 1.000000e+00, ptr [[ADD_PTR4]], align 8
+// CK14-32-NEXT:    [[TMP7:%.*]] = load ptr, ptr [[D3]], align 4
+// CK14-32-NEXT:    [[ADD_PTR4:%.*]] = getelementptr inbounds double, ptr [[TMP7]], i32 1
+// CK14-32-NEXT:    store double 1.000000e+00, ptr [[ADD_PTR4]], align 4
+// CK14-NEXT:    [[D5:%.*]] = getelementptr inbounds nuw [[STRUCT_SSB]], ptr [[THIS1]], i32 0, i32 0
+// CK14-64-NEXT:    [[TMP8:%.*]] = load ptr, ptr [[D5]], align 8
+// CK14-32-NEXT:    [[TMP8:%.*]] = load ptr, ptr [[D5]], align 4
+// CK14-NEXT:    [[D6:%.*]] = getelementptr inbounds nuw [[STRUCT_SSB]], ptr [[THIS1]], i32 0, i32 0
+// CK14-64-NEXT:    [[TMP9:%.*]] = load ptr, ptr [[D6]], align 8
+// CK14-64-NEXT:    [[ADD_PTR7:%.*]] = getelementptr inbounds double, ptr [[TMP9]], i64 1
+// CK14-32-NEXT:    [[TMP9:%.*]] = load ptr, ptr [[D6]], align 4
+// CK14-32-NEXT:    [[ADD_PTR7:%.*]] = getelementptr inbounds double, ptr [[TMP9]], i32 1
+// CK14-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS8]], i32 0, i32 0
+// CK14-64-NEXT:    store ptr [[TMP8]], ptr [[TMP10]], align 8
+// CK14-32-NEXT:    store ptr [[TMP8]], ptr [[TMP10]], align 4
+// CK14-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS9]], i32 0, i32 0
+// CK14-64-NEXT:    store ptr [[ADD_PTR7]], ptr [[TMP11]], align 8
+// CK14-64-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS10]], i64 0, i64 0
+// CK14-64-NEXT:    store ptr null, ptr [[TMP12]], align 8
+// CK14-32-NEXT:    store ptr [[ADD_PTR7]], ptr [[TMP11]], align 4
+// CK14-32-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS10]], i32 0, i32 0
+// CK13-32-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[BB_ADDR]], align 4
+// CK13-32-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[BB_ADDR]], align 4
+// CK13-NEXT:    [[TMP5:%.*]] = load i32, ptr [[A_ADDR]], align 4
+// CK8-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds ptr, ptr [[ADD_PTR]], i32 1
+// CK8-32-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[ARRAYIDX]], align 4
+// CK8-32-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK8-32-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK8-NEXT:    [[TMP5:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK8-64-_2-_3-CK13-NEXT:    [[IDX_EXT1:%.*]] = sext i32 [[TMP5]] to i64
+// CK8-64-_2-_3-CK13-NEXT:    [[ADD_PTR2:%.*]] = getelementptr inbounds ptr, ptr [[TMP4]], i64 [[IDX_EXT1]]
+// CK13-64-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[ADD_PTR2]], align 8
+// CK8-64-NEXT:    [[ARRAYIDX3:%.*]] = getelementptr inbounds ptr, ptr [[ADD_PTR2]], i64 1
+// CK8-64-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[ARRAYIDX3]], align 8
+// CK8-64-NEXT:    [[ARRAYIDX4:%.*]] = getelementptr inbounds i32, ptr [[TMP6]], i64 2
+// CK8-32-_2-_3-CK13-NEXT:    [[ADD_PTR1:%.*]] = getelementptr inbounds ptr, ptr [[TMP4]], i32 [[TMP5]]
+// CK13-32-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[ADD_PTR1]], align 4
+// CK13-NEXT:    [[TMP7:%.*]] = load i32, ptr [[B_ADDR]], align 4
+// CK13-64-NEXT:    [[IDX_EXT3:%.*]] = sext i32 [[TMP7]] to i64
+// CK13-64-NEXT:    [[ADD_PTR4:%.*]] = getelementptr inbounds i32, ptr [[TMP6]], i64 [[IDX_EXT3]]
+// CK13-32-NEXT:    [[ADD_PTR2:%.*]] = getelementptr inbounds i32, ptr [[TMP6]], i32 [[TMP7]]
+// CK24-64-NEXT:    [[TMP4:%.*]] = mul nuw i64 8, [[TMP3]]
+// SIMD-ONLY0-_40-_60-NEXT:    store i32 [[TMP2]], ptr [[DOTCAPTURE_EXPR_]], align 4
+// SIMD-ONLY0-_54-_21-_40-_60-NEXT:    [[TMP3:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-NEXT:    store i32 [[TMP3]], ptr [[DOTCAPTURE_EXPR_]], align 4
+// SIMD-ONLY0-_40-_60-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP3]], 1
+// SIMD-ONLY0-_40-_60-NEXT:    store i32 [[INC]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-_40-_60-NEXT:    [[TMP4:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP4]], 1
+// SIMD-ONLY0-_54-_21-NEXT:    store i32 [[INC]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_40-_60-NEXT:    [[INC1:%.*]] = add nsw i32 [[TMP4]], 1
+// SIMD-ONLY0-_40-_60-NEXT:    store i32 [[INC1]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-_40-_60-CK24-64-_2-_3-NEXT:    [[TMP5:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK24-64-NEXT:    [[TMP6:%.*]] = zext i32 [[TMP5]] to i64
+// CK24-64-NEXT:    [[TMP7:%.*]] = sub nuw i64 4, [[TMP6]]
+// CK24-64-NEXT:    [[TMP8:%.*]] = udiv i64 [[TMP7]], 1
+// CK24-64-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK24-64-NEXT:    store ptr [[DARR]], ptr [[TMP9]], align 8
+// CK24-64-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK24-64-NEXT:    store ptr [[ARRAYIDX3]], ptr [[TMP10]], align 8
+// CK24-64-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK21-64-_2-_3-SIMD-ONLY19-_16-_12-CK22-_13-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 8
+// CK22-64-_2-_3-SIMD-ONLY19-_13-NEXT:    store ptr [[ARR]], ptr [[ARR_ADDR]], align 8
+// CK21-64-_2-_3-SIMD-ONLY19-_16-_12-CK22-_13-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 8
+// SIMD-ONLY19-_24-_27-_17-_5-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 4
+// SIMD-ONLY19-_17-_5-NEXT:    [[ARR_ADDR:%.*]] = alloca ptr, align 4
+// CK22-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[ARR_ADDR]], align 8
+// CK22-64-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[ARR_ADDR]], align 8
+// CK22-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw [10 x ptr], ptr [[TMP1]], i64 0
+// CK22-64-NEXT:    [[ARRAYDECAY:%.*]] = getelementptr inbounds [10 x ptr], ptr [[ARRAYIDX]], i64 0, i64 0
+// CK22-64-NEXT:    [[ARRAYIDX2:%.*]] = getelementptr inbounds nuw ptr, ptr [[ARRAYDECAY]], i64 1
+// CK22-64-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[ARRAYIDX2]], align 8
+// CK22-64-NEXT:    [[ARRAYIDX3:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP2]], i64 0
+// CK21-32-_3-_2-SIMD-ONLY19-_24-_27-CK22-_17-_5-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 4
+// CK22-32-_3-_2-SIMD-ONLY19-_17-_5-NEXT:    store ptr [[ARR]], ptr [[ARR_ADDR]], align 4
+// CK21-32-_3-_2-SIMD-ONLY19-_24-_27-CK22-_17-_5-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 4
+// CK1-64-NEXT:    [[DOTADDR:%.*]] = alloca ptr, align 8
+// CK1-64-NEXT:    [[DOTADDR1:%.*]] = alloca ptr, align 8
+// CK1-64-NEXT:    [[DOTADDR2:%.*]] = alloca ptr, align 8
+// CK1-64-NEXT:    [[DOTADDR3:%.*]] = alloca ptr, align 8
+// CK1-64-NEXT:    store ptr [[TMP0]], ptr [[DOTADDR]], align 8
+// CK1-64-NEXT:    store ptr [[TMP1]], ptr [[DOTADDR1]], align 8
+// CK1-64-NEXT:    store ptr [[TMP2]], ptr [[DOTADDR2]], align 8
+// CK1-64-NEXT:    store ptr [[TMP3]], ptr [[DOTADDR3]], align 8
+// CK1-64-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[DOTADDR]], align 8
+// CK1-32-NEXT:    [[DOTADDR:%.*]] = alloca ptr, align 4
+// CK1-32-NEXT:    [[DOTADDR1:%.*]] = alloca ptr, align 4
+// CK1-32-NEXT:    [[DOTADDR2:%.*]] = alloca ptr, align 4
+// CK1-32-NEXT:    [[DOTADDR3:%.*]] = alloca ptr, align 4
+// CK1-32-NEXT:    store ptr [[TMP0]], ptr [[DOTADDR]], align 4
+// CK1-32-NEXT:    store ptr [[TMP1]], ptr [[DOTADDR1]], align 4
+// CK1-32-NEXT:    store ptr [[TMP2]], ptr [[DOTADDR2]], align 4
+// CK1-32-NEXT:    store ptr [[TMP3]], ptr [[DOTADDR3]], align 4
+// CK1-32-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[DOTADDR]], align 4
+// CK1-NEXT:    [[TMP5:%.*]] = getelementptr inbounds nuw [[STRUCT__KMP_PRIVATES_T:%.*]], ptr [[TMP4]], i32 0, i32 0
+// CK1-64-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[DOTADDR1]], align 8
+// CK1-64-NEXT:    store ptr [[TMP5]], ptr [[TMP6]], align 8
+// CK1-32-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[DOTADDR3]], align 4
+// CK1-32-NEXT:    store ptr [[TMP5]], ptr [[TMP6]], align 4
+// CK1-NEXT:    [[TMP7:%.*]] = getelementptr inbounds nuw [[STRUCT__KMP_PRIVATES_T]], ptr [[TMP4]], i32 0, i32 1
+// CK1-64-NEXT:    [[TMP8:%.*]] = load ptr, ptr [[DOTADDR2]], align 8
+// CK1-64-NEXT:    store ptr [[TMP7]], ptr [[TMP8]], align 8
+// CK1-32-NEXT:    [[TMP8:%.*]] = load ptr, ptr [[DOTADDR1]], align 4
+// CK1-32-NEXT:    store ptr [[TMP7]], ptr [[TMP8]], align 4
+// CK1-NEXT:    [[TMP9:%.*]] = getelementptr inbounds nuw [[STRUCT__KMP_PRIVATES_T]], ptr [[TMP4]], i32 0, i32 2
+// CK1-64-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[DOTADDR3]], align 8
+// CK1-64-NEXT:    store ptr [[TMP9]], ptr [[TMP10]], align 8
+// CK1-32-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[DOTADDR2]], align 4
+// CK1-32-NEXT:    store ptr [[TMP9]], ptr [[TMP10]], align 4
+// CK21-NEXT:    [[DPTR:%.*]] = getelementptr inbounds nuw [[STRUCT_ST:%.*]], ptr [[THIS1]], i32 0, i32 0
+// CK21-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw [10 x [10 x [10 x ptr]]], ptr [[DPTR]], i64 0, i64 0
+// CK21-64-NEXT:    [[ARRAYDECAY:%.*]] = getelementptr inbounds [10 x [10 x ptr]], ptr [[ARRAYIDX]], i64 0, i64 0
+// CK21-64-NEXT:    [[ARRAYIDX2:%.*]] = getelementptr inbounds nuw [10 x ptr], ptr [[ARRAYDECAY]], i64 1
+// CK21-64-NEXT:    [[ARRAYDECAY3:%.*]] = getelementptr inbounds [10 x ptr], ptr [[ARRAYIDX2]], i64 0, i64 0
+// CK21-64-NEXT:    [[ARRAYIDX4:%.*]] = getelementptr inbounds nuw ptr, ptr [[ARRAYDECAY3]], i64 0
+// CK21-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw [10 x [10 x [10 x ptr]]], ptr [[DPTR]], i32 0, i32 0
+// CK21-32-NEXT:    [[ARRAYDECAY:%.*]] = getelementptr inbounds [10 x [10 x ptr]], ptr [[ARRAYIDX]], i32 0, i32 0
+// CK21-32-NEXT:    [[ARRAYIDX2:%.*]] = getelementptr inbounds nuw [10 x ptr], ptr [[ARRAYDECAY]], i32 1
+// CK21-32-NEXT:    [[ARRAYDECAY3:%.*]] = getelementptr inbounds [10 x ptr], ptr [[ARRAYIDX2]], i32 0, i32 0
+// CK21-32-NEXT:    [[ARRAYIDX4:%.*]] = getelementptr inbounds nuw ptr, ptr [[ARRAYDECAY3]], i32 0
+// CK21-NEXT:    [[TMP0:%.*]] = getelementptr ptr, ptr [[ARRAYIDX4]], i32 1
+// CK21-NEXT:    [[TMP1:%.*]] = ptrtoint ptr [[TMP0]] to i64
+// CK21-NEXT:    [[TMP2:%.*]] = ptrtoint ptr [[ARRAYIDX4]] to i64
+// CK21-NEXT:    [[TMP3:%.*]] = sub i64 [[TMP1]], [[TMP2]]
+// CK21-NEXT:    [[TMP4:%.*]] = sdiv exact i64 [[TMP3]], ptrtoint (ptr getelementptr (i8, ptr null, i32 1) to i64)
+// CK21-64-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 8 [[DOTOFFLOAD_SIZES]], ptr align 8 @.offload_sizes, i64 16, i1 false)
+// CK21-32-NEXT:    call void @llvm.memcpy.p0.p0.i32(ptr align 4 [[DOTOFFLOAD_SIZES]], ptr align 4 @.offload_sizes, i32 16, i1 false)
+// CK21-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK21-64-NEXT:    store ptr [[THIS1]], ptr [[TMP5]], align 8
+// CK21-32-NEXT:    store ptr [[THIS1]], ptr [[TMP5]], align 4
+// CK21-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK21-64-NEXT:    store ptr [[ARRAYIDX4]], ptr [[TMP6]], align 8
+// CK21-32-NEXT:    store ptr [[ARRAYIDX4]], ptr [[TMP6]], align 4
+// CK21-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [2 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK21-64-NEXT:    store i64 [[TMP4]], ptr [[TMP7]], align 8
+// CK21-64-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK21-64-NEXT:    store ptr null, ptr [[TMP8]], align 8
+// CK21-32-NEXT:    store i64 [[TMP4]], ptr [[TMP7]], align 4
+// CK21-32-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK21-32-NEXT:    store ptr null, ptr [[TMP8]], align 4
+// CK21-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 1
+// CK21-64-NEXT:    store ptr [[THIS1]], ptr [[TMP9]], align 8
+// CK21-32-NEXT:    store ptr [[THIS1]], ptr [[TMP9]], align 4
+// CK21-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 1
+// CK21-64-NEXT:    store ptr [[ARRAYIDX4]], ptr [[TMP10]], align 8
+// CK21-64-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 1
+// CK21-64-_2-_3-CK24-NEXT:    store ptr null, ptr [[TMP11]], align 8
+// CK21-32-NEXT:    store ptr [[ARRAYIDX4]], ptr [[TMP10]], align 4
+// CK21-32-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 1
+// CK21-32-NEXT:    store ptr null, ptr [[TMP11]], align 4
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 0
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP13:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP12]], i32 0, i32 0
+// CK21-64-_2-_3-CK24-NEXT:    store i64 0, ptr [[TMP13]], align 8
+// CK21-32-NEXT:    store i64 0, ptr [[TMP13]], align 4
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP14:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP12]], i32 0, i32 1
+// CK21-64-_2-_3-CK24-NEXT:    store i64 2, ptr [[TMP14]], align 8
+// CK21-32-NEXT:    store i64 2, ptr [[TMP14]], align 4
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP15:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP12]], i32 0, i32 2
+// CK24-64-NEXT:    store i64 320, ptr [[TMP15]], align 8
+// CK21-64-NEXT:    store i64 800, ptr [[TMP15]], align 8
+// CK21-32-NEXT:    store i64 400, ptr [[TMP15]], align 4
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP16:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 1
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP17:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP16]], i32 0, i32 0
+// CK24-64-NEXT:    store i64 [[TMP6]], ptr [[TMP17]], align 8
+// CK21-64-NEXT:    store i64 1, ptr [[TMP17]], align 8
+// CK21-32-NEXT:    store i64 1, ptr [[TMP17]], align 4
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP18:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP16]], i32 0, i32 1
+// CK24-64-NEXT:    store i64 [[TMP8]], ptr [[TMP18]], align 8
+// CK21-64-NEXT:    store i64 3, ptr [[TMP18]], align 8
+// CK21-32-NEXT:    store i64 3, ptr [[TMP18]], align 4
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP19:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP16]], i32 0, i32 2
+// CK24-64-NEXT:    store i64 40, ptr [[TMP19]], align 8
+// CK21-64-NEXT:    store i64 80, ptr [[TMP19]], align 8
+// CK21-32-NEXT:    store i64 40, ptr [[TMP19]], align 4
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP20:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 2
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP21:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP20]], i32 0, i32 0
+// CK21-64-_2-_3-CK24-NEXT:    store i64 0, ptr [[TMP21]], align 8
+// CK21-32-NEXT:    store i64 0, ptr [[TMP21]], align 4
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP22:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP20]], i32 0, i32 1
+// CK24-64-NEXT:    store i64 2, ptr [[TMP22]], align 8
+// CK21-64-NEXT:    store i64 4, ptr [[TMP22]], align 8
+// CK21-32-NEXT:    store i64 4, ptr [[TMP22]], align 4
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP23:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP20]], i32 0, i32 2
+// CK24-64-NEXT:    store i64 [[TMP4]], ptr [[TMP23]], align 8
+// CK21-64-NEXT:    store i64 8, ptr [[TMP23]], align 8
+// CK21-32-NEXT:    store i64 4, ptr [[TMP23]], align 4
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 3
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP25:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP24]], i32 0, i32 0
+// CK21-64-_2-_3-CK24-NEXT:    store i64 0, ptr [[TMP25]], align 8
+// CK21-32-NEXT:    store i64 0, ptr [[TMP25]], align 4
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP26:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP24]], i32 0, i32 1
+// CK21-64-_2-_3-CK24-NEXT:    store i64 1, ptr [[TMP26]], align 8
+// CK21-32-NEXT:    store i64 1, ptr [[TMP26]], align 4
+// CK21-64-_2-_3-32-CK24-NEXT:    [[TMP27:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP24]], i32 0, i32 2
+// CK21-64-_2-_3-CK24-NEXT:    store i64 8, ptr [[TMP27]], align 8
+// CK24-64-NEXT:    [[TMP28:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK21-32-NEXT:    store i64 4, ptr [[TMP27]], align 4
+// CK21-NEXT:    [[TMP28:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 1
+// CK21-64-_2-_3-CK24-NEXT:    store ptr [[DIMS]], ptr [[TMP28]], align 8
+// CK24-64-NEXT:    [[TMP29:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK24-64-NEXT:    [[TMP30:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK24-64-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP29]], ptr [[TMP30]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK24-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw [3 x [4 x [5 x double]]], ptr [[DARR]], i32 0, i32 0
+// CK24-32-NEXT:    [[ARRAYDECAY:%.*]] = getelementptr inbounds [4 x [5 x double]], ptr [[ARRAYIDX]], i32 0, i32 0
+// CK24-32-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds nuw [5 x double], ptr [[ARRAYDECAY]], i32 [[TMP0]]
+// CK24-32-NEXT:    [[ARRAYDECAY2:%.*]] = getelementptr inbounds [5 x double], ptr [[ARRAYIDX1]], i32 0, i32 0
+// CK24-32-NEXT:    [[ARRAYIDX3:%.*]] = getelementptr inbounds nuw double, ptr [[ARRAYDECAY2]], i32 0
+// CK24-32-NEXT:    [[TMP1:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK24-32-NEXT:    [[TMP2:%.*]] = zext i32 [[TMP1]] to i64
+// CK24-32-NEXT:    [[TMP3:%.*]] = mul nuw i64 8, [[TMP2]]
+// CK24-32-NEXT:    [[TMP4:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK24-32-NEXT:    [[TMP5:%.*]] = zext i32 [[TMP4]] to i64
+// CK24-32-NEXT:    [[TMP6:%.*]] = sub nuw i64 4, [[TMP5]]
+// CK24-32-NEXT:    [[TMP7:%.*]] = udiv i64 [[TMP6]], 1
+// CK13-64-_3-_2-32-CK24-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK13-64-NEXT:    store ptr [[TMP2]], ptr [[TMP8]], align 8
+// CK13-32-NEXT:    store ptr [[TMP2]], ptr [[TMP8]], align 4
+// CK24-32-NEXT:    store ptr [[DARR]], ptr [[TMP8]], align 4
+// CK13-64-_3-_2-32-CK24-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK13-64-NEXT:    store ptr [[ADD_PTR4]], ptr [[TMP9]], align 8
+// CK13-64-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK13-64-_3-_2-CK25-NEXT:    store ptr null, ptr [[TMP10]], align 8
+// CK25-64-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 2
+// CK25-64-NEXT:    store ptr [[FARR]], ptr [[TMP11]], align 8
+// CK25-64-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 2
+// CK25-64-NEXT:    store ptr [[ARRAYIDX6]], ptr [[TMP12]], align 8
+// CK25-64-NEXT:    [[TMP13:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 2
+// CK25-64-NEXT:    store ptr null, ptr [[TMP13]], align 8
+// CK25-64-NEXT:    [[TMP14:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 0
+// CK24-32-NEXT:    store ptr [[ARRAYIDX3]], ptr [[TMP9]], align 4
+// CK24-32-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK24-32-NEXT:    store ptr null, ptr [[TMP10]], align 4
+// CK24-32-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 0
+// CK24-32-NEXT:    [[TMP12:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP11]], i32 0, i32 0
+// CK24-32-NEXT:    store i64 0, ptr [[TMP12]], align 4
+// CK24-32-NEXT:    [[TMP13:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP11]], i32 0, i32 1
+// CK24-32-NEXT:    store i64 2, ptr [[TMP13]], align 4
+// CK24-32-NEXT:    [[TMP14:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP11]], i32 0, i32 2
+// CK24-32-NEXT:    store i64 320, ptr [[TMP14]], align 4
+// CK24-32-NEXT:    [[TMP15:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 1
+// CK24-32-NEXT:    [[TMP16:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP15]], i32 0, i32 0
+// CK24-32-NEXT:    store i64 [[TMP5]], ptr [[TMP16]], align 4
+// CK24-32-NEXT:    [[TMP17:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP15]], i32 0, i32 1
+// CK24-32-NEXT:    store i64 [[TMP7]], ptr [[TMP17]], align 4
+// CK24-32-NEXT:    [[TMP18:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP15]], i32 0, i32 2
+// CK24-32-NEXT:    store i64 40, ptr [[TMP18]], align 4
+// CK24-32-NEXT:    [[TMP19:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 2
+// CK24-32-NEXT:    [[TMP20:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP19]], i32 0, i32 0
+// CK24-32-NEXT:    store i64 0, ptr [[TMP20]], align 4
+// CK24-32-NEXT:    [[TMP21:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP19]], i32 0, i32 1
+// CK24-32-NEXT:    store i64 2, ptr [[TMP21]], align 4
+// CK24-32-NEXT:    [[TMP22:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP19]], i32 0, i32 2
+// CK24-32-NEXT:    store i64 [[TMP3]], ptr [[TMP22]], align 4
+// CK24-32-NEXT:    [[TMP23:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 3
+// CK24-32-NEXT:    [[TMP24:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP23]], i32 0, i32 0
+// CK24-32-NEXT:    store i64 0, ptr [[TMP24]], align 4
+// CK24-32-NEXT:    [[TMP25:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP23]], i32 0, i32 1
+// CK24-32-NEXT:    store i64 1, ptr [[TMP25]], align 4
+// CK24-32-NEXT:    [[TMP26:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP23]], i32 0, i32 2
+// CK24-32-NEXT:    store i64 8, ptr [[TMP26]], align 4
+// CK24-32-NEXT:    [[TMP27:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK24-32-NEXT:    store ptr [[DIMS]], ptr [[TMP27]], align 4
+// CK24-32-NEXT:    [[TMP28:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK24-32-NEXT:    [[TMP29:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK24-32-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP28]], ptr [[TMP29]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// SIMD-ONLY0-_54-_21-NEXT:    [[INC1:%.*]] = add nsw i32 [[TMP5]], 1
+// SIMD-ONLY0-_54-_21-NEXT:    store i32 [[INC1]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-NEXT:    [[TMP6:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-NEXT:    [[TOBOOL:%.*]] = icmp ne i32 [[TMP6]], 0
+// SIMD-ONLY0-_40-_60-NEXT:    [[TOBOOL:%.*]] = icmp ne i32 [[TMP5]], 0
+// SIMD-ONLY0-_54-_21-_40-_60-NEXT:    [[STOREDV:%.*]] = zext i1 [[TOBOOL]] to i8
+// SIMD-ONLY0-_54-_21-_40-_60-NEXT:    store i8 [[STOREDV]], ptr [[DOTCAPTURE_EXPR_2]], align 1
+// SIMD-ONLY0-_40-_60-NEXT:    [[TMP6:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_40-_60-NEXT:    [[INC3:%.*]] = add nsw i32 [[TMP6]], 1
+// SIMD-ONLY0-_40-_60-NEXT:    store i32 [[INC3]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-_40-_60-NEXT:    [[TMP7:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-NEXT:    [[INC3:%.*]] = add nsw i32 [[TMP7]], 1
+// SIMD-ONLY0-_54-_21-NEXT:    store i32 [[INC3]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_40-_60-NEXT:    [[INC4:%.*]] = add nsw i32 [[TMP7]], 1
+// SIMD-ONLY0-_40-_60-NEXT:    store i32 [[INC4]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-_40-_60-NEXT:    [[TMP8:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-NEXT:    [[INC4:%.*]] = add nsw i32 [[TMP8]], 1
+// SIMD-ONLY0-_54-_21-NEXT:    store i32 [[INC4]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_40-_60-NEXT:    [[INC5:%.*]] = add nsw i32 [[TMP8]], 1
+// SIMD-ONLY0-_40-_60-NEXT:    store i32 [[INC5]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-_40-_60-NEXT:    [[TMP9:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-NEXT:    [[INC5:%.*]] = add nsw i32 [[TMP9]], 1
+// SIMD-ONLY0-_54-_21-NEXT:    store i32 [[INC5]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_40-_60-NEXT:    [[INC6:%.*]] = add nsw i32 [[TMP9]], 1
+// SIMD-ONLY0-_40-_60-NEXT:    store i32 [[INC6]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-_40-_60-NEXT:    [[TMP10:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-NEXT:    [[INC6:%.*]] = add nsw i32 [[TMP10]], 1
+// SIMD-ONLY0-_54-_21-NEXT:    store i32 [[INC6]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-NEXT:    [[TMP11:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-NEXT:    [[INC7:%.*]] = add nsw i32 [[TMP11]], 1
+// SIMD-ONLY0-_40-_60-NEXT:    [[INC7:%.*]] = add nsw i32 [[TMP10]], 1
+// SIMD-ONLY0-_54-_21-_40-_60-NEXT:    store i32 [[INC7]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY0-_54-_21-NEXT:    [[TMP12:%.*]] = load ptr, ptr [[SAVED_STACK]], align 8
+// SIMD-ONLY0-_54-_21-NEXT:    call void @llvm.stackrestore.p0(ptr [[TMP12]])
+// SIMD-ONLY0-_40-_60-NEXT:    [[TMP11:%.*]] = load ptr, ptr [[SAVED_STACK]], align 4
+// SIMD-ONLY0-_40-_60-NEXT:    call void @llvm.stackrestore.p0(ptr [[TMP11]])
+// SIMD-ONLY0-_41-_5-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[SAVED_STACK]], align 4
+// SIMD-ONLY0-_41-_5-NEXT:    call void @llvm.stackrestore.p0(ptr [[TMP2]])
+// CK21-32-NEXT:    store ptr [[DIMS]], ptr [[TMP28]], align 4
+// CK21-NEXT:    [[TMP29:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK21-NEXT:    [[TMP30:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK21-NEXT:    [[TMP31:%.*]] = getelementptr inbounds [2 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK21-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 2, ptr [[TMP29]], ptr [[TMP30]], ptr [[TMP31]], ptr @.offload_maptypes, ptr null, ptr null)
+// CK22-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[ARR_ADDR]], align 4
+// CK22-32-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[ARR_ADDR]], align 4
+// CK22-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw [10 x ptr], ptr [[TMP1]], i32 0
+// CK22-32-NEXT:    [[ARRAYDECAY:%.*]] = getelementptr inbounds [10 x ptr], ptr [[ARRAYIDX]], i32 0, i32 0
+// CK22-32-NEXT:    [[ARRAYIDX2:%.*]] = getelementptr inbounds nuw ptr, ptr [[ARRAYDECAY]], i32 1
+// CK22-32-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[ARRAYIDX2]], align 4
+// CK22-32-NEXT:    [[ARRAYIDX3:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP2]], i32 0
+// CK23-NEXT:    store i32 [[ARG]], ptr [[ARG_ADDR]], align 4
+// CK23-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw [5 x [5 x [5 x float]]], ptr [[FARR]], i64 0, i64 0
+// CK23-64-NEXT:    [[ARRAYDECAY:%.*]] = getelementptr inbounds [5 x [5 x float]], ptr [[ARRAYIDX]], i64 0, i64 0
+// CK23-64-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds nuw [5 x float], ptr [[ARRAYDECAY]], i64 1
+// CK23-64-NEXT:    [[ARRAYDECAY2:%.*]] = getelementptr inbounds [5 x float], ptr [[ARRAYIDX1]], i64 0, i64 0
+// CK23-64-NEXT:    [[ARRAYIDX3:%.*]] = getelementptr inbounds nuw float, ptr [[ARRAYDECAY2]], i64 0
+// CK23-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw [5 x [5 x [5 x float]]], ptr [[FARR]], i32 0, i32 0
+// CK23-32-NEXT:    [[ARRAYDECAY:%.*]] = getelementptr inbounds [5 x [5 x float]], ptr [[ARRAYIDX]], i32 0, i32 0
+// CK23-32-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds nuw [5 x float], ptr [[ARRAYDECAY]], i32 1
+// CK23-32-NEXT:    [[ARRAYDECAY2:%.*]] = getelementptr inbounds [5 x float], ptr [[ARRAYIDX1]], i32 0, i32 0
+// CK23-32-NEXT:    [[ARRAYIDX3:%.*]] = getelementptr inbounds nuw float, ptr [[ARRAYDECAY2]], i32 0
+// CK23-NEXT:    [[TMP0:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK23-NEXT:    [[TMP1:%.*]] = zext i32 [[TMP0]] to i64
+// CK23-NEXT:    [[TMP2:%.*]] = mul nuw i64 4, [[TMP1]]
+// CK22-64-_2-_3-32-CK23-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK22-64-NEXT:    store ptr [[TMP0]], ptr [[TMP3]], align 8
+// CK23-64-NEXT:    store ptr [[FARR]], ptr [[TMP3]], align 8
+// CK22-32-NEXT:    store ptr [[TMP0]], ptr [[TMP3]], align 4
+// CK23-32-NEXT:    store ptr [[FARR]], ptr [[TMP3]], align 4
+// CK22-64-_2-_3-32-CK23-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK22-64-_2-_3-CK23-NEXT:    store ptr [[ARRAYIDX3]], ptr [[TMP4]], align 8
+// CK22-64-_2-_3-CK23-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK22-64-_2-_3-CK23-NEXT:    store ptr null, ptr [[TMP5]], align 8
+// CK22-32-_3-_2-CK23-NEXT:    store ptr [[ARRAYIDX3]], ptr [[TMP4]], align 4
+// CK22-32-_3-_2-CK23-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK22-32-_3-_2-CK23-NEXT:    store ptr null, ptr [[TMP5]], align 4
+// CK22-64-_2-_3-32-CK23-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 0
+// CK22-64-_2-_3-32-CK23-NEXT:    [[TMP7:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP6]], i32 0, i32 0
+// CK22-64-_2-_3-CK23-NEXT:    store i64 0, ptr [[TMP7]], align 8
+// CK22-32-_3-_2-CK23-NEXT:    store i64 0, ptr [[TMP7]], align 4
+// CK22-64-_2-_3-32-CK23-NEXT:    [[TMP8:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP6]], i32 0, i32 1
+// CK22-64-_2-_3-CK23-NEXT:    store i64 2, ptr [[TMP8]], align 8
+// CK22-32-_3-_2-CK23-NEXT:    store i64 2, ptr [[TMP8]], align 4
+// CK22-64-_2-_3-32-CK23-NEXT:    [[TMP9:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP6]], i32 0, i32 2
+// CK22-64-_2-_3-CK23-NEXT:    store i64 200, ptr [[TMP9]], align 8
+// CK22-32-_3-_2-CK23-NEXT:    store i64 200, ptr [[TMP9]], align 4
+// CK22-64-_2-_3-32-CK23-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 1
+// CK22-64-_2-_3-32-CK23-NEXT:    [[TMP11:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP10]], i32 0, i32 0
+// CK22-64-_2-_3-CK23-NEXT:    store i64 1, ptr [[TMP11]], align 8
+// CK22-32-_3-_2-CK23-NEXT:    store i64 1, ptr [[TMP11]], align 4
+// CK22-64-_2-_3-32-CK23-NEXT:    [[TMP12:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP10]], i32 0, i32 1
+// CK22-64-NEXT:    store i64 3, ptr [[TMP12]], align 8
+// CK23-64-NEXT:    store i64 2, ptr [[TMP12]], align 8
+// CK22-32-NEXT:    store i64 3, ptr [[TMP12]], align 4
+// CK23-32-NEXT:    store i64 2, ptr [[TMP12]], align 4
+// CK22-64-_2-_3-32-CK23-NEXT:    [[TMP13:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP10]], i32 0, i32 2
+// CK22-64-NEXT:    store i64 40, ptr [[TMP13]], align 8
+// CK23-64-NEXT:    store i64 20, ptr [[TMP13]], align 8
+// CK22-32-NEXT:    store i64 40, ptr [[TMP13]], align 4
+// CK23-32-NEXT:    store i64 20, ptr [[TMP13]], align 4
+// CK22-64-_2-_3-32-CK23-NEXT:    [[TMP14:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 2
+// CK22-64-_2-_3-32-CK23-CK25-NEXT:    [[TMP15:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP14]], i32 0, i32 0
+// CK22-64-_2-_3-CK23-CK25-NEXT:    store i64 0, ptr [[TMP15]], align 8
+// CK22-32-_3-_2-CK23-NEXT:    store i64 0, ptr [[TMP15]], align 4
+// CK22-64-_2-_3-32-CK23-CK25-NEXT:    [[TMP16:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP14]], i32 0, i32 1
+// CK22-64-NEXT:    store i64 4, ptr [[TMP16]], align 8
+// CK23-64-_3-_2-CK25-NEXT:    store i64 2, ptr [[TMP16]], align 8
+// CK22-32-NEXT:    store i64 4, ptr [[TMP16]], align 4
+// CK23-32-NEXT:    store i64 2, ptr [[TMP16]], align 4
+// CK22-64-_2-_3-32-CK23-CK25-NEXT:    [[TMP17:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP14]], i32 0, i32 2
+// CK25-64-NEXT:    store i64 80, ptr [[TMP17]], align 8
+// CK25-64-NEXT:    [[TMP18:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 1
+// CK22-64-NEXT:    store i64 4, ptr [[TMP17]], align 8
+// CK23-64-NEXT:    store i64 [[TMP2]], ptr [[TMP17]], align 8
+// CK22-32-NEXT:    store i64 4, ptr [[TMP17]], align 4
+// CK23-32-NEXT:    store i64 [[TMP2]], ptr [[TMP17]], align 4
+// CK22-64-_2-_3-32-CK23-NEXT:    [[TMP18:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 3
+// CK22-64-_2-_3-32-CK23-CK25-NEXT:    [[TMP19:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP18]], i32 0, i32 0
+// CK25-64-NEXT:    store i64 [[TMP3]], ptr [[TMP19]], align 8
+// CK22-64-_2-_3-CK23-NEXT:    store i64 0, ptr [[TMP19]], align 8
+// CK22-32-_3-_2-CK23-NEXT:    store i64 0, ptr [[TMP19]], align 4
+// CK22-64-_2-_3-32-CK23-CK25-NEXT:    [[TMP20:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP18]], i32 0, i32 1
+// CK25-64-NEXT:    store i64 [[TMP4]], ptr [[TMP20]], align 8
+// CK22-64-_2-_3-CK23-NEXT:    store i64 1, ptr [[TMP20]], align 8
+// CK22-32-_3-_2-CK23-NEXT:    store i64 1, ptr [[TMP20]], align 4
+// CK22-64-_2-_3-32-CK23-CK25-NEXT:    [[TMP21:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP18]], i32 0, i32 2
+// CK25-64-NEXT:    store i64 20, ptr [[TMP21]], align 8
+// CK25-64-NEXT:    [[TMP22:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 2
+// CK25-64-NEXT:    [[TMP23:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP22]], i32 0, i32 0
+// CK25-64-NEXT:    store i64 1, ptr [[TMP23]], align 8
+// CK25-64-NEXT:    [[TMP24:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP22]], i32 0, i32 1
+// CK25-64-NEXT:    store i64 4, ptr [[TMP24]], align 8
+// CK25-64-NEXT:    [[TMP25:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP22]], i32 0, i32 2
+// CK25-64-NEXT:    store i64 4, ptr [[TMP25]], align 8
+// CK25-64-NEXT:    [[TMP26:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 3
+// CK25-64-NEXT:    [[TMP27:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP26]], i32 0, i32 0
+// CK25-64-NEXT:    store i64 0, ptr [[TMP27]], align 8
+// CK25-64-NEXT:    [[TMP28:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP26]], i32 0, i32 1
+// CK25-64-NEXT:    store i64 1, ptr [[TMP28]], align 8
+// CK25-64-NEXT:    [[TMP29:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP26]], i32 0, i32 2
+// CK25-64-NEXT:    store i64 4, ptr [[TMP29]], align 8
+// CK25-64-NEXT:    [[TMP30:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK25-64-NEXT:    store ptr [[DIMS]], ptr [[TMP30]], align 8
+// CK25-64-NEXT:    [[TMP31:%.*]] = getelementptr inbounds [3 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS7]], i64 0, i64 0
+// CK25-64-NEXT:    [[TMP32:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP31]], i32 0, i32 0
+// CK25-64-NEXT:    store i64 0, ptr [[TMP32]], align 8
+// CK25-64-NEXT:    [[TMP33:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP31]], i32 0, i32 1
+// CK25-64-NEXT:    store i64 2, ptr [[TMP33]], align 8
+// CK25-64-NEXT:    [[TMP34:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP31]], i32 0, i32 2
+// CK25-64-NEXT:    store i64 12, ptr [[TMP34]], align 8
+// CK25-64-NEXT:    [[TMP35:%.*]] = getelementptr inbounds [3 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS7]], i64 0, i64 1
+// CK25-64-NEXT:    [[TMP36:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP35]], i32 0, i32 0
+// CK25-64-NEXT:    store i64 1, ptr [[TMP36]], align 8
+// CK25-64-NEXT:    [[TMP37:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP35]], i32 0, i32 1
+// CK25-64-NEXT:    store i64 2, ptr [[TMP37]], align 8
+// CK25-64-NEXT:    [[TMP38:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP35]], i32 0, i32 2
+// CK25-64-NEXT:    store i64 4, ptr [[TMP38]], align 8
+// CK25-64-NEXT:    [[TMP39:%.*]] = getelementptr inbounds [3 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS7]], i64 0, i64 2
+// CK25-64-NEXT:    [[TMP40:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP39]], i32 0, i32 0
+// CK25-64-NEXT:    store i64 0, ptr [[TMP40]], align 8
+// CK25-64-NEXT:    [[TMP41:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP39]], i32 0, i32 1
+// CK25-64-NEXT:    store i64 1, ptr [[TMP41]], align 8
+// CK25-64-NEXT:    [[TMP42:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP39]], i32 0, i32 2
+// CK25-64-NEXT:    store i64 4, ptr [[TMP42]], align 8
+// CK25-64-NEXT:    [[TMP43:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 2
+// CK25-64-NEXT:    store ptr [[DIMS7]], ptr [[TMP43]], align 8
+// CK25-64-NEXT:    [[TMP44:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK25-64-NEXT:    [[TMP45:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK25-64-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 3, ptr [[TMP44]], ptr [[TMP45]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK25-64-NEXT:    [[TMP46:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK25-64-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP46]], 1
+// CK25-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw [3 x [4 x [5 x i32]]], ptr [[ARR]], i32 0, i32 0
+// CK25-32-NEXT:    [[ARRAYDECAY:%.*]] = getelementptr inbounds [4 x [5 x i32]], ptr [[ARRAYIDX]], i32 0, i32 0
+// CK25-32-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds nuw [5 x i32], ptr [[ARRAYDECAY]], i32 [[TMP0]]
+// CK25-32-NEXT:    [[ARRAYDECAY2:%.*]] = getelementptr inbounds [5 x i32], ptr [[ARRAYIDX1]], i32 0, i32 0
+// CK25-32-NEXT:    [[ARRAYIDX3:%.*]] = getelementptr inbounds nuw i32, ptr [[ARRAYDECAY2]], i32 1
+// CK25-32-NEXT:    [[TMP1:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK25-32-NEXT:    [[TMP2:%.*]] = zext i32 [[TMP1]] to i64
+// CK25-32-NEXT:    [[TMP3:%.*]] = sub nuw i64 4, [[TMP2]]
+// CK25-32-NEXT:    [[ARRAYIDX4:%.*]] = getelementptr inbounds nuw [4 x [3 x float]], ptr [[FARR]], i32 0, i32 0
+// CK25-32-NEXT:    [[ARRAYDECAY5:%.*]] = getelementptr inbounds [3 x float], ptr [[ARRAYIDX4]], i32 0, i32 0
+// CK25-32-NEXT:    [[ARRAYIDX6:%.*]] = getelementptr inbounds nuw float, ptr [[ARRAYDECAY5]], i32 1
+// CK25-32-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK25-32-NEXT:    store ptr [[ARR]], ptr [[TMP4]], align 4
+// CK25-32-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK25-32-NEXT:    store ptr [[ARRAYIDX3]], ptr [[TMP5]], align 4
+// CK25-32-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK25-32-NEXT:    store ptr null, ptr [[TMP6]], align 4
+// CK25-32-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 1
+// CK25-32-NEXT:    store ptr [[X]], ptr [[TMP7]], align 4
+// CK25-32-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 1
+// CK25-32-NEXT:    store ptr [[X]], ptr [[TMP8]], align 4
+// CK25-32-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 1
+// CK13-32-NEXT:    store ptr [[ADD_PTR2]], ptr [[TMP9]], align 4
+// CK13-32-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK13-32-NEXT:    store ptr null, ptr [[TMP10]], align 4
+// CK13-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK13-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK13-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP11]], ptr [[TMP12]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK13-64-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[BB_ADDR]], align 8
+// CK13-32-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[BB_ADDR]], align 4
+// CK13-NEXT:    [[TMP14:%.*]] = load i32, ptr [[A_ADDR]], align 4
+// CK8-32-NEXT:    [[ARRAYIDX2:%.*]] = getelementptr inbounds ptr, ptr [[ADD_PTR1]], i32 1
+// CK8-32-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[ARRAYIDX2]], align 4
+// CK8-32-NEXT:    [[ARRAYIDX3:%.*]] = getelementptr inbounds i32, ptr [[TMP6]], i32 2
+// CK8-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK8-64-NEXT:    store ptr [[TMP2]], ptr [[TMP7]], align 8
+// CK8-32-NEXT:    store ptr [[TMP2]], ptr [[TMP7]], align 4
+// CK8-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK8-64-NEXT:    store ptr [[ARRAYIDX4]], ptr [[TMP8]], align 8
+// CK8-64-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK8-64-NEXT:    store ptr null, ptr [[TMP9]], align 8
+// CK8-32-NEXT:    store ptr [[ARRAYIDX3]], ptr [[TMP8]], align 4
+// CK8-32-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK8-32-_2-_3-CK25-NEXT:    store ptr null, ptr [[TMP9]], align 4
+// CK25-32-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 2
+// CK25-32-NEXT:    store ptr [[FARR]], ptr [[TMP10]], align 4
+// CK25-32-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 2
+// CK25-32-NEXT:    store ptr [[ARRAYIDX6]], ptr [[TMP11]], align 4
+// CK25-32-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 2
+// CK14-32-_3-_2-CK25-NEXT:    store ptr null, ptr [[TMP12]], align 4
+// CK14-NEXT:    [[TMP13:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS8]], i32 0, i32 0
+// CK14-NEXT:    [[TMP14:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS9]], i32 0, i32 0
+// CK14-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP13]], ptr [[TMP14]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// SIMD-ONLY0-_30-_43-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds double, ptr [[TMP0]], i64 1
+// SIMD-ONLY0-_30-_43-NEXT:    store double 1.000000e+00, ptr [[ADD_PTR]], align 8
+// SIMD-ONLY0-_36-_59-NEXT:    [[ADD_PTR:%.*]] = getelementptr inbounds double, ptr [[TMP0]], i32 1
+// SIMD-ONLY0-_36-_59-NEXT:    store double 1.000000e+00, ptr [[ADD_PTR]], align 4
+// CK25-32-NEXT:    [[TMP13:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 0
+// CK25-32-NEXT:    [[TMP14:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP13]], i32 0, i32 0
+// CK25-32-NEXT:    store i64 0, ptr [[TMP14]], align 4
+// CK25-32-NEXT:    [[TMP15:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP13]], i32 0, i32 1
+// CK25-32-NEXT:    store i64 2, ptr [[TMP15]], align 4
+// CK25-32-NEXT:    [[TMP16:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP13]], i32 0, i32 2
+// CK25-32-NEXT:    store i64 80, ptr [[TMP16]], align 4
+// CK25-32-NEXT:    [[TMP17:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 1
+// CK25-32-NEXT:    [[TMP18:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP17]], i32 0, i32 0
+// CK25-32-NEXT:    store i64 [[TMP2]], ptr [[TMP18]], align 4
+// CK25-32-NEXT:    [[TMP19:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP17]], i32 0, i32 1
+// CK25-32-NEXT:    store i64 [[TMP3]], ptr [[TMP19]], align 4
+// CK25-32-NEXT:    [[TMP20:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP17]], i32 0, i32 2
+// CK25-32-NEXT:    store i64 20, ptr [[TMP20]], align 4
+// CK25-32-NEXT:    [[TMP21:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 2
+// CK25-32-NEXT:    [[TMP22:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP21]], i32 0, i32 0
+// CK25-32-NEXT:    store i64 1, ptr [[TMP22]], align 4
+// CK25-32-NEXT:    [[TMP23:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP21]], i32 0, i32 1
+// CK25-32-NEXT:    store i64 4, ptr [[TMP23]], align 4
+// CK25-32-NEXT:    [[TMP24:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP21]], i32 0, i32 2
+// CK25-32-NEXT:    store i64 4, ptr [[TMP24]], align 4
+// CK25-32-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [4 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS]], i64 0, i64 3
+// CK25-32-NEXT:    [[TMP26:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP25]], i32 0, i32 0
+// CK25-32-NEXT:    store i64 0, ptr [[TMP26]], align 4
+// CK25-32-NEXT:    [[TMP27:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP25]], i32 0, i32 1
+// CK25-32-NEXT:    store i64 1, ptr [[TMP27]], align 4
+// CK25-32-NEXT:    [[TMP28:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP25]], i32 0, i32 2
+// CK25-32-NEXT:    store i64 4, ptr [[TMP28]], align 4
+// CK25-32-NEXT:    [[TMP29:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK25-32-NEXT:    store ptr [[DIMS]], ptr [[TMP29]], align 4
+// CK25-32-NEXT:    [[TMP30:%.*]] = getelementptr inbounds [3 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS7]], i64 0, i64 0
+// CK25-32-NEXT:    [[TMP31:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP30]], i32 0, i32 0
+// CK25-32-NEXT:    store i64 0, ptr [[TMP31]], align 4
+// CK25-32-NEXT:    [[TMP32:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP30]], i32 0, i32 1
+// CK25-32-NEXT:    store i64 2, ptr [[TMP32]], align 4
+// CK25-32-NEXT:    [[TMP33:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP30]], i32 0, i32 2
+// CK25-32-NEXT:    store i64 12, ptr [[TMP33]], align 4
+// CK25-32-NEXT:    [[TMP34:%.*]] = getelementptr inbounds [3 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS7]], i64 0, i64 1
+// CK25-32-NEXT:    [[TMP35:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP34]], i32 0, i32 0
+// CK25-32-NEXT:    store i64 1, ptr [[TMP35]], align 4
+// CK25-32-NEXT:    [[TMP36:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP34]], i32 0, i32 1
+// CK25-32-NEXT:    store i64 2, ptr [[TMP36]], align 4
+// CK25-32-NEXT:    [[TMP37:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP34]], i32 0, i32 2
+// CK25-32-NEXT:    store i64 4, ptr [[TMP37]], align 4
+// CK25-32-NEXT:    [[TMP38:%.*]] = getelementptr inbounds [3 x [[STRUCT_DESCRIPTOR_DIM]]], ptr [[DIMS7]], i64 0, i64 2
+// CK25-32-NEXT:    [[TMP39:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP38]], i32 0, i32 0
+// CK25-32-NEXT:    store i64 0, ptr [[TMP39]], align 4
+// CK25-32-NEXT:    [[TMP40:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP38]], i32 0, i32 1
+// CK25-32-NEXT:    store i64 1, ptr [[TMP40]], align 4
+// CK25-32-NEXT:    [[TMP41:%.*]] = getelementptr inbounds nuw [[STRUCT_DESCRIPTOR_DIM]], ptr [[TMP38]], i32 0, i32 2
+// CK25-32-NEXT:    store i64 4, ptr [[TMP41]], align 4
+// CK25-32-NEXT:    [[TMP42:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 2
+// CK25-32-NEXT:    store ptr [[DIMS7]], ptr [[TMP42]], align 4
+// CK25-32-NEXT:    [[TMP43:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK25-32-NEXT:    [[TMP44:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK25-32-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 3, ptr [[TMP43]], ptr [[TMP44]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK25-32-NEXT:    [[TMP45:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// CK25-32-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP45]], 1
+// CK25-NEXT:    store i32 [[INC]], ptr [[ARG_ADDR]], align 4
+// CK8-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK8-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK8-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP10]], ptr [[TMP11]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK8-NEXT:    [[TMP12:%.*]] = load i32, ptr [[E_ADDR]], align 4
+// CK8-64-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK8-32-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK8-NEXT:    [[TMP14:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK8-64-_2-_3-CK13-NEXT:    [[IDX_EXT5:%.*]] = sext i32 [[TMP14]] to i64
+// CK8-64-_2-_3-CK13-NEXT:    [[ADD_PTR6:%.*]] = getelementptr inbounds ptr, ptr [[TMP13]], i64 [[IDX_EXT5]]
+// CK13-64-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[ADD_PTR6]], align 8
+// CK13-32-NEXT:    [[ADD_PTR3:%.*]] = getelementptr inbounds ptr, ptr [[TMP13]], i32 [[TMP14]]
+// CK13-32-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[ADD_PTR3]], align 4
+// CK13-NEXT:    [[TMP16:%.*]] = load i32, ptr [[B_ADDR]], align 4
+// CK13-64-NEXT:    [[IDX_EXT7:%.*]] = sext i32 [[TMP16]] to i64
+// CK13-64-NEXT:    [[ADD_PTR8:%.*]] = getelementptr inbounds i32, ptr [[TMP15]], i64 [[IDX_EXT7]]
+// CK13-64-NEXT:    store i32 1, ptr [[ADD_PTR8]], align 4
+// CK13-64-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[BB_ADDR]], align 8
+// CK13-32-NEXT:    [[ADD_PTR4:%.*]] = getelementptr inbounds i32, ptr [[TMP15]], i32 [[TMP16]]
+// CK13-32-NEXT:    store i32 1, ptr [[ADD_PTR4]], align 4
+// CK13-32-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[BB_ADDR]], align 4
+// CK13-NEXT:    [[TMP18:%.*]] = load i32, ptr [[A_ADDR]], align 4
+// CK8-64-NEXT:    [[ARRAYIDX7:%.*]] = getelementptr inbounds ptr, ptr [[ADD_PTR6]], i64 1
+// CK8-64-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[ARRAYIDX7]], align 8
+// CK8-64-NEXT:    [[ARRAYIDX8:%.*]] = getelementptr inbounds i32, ptr [[TMP15]], i64 2
+// CK8-64-NEXT:    [[TMP16:%.*]] = load i32, ptr [[ARRAYIDX8]], align 4
+// CK8-32-NEXT:    [[ADD_PTR4:%.*]] = getelementptr inbounds ptr, ptr [[TMP13]], i32 [[TMP14]]
+// CK8-32-NEXT:    [[ARRAYIDX5:%.*]] = getelementptr inbounds ptr, ptr [[ADD_PTR4]], i32 1
+// CK8-32-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[ARRAYIDX5]], align 4
+// CK8-32-NEXT:    [[ARRAYIDX6:%.*]] = getelementptr inbounds i32, ptr [[TMP15]], i32 2
+// CK8-32-NEXT:    [[TMP16:%.*]] = load i32, ptr [[ARRAYIDX6]], align 4
+// CK8-NEXT:    [[ADD:%.*]] = add nsw i32 [[TMP16]], [[TMP12]]
+// CK8-64-NEXT:    store i32 [[ADD]], ptr [[ARRAYIDX8]], align 4
+// CK8-64-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK8-32-NEXT:    store i32 [[ADD]], ptr [[ARRAYIDX6]], align 4
+// CK8-32-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK8-NEXT:    [[TMP18:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK8-64-_2-_3-CK13-NEXT:    [[IDX_EXT9:%.*]] = sext i32 [[TMP18]] to i64
+// CK8-64-_2-_3-CK13-NEXT:    [[ADD_PTR10:%.*]] = getelementptr inbounds ptr, ptr [[TMP17]], i64 [[IDX_EXT9]]
+// CK13-64-NEXT:    [[TMP19:%.*]] = load ptr, ptr [[ADD_PTR10]], align 8
+// CK13-64-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[BB_ADDR]], align 8
+// CK13-64-NEXT:    [[TMP21:%.*]] = load ptr, ptr [[BB_ADDR]], align 8
+// CK13-32-NEXT:    [[ADD_PTR5:%.*]] = getelementptr inbounds ptr, ptr [[TMP17]], i32 [[TMP18]]
+// CK13-32-NEXT:    [[TMP19:%.*]] = load ptr, ptr [[ADD_PTR5]], align 4
+// CK13-32-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[BB_ADDR]], align 4
+// CK13-32-NEXT:    [[TMP21:%.*]] = load ptr, ptr [[BB_ADDR]], align 4
+// CK13-NEXT:    [[TMP22:%.*]] = load i32, ptr [[A_ADDR]], align 4
+// CK13-64-NEXT:    [[IDX_EXT11:%.*]] = sext i32 [[TMP22]] to i64
+// CK13-64-NEXT:    [[ADD_PTR12:%.*]] = getelementptr inbounds ptr, ptr [[TMP21]], i64 [[IDX_EXT11]]
+// CK13-64-NEXT:    [[TMP23:%.*]] = load ptr, ptr [[ADD_PTR12]], align 8
+// CK13-32-NEXT:    [[ADD_PTR6:%.*]] = getelementptr inbounds ptr, ptr [[TMP21]], i32 [[TMP22]]
+// CK13-32-NEXT:    [[TMP23:%.*]] = load ptr, ptr [[ADD_PTR6]], align 4
+// CK13-NEXT:    [[TMP24:%.*]] = load i32, ptr [[B_ADDR]], align 4
+// CK13-64-NEXT:    [[IDX_EXT13:%.*]] = sext i32 [[TMP24]] to i64
+// CK13-64-NEXT:    [[ADD_PTR14:%.*]] = getelementptr inbounds i32, ptr [[TMP23]], i64 [[IDX_EXT13]]
+// CK13-64-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS15]], i32 0, i32 0
+// CK13-64-NEXT:    store ptr [[TMP19]], ptr [[TMP25]], align 8
+// CK13-64-NEXT:    [[TMP26:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS16]], i32 0, i32 0
+// CK13-64-NEXT:    store ptr [[ADD_PTR14]], ptr [[TMP26]], align 8
+// CK13-64-NEXT:    [[TMP27:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS17]], i64 0, i64 0
+// CK13-64-NEXT:    store ptr null, ptr [[TMP27]], align 8
+// CK13-64-NEXT:    [[TMP28:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS15]], i32 0, i32 0
+// CK13-64-NEXT:    [[TMP29:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS16]], i32 0, i32 0
+// CK13-32-NEXT:    [[ADD_PTR7:%.*]] = getelementptr inbounds i32, ptr [[TMP23]], i32 [[TMP24]]
+// CK13-32-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS8]], i32 0, i32 0
+// CK13-32-NEXT:    store ptr [[TMP19]], ptr [[TMP25]], align 4
+// CK13-32-NEXT:    [[TMP26:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS9]], i32 0, i32 0
+// CK13-32-NEXT:    store ptr [[ADD_PTR7]], ptr [[TMP26]], align 4
+// CK13-32-NEXT:    [[TMP27:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS10]], i32 0, i32 0
+// CK13-32-NEXT:    store ptr null, ptr [[TMP27]], align 4
+// CK13-32-NEXT:    [[TMP28:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS8]], i32 0, i32 0
+// CK13-32-NEXT:    [[TMP29:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS9]], i32 0, i32 0
+// CK13-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP28]], ptr [[TMP29]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// CK8-64-NEXT:    [[ARRAYIDX11:%.*]] = getelementptr inbounds ptr, ptr [[ADD_PTR10]], i64 1
+// CK8-64-NEXT:    [[TMP19:%.*]] = load ptr, ptr [[ARRAYIDX11]], align 8
+// CK8-64-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK8-64-NEXT:    [[TMP21:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK8-32-NEXT:    [[ADD_PTR7:%.*]] = getelementptr inbounds ptr, ptr [[TMP17]], i32 [[TMP18]]
+// CK8-32-NEXT:    [[ARRAYIDX8:%.*]] = getelementptr inbounds ptr, ptr [[ADD_PTR7]], i32 1
+// CK8-32-NEXT:    [[TMP19:%.*]] = load ptr, ptr [[ARRAYIDX8]], align 4
+// CK8-32-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK8-32-NEXT:    [[TMP21:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK8-NEXT:    [[TMP22:%.*]] = load i32, ptr [[L_ADDR]], align 4
+// CK8-64-NEXT:    [[IDX_EXT12:%.*]] = sext i32 [[TMP22]] to i64
+// CK8-64-NEXT:    [[ADD_PTR13:%.*]] = getelementptr inbounds ptr, ptr [[TMP21]], i64 [[IDX_EXT12]]
+// CK8-64-NEXT:    [[ARRAYIDX14:%.*]] = getelementptr inbounds ptr, ptr [[ADD_PTR13]], i64 1
+// CK8-64-NEXT:    [[TMP23:%.*]] = load ptr, ptr [[ARRAYIDX14]], align 8
+// CK8-64-NEXT:    [[ARRAYIDX15:%.*]] = getelementptr inbounds i32, ptr [[TMP23]], i64 2
+// CK8-64-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS16]], i32 0, i32 0
+// CK8-64-NEXT:    store ptr [[TMP19]], ptr [[TMP24]], align 8
+// CK8-64-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS17]], i32 0, i32 0
+// CK8-64-NEXT:    store ptr [[ARRAYIDX15]], ptr [[TMP25]], align 8
+// CK8-64-NEXT:    [[TMP26:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS18]], i64 0, i64 0
+// CK8-64-NEXT:    store ptr null, ptr [[TMP26]], align 8
+// CK8-64-NEXT:    [[TMP27:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS16]], i32 0, i32 0
+// CK8-64-NEXT:    [[TMP28:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS17]], i32 0, i32 0
+// CK8-32-NEXT:    [[ADD_PTR9:%.*]] = getelementptr inbounds ptr, ptr [[TMP21]], i32 [[TMP22]]
+// CK8-32-NEXT:    [[ARRAYIDX10:%.*]] = getelementptr inbounds ptr, ptr [[ADD_PTR9]], i32 1
+// CK8-32-NEXT:    [[TMP23:%.*]] = load ptr, ptr [[ARRAYIDX10]], align 4
+// CK8-32-NEXT:    [[ARRAYIDX11:%.*]] = getelementptr inbounds i32, ptr [[TMP23]], i32 2
+// CK8-32-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS12]], i32 0, i32 0
+// CK8-32-NEXT:    store ptr [[TMP19]], ptr [[TMP24]], align 4
+// CK8-32-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS13]], i32 0, i32 0
+// CK8-32-NEXT:    store ptr [[ARRAYIDX11]], ptr [[TMP25]], align 4
+// CK8-32-NEXT:    [[TMP26:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS14]], i32 0, i32 0
+// CK8-32-NEXT:    store ptr null, ptr [[TMP26]], align 4
+// CK8-32-NEXT:    [[TMP27:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS12]], i32 0, i32 0
+// CK8-32-NEXT:    [[TMP28:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS13]], i32 0, i32 0
+// CK8-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP27]], ptr [[TMP28]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// CK22-64-_2-_3-CK23-NEXT:    store i64 4, ptr [[TMP21]], align 8
+// CK22-32-_3-_2-CK23-NEXT:    store i64 4, ptr [[TMP21]], align 4
+// CK22-64-_2-_3-32-CK23-NEXT:    [[TMP22:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK22-64-_2-_3-CK23-NEXT:    store ptr [[DIMS]], ptr [[TMP22]], align 8
+// CK22-32-_3-_2-CK23-NEXT:    store ptr [[DIMS]], ptr [[TMP22]], align 4
+// CK22-64-_2-_3-32-CK23-NEXT:    [[TMP23:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK22-64-_2-_3-32-CK23-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK22-64-_2-_3-32-CK23-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 1, ptr [[TMP23]], ptr [[TMP24]], ptr @.offload_sizes, ptr @.offload_maptypes, ptr null, ptr null)
+// CK1-64-_2-_3-32-SIMD-ONLY0-_54-_21-_40-_60-CK3-ONLY2-_4-_5-CK4-ONLY3-ONLY4-CK5-CK7-CK8-_29-_42-_44-_24-_16-_22-_17-_6-_56-CK12-_39-_34-_13-_50-CK13-_31-_45-_12-_15-CK14-_30-_43-_36-_59-CK16-CK17-CK18-ONLY18-_28-_38-_41-ONLY19-_23-CK21-_27-CK22-CK23-_7-_25-_8-CK24-_18-_20-CK25-_26-_9-_10-CK26-_14-_11-_19-NEXT:    ret void
+//
+//
+// CK1-64-LABEL: define internal noundef signext i32 @.omp_task_entry.(
+// CK1-64-SAME: i32 noundef signext [[TMP0:%.*]], ptr noalias noundef [[TMP1:%.*]]) #[[ATTR4:[0-9]+]] {
+// CK1-32-LABEL: define internal noundef i32 @.omp_task_entry.(
+// CK1-32-SAME: i32 noundef [[TMP0:%.*]], ptr noalias noundef [[TMP1:%.*]]) #[[ATTR4:[0-9]+]] {
+// CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11-_19-LABEL: define dso_local void @_Z4foo1v(
+// CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11-_19-SAME: ) #[[ATTR0]] {
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-LABEL: define linkonce_odr void @_ZN3SSAC2ERPd(
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-SAME: ptr noundef nonnull align 8 dereferenceable(16) [[THIS:%.*]], ptr noundef nonnull align 8 dereferenceable(8) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat {
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-SAME: ptr noundef nonnull align 4 dereferenceable(8) [[THIS:%.*]], ptr noundef nonnull align 4 dereferenceable(4) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat align 2 {
+// CK1-64-_2-_3-32-CK14-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19-NEXT:  [[ENTRY:.*:]]
+// CK1-NEXT:    [[DOTGLOBAL_TID__ADDR_I:%.*]] = alloca i32, align 4
+// CK1-64-NEXT:    [[DOTPART_ID__ADDR_I:%.*]] = alloca ptr, align 8
+// CK1-64-NEXT:    [[DOTPRIVATES__ADDR_I:%.*]] = alloca ptr, align 8
+// CK1-64-NEXT:    [[DOTCOPY_FN__ADDR_I:%.*]] = alloca ptr, align 8
+// CK1-64-NEXT:    [[DOTTASK_T__ADDR_I:%.*]] = alloca ptr, align 8
+// CK1-64-NEXT:    [[__CONTEXT_ADDR_I:%.*]] = alloca ptr, align 8
+// CK1-64-NEXT:    [[DOTFIRSTPRIV_PTR_ADDR_I:%.*]] = alloca ptr, align 8
+// CK1-64-NEXT:    [[DOTFIRSTPRIV_PTR_ADDR1_I:%.*]] = alloca ptr, align 8
+// CK1-64-NEXT:    [[DOTFIRSTPRIV_PTR_ADDR2_I:%.*]] = alloca ptr, align 8
+// CK1-32-NEXT:    [[DOTPART_ID__ADDR_I:%.*]] = alloca ptr, align 4
+// CK1-32-NEXT:    [[DOTPRIVATES__ADDR_I:%.*]] = alloca ptr, align 4
+// CK1-32-NEXT:    [[DOTCOPY_FN__ADDR_I:%.*]] = alloca ptr, align 4
+// CK1-32-NEXT:    [[DOTTASK_T__ADDR_I:%.*]] = alloca ptr, align 4
+// CK1-32-NEXT:    [[__CONTEXT_ADDR_I:%.*]] = alloca ptr, align 4
+// CK1-32-NEXT:    [[DOTFIRSTPRIV_PTR_ADDR_I:%.*]] = alloca ptr, align 4
+// CK1-32-NEXT:    [[DOTFIRSTPRIV_PTR_ADDR1_I:%.*]] = alloca ptr, align 4
+// CK1-32-NEXT:    [[DOTFIRSTPRIV_PTR_ADDR2_I:%.*]] = alloca ptr, align 4
+// CK1-NEXT:    [[DOTADDR:%.*]] = alloca i32, align 4
+// CK1-64-NEXT:    [[DOTADDR1:%.*]] = alloca ptr, align 8
+// CK1-32-NEXT:    [[DOTADDR1:%.*]] = alloca ptr, align 4
+// CK1-NEXT:    store i32 [[TMP0]], ptr [[DOTADDR]], align 4
+// CK1-64-NEXT:    store ptr [[TMP1]], ptr [[DOTADDR1]], align 8
+// CK1-32-NEXT:    store ptr [[TMP1]], ptr [[DOTADDR1]], align 4
+// CK1-NEXT:    [[TMP2:%.*]] = load i32, ptr [[DOTADDR]], align 4
+// CK1-64-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[DOTADDR1]], align 8
+// CK1-32-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[DOTADDR1]], align 4
+// CK1-NEXT:    [[TMP4:%.*]] = getelementptr inbounds nuw [[STRUCT_KMP_TASK_T_WITH_PRIVATES:%.*]], ptr [[TMP3]], i32 0, i32 0
+// CK1-NEXT:    [[TMP5:%.*]] = getelementptr inbounds nuw [[STRUCT_KMP_TASK_T:%.*]], ptr [[TMP4]], i32 0, i32 2
+// CK1-NEXT:    [[TMP6:%.*]] = getelementptr inbounds nuw [[STRUCT_KMP_TASK_T]], ptr [[TMP4]], i32 0, i32 0
+// CK1-64-NEXT:    [[TMP7:%.*]] = load ptr, ptr [[TMP6]], align 8
+// CK1-32-NEXT:    [[TMP7:%.*]] = load ptr, ptr [[TMP6]], align 4
+// CK1-NEXT:    [[TMP8:%.*]] = getelementptr inbounds nuw [[STRUCT_KMP_TASK_T_WITH_PRIVATES]], ptr [[TMP3]], i32 0, i32 1
+// CK1-64-NEXT:    call void @llvm.experimental.noalias.scope.decl(metadata [[META3:![0-9]+]])
+// CK1-64-NEXT:    call void @llvm.experimental.noalias.scope.decl(metadata [[META6:![0-9]+]])
+// CK1-64-NEXT:    call void @llvm.experimental.noalias.scope.decl(metadata [[META8:![0-9]+]])
+// CK1-64-NEXT:    call void @llvm.experimental.noalias.scope.decl(metadata [[META10:![0-9]+]])
+// CK1-64-NEXT:    store i32 [[TMP2]], ptr [[DOTGLOBAL_TID__ADDR_I]], align 4, !noalias [[META12:![0-9]+]]
+// CK1-64-NEXT:    store ptr [[TMP5]], ptr [[DOTPART_ID__ADDR_I]], align 8, !noalias [[META12]]
+// CK1-64-NEXT:    store ptr [[TMP8]], ptr [[DOTPRIVATES__ADDR_I]], align 8, !noalias [[META12]]
+// CK1-64-NEXT:    store ptr @.omp_task_privates_map., ptr [[DOTCOPY_FN__ADDR_I]], align 8, !noalias [[META12]]
+// CK1-64-NEXT:    store ptr [[TMP3]], ptr [[DOTTASK_T__ADDR_I]], align 8, !noalias [[META12]]
+// CK1-64-NEXT:    store ptr [[TMP7]], ptr [[__CONTEXT_ADDR_I]], align 8, !noalias [[META12]]
+// CK1-64-NEXT:    [[TMP9:%.*]] = load ptr, ptr [[__CONTEXT_ADDR_I]], align 8, !noalias [[META12]]
+// CK1-64-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[DOTCOPY_FN__ADDR_I]], align 8, !noalias [[META12]]
+// CK1-64-NEXT:    [[TMP11:%.*]] = load ptr, ptr [[DOTPRIVATES__ADDR_I]], align 8, !noalias [[META12]]
+// CK1-32-NEXT:    call void @llvm.experimental.noalias.scope.decl(metadata [[META4:![0-9]+]])
+// CK1-32-NEXT:    call void @llvm.experimental.noalias.scope.decl(metadata [[META7:![0-9]+]])
+// CK1-32-NEXT:    call void @llvm.experimental.noalias.scope.decl(metadata [[META9:![0-9]+]])
+// CK1-32-NEXT:    call void @llvm.experimental.noalias.scope.decl(metadata [[META11:![0-9]+]])
+// CK1-32-NEXT:    store i32 [[TMP2]], ptr [[DOTGLOBAL_TID__ADDR_I]], align 4, !noalias [[META13:![0-9]+]]
+// CK1-32-NEXT:    store ptr [[TMP5]], ptr [[DOTPART_ID__ADDR_I]], align 4, !noalias [[META13]]
+// CK1-32-NEXT:    store ptr [[TMP8]], ptr [[DOTPRIVATES__ADDR_I]], align 4, !noalias [[META13]]
+// CK1-32-NEXT:    store ptr @.omp_task_privates_map., ptr [[DOTCOPY_FN__ADDR_I]], align 4, !noalias [[META13]]
+// CK1-32-NEXT:    store ptr [[TMP3]], ptr [[DOTTASK_T__ADDR_I]], align 4, !noalias [[META13]]
+// CK1-32-NEXT:    store ptr [[TMP7]], ptr [[__CONTEXT_ADDR_I]], align 4, !noalias [[META13]]
+// CK1-32-NEXT:    [[TMP9:%.*]] = load ptr, ptr [[__CONTEXT_ADDR_I]], align 4, !noalias [[META13]]
+// CK1-32-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[DOTCOPY_FN__ADDR_I]], align 4, !noalias [[META13]]
+// CK1-32-NEXT:    [[TMP11:%.*]] = load ptr, ptr [[DOTPRIVATES__ADDR_I]], align 4, !noalias [[META13]]
+// CK1-NEXT:    call void [[TMP10]](ptr [[TMP11]], ptr [[DOTFIRSTPRIV_PTR_ADDR_I]], ptr [[DOTFIRSTPRIV_PTR_ADDR1_I]], ptr [[DOTFIRSTPRIV_PTR_ADDR2_I]]) #[[ATTR2:[0-9]+]]
+// CK1-64-NEXT:    [[TMP12:%.*]] = load ptr, ptr [[DOTFIRSTPRIV_PTR_ADDR_I]], align 8, !noalias [[META12]]
+// CK1-64-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[DOTFIRSTPRIV_PTR_ADDR1_I]], align 8, !noalias [[META12]]
+// CK1-64-NEXT:    [[TMP14:%.*]] = load ptr, ptr [[DOTFIRSTPRIV_PTR_ADDR2_I]], align 8, !noalias [[META12]]
+// CK1-32-NEXT:    [[TMP12:%.*]] = load ptr, ptr [[DOTFIRSTPRIV_PTR_ADDR_I]], align 4, !noalias [[META13]]
+// CK1-32-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[DOTFIRSTPRIV_PTR_ADDR1_I]], align 4, !noalias [[META13]]
+// CK1-32-NEXT:    [[TMP14:%.*]] = load ptr, ptr [[DOTFIRSTPRIV_PTR_ADDR2_I]], align 4, !noalias [[META13]]
+// CK1-NEXT:    [[TMP15:%.*]] = load i32, ptr [[TMP9]], align 4
+// CK1-NEXT:    [[TMP16:%.*]] = sext i32 [[TMP15]] to i64
+// CK1-NEXT:    call void @__tgt_target_data_update_nowait_mapper(ptr @[[GLOB1]], i64 [[TMP16]], i32 1, ptr [[TMP12]], ptr [[TMP13]], ptr [[TMP14]], ptr @.offload_maptypes, ptr null, ptr null, i32 0, ptr null, i32 0, ptr null)
+// CK1-NEXT:    ret i32 0
+// CK26-64-_2-_3-32-SIMD-ONLY19-_14-_28-_11-_19-NEXT:    [[A:%.*]] = alloca [10 x i32], align 4
+// CK26-NEXT:    [[IT:%.*]] = alloca i32, align 4
+// CK26-64-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 8
+// CK26-64-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 8
+// CK26-64-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 8
+// CK26-32-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 4
+// CK26-32-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 4
+// CK26-32-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 4
+// CK26-NEXT:    [[TMP0:%.*]] = load i32, ptr [[IT]], align 4
+// CK26-64-NEXT:    [[IDXPROM:%.*]] = sext i32 [[TMP0]] to i64
+// CK26-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [10 x i32], ptr [[A]], i64 0, i64 [[IDXPROM]]
+// CK26-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [10 x i32], ptr [[A]], i32 0, i32 [[TMP0]]
+// CK26-NEXT:    [[TMP1:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK26-64-NEXT:    store ptr [[A]], ptr [[TMP1]], align 8
+// CK26-32-NEXT:    store ptr [[A]], ptr [[TMP1]], align 4
+// CK26-NEXT:    [[TMP2:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK26-64-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP2]], align 8
+// CK26-64-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK26-64-NEXT:    store ptr null, ptr [[TMP3]], align 8
+// CK26-32-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP2]], align 4
+// CK26-32-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK26-32-NEXT:    store ptr null, ptr [[TMP3]], align 4
+// CK26-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK26-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK26-NEXT:    call void @__tgt_target_data_update_mapper(ptr @[[GLOB1]], i64 -1, i32 1, ptr [[TMP4]], ptr [[TMP5]], ptr @.offload_sizes.1, ptr @.offload_maptypes.2, ptr null, ptr null)
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 8
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 4
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-NEXT:    [[PR2:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA:%.*]], ptr [[THIS1]], i32 0, i32 1
+// CK14-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 8, !nonnull [[META3:![0-9]+]], !align [[META4:![0-9]+]]
+// SIMD-ONLY0-_30-_43-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 8, !nonnull [[META2:![0-9]+]], !align [[META3:![0-9]+]]
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    store ptr [[TMP0]], ptr [[PR2]], align 8
+// CK14-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 4, !nonnull [[META4:![0-9]+]], !align [[META5:![0-9]+]]
+// SIMD-ONLY0-_36-_59-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 4, !nonnull [[META3:![0-9]+]], !align [[META4:![0-9]+]]
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    store ptr [[TMP0]], ptr [[PR2]], align 4
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-CK26-ONLY19-_14-_28-_11-_19-NEXT:    ret void
+//
+//
+// CK1-64: [[META3]] = !{[[META4:![0-9]+]]}
+// CK1-64: [[META4]] = distinct !{[[META4]], [[META5:![0-9]+]], !".omp_outlined.: %dotpart_id."}
+// CK1-64: [[META5]] = distinct !{[[META5]], !".omp_outlined."}
+// CK1-64: [[META6]] = !{[[META7:![0-9]+]]}
+// CK1-64: [[META7]] = distinct !{[[META7]], [[META5]], !".omp_outlined.: %dotprivates."}
+// CK1-64: [[META8]] = !{[[META9:![0-9]+]]}
+// CK1-64: [[META9]] = distinct !{[[META9]], [[META5]], !".omp_outlined.: %dotcopy_fn."}
+// CK1-64: [[META10]] = !{[[META11:![0-9]+]]}
+// CK1-64: [[META11]] = distinct !{[[META11]], [[META5]], !".omp_outlined.: %__context"}
+// CK1-64: [[META12]] = !{[[META4]], [[META7]], [[META9]], [[META11]]}
+// CK1-32: [[META4]] = !{[[META5:![0-9]+]]}
+// CK1-32: [[META5]] = distinct !{[[META5]], [[META6:![0-9]+]], !".omp_outlined.: %dotpart_id."}
+// CK1-32: [[META6]] = distinct !{[[META6]], !".omp_outlined."}
+// CK1-32: [[META7]] = !{[[META8:![0-9]+]]}
+// CK1-32: [[META8]] = distinct !{[[META8]], [[META6]], !".omp_outlined.: %dotprivates."}
+// CK1-32: [[META9]] = !{[[META10:![0-9]+]]}
+// CK1-32: [[META10]] = distinct !{[[META10]], [[META6]], !".omp_outlined.: %dotcopy_fn."}
+// CK1-32: [[META11]] = !{[[META12:![0-9]+]]}
+// CK1-32: [[META12]] = distinct !{[[META12]], [[META6]], !".omp_outlined.: %__context"}
+// CK1-32: [[META13]] = !{[[META5]], [[META8]], [[META10]], [[META12]]}
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-LABEL: define linkonce_odr void @_ZN3SSBC2ERP3SSA(
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-SAME: ptr noundef nonnull align 8 dereferenceable(24) [[THIS:%.*]], ptr noundef nonnull align 8 dereferenceable(8) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat {
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-SAME: ptr noundef nonnull align 4 dereferenceable(12) [[THIS:%.*]], ptr noundef nonnull align 4 dereferenceable(4) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat align 2 {
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-NEXT:  [[ENTRY:.*:]]
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 8
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 8
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 4
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 4
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-NEXT:    [[PR2:%.*]] = getelementptr inbounds nuw [[STRUCT_SSB:%.*]], ptr [[THIS1]], i32 0, i32 2
+// CK14-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 8, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_30-_43-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 8, !nonnull [[META2]], !align [[META3]]
+// CK14-64-_2-_3-SIMD-ONLY0-_30-_43-NEXT:    store ptr [[TMP0]], ptr [[PR2]], align 8
+// CK14-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 4, !nonnull [[META4]], !align [[META5]]
+// SIMD-ONLY0-_36-_59-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 4, !nonnull [[META3]], !align [[META4]]
+// CK14-32-_3-_2-SIMD-ONLY0-_36-_59-NEXT:    store ptr [[TMP0]], ptr [[PR2]], align 4
+// CK14-64-_2-_3-32-SIMD-ONLY0-_30-_43-_36-_59-NEXT:    ret void
+//
+//
+// CK14-32: [[META4]] = !{}
+// CK14-32: [[META5]] = !{i64 4}
+// CK14-64-_2-_3-SIMD-ONLY0-_36-_59: [[META3]] = !{}
+// CK14-64: [[META4]] = !{i64 8}
+// SIMD-ONLY0-_30-_43: [[META2]] = !{}
+// SIMD-ONLY0-_30-_43: [[META3]] = !{i64 8}
+// SIMD-ONLY0-_36-_59: [[META4]] = !{i64 4}
+//.
+//
+//// NOTE: These prefixes are unused and the list is autogenerated. Do not add tests below this line:
+// TCK4: {{.*}}

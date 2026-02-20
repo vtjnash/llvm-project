@@ -4,53 +4,39 @@
 #define HEADER
 
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK20 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK20 --check-prefix CK20-64
+// RUN: %clang_cc1 -DCK20 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK20,CK20-64,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19-_2,CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19
 // RUN: %clang_cc1 -DCK20 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK20 --check-prefix CK20-64
-// RUN: %clang_cc1 -DCK20 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK20 --check-prefix CK20-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK20,CK20-64,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19-_2,CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19
+// RUN: %clang_cc1 -DCK20 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK20,CK20-32,CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19-_2
 // RUN: %clang_cc1 -DCK20 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK20 --check-prefix CK20-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK20,CK20-32,CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19-_2
 
-// RUN: %clang_cc1 -DCK20 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK20 --check-prefix CK20-64
+// RUN: %clang_cc1 -DCK20 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK20,CK20-64,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19-_2,CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19
 // RUN: %clang_cc1 -DCK20 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK20 --check-prefix CK20-64
-// RUN: %clang_cc1 -DCK20 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK20 --check-prefix CK20-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK20,CK20-64,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19-_2,CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19
+// RUN: %clang_cc1 -DCK20 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK20,CK20-32,CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19-_2
 // RUN: %clang_cc1 -DCK20 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK20 --check-prefix CK20-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK20,CK20-32,CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19-_2
 
-// RUN: %clang_cc1 -DCK20 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK20 --check-prefix CK20-64
+// RUN: %clang_cc1 -DCK20 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK20,CK20-64,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19-_2,CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19
 // RUN: %clang_cc1 -DCK20 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK20 --check-prefix CK20-64
-// RUN: %clang_cc1 -DCK20 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK20 --check-prefix CK20-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK20,CK20-64,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19-_2,CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19
+// RUN: %clang_cc1 -DCK20 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK20,CK20-32,CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19-_2
 // RUN: %clang_cc1 -DCK20 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK20 --check-prefix CK20-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK20,CK20-32,CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19-_2
 
-// RUN: %clang_cc1 -DCK20 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -DCK20 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19-_2,CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19,SIMD-ONLY19,SIMD-ONLY19-_5-_3 %s
 // RUN: %clang_cc1 -DCK20 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY19 %s
-// RUN: %clang_cc1 -DCK20 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY19 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19-_2,CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19,SIMD-ONLY19,SIMD-ONLY19-_5-_3 %s
+// RUN: %clang_cc1 -DCK20 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19,SIMD-ONLY19,SIMD-ONLY19-_2-_4 %s
 // RUN: %clang_cc1 -DCK20 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY19 %s
-// SIMD-ONLY19-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19,CK20-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY19-_2,SIMD-ONLY19,SIMD-ONLY19-_2-_4 %s
 #ifdef CK20
 
-// CK20-LABEL: @.__omp_offloading_{{.*}}explicit_maps_references_and_function_args{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK20: [[SIZE00:@.+]] = private {{.*}}constant [1 x i64] [i64 4]
-// CK20: [[MTYPE00:@.+]] = private {{.*}}constant [1 x i64] [i64 33]
 
-// CK20-LABEL: @.__omp_offloading_{{.*}}explicit_maps_references_and_function_args{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK20: [[SIZE01:@.+]] = private {{.*}}constant [1 x i64] [i64 20]
-// CK20: [[MTYPE01:@.+]] = private {{.*}}constant [1 x i64] [i64 33]
 
-// CK20-LABEL: @.__omp_offloading_{{.*}}explicit_maps_references_and_function_args{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK20: [[SIZE02:@.+]] = private {{.*}}constant [1 x i64] [i64 4]
-// CK20: [[MTYPE02:@.+]] = private {{.*}}constant [1 x i64] [i64 34]
 
-// CK20-LABEL: @.__omp_offloading_{{.*}}explicit_maps_references_and_function_args{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK20: [[SIZE03:@.+]] = private {{.*}}constant [2 x i64] [i64 12, i64 {{4|8}}]
-// CK20: [[MTYPE03:@.+]] = private {{.*}}constant [2 x i64] [i64 34, i64 16384]
 
-// CK20-LABEL: explicit_maps_references_and_function_args{{.*}}(
 void explicit_maps_references_and_function_args (int a, float b, int (&c)[10], float *d){
 
   int &aa = a;
@@ -59,22 +45,8 @@ void explicit_maps_references_and_function_args (int a, float b, int (&c)[10], f
   float *&dd = d;
 
 // Region 00
-// CK20-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK20-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK20-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK20-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK20-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK20-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK20-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK20-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK20-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK20-DAG: store ptr [[RVAR0:%.+]], ptr [[BP0]]
-// CK20-DAG: store ptr [[RVAR00:%.+]], ptr [[P0]]
-// CK20-DAG: [[RVAR0]] = load ptr, ptr [[VAR0:%[^,]+]]
-// CK20-DAG: [[RVAR00]] = load ptr, ptr [[VAR0]]
 
-// CK20: call void [[CALL00:@.+]](ptr {{[^,]+}})
 #pragma omp target map(to \
                        : aa)
   {
@@ -82,23 +54,8 @@ void explicit_maps_references_and_function_args (int a, float b, int (&c)[10], f
   }
 
 // Region 01
-// CK20-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK20-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK20-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK20-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK20-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK20-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK20-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK20-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK20-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK20-DAG: store ptr [[RVAR0:%.+]], ptr [[BP0]]
-// CK20-DAG: store ptr [[SEC0:%.+]], ptr [[P0]]
-// CK20-DAG: [[SEC0]] = getelementptr {{.*}}ptr [[RVAR00:%.+]], i{{.+}} 0, i{{.+}} 0
-// CK20-DAG: [[RVAR0]] = load ptr, ptr [[VAR0:%[^,]+]]
-// CK20-DAG: [[RVAR00]] = load ptr, ptr [[VAR0]]
 
-// CK20: call void [[CALL01:@.+]](ptr {{[^,]+}})
 #pragma omp target map(to \
                        : cc[:5])
   {
@@ -106,20 +63,8 @@ void explicit_maps_references_and_function_args (int a, float b, int (&c)[10], f
   }
 
 // Region 02
-// CK20-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK20-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK20-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK20-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK20-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK20-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK20-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK20-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK20-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK20-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK20-DAG: store ptr [[VAR0]], ptr [[P0]]
 
-// CK20: call void [[CALL02:@.+]](ptr {{[^,]+}})
 #pragma omp target map(from \
                        : b)
   {
@@ -131,30 +76,9 @@ void explicit_maps_references_and_function_args (int a, float b, int (&c)[10], f
 //  &d[0], &d[2], 3 * sizeof(d[0]), FROM | PARAM
 //  &d,    &d[2], sizeof(d),        ATTACH
 
-// CK20-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK20-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK20-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK20-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK20-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK20-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK20-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK20-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK20-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK20-DAG: store ptr [[RVAR0:%.+]], ptr [[BP0]]
-// CK20-DAG: store ptr [[SEC0:%.+]], ptr [[P0]]
-// CK20-DAG: [[RVAR0]] = load ptr, ptr [[VAR0:%[^,]+]]
-// CK20-DAG: [[SEC0]] = getelementptr {{.*}}ptr [[RVAR00:%.+]], i{{.+}} 2
-// CK20-DAG: [[RVAR00]] = load ptr, ptr [[VAR0]]
 
-// CK20-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 1
-// CK20-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 1
-// CK20-DAG: store ptr [[VAR0]], ptr [[BP1]]
-// CK20-DAG: store ptr [[SEC1:%.+]], ptr [[P1]]
-// CK20-DAG: [[SEC1]] = getelementptr {{.*}}ptr [[RVAR1:%.+]], i{{.+}} 2
-// CK20-DAG: [[RVAR1]] = load ptr, ptr [[VAR0]]
 
-// CK20: call void [[CALL03:@.+]](ptr {{[^,]+}})
 #pragma omp target map(from \
                        : d [2:3])
   {
@@ -162,10 +86,365 @@ void explicit_maps_references_and_function_args (int a, float b, int (&c)[10], f
   }
 }
 
-// CK20: define {{.+}}[[CALL00]]
-// CK20: define {{.+}}[[CALL01]]
-// CK20: define {{.+}}[[CALL02]]
-// CK20: define {{.+}}[[CALL03]]
 
 #endif // CK20
 #endif
+// CHECK-LABEL: define dso_local void @_Z42explicit_maps_references_and_function_argsifRA10_iPf(
+// CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19-SAME: i32 noundef signext [[A:%.*]], float noundef [[B:%.*]], ptr noundef nonnull align 4 dereferenceable(40) [[C:%.*]], ptr noundef [[D:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-SAME: i32 noundef [[A:%.*]], float noundef [[B:%.*]], ptr noundef nonnull align 4 dereferenceable(40) [[C:%.*]], ptr noundef [[D:%.*]]) #[[ATTR0:[0-9]+]] {
+// CHECK-NEXT:  [[ENTRY:.*:]]
+// CHECK-NEXT:    [[A_ADDR:%.*]] = alloca i32, align 4
+// CHECK-NEXT:    [[B_ADDR:%.*]] = alloca float, align 4
+// CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19-NEXT:    [[C_ADDR:%.*]] = alloca ptr, align 8
+// CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19-NEXT:    [[D_ADDR:%.*]] = alloca ptr, align 8
+// CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19-NEXT:    [[AA:%.*]] = alloca ptr, align 8
+// CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19-NEXT:    [[BB:%.*]] = alloca ptr, align 8
+// CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19-NEXT:    [[CC:%.*]] = alloca ptr, align 8
+// CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19-NEXT:    [[DD:%.*]] = alloca ptr, align 8
+// CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19-NEXT:    [[TMP:%.*]] = alloca ptr, align 8
+// SIMD-ONLY19-_5-_3-NEXT:    [[_TMP1:%.*]] = alloca ptr, align 8
+// CK20-64-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 8
+// CK20-64-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 8
+// CK20-64-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 8
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-NEXT:    [[C_ADDR:%.*]] = alloca ptr, align 4
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-NEXT:    [[D_ADDR:%.*]] = alloca ptr, align 4
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-NEXT:    [[AA:%.*]] = alloca ptr, align 4
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-NEXT:    [[BB:%.*]] = alloca ptr, align 4
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-NEXT:    [[CC:%.*]] = alloca ptr, align 4
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-NEXT:    [[DD:%.*]] = alloca ptr, align 4
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-NEXT:    [[TMP:%.*]] = alloca ptr, align 4
+// CK20-32-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 4
+// CK20-32-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 4
+// CK20-32-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 4
+// CK20-NEXT:    [[KERNEL_ARGS:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS:%.*]], align 8
+// CK20-64-NEXT:    [[_TMP1:%.*]] = alloca ptr, align 8
+// CK20-64-NEXT:    [[DOTOFFLOAD_BASEPTRS2:%.*]] = alloca [1 x ptr], align 8
+// CK20-64-NEXT:    [[DOTOFFLOAD_PTRS3:%.*]] = alloca [1 x ptr], align 8
+// CK20-64-NEXT:    [[DOTOFFLOAD_MAPPERS4:%.*]] = alloca [1 x ptr], align 8
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-NEXT:    [[_TMP1:%.*]] = alloca ptr, align 4
+// CK20-32-NEXT:    [[DOTOFFLOAD_BASEPTRS2:%.*]] = alloca [1 x ptr], align 4
+// CK20-32-NEXT:    [[DOTOFFLOAD_PTRS3:%.*]] = alloca [1 x ptr], align 4
+// CK20-32-NEXT:    [[DOTOFFLOAD_MAPPERS4:%.*]] = alloca [1 x ptr], align 4
+// CK20-NEXT:    [[KERNEL_ARGS5:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK20-64-NEXT:    [[DOTOFFLOAD_BASEPTRS8:%.*]] = alloca [1 x ptr], align 8
+// CK20-64-NEXT:    [[DOTOFFLOAD_PTRS9:%.*]] = alloca [1 x ptr], align 8
+// CK20-64-NEXT:    [[DOTOFFLOAD_MAPPERS10:%.*]] = alloca [1 x ptr], align 8
+// CK20-32-NEXT:    [[DOTOFFLOAD_BASEPTRS8:%.*]] = alloca [1 x ptr], align 4
+// CK20-32-NEXT:    [[DOTOFFLOAD_PTRS9:%.*]] = alloca [1 x ptr], align 4
+// CK20-32-NEXT:    [[DOTOFFLOAD_MAPPERS10:%.*]] = alloca [1 x ptr], align 4
+// CK20-NEXT:    [[KERNEL_ARGS11:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK20-64-NEXT:    [[DOTOFFLOAD_BASEPTRS15:%.*]] = alloca [2 x ptr], align 8
+// CK20-64-NEXT:    [[DOTOFFLOAD_PTRS16:%.*]] = alloca [2 x ptr], align 8
+// CK20-64-NEXT:    [[DOTOFFLOAD_MAPPERS17:%.*]] = alloca [2 x ptr], align 8
+// CK20-32-NEXT:    [[DOTOFFLOAD_BASEPTRS15:%.*]] = alloca [2 x ptr], align 4
+// CK20-32-NEXT:    [[DOTOFFLOAD_PTRS16:%.*]] = alloca [2 x ptr], align 4
+// CK20-32-NEXT:    [[DOTOFFLOAD_MAPPERS17:%.*]] = alloca [2 x ptr], align 4
+// CK20-NEXT:    [[KERNEL_ARGS18:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CHECK-NEXT:    store i32 [[A]], ptr [[A_ADDR]], align 4
+// CHECK-NEXT:    store float [[B]], ptr [[B_ADDR]], align 4
+// CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19-NEXT:    store ptr [[C]], ptr [[C_ADDR]], align 8
+// CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19-NEXT:    store ptr [[D]], ptr [[D_ADDR]], align 8
+// CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19-NEXT:    store ptr [[A_ADDR]], ptr [[AA]], align 8
+// CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19-NEXT:    store ptr [[B_ADDR]], ptr [[BB]], align 8
+// SIMD-ONLY19-_5-_3-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[C_ADDR]], align 8, !nonnull [[META2:![0-9]+]], !align [[META3:![0-9]+]]
+// CK20-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[C_ADDR]], align 8, !nonnull [[META11:![0-9]+]], !align [[META12:![0-9]+]]
+// CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19-NEXT:    store ptr [[TMP0]], ptr [[CC]], align 8
+// CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19-NEXT:    store ptr [[D_ADDR]], ptr [[DD]], align 8
+// SIMD-ONLY19-_5-_3-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[AA]], align 8, !nonnull [[META2]], !align [[META3]]
+// CK20-64-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[AA]], align 8, !nonnull [[META11]], !align [[META12]]
+// CK20-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY19-NEXT:    store ptr [[TMP1]], ptr [[TMP]], align 8
+// SIMD-ONLY19-_5-_3-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[AA]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY19-_5-_3-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[TMP]], align 8, !nonnull [[META2]], !align [[META3]]
+// CK20-64-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[TMP]], align 8, !nonnull [[META11]], !align [[META12]]
+// CK20-64-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[TMP]], align 8, !nonnull [[META11]], !align [[META12]]
+// CK20-64-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[TMP]], align 8, !nonnull [[META11]], !align [[META12]]
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-NEXT:    store ptr [[C]], ptr [[C_ADDR]], align 4
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-NEXT:    store ptr [[D]], ptr [[D_ADDR]], align 4
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-NEXT:    store ptr [[A_ADDR]], ptr [[AA]], align 4
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-NEXT:    store ptr [[B_ADDR]], ptr [[BB]], align 4
+// SIMD-ONLY19-_2-_4-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[C_ADDR]], align 4, !nonnull [[META3:![0-9]+]], !align [[META4:![0-9]+]]
+// CK20-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[C_ADDR]], align 4, !nonnull [[META12:![0-9]+]], !align [[META13:![0-9]+]]
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-NEXT:    store ptr [[TMP0]], ptr [[CC]], align 4
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-NEXT:    store ptr [[D_ADDR]], ptr [[DD]], align 4
+// SIMD-ONLY19-_2-_4-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[AA]], align 4, !nonnull [[META3]], !align [[META4]]
+// CK20-32-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[AA]], align 4, !nonnull [[META12]], !align [[META13]]
+// CK20-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY19-NEXT:    store ptr [[TMP1]], ptr [[TMP]], align 4
+// SIMD-ONLY19-_2-_4-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[AA]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY19-_2-_4-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[TMP]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY19-NEXT:    [[TMP4:%.*]] = load i32, ptr [[TMP3]], align 4
+// SIMD-ONLY19-NEXT:    [[ADD:%.*]] = add nsw i32 [[TMP4]], 1
+// SIMD-ONLY19-NEXT:    store i32 [[ADD]], ptr [[TMP3]], align 4
+// SIMD-ONLY19-_5-_3-NEXT:    [[TMP5:%.*]] = load ptr, ptr [[CC]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY19-_5-_3-NEXT:    store ptr [[TMP5]], ptr [[_TMP1]], align 8
+// SIMD-ONLY19-_5-_3-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[CC]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY19-_5-_3-NEXT:    [[TMP7:%.*]] = load ptr, ptr [[_TMP1]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY19-_5-_3-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [10 x i32], ptr [[TMP7]], i64 0, i64 3
+// SIMD-ONLY19-_2-_4-NEXT:    [[TMP5:%.*]] = load ptr, ptr [[CC]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY19-_2-_4-NEXT:    store ptr [[TMP5]], ptr [[_TMP1]], align 4
+// SIMD-ONLY19-_2-_4-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[CC]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY19-_2-_4-NEXT:    [[TMP7:%.*]] = load ptr, ptr [[_TMP1]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY19-_2-_4-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [10 x i32], ptr [[TMP7]], i32 0, i32 3
+// SIMD-ONLY19-NEXT:    [[TMP8:%.*]] = load i32, ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY19-NEXT:    [[ADD2:%.*]] = add nsw i32 [[TMP8]], 1
+// SIMD-ONLY19-NEXT:    store i32 [[ADD2]], ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY19-NEXT:    [[TMP9:%.*]] = load float, ptr [[B_ADDR]], align 4
+// SIMD-ONLY19-NEXT:    [[ADD3:%.*]] = fadd float [[TMP9]], 1.000000e+00
+// SIMD-ONLY19-NEXT:    store float [[ADD3]], ptr [[B_ADDR]], align 4
+// SIMD-ONLY19-_5-_3-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[D_ADDR]], align 8
+// SIMD-ONLY19-_5-_3-NEXT:    [[ARRAYIDX4:%.*]] = getelementptr inbounds float, ptr [[TMP10]], i64 2
+// SIMD-ONLY19-_2-_4-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[D_ADDR]], align 4
+// SIMD-ONLY19-_2-_4-NEXT:    [[ARRAYIDX4:%.*]] = getelementptr inbounds float, ptr [[TMP10]], i32 2
+// SIMD-ONLY19-NEXT:    [[TMP11:%.*]] = load float, ptr [[ARRAYIDX4]], align 4
+// SIMD-ONLY19-NEXT:    [[ADD5:%.*]] = fadd float [[TMP11]], 1.000000e+00
+// SIMD-ONLY19-NEXT:    store float [[ADD5]], ptr [[ARRAYIDX4]], align 4
+// CK20-32-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[TMP]], align 4, !nonnull [[META12]], !align [[META13]]
+// CK20-32-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[TMP]], align 4, !nonnull [[META12]], !align [[META13]]
+// CK20-32-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[TMP]], align 4, !nonnull [[META12]], !align [[META13]]
+// CK20-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK20-64-NEXT:    store ptr [[TMP3]], ptr [[TMP5]], align 8
+// CK20-32-NEXT:    store ptr [[TMP3]], ptr [[TMP5]], align 4
+// CK20-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK20-64-NEXT:    store ptr [[TMP4]], ptr [[TMP6]], align 8
+// CK20-64-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK20-64-NEXT:    store ptr null, ptr [[TMP7]], align 8
+// CK20-32-NEXT:    store ptr [[TMP4]], ptr [[TMP6]], align 4
+// CK20-32-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK20-32-NEXT:    store ptr null, ptr [[TMP7]], align 4
+// CK20-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK20-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK20-NEXT:    [[TMP10:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 0
+// CK20-NEXT:    store i32 3, ptr [[TMP10]], align 4
+// CK20-NEXT:    [[TMP11:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 1
+// CK20-NEXT:    store i32 1, ptr [[TMP11]], align 4
+// CK20-NEXT:    [[TMP12:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 2
+// CK20-64-NEXT:    store ptr [[TMP8]], ptr [[TMP12]], align 8
+// CK20-32-NEXT:    store ptr [[TMP8]], ptr [[TMP12]], align 4
+// CK20-NEXT:    [[TMP13:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 3
+// CK20-64-NEXT:    store ptr [[TMP9]], ptr [[TMP13]], align 8
+// CK20-32-NEXT:    store ptr [[TMP9]], ptr [[TMP13]], align 4
+// CK20-NEXT:    [[TMP14:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 4
+// CK20-64-NEXT:    store ptr @.offload_sizes, ptr [[TMP14]], align 8
+// CK20-32-NEXT:    store ptr @.offload_sizes, ptr [[TMP14]], align 4
+// CK20-NEXT:    [[TMP15:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 5
+// CK20-64-NEXT:    store ptr @.offload_maptypes, ptr [[TMP15]], align 8
+// CK20-32-NEXT:    store ptr @.offload_maptypes, ptr [[TMP15]], align 4
+// CK20-NEXT:    [[TMP16:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 6
+// CK20-64-NEXT:    store ptr null, ptr [[TMP16]], align 8
+// CK20-32-NEXT:    store ptr null, ptr [[TMP16]], align 4
+// CK20-NEXT:    [[TMP17:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 7
+// CK20-64-NEXT:    store ptr null, ptr [[TMP17]], align 8
+// CK20-32-NEXT:    store ptr null, ptr [[TMP17]], align 4
+// CK20-NEXT:    [[TMP18:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 8
+// CK20-NEXT:    store i64 0, ptr [[TMP18]], align 8
+// CK20-NEXT:    [[TMP19:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 9
+// CK20-NEXT:    store i64 0, ptr [[TMP19]], align 8
+// CK20-NEXT:    [[TMP20:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 10
+// CK20-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP20]], align 4
+// CK20-NEXT:    [[TMP21:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 11
+// CK20-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP21]], align 4
+// CK20-NEXT:    [[TMP22:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 12
+// CK20-NEXT:    store i32 0, ptr [[TMP22]], align 4
+// CK20-NEXT:    [[TMP23:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z42explicit_maps_references_and_function_argsifRA10_iPf_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK20-NEXT:    [[TMP24:%.*]] = icmp ne i32 [[TMP23]], 0
+// CK20-NEXT:    br i1 [[TMP24]], label %[[OMP_OFFLOAD_FAILED:.*]], label %[[OMP_OFFLOAD_CONT:.*]]
+// CK20:       [[OMP_OFFLOAD_FAILED]]:
+// CK20-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z42explicit_maps_references_and_function_argsifRA10_iPf_l[0-9]+}}(ptr [[TMP2]]) #[[ATTR2:[0-9]+]]
+// CK20-NEXT:    br label %[[OMP_OFFLOAD_CONT]]
+// CK20:       [[OMP_OFFLOAD_CONT]]:
+// CK20-64-NEXT:    [[TMP25:%.*]] = load ptr, ptr [[CC]], align 8, !nonnull [[META11]], !align [[META12]]
+// CK20-64-NEXT:    store ptr [[TMP25]], ptr [[_TMP1]], align 8
+// CK20-64-NEXT:    [[TMP26:%.*]] = load ptr, ptr [[_TMP1]], align 8, !nonnull [[META11]], !align [[META12]]
+// CK20-64-NEXT:    [[TMP27:%.*]] = load ptr, ptr [[_TMP1]], align 8, !nonnull [[META11]], !align [[META12]]
+// CK20-64-NEXT:    [[TMP28:%.*]] = load ptr, ptr [[_TMP1]], align 8, !nonnull [[META11]], !align [[META12]]
+// CK20-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw [10 x i32], ptr [[TMP28]], i64 0, i64 0
+// CK20-32-NEXT:    [[TMP25:%.*]] = load ptr, ptr [[CC]], align 4, !nonnull [[META12]], !align [[META13]]
+// CK20-32-NEXT:    store ptr [[TMP25]], ptr [[_TMP1]], align 4
+// CK20-32-NEXT:    [[TMP26:%.*]] = load ptr, ptr [[_TMP1]], align 4, !nonnull [[META12]], !align [[META13]]
+// CK20-32-NEXT:    [[TMP27:%.*]] = load ptr, ptr [[_TMP1]], align 4, !nonnull [[META12]], !align [[META13]]
+// CK20-32-NEXT:    [[TMP28:%.*]] = load ptr, ptr [[_TMP1]], align 4, !nonnull [[META12]], !align [[META13]]
+// CK20-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw [10 x i32], ptr [[TMP28]], i32 0, i32 0
+// CK20-NEXT:    [[TMP29:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS2]], i32 0, i32 0
+// CK20-64-NEXT:    store ptr [[TMP27]], ptr [[TMP29]], align 8
+// CK20-32-NEXT:    store ptr [[TMP27]], ptr [[TMP29]], align 4
+// CK20-NEXT:    [[TMP30:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS3]], i32 0, i32 0
+// CK20-64-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP30]], align 8
+// CK20-64-NEXT:    [[TMP31:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS4]], i64 0, i64 0
+// CK20-64-NEXT:    store ptr null, ptr [[TMP31]], align 8
+// CK20-32-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP30]], align 4
+// CK20-32-NEXT:    [[TMP31:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS4]], i32 0, i32 0
+// CK20-32-NEXT:    store ptr null, ptr [[TMP31]], align 4
+// CK20-NEXT:    [[TMP32:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS2]], i32 0, i32 0
+// CK20-NEXT:    [[TMP33:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS3]], i32 0, i32 0
+// CK20-NEXT:    [[TMP34:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 0
+// CK20-NEXT:    store i32 3, ptr [[TMP34]], align 4
+// CK20-NEXT:    [[TMP35:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 1
+// CK20-NEXT:    store i32 1, ptr [[TMP35]], align 4
+// CK20-NEXT:    [[TMP36:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 2
+// CK20-64-NEXT:    store ptr [[TMP32]], ptr [[TMP36]], align 8
+// CK20-32-NEXT:    store ptr [[TMP32]], ptr [[TMP36]], align 4
+// CK20-NEXT:    [[TMP37:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 3
+// CK20-64-NEXT:    store ptr [[TMP33]], ptr [[TMP37]], align 8
+// CK20-32-NEXT:    store ptr [[TMP33]], ptr [[TMP37]], align 4
+// CK20-NEXT:    [[TMP38:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 4
+// CK20-64-NEXT:    store ptr @.offload_sizes.1, ptr [[TMP38]], align 8
+// CK20-32-NEXT:    store ptr @.offload_sizes.1, ptr [[TMP38]], align 4
+// CK20-NEXT:    [[TMP39:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 5
+// CK20-64-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP39]], align 8
+// CK20-32-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP39]], align 4
+// CK20-NEXT:    [[TMP40:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 6
+// CK20-64-NEXT:    store ptr null, ptr [[TMP40]], align 8
+// CK20-32-NEXT:    store ptr null, ptr [[TMP40]], align 4
+// CK20-NEXT:    [[TMP41:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 7
+// CK20-64-NEXT:    store ptr null, ptr [[TMP41]], align 8
+// CK20-32-NEXT:    store ptr null, ptr [[TMP41]], align 4
+// CK20-NEXT:    [[TMP42:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 8
+// CK20-NEXT:    store i64 0, ptr [[TMP42]], align 8
+// CK20-NEXT:    [[TMP43:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 9
+// CK20-NEXT:    store i64 0, ptr [[TMP43]], align 8
+// CK20-NEXT:    [[TMP44:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 10
+// CK20-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP44]], align 4
+// CK20-NEXT:    [[TMP45:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 11
+// CK20-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP45]], align 4
+// CK20-NEXT:    [[TMP46:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 12
+// CK20-NEXT:    store i32 0, ptr [[TMP46]], align 4
+// CK20-NEXT:    [[TMP47:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z42explicit_maps_references_and_function_argsifRA10_iPf_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS5]])
+// CK20-NEXT:    [[TMP48:%.*]] = icmp ne i32 [[TMP47]], 0
+// CK20-NEXT:    br i1 [[TMP48]], label %[[OMP_OFFLOAD_FAILED6:.*]], label %[[OMP_OFFLOAD_CONT7:.*]]
+// CK20:       [[OMP_OFFLOAD_FAILED6]]:
+// CK20-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z42explicit_maps_references_and_function_argsifRA10_iPf_l[0-9]+}}(ptr [[TMP26]]) #[[ATTR2]]
+// CK20-NEXT:    br label %[[OMP_OFFLOAD_CONT7]]
+// CK20:       [[OMP_OFFLOAD_CONT7]]:
+// CK20-NEXT:    [[TMP49:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS8]], i32 0, i32 0
+// CK20-64-NEXT:    store ptr [[B_ADDR]], ptr [[TMP49]], align 8
+// CK20-32-NEXT:    store ptr [[B_ADDR]], ptr [[TMP49]], align 4
+// CK20-NEXT:    [[TMP50:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS9]], i32 0, i32 0
+// CK20-64-NEXT:    store ptr [[B_ADDR]], ptr [[TMP50]], align 8
+// CK20-64-NEXT:    [[TMP51:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS10]], i64 0, i64 0
+// CK20-64-NEXT:    store ptr null, ptr [[TMP51]], align 8
+// CK20-32-NEXT:    store ptr [[B_ADDR]], ptr [[TMP50]], align 4
+// CK20-32-NEXT:    [[TMP51:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS10]], i32 0, i32 0
+// CK20-32-NEXT:    store ptr null, ptr [[TMP51]], align 4
+// CK20-NEXT:    [[TMP52:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS8]], i32 0, i32 0
+// CK20-NEXT:    [[TMP53:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS9]], i32 0, i32 0
+// CK20-NEXT:    [[TMP54:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 0
+// CK20-NEXT:    store i32 3, ptr [[TMP54]], align 4
+// CK20-NEXT:    [[TMP55:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 1
+// CK20-NEXT:    store i32 1, ptr [[TMP55]], align 4
+// CK20-NEXT:    [[TMP56:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 2
+// CK20-64-NEXT:    store ptr [[TMP52]], ptr [[TMP56]], align 8
+// CK20-32-NEXT:    store ptr [[TMP52]], ptr [[TMP56]], align 4
+// CK20-NEXT:    [[TMP57:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 3
+// CK20-64-NEXT:    store ptr [[TMP53]], ptr [[TMP57]], align 8
+// CK20-32-NEXT:    store ptr [[TMP53]], ptr [[TMP57]], align 4
+// CK20-NEXT:    [[TMP58:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 4
+// CK20-64-NEXT:    store ptr @.offload_sizes.3, ptr [[TMP58]], align 8
+// CK20-32-NEXT:    store ptr @.offload_sizes.3, ptr [[TMP58]], align 4
+// CK20-NEXT:    [[TMP59:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 5
+// CK20-64-NEXT:    store ptr @.offload_maptypes.4, ptr [[TMP59]], align 8
+// CK20-32-NEXT:    store ptr @.offload_maptypes.4, ptr [[TMP59]], align 4
+// CK20-NEXT:    [[TMP60:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 6
+// CK20-64-NEXT:    store ptr null, ptr [[TMP60]], align 8
+// CK20-32-NEXT:    store ptr null, ptr [[TMP60]], align 4
+// CK20-NEXT:    [[TMP61:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 7
+// CK20-64-NEXT:    store ptr null, ptr [[TMP61]], align 8
+// CK20-32-NEXT:    store ptr null, ptr [[TMP61]], align 4
+// CK20-NEXT:    [[TMP62:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 8
+// CK20-NEXT:    store i64 0, ptr [[TMP62]], align 8
+// CK20-NEXT:    [[TMP63:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 9
+// CK20-NEXT:    store i64 0, ptr [[TMP63]], align 8
+// CK20-NEXT:    [[TMP64:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 10
+// CK20-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP64]], align 4
+// CK20-NEXT:    [[TMP65:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 11
+// CK20-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP65]], align 4
+// CK20-NEXT:    [[TMP66:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 12
+// CK20-NEXT:    store i32 0, ptr [[TMP66]], align 4
+// CK20-NEXT:    [[TMP67:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z42explicit_maps_references_and_function_argsifRA10_iPf_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS11]])
+// CK20-NEXT:    [[TMP68:%.*]] = icmp ne i32 [[TMP67]], 0
+// CK20-NEXT:    br i1 [[TMP68]], label %[[OMP_OFFLOAD_FAILED12:.*]], label %[[OMP_OFFLOAD_CONT13:.*]]
+// CK20:       [[OMP_OFFLOAD_FAILED12]]:
+// CK20-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z42explicit_maps_references_and_function_argsifRA10_iPf_l[0-9]+}}(ptr [[B_ADDR]]) #[[ATTR2]]
+// CK20-NEXT:    br label %[[OMP_OFFLOAD_CONT13]]
+// CK20:       [[OMP_OFFLOAD_CONT13]]:
+// CK20-64-NEXT:    [[TMP69:%.*]] = load ptr, ptr [[D_ADDR]], align 8
+// CK20-64-NEXT:    [[TMP70:%.*]] = load ptr, ptr [[D_ADDR]], align 8
+// CK20-64-NEXT:    [[TMP71:%.*]] = load ptr, ptr [[D_ADDR]], align 8
+// CK20-64-NEXT:    [[ARRAYIDX14:%.*]] = getelementptr inbounds nuw float, ptr [[TMP71]], i64 2
+// CK20-32-NEXT:    [[TMP69:%.*]] = load ptr, ptr [[D_ADDR]], align 4
+// CK20-32-NEXT:    [[TMP70:%.*]] = load ptr, ptr [[D_ADDR]], align 4
+// CK20-32-NEXT:    [[TMP71:%.*]] = load ptr, ptr [[D_ADDR]], align 4
+// CK20-32-NEXT:    [[ARRAYIDX14:%.*]] = getelementptr inbounds nuw float, ptr [[TMP71]], i32 2
+// CK20-NEXT:    [[TMP72:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS15]], i32 0, i32 0
+// CK20-64-NEXT:    store ptr [[TMP70]], ptr [[TMP72]], align 8
+// CK20-32-NEXT:    store ptr [[TMP70]], ptr [[TMP72]], align 4
+// CK20-NEXT:    [[TMP73:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS16]], i32 0, i32 0
+// CK20-64-NEXT:    store ptr [[ARRAYIDX14]], ptr [[TMP73]], align 8
+// CK20-64-NEXT:    [[TMP74:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS17]], i64 0, i64 0
+// CK20-64-NEXT:    store ptr null, ptr [[TMP74]], align 8
+// CK20-32-NEXT:    store ptr [[ARRAYIDX14]], ptr [[TMP73]], align 4
+// CK20-32-NEXT:    [[TMP74:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS17]], i32 0, i32 0
+// CK20-32-NEXT:    store ptr null, ptr [[TMP74]], align 4
+// CK20-NEXT:    [[TMP75:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS15]], i32 0, i32 1
+// CK20-64-NEXT:    store ptr [[D_ADDR]], ptr [[TMP75]], align 8
+// CK20-32-NEXT:    store ptr [[D_ADDR]], ptr [[TMP75]], align 4
+// CK20-NEXT:    [[TMP76:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS16]], i32 0, i32 1
+// CK20-64-NEXT:    store ptr [[ARRAYIDX14]], ptr [[TMP76]], align 8
+// CK20-64-NEXT:    [[TMP77:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS17]], i64 0, i64 1
+// CK20-64-NEXT:    store ptr null, ptr [[TMP77]], align 8
+// CK20-32-NEXT:    store ptr [[ARRAYIDX14]], ptr [[TMP76]], align 4
+// CK20-32-NEXT:    [[TMP77:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS17]], i32 0, i32 1
+// CK20-32-NEXT:    store ptr null, ptr [[TMP77]], align 4
+// CK20-NEXT:    [[TMP78:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS15]], i32 0, i32 0
+// CK20-NEXT:    [[TMP79:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS16]], i32 0, i32 0
+// CK20-NEXT:    [[TMP80:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 0
+// CK20-NEXT:    store i32 3, ptr [[TMP80]], align 4
+// CK20-NEXT:    [[TMP81:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 1
+// CK20-NEXT:    store i32 2, ptr [[TMP81]], align 4
+// CK20-NEXT:    [[TMP82:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 2
+// CK20-64-NEXT:    store ptr [[TMP78]], ptr [[TMP82]], align 8
+// CK20-32-NEXT:    store ptr [[TMP78]], ptr [[TMP82]], align 4
+// CK20-NEXT:    [[TMP83:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 3
+// CK20-64-NEXT:    store ptr [[TMP79]], ptr [[TMP83]], align 8
+// CK20-32-NEXT:    store ptr [[TMP79]], ptr [[TMP83]], align 4
+// CK20-NEXT:    [[TMP84:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 4
+// CK20-64-NEXT:    store ptr @.offload_sizes.5, ptr [[TMP84]], align 8
+// CK20-32-NEXT:    store ptr @.offload_sizes.5, ptr [[TMP84]], align 4
+// CK20-NEXT:    [[TMP85:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 5
+// CK20-64-NEXT:    store ptr @.offload_maptypes.6, ptr [[TMP85]], align 8
+// CK20-32-NEXT:    store ptr @.offload_maptypes.6, ptr [[TMP85]], align 4
+// CK20-NEXT:    [[TMP86:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 6
+// CK20-64-NEXT:    store ptr null, ptr [[TMP86]], align 8
+// CK20-32-NEXT:    store ptr null, ptr [[TMP86]], align 4
+// CK20-NEXT:    [[TMP87:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 7
+// CK20-64-NEXT:    store ptr null, ptr [[TMP87]], align 8
+// CK20-32-NEXT:    store ptr null, ptr [[TMP87]], align 4
+// CK20-NEXT:    [[TMP88:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 8
+// CK20-NEXT:    store i64 0, ptr [[TMP88]], align 8
+// CK20-NEXT:    [[TMP89:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 9
+// CK20-NEXT:    store i64 0, ptr [[TMP89]], align 8
+// CK20-NEXT:    [[TMP90:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 10
+// CK20-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP90]], align 4
+// CK20-NEXT:    [[TMP91:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 11
+// CK20-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP91]], align 4
+// CK20-NEXT:    [[TMP92:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 12
+// CK20-NEXT:    store i32 0, ptr [[TMP92]], align 4
+// CK20-NEXT:    [[TMP93:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z42explicit_maps_references_and_function_argsifRA10_iPf_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS18]])
+// CK20-NEXT:    [[TMP94:%.*]] = icmp ne i32 [[TMP93]], 0
+// CK20-NEXT:    br i1 [[TMP94]], label %[[OMP_OFFLOAD_FAILED19:.*]], label %[[OMP_OFFLOAD_CONT20:.*]]
+// CK20:       [[OMP_OFFLOAD_FAILED19]]:
+// CK20-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z42explicit_maps_references_and_function_argsifRA10_iPf_l[0-9]+}}(ptr [[TMP69]]) #[[ATTR2]]
+// CK20-NEXT:    br label %[[OMP_OFFLOAD_CONT20]]
+// CK20:       [[OMP_OFFLOAD_CONT20]]:
+// CHECK-NEXT:    ret void
+//
+//
+// SIMD-ONLY19-_5-_3: [[META2]] = !{}
+// SIMD-ONLY19-_5-_3: [[META3]] = !{i64 4}
+//
+// CK20-64: [[META11]] = !{}
+// CK20-64: [[META12]] = !{i64 4}
+// CK20-32: [[META12]] = !{}
+// CK20-32: [[META13]] = !{i64 4}
+//.
+// SIMD-ONLY19-_2-_4: [[META3]] = !{}
+// SIMD-ONLY19-_2-_4: [[META4]] = !{i64 4}
+//.

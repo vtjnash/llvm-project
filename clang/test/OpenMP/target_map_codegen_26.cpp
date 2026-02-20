@@ -4,68 +4,42 @@
 #define HEADER
 
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK27 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK27 --check-prefix CK27-64
+// RUN: %clang_cc1 -DCK27 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK27,CK27-64,CK27-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY26,CK27-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY26
 // RUN: %clang_cc1 -DCK27 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK27 --check-prefix CK27-64
-// RUN: %clang_cc1 -DCK27 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK27 --check-prefix CK27-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK27,CK27-64,CK27-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY26,CK27-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY26
+// RUN: %clang_cc1 -DCK27 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK27,CK27-32,CK27-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY26,CK27-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY26
 // RUN: %clang_cc1 -DCK27 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK27 --check-prefix CK27-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK27,CK27-32,CK27-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY26,CK27-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY26
 
-// RUN: %clang_cc1 -DCK27 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK27 --check-prefix CK27-64
+// RUN: %clang_cc1 -DCK27 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK27,CK27-64,CK27-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY26,CK27-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY26
 // RUN: %clang_cc1 -DCK27 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK27 --check-prefix CK27-64
-// RUN: %clang_cc1 -DCK27 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK27 --check-prefix CK27-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK27,CK27-64,CK27-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY26,CK27-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY26
+// RUN: %clang_cc1 -DCK27 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK27,CK27-32,CK27-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY26,CK27-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY26
 // RUN: %clang_cc1 -DCK27 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK27 --check-prefix CK27-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK27,CK27-32,CK27-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY26,CK27-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY26
 
-// RUN: %clang_cc1 -DCK27 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK27 --check-prefix CK27-64
+// RUN: %clang_cc1 -DCK27 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK27,CK27-64,CK27-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY26,CK27-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY26
 // RUN: %clang_cc1 -DCK27 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK27 --check-prefix CK27-64
-// RUN: %clang_cc1 -DCK27 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK27 --check-prefix CK27-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK27,CK27-64,CK27-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY26,CK27-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY26
+// RUN: %clang_cc1 -DCK27 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK27,CK27-32,CK27-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY26,CK27-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY26
 // RUN: %clang_cc1 -DCK27 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK27 --check-prefix CK27-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK27,CK27-32,CK27-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY26,CK27-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY26
 
-// RUN: %clang_cc1 -DCK27 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY26 %s
+// RUN: %clang_cc1 -DCK27 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK27-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY26,CK27-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY26,SIMD-ONLY26,SIMD-ONLY26-_5-_3 %s
 // RUN: %clang_cc1 -DCK27 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY26 %s
-// RUN: %clang_cc1 -DCK27 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY26 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK27-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY26,CK27-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY26,SIMD-ONLY26,SIMD-ONLY26-_5-_3 %s
+// RUN: %clang_cc1 -DCK27 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK27-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY26,CK27-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY26,SIMD-ONLY26,SIMD-ONLY26-_2-_4 %s
 // RUN: %clang_cc1 -DCK27 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY26 %s
-// SIMD-ONLY26-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK27-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY26,SIMD-ONLY26,SIMD-ONLY26-_2-_4 %s
 #ifdef CK27
 
-// CK27-LABEL: @.__omp_offloading_{{.*}}zero_size_section_and_private_maps{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK27: [[SIZE00:@.+]] = private {{.*}}constant [1 x i64] zeroinitializer
-// CK27: [[MTYPE00:@.+]] = private {{.*}}constant [1 x i64] [i64 544]
 
-// CK27-LABEL: @.__omp_offloading_{{.*}}zero_size_section_and_private_maps{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK27: [[SIZE01:@.+]] = private {{.*}}constant [2 x i64] [i64 0, i64 {{8|4}}]
-// CK27: [[MTYPE01:@.+]] = private {{.*}}constant [2 x i64] [i64 35, i64 16384]
 
-// CK27-LABEL: @.__omp_offloading_{{.*}}zero_size_section_and_private_maps{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK27: [[SIZE02:@.+]] = private {{.*}}constant [2 x i64] [i64 0, i64  {{8|4}}]
-// CK27: [[MTYPE02:@.+]] = private {{.*}}constant [2 x i64] [i64 35, i64 16384]
 
-// CK27-LABEL: @.__omp_offloading_{{.*}}zero_size_section_and_private_maps{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK27: [[SIZE03:@.+]] = private {{.*}}constant [2 x i64] [i64 0, i64  {{8|4}}]
-// CK27: [[MTYPE03:@.+]] = private {{.*}}constant [2 x i64] [i64 35, i64 16384]
 
-// CK27-LABEL: @.__omp_offloading_{{.*}}zero_size_section_and_private_maps{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK27-LABEL: @.__omp_offloading_{{.*}}zero_size_section_and_private_maps{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK27: [[SIZE05:@.+]] = private {{.*}}constant [1 x i64] zeroinitializer
-// CK27: [[MTYPE05:@.+]] = private {{.*}}constant [1 x i64] [i64 288]
 
-// CK27-LABEL: @.__omp_offloading_{{.*}}zero_size_section_and_private_maps{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK27-LABEL: @.__omp_offloading_{{.*}}zero_size_section_and_private_maps{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK27: [[SIZE07:@.+]] = private {{.*}}constant [1 x i64] [i64 4]
-// CK27: [[MTYPE07:@.+]] = private {{.*}}constant [1 x i64] [i64 288]
 
-// CK27-LABEL: @.__omp_offloading_{{.*}}zero_size_section_and_private_maps{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK27-LABEL: @.__omp_offloading_{{.*}}zero_size_section_and_private_maps{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK27: [[SIZE09:@.+]] = private {{.*}}constant [1 x i64] [i64 40]
-// CK27: [[MTYPE09:@.+]] = private {{.*}}constant [1 x i64] [i64 161]
 
-// CK27-LABEL: zero_size_section_and_private_maps{{.*}}(
 void zero_size_section_and_private_maps (int ii){
 
   // Map of a pointer.
@@ -74,24 +48,11 @@ void zero_size_section_and_private_maps (int ii){
 // Region 00
 
 //  &pa, &pa, sizeof(pa), IMPLICIT | PARAM
-//
 // FIXME: This looks like a bug. The implicit map on a pointer
 // should be identical to pa[0:0]
 
-// CK27-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK27-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK27-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK27-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK27-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK27-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK27-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK27-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK27-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK27-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK27-DAG: store ptr [[VAR0]], ptr [[P0]]
 
-// CK27: call void [[CALL00:@.+]](ptr {{[^,]+}})
 #pragma omp target
   {
     pa[50]++;
@@ -102,30 +63,9 @@ void zero_size_section_and_private_maps (int ii){
 //  &(pa[0]), &pa[/*lb=*/0], /*size=*/0, TO | FROM | PARAM
 //  &pa, &pa[/*lb=*/0], sizeof(pa), ATTACH
 
-// CK27-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK27-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK27-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK27-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK27-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK27-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK27-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK27-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK27-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK27-DAG: store ptr [[RVAR0:%.+]], ptr [[BP0]]
-// CK27-DAG: store ptr [[SEC0:%.+]], ptr [[P0]]
-// CK27-DAG: [[RVAR0]] = load ptr, ptr [[VAR0:%[^,]+]]
-// CK27-DAG: [[SEC0]] = getelementptr {{.*}}ptr [[RVAR00:%.+]], i{{.+}} 0
-// CK27-DAG: [[RVAR00]] = load ptr, ptr [[VAR0]]
 
-// CK27-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 1
-// CK27-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 1
-// CK27-DAG: store ptr [[VAR0]], ptr [[BP1]]
-// CK27-DAG: store ptr [[SEC1:%.+]], ptr [[P1]]
-// CK27-DAG: [[SEC1]] = getelementptr {{.*}}ptr [[RVAR1:%.+]], i{{.+}} 0
-// CK27-DAG: [[RVAR1]] = load ptr, ptr [[VAR0]]
 
-// CK27: call void [[CALL01:@.+]](ptr {{[^,]+}})
 #pragma omp target map(pa[:0])
   {
     pa[50]++;
@@ -136,30 +76,9 @@ void zero_size_section_and_private_maps (int ii){
 //  &(pa[0]), &pa[/*lb=*/0], /*size=*/0, TO | FROM | PARAM
 //  &pa, &pa[/*lb=*/0], sizeof(pa), ATTACH
 
-// CK27-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK27-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK27-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK27-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK27-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK27-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK27-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK27-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK27-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK27-DAG: store ptr [[RVAR0:%.+]], ptr [[BP0]]
-// CK27-DAG: store ptr [[SEC0:%.+]], ptr [[P0]]
-// CK27-DAG: [[RVAR0]] = load ptr, ptr [[VAR0:%[^,]+]]
-// CK27-DAG: [[SEC0]] = getelementptr {{.*}}ptr [[RVAR00:%.+]], i{{.+}} 0
-// CK27-DAG: [[RVAR00]] = load ptr, ptr [[VAR0]]
 
-// CK27-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 1
-// CK27-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 1
-// CK27-DAG: store ptr [[VAR0]], ptr [[BP1]]
-// CK27-DAG: store ptr [[SEC1:%.+]], ptr [[P1]]
-// CK27-DAG: [[SEC1]] = getelementptr {{.*}}ptr [[RVAR1:%.+]], i{{.+}} 0
-// CK27-DAG: [[RVAR1]] = load ptr, ptr [[VAR0]]
 
-// CK27: call void [[CALL02:@.+]](ptr {{[^,]+}})
 #pragma omp target map(pa [0:0])
   {
     pa[50]++;
@@ -170,30 +89,9 @@ void zero_size_section_and_private_maps (int ii){
 //  &pa[0], &pa[ii], /*size=*/0, TO | FROM | PARAM
 //  &pa, &pa[ii], sizeof(pa), ATTACH
 
-// CK27-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK27-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK27-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK27-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK27-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK27-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK27-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK27-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK27-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK27-DAG: store ptr [[RVAR0:%.+]], ptr [[BP0]]
-// CK27-DAG: store ptr [[SEC0:%.+]], ptr [[P0]]
-// CK27-DAG: [[RVAR0]] = load ptr, ptr [[VAR0:%[^,]+]]
-// CK27-DAG: [[SEC0]] = getelementptr {{.*}}ptr [[RVAR00:%.+]], i{{.+}} %{{.+}}
-// CK27-DAG: [[RVAR00]] = load ptr, ptr [[VAR0]]
 
-// CK27-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 1
-// CK27-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 1
-// CK27-DAG: store ptr [[VAR0]], ptr [[BP1]]
-// CK27-DAG: store ptr [[SEC1:%.+]], ptr [[P1]]
-// CK27-DAG: [[SEC1]] = getelementptr {{.*}}ptr [[RVAR1:%.+]], i{{.+}} %{{.+}}
-// CK27-DAG: [[RVAR1]] = load ptr, ptr [[VAR0]]
 
-// CK27: call void [[CALL03:@.+]](ptr {{[^,]+}})
 #pragma omp target map(pa [ii:0])
   {
     pa[50]++;
@@ -204,98 +102,891 @@ void zero_size_section_and_private_maps (int ii){
   int pvtArr[10];
 
 // Region 04
-// CK27-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK27: call void [[CALL04:@.+]]()
 #pragma omp target private(pvtPtr)
   {
     pvtPtr[5]++;
   }
 
 // Region 05
-// CK27-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK27-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK27-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK27-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK27-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK27-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK27-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK27-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK27-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK27-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK27-DAG: store ptr [[VAR0]], ptr [[P0]]
 
-// CK27: call void [[CALL05:@.+]](ptr {{[^,]+}})
 #pragma omp target firstprivate(pvtPtr)
   {
     pvtPtr[5]++;
   }
 
 // Region 06
-// CK27-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK27: call void [[CALL06:@.+]]()
 #pragma omp target private(pvtScl)
   {
     pvtScl++;
   }
 
 // Region 07
-// CK27-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK27-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK27-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK27-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK27-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK27-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK27-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK27-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK27-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK27-DAG: store i[[Z:64|32]] [[VAL:%.+]], ptr [[BP1]]
-// CK27-DAG: store i[[Z]] [[VAL]], ptr [[P1]]
-// CK27-DAG: [[VAL]] = load i[[Z]], ptr [[ADDR:%.+]],
-// CK27-64-DAG: store i32 {{.+}}, ptr [[ADDR]],
 
-// CK27: call void [[CALL07:@.+]](i[[Z]] [[VAL]])
 #pragma omp target firstprivate(pvtScl)
   {
     pvtScl++;
   }
 
 // Region 08
-// CK27-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK27: call void [[CALL08:@.+]]()
 #pragma omp target private(pvtArr)
   {
     pvtArr[5]++;
   }
 
 // Region 09
-// CK27-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK27-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK27-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK27-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK27-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK27-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK27-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK27-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK27-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK27-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK27-DAG: store ptr [[VAR0]], ptr [[P0]]
 
-// CK27: call void [[CALL09:@.+]](ptr {{[^,]+}})
 #pragma omp target firstprivate(pvtArr)
   {
     pvtArr[5]++;
   }
 }
 
-// CK27: define {{.+}}[[CALL00]]
-// CK27: define {{.+}}[[CALL01]]
-// CK27: define {{.+}}[[CALL02]]
-// CK27: define {{.+}}[[CALL03]]
-// CK27: define {{.+}}[[CALL04]]
-// CK27: define {{.+}}[[CALL05]]
-// CK27: define {{.+}}[[CALL06]]
-// CK27: define {{.+}}[[CALL07]]
 #endif // CK27
 #endif
+// CHECK-LABEL: define dso_local void @_Z34zero_size_section_and_private_mapsi(
+// CK27-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY26-SAME: i32 noundef signext [[II:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK27-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY26-SAME: i32 noundef [[II:%.*]]) #[[ATTR0:[0-9]+]] {
+// CHECK-NEXT:  [[ENTRY:.*:]]
+// CHECK-NEXT:    [[II_ADDR:%.*]] = alloca i32, align 4
+// CK27-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY26-NEXT:    [[PA:%.*]] = alloca ptr, align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 8
+// SIMD-ONLY26-_5-_3-NEXT:    [[PVTPTR:%.*]] = alloca ptr, align 8
+// CK27-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY26-NEXT:    [[PA:%.*]] = alloca ptr, align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 4
+// CK27-NEXT:    [[KERNEL_ARGS:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS:%.*]], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_BASEPTRS1:%.*]] = alloca [2 x ptr], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_PTRS2:%.*]] = alloca [2 x ptr], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_MAPPERS3:%.*]] = alloca [2 x ptr], align 8
+// CK27-32-NEXT:    [[DOTOFFLOAD_BASEPTRS1:%.*]] = alloca [2 x ptr], align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_PTRS2:%.*]] = alloca [2 x ptr], align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_MAPPERS3:%.*]] = alloca [2 x ptr], align 4
+// CK27-NEXT:    [[KERNEL_ARGS4:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_BASEPTRS8:%.*]] = alloca [2 x ptr], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_PTRS9:%.*]] = alloca [2 x ptr], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_MAPPERS10:%.*]] = alloca [2 x ptr], align 8
+// CK27-32-NEXT:    [[DOTOFFLOAD_BASEPTRS8:%.*]] = alloca [2 x ptr], align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_PTRS9:%.*]] = alloca [2 x ptr], align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_MAPPERS10:%.*]] = alloca [2 x ptr], align 4
+// CK27-NEXT:    [[KERNEL_ARGS11:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_BASEPTRS15:%.*]] = alloca [2 x ptr], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_PTRS16:%.*]] = alloca [2 x ptr], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_MAPPERS17:%.*]] = alloca [2 x ptr], align 8
+// CK27-32-NEXT:    [[DOTOFFLOAD_BASEPTRS15:%.*]] = alloca [2 x ptr], align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_PTRS16:%.*]] = alloca [2 x ptr], align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_MAPPERS17:%.*]] = alloca [2 x ptr], align 4
+// CK27-NEXT:    [[KERNEL_ARGS18:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK27-64-NEXT:    [[PVTPTR:%.*]] = alloca ptr, align 8
+// CK27-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY26-NEXT:    [[PVTPTR:%.*]] = alloca ptr, align 4
+// CHECK-NEXT:    [[PVTSCL:%.*]] = alloca i32, align 4
+// CHECK-NEXT:    [[PVTARR:%.*]] = alloca [10 x i32], align 4
+// CK27-NEXT:    [[KERNEL_ARGS21:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_BASEPTRS24:%.*]] = alloca [1 x ptr], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_PTRS25:%.*]] = alloca [1 x ptr], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_MAPPERS26:%.*]] = alloca [1 x ptr], align 8
+// CK27-32-NEXT:    [[DOTOFFLOAD_BASEPTRS24:%.*]] = alloca [1 x ptr], align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_PTRS25:%.*]] = alloca [1 x ptr], align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_MAPPERS26:%.*]] = alloca [1 x ptr], align 4
+// CK27-NEXT:    [[KERNEL_ARGS27:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK27-NEXT:    [[KERNEL_ARGS30:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK27-64-NEXT:    [[PVTSCL_CASTED:%.*]] = alloca i64, align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_BASEPTRS33:%.*]] = alloca [1 x ptr], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_PTRS34:%.*]] = alloca [1 x ptr], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_MAPPERS35:%.*]] = alloca [1 x ptr], align 8
+// CK27-32-NEXT:    [[PVTSCL_CASTED:%.*]] = alloca i32, align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_BASEPTRS33:%.*]] = alloca [1 x ptr], align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_PTRS34:%.*]] = alloca [1 x ptr], align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_MAPPERS35:%.*]] = alloca [1 x ptr], align 4
+// CK27-NEXT:    [[KERNEL_ARGS36:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK27-NEXT:    [[KERNEL_ARGS39:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_BASEPTRS42:%.*]] = alloca [1 x ptr], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_PTRS43:%.*]] = alloca [1 x ptr], align 8
+// CK27-64-NEXT:    [[DOTOFFLOAD_MAPPERS44:%.*]] = alloca [1 x ptr], align 8
+// CK27-32-NEXT:    [[DOTOFFLOAD_BASEPTRS42:%.*]] = alloca [1 x ptr], align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_PTRS43:%.*]] = alloca [1 x ptr], align 4
+// CK27-32-NEXT:    [[DOTOFFLOAD_MAPPERS44:%.*]] = alloca [1 x ptr], align 4
+// CK27-NEXT:    [[KERNEL_ARGS45:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// SIMD-ONLY26-_5-_3-NEXT:    [[PVTPTR7:%.*]] = alloca ptr, align 8
+// SIMD-ONLY26-_2-_4-NEXT:    [[PVTPTR7:%.*]] = alloca ptr, align 4
+// SIMD-ONLY26-NEXT:    [[PVTSCL12:%.*]] = alloca i32, align 4
+// SIMD-ONLY26-NEXT:    [[PVTARR15:%.*]] = alloca [10 x i32], align 4
+// CHECK-NEXT:    store i32 [[II]], ptr [[II_ADDR]], align 4
+// CK27-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY26-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PA]], align 8
+// SIMD-ONLY26-_5-_3-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds i32, ptr [[TMP0]], i64 50
+// CK27-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY26-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PA]], align 4
+// CK27-NEXT:    [[TMP1:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK27-64-NEXT:    store ptr [[TMP0]], ptr [[TMP1]], align 8
+// CK27-32-NEXT:    store ptr [[TMP0]], ptr [[TMP1]], align 4
+// CK27-NEXT:    [[TMP2:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK27-64-NEXT:    store ptr [[TMP0]], ptr [[TMP2]], align 8
+// CK27-64-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK27-64-NEXT:    store ptr null, ptr [[TMP3]], align 8
+// CK27-32-NEXT:    store ptr [[TMP0]], ptr [[TMP2]], align 4
+// CK27-32-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK27-32-NEXT:    store ptr null, ptr [[TMP3]], align 4
+// CK27-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK27-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK27-NEXT:    [[TMP6:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 0
+// CK27-NEXT:    store i32 3, ptr [[TMP6]], align 4
+// CK27-NEXT:    [[TMP7:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 1
+// CK27-NEXT:    store i32 1, ptr [[TMP7]], align 4
+// CK27-NEXT:    [[TMP8:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 2
+// CK27-64-NEXT:    store ptr [[TMP4]], ptr [[TMP8]], align 8
+// CK27-32-NEXT:    store ptr [[TMP4]], ptr [[TMP8]], align 4
+// CK27-NEXT:    [[TMP9:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 3
+// CK27-64-NEXT:    store ptr [[TMP5]], ptr [[TMP9]], align 8
+// CK27-32-NEXT:    store ptr [[TMP5]], ptr [[TMP9]], align 4
+// CK27-NEXT:    [[TMP10:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 4
+// CK27-64-NEXT:    store ptr @.offload_sizes, ptr [[TMP10]], align 8
+// CK27-32-NEXT:    store ptr @.offload_sizes, ptr [[TMP10]], align 4
+// CK27-NEXT:    [[TMP11:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 5
+// CK27-64-NEXT:    store ptr @.offload_maptypes, ptr [[TMP11]], align 8
+// CK27-32-NEXT:    store ptr @.offload_maptypes, ptr [[TMP11]], align 4
+// CK27-NEXT:    [[TMP12:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 6
+// CK27-64-NEXT:    store ptr null, ptr [[TMP12]], align 8
+// CK27-32-NEXT:    store ptr null, ptr [[TMP12]], align 4
+// CK27-NEXT:    [[TMP13:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 7
+// CK27-64-NEXT:    store ptr null, ptr [[TMP13]], align 8
+// CK27-32-NEXT:    store ptr null, ptr [[TMP13]], align 4
+// CK27-NEXT:    [[TMP14:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 8
+// CK27-NEXT:    store i64 0, ptr [[TMP14]], align 8
+// CK27-NEXT:    [[TMP15:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 9
+// CK27-NEXT:    store i64 0, ptr [[TMP15]], align 8
+// CK27-NEXT:    [[TMP16:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 10
+// CK27-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP16]], align 4
+// CK27-NEXT:    [[TMP17:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 11
+// CK27-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP17]], align 4
+// CK27-NEXT:    [[TMP18:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 12
+// CK27-NEXT:    store i32 0, ptr [[TMP18]], align 4
+// CK27-NEXT:    [[TMP19:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK27-NEXT:    [[TMP20:%.*]] = icmp ne i32 [[TMP19]], 0
+// CK27-NEXT:    br i1 [[TMP20]], label %[[OMP_OFFLOAD_FAILED:.*]], label %[[OMP_OFFLOAD_CONT:.*]]
+// CK27:       [[OMP_OFFLOAD_FAILED]]:
+// CK27-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}(ptr [[TMP0]]) #[[ATTR2:[0-9]+]]
+// CK27-NEXT:    br label %[[OMP_OFFLOAD_CONT]]
+// CK27:       [[OMP_OFFLOAD_CONT]]:
+// CK27-64-NEXT:    [[TMP21:%.*]] = load ptr, ptr [[PA]], align 8
+// CK27-64-NEXT:    [[TMP22:%.*]] = load ptr, ptr [[PA]], align 8
+// CK27-64-NEXT:    [[TMP23:%.*]] = load ptr, ptr [[PA]], align 8
+// CK27-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP23]], i64 0
+// CK27-32-NEXT:    [[TMP21:%.*]] = load ptr, ptr [[PA]], align 4
+// CK27-32-NEXT:    [[TMP22:%.*]] = load ptr, ptr [[PA]], align 4
+// CK27-32-NEXT:    [[TMP23:%.*]] = load ptr, ptr [[PA]], align 4
+// CK27-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP23]], i32 0
+// CK27-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS1]], i32 0, i32 0
+// CK27-64-NEXT:    store ptr [[TMP22]], ptr [[TMP24]], align 8
+// CK27-32-NEXT:    store ptr [[TMP22]], ptr [[TMP24]], align 4
+// CK27-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS2]], i32 0, i32 0
+// CK27-64-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP25]], align 8
+// CK27-64-NEXT:    [[TMP26:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS3]], i64 0, i64 0
+// CK27-64-NEXT:    store ptr null, ptr [[TMP26]], align 8
+// CK27-32-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP25]], align 4
+// CK27-32-NEXT:    [[TMP26:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS3]], i32 0, i32 0
+// CK27-32-NEXT:    store ptr null, ptr [[TMP26]], align 4
+// CK27-NEXT:    [[TMP27:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS1]], i32 0, i32 1
+// CK27-64-NEXT:    store ptr [[PA]], ptr [[TMP27]], align 8
+// CK27-32-NEXT:    store ptr [[PA]], ptr [[TMP27]], align 4
+// CK27-NEXT:    [[TMP28:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS2]], i32 0, i32 1
+// CK27-64-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP28]], align 8
+// CK27-64-NEXT:    [[TMP29:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS3]], i64 0, i64 1
+// CK27-64-NEXT:    store ptr null, ptr [[TMP29]], align 8
+// CK27-32-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP28]], align 4
+// CK27-32-NEXT:    [[TMP29:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS3]], i32 0, i32 1
+// CK27-32-NEXT:    store ptr null, ptr [[TMP29]], align 4
+// CK27-NEXT:    [[TMP30:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS1]], i32 0, i32 0
+// CK27-NEXT:    [[TMP31:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS2]], i32 0, i32 0
+// CK27-NEXT:    [[TMP32:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 0
+// CK27-NEXT:    store i32 3, ptr [[TMP32]], align 4
+// CK27-NEXT:    [[TMP33:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 1
+// CK27-NEXT:    store i32 2, ptr [[TMP33]], align 4
+// CK27-NEXT:    [[TMP34:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 2
+// CK27-64-NEXT:    store ptr [[TMP30]], ptr [[TMP34]], align 8
+// CK27-32-NEXT:    store ptr [[TMP30]], ptr [[TMP34]], align 4
+// CK27-NEXT:    [[TMP35:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 3
+// CK27-64-NEXT:    store ptr [[TMP31]], ptr [[TMP35]], align 8
+// CK27-32-NEXT:    store ptr [[TMP31]], ptr [[TMP35]], align 4
+// CK27-NEXT:    [[TMP36:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 4
+// CK27-64-NEXT:    store ptr @.offload_sizes.1, ptr [[TMP36]], align 8
+// CK27-32-NEXT:    store ptr @.offload_sizes.1, ptr [[TMP36]], align 4
+// CK27-NEXT:    [[TMP37:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 5
+// CK27-64-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP37]], align 8
+// CK27-32-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP37]], align 4
+// CK27-NEXT:    [[TMP38:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 6
+// CK27-64-NEXT:    store ptr null, ptr [[TMP38]], align 8
+// CK27-32-NEXT:    store ptr null, ptr [[TMP38]], align 4
+// CK27-NEXT:    [[TMP39:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 7
+// CK27-64-NEXT:    store ptr null, ptr [[TMP39]], align 8
+// CK27-32-NEXT:    store ptr null, ptr [[TMP39]], align 4
+// CK27-NEXT:    [[TMP40:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 8
+// CK27-NEXT:    store i64 0, ptr [[TMP40]], align 8
+// CK27-NEXT:    [[TMP41:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 9
+// CK27-NEXT:    store i64 0, ptr [[TMP41]], align 8
+// CK27-NEXT:    [[TMP42:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 10
+// CK27-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP42]], align 4
+// CK27-NEXT:    [[TMP43:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 11
+// CK27-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP43]], align 4
+// CK27-NEXT:    [[TMP44:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 12
+// CK27-NEXT:    store i32 0, ptr [[TMP44]], align 4
+// CK27-NEXT:    [[TMP45:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS4]])
+// CK27-NEXT:    [[TMP46:%.*]] = icmp ne i32 [[TMP45]], 0
+// CK27-NEXT:    br i1 [[TMP46]], label %[[OMP_OFFLOAD_FAILED5:.*]], label %[[OMP_OFFLOAD_CONT6:.*]]
+// CK27:       [[OMP_OFFLOAD_FAILED5]]:
+// CK27-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}(ptr [[TMP21]]) #[[ATTR2]]
+// CK27-NEXT:    br label %[[OMP_OFFLOAD_CONT6]]
+// CK27:       [[OMP_OFFLOAD_CONT6]]:
+// CK27-64-NEXT:    [[TMP47:%.*]] = load ptr, ptr [[PA]], align 8
+// CK27-64-NEXT:    [[TMP48:%.*]] = load ptr, ptr [[PA]], align 8
+// CK27-64-NEXT:    [[TMP49:%.*]] = load ptr, ptr [[PA]], align 8
+// CK27-64-NEXT:    [[ARRAYIDX7:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP49]], i64 0
+// CK27-32-NEXT:    [[TMP47:%.*]] = load ptr, ptr [[PA]], align 4
+// CK27-32-NEXT:    [[TMP48:%.*]] = load ptr, ptr [[PA]], align 4
+// CK27-32-NEXT:    [[TMP49:%.*]] = load ptr, ptr [[PA]], align 4
+// CK27-32-NEXT:    [[ARRAYIDX7:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP49]], i32 0
+// CK27-NEXT:    [[TMP50:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS8]], i32 0, i32 0
+// CK27-64-NEXT:    store ptr [[TMP48]], ptr [[TMP50]], align 8
+// CK27-32-NEXT:    store ptr [[TMP48]], ptr [[TMP50]], align 4
+// CK27-NEXT:    [[TMP51:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS9]], i32 0, i32 0
+// CK27-64-NEXT:    store ptr [[ARRAYIDX7]], ptr [[TMP51]], align 8
+// CK27-64-NEXT:    [[TMP52:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS10]], i64 0, i64 0
+// CK27-64-NEXT:    store ptr null, ptr [[TMP52]], align 8
+// CK27-32-NEXT:    store ptr [[ARRAYIDX7]], ptr [[TMP51]], align 4
+// CK27-32-NEXT:    [[TMP52:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS10]], i32 0, i32 0
+// CK27-32-NEXT:    store ptr null, ptr [[TMP52]], align 4
+// CK27-NEXT:    [[TMP53:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS8]], i32 0, i32 1
+// CK27-64-NEXT:    store ptr [[PA]], ptr [[TMP53]], align 8
+// CK27-32-NEXT:    store ptr [[PA]], ptr [[TMP53]], align 4
+// CK27-NEXT:    [[TMP54:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS9]], i32 0, i32 1
+// CK27-64-NEXT:    store ptr [[ARRAYIDX7]], ptr [[TMP54]], align 8
+// CK27-64-NEXT:    [[TMP55:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS10]], i64 0, i64 1
+// CK27-64-NEXT:    store ptr null, ptr [[TMP55]], align 8
+// CK27-32-NEXT:    store ptr [[ARRAYIDX7]], ptr [[TMP54]], align 4
+// CK27-32-NEXT:    [[TMP55:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS10]], i32 0, i32 1
+// CK27-32-NEXT:    store ptr null, ptr [[TMP55]], align 4
+// CK27-NEXT:    [[TMP56:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS8]], i32 0, i32 0
+// CK27-NEXT:    [[TMP57:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS9]], i32 0, i32 0
+// CK27-NEXT:    [[TMP58:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 0
+// CK27-NEXT:    store i32 3, ptr [[TMP58]], align 4
+// CK27-NEXT:    [[TMP59:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 1
+// CK27-NEXT:    store i32 2, ptr [[TMP59]], align 4
+// CK27-NEXT:    [[TMP60:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 2
+// CK27-64-NEXT:    store ptr [[TMP56]], ptr [[TMP60]], align 8
+// CK27-32-NEXT:    store ptr [[TMP56]], ptr [[TMP60]], align 4
+// CK27-NEXT:    [[TMP61:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 3
+// CK27-64-NEXT:    store ptr [[TMP57]], ptr [[TMP61]], align 8
+// CK27-32-NEXT:    store ptr [[TMP57]], ptr [[TMP61]], align 4
+// CK27-NEXT:    [[TMP62:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 4
+// CK27-64-NEXT:    store ptr @.offload_sizes.3, ptr [[TMP62]], align 8
+// CK27-32-NEXT:    store ptr @.offload_sizes.3, ptr [[TMP62]], align 4
+// CK27-NEXT:    [[TMP63:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 5
+// CK27-64-NEXT:    store ptr @.offload_maptypes.4, ptr [[TMP63]], align 8
+// CK27-32-NEXT:    store ptr @.offload_maptypes.4, ptr [[TMP63]], align 4
+// CK27-NEXT:    [[TMP64:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 6
+// CK27-64-NEXT:    store ptr null, ptr [[TMP64]], align 8
+// CK27-32-NEXT:    store ptr null, ptr [[TMP64]], align 4
+// CK27-NEXT:    [[TMP65:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 7
+// CK27-64-NEXT:    store ptr null, ptr [[TMP65]], align 8
+// CK27-32-NEXT:    store ptr null, ptr [[TMP65]], align 4
+// CK27-NEXT:    [[TMP66:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 8
+// CK27-NEXT:    store i64 0, ptr [[TMP66]], align 8
+// CK27-NEXT:    [[TMP67:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 9
+// CK27-NEXT:    store i64 0, ptr [[TMP67]], align 8
+// CK27-NEXT:    [[TMP68:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 10
+// CK27-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP68]], align 4
+// CK27-NEXT:    [[TMP69:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 11
+// CK27-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP69]], align 4
+// CK27-NEXT:    [[TMP70:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS11]], i32 0, i32 12
+// CK27-NEXT:    store i32 0, ptr [[TMP70]], align 4
+// CK27-NEXT:    [[TMP71:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS11]])
+// CK27-NEXT:    [[TMP72:%.*]] = icmp ne i32 [[TMP71]], 0
+// CK27-NEXT:    br i1 [[TMP72]], label %[[OMP_OFFLOAD_FAILED12:.*]], label %[[OMP_OFFLOAD_CONT13:.*]]
+// CK27:       [[OMP_OFFLOAD_FAILED12]]:
+// CK27-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}(ptr [[TMP47]]) #[[ATTR2]]
+// CK27-NEXT:    br label %[[OMP_OFFLOAD_CONT13]]
+// CK27:       [[OMP_OFFLOAD_CONT13]]:
+// CK27-64-NEXT:    [[TMP73:%.*]] = load ptr, ptr [[PA]], align 8
+// CK27-64-NEXT:    [[TMP74:%.*]] = load ptr, ptr [[PA]], align 8
+// CK27-32-NEXT:    [[TMP73:%.*]] = load ptr, ptr [[PA]], align 4
+// CK27-32-NEXT:    [[TMP74:%.*]] = load ptr, ptr [[PA]], align 4
+// CK27-NEXT:    [[TMP75:%.*]] = load i32, ptr [[II_ADDR]], align 4
+// CK27-64-NEXT:    [[TMP76:%.*]] = sext i32 [[TMP75]] to i64
+// CK27-64-NEXT:    [[TMP77:%.*]] = load ptr, ptr [[PA]], align 8
+// CK27-64-NEXT:    [[ARRAYIDX14:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP77]], i64 [[TMP76]]
+// CK27-64-NEXT:    [[TMP78:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS15]], i32 0, i32 0
+// CK27-64-NEXT:    store ptr [[TMP74]], ptr [[TMP78]], align 8
+// CK27-64-NEXT:    [[TMP79:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS16]], i32 0, i32 0
+// CK27-64-NEXT:    store ptr [[ARRAYIDX14]], ptr [[TMP79]], align 8
+// CK27-64-NEXT:    [[TMP80:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS17]], i64 0, i64 0
+// CK27-64-NEXT:    store ptr null, ptr [[TMP80]], align 8
+// CK27-64-NEXT:    [[TMP81:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS15]], i32 0, i32 1
+// CK27-64-NEXT:    store ptr [[PA]], ptr [[TMP81]], align 8
+// CK27-64-NEXT:    [[TMP82:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS16]], i32 0, i32 1
+// CK27-64-NEXT:    store ptr [[ARRAYIDX14]], ptr [[TMP82]], align 8
+// CK27-64-NEXT:    [[TMP83:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS17]], i64 0, i64 1
+// CK27-64-NEXT:    store ptr null, ptr [[TMP83]], align 8
+// CK27-64-NEXT:    [[TMP84:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS15]], i32 0, i32 0
+// CK27-64-NEXT:    [[TMP85:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS16]], i32 0, i32 0
+// CK27-64-NEXT:    [[TMP86:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 0
+// CK27-64-NEXT:    store i32 3, ptr [[TMP86]], align 4
+// CK27-64-NEXT:    [[TMP87:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 1
+// CK27-64-NEXT:    store i32 2, ptr [[TMP87]], align 4
+// CK27-64-NEXT:    [[TMP88:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 2
+// CK27-64-NEXT:    store ptr [[TMP84]], ptr [[TMP88]], align 8
+// CK27-64-NEXT:    [[TMP89:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 3
+// CK27-64-NEXT:    store ptr [[TMP85]], ptr [[TMP89]], align 8
+// CK27-64-NEXT:    [[TMP90:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 4
+// CK27-64-NEXT:    store ptr @.offload_sizes.5, ptr [[TMP90]], align 8
+// CK27-64-NEXT:    [[TMP91:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 5
+// CK27-64-NEXT:    store ptr @.offload_maptypes.6, ptr [[TMP91]], align 8
+// CK27-64-NEXT:    [[TMP92:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 6
+// CK27-64-NEXT:    store ptr null, ptr [[TMP92]], align 8
+// CK27-64-NEXT:    [[TMP93:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 7
+// CK27-64-NEXT:    store ptr null, ptr [[TMP93]], align 8
+// CK27-64-NEXT:    [[TMP94:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 8
+// CK27-32-NEXT:    [[TMP76:%.*]] = load ptr, ptr [[PA]], align 4
+// CK27-32-NEXT:    [[ARRAYIDX14:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP76]], i32 [[TMP75]]
+// CK27-32-NEXT:    [[TMP77:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS15]], i32 0, i32 0
+// CK27-32-NEXT:    store ptr [[TMP74]], ptr [[TMP77]], align 4
+// CK27-32-NEXT:    [[TMP78:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS16]], i32 0, i32 0
+// CK27-32-NEXT:    store ptr [[ARRAYIDX14]], ptr [[TMP78]], align 4
+// CK27-32-NEXT:    [[TMP79:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS17]], i32 0, i32 0
+// CK27-32-NEXT:    store ptr null, ptr [[TMP79]], align 4
+// CK27-32-NEXT:    [[TMP80:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS15]], i32 0, i32 1
+// CK27-32-NEXT:    store ptr [[PA]], ptr [[TMP80]], align 4
+// CK27-32-NEXT:    [[TMP81:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS16]], i32 0, i32 1
+// CK27-32-NEXT:    store ptr [[ARRAYIDX14]], ptr [[TMP81]], align 4
+// CK27-32-NEXT:    [[TMP82:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS17]], i32 0, i32 1
+// CK27-32-NEXT:    store ptr null, ptr [[TMP82]], align 4
+// CK27-32-NEXT:    [[TMP83:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS15]], i32 0, i32 0
+// CK27-32-NEXT:    [[TMP84:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS16]], i32 0, i32 0
+// CK27-32-NEXT:    [[TMP85:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 0
+// CK27-32-NEXT:    store i32 3, ptr [[TMP85]], align 4
+// CK27-32-NEXT:    [[TMP86:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 1
+// CK27-32-NEXT:    store i32 2, ptr [[TMP86]], align 4
+// CK27-32-NEXT:    [[TMP87:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 2
+// CK27-32-NEXT:    store ptr [[TMP83]], ptr [[TMP87]], align 4
+// CK27-32-NEXT:    [[TMP88:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 3
+// CK27-32-NEXT:    store ptr [[TMP84]], ptr [[TMP88]], align 4
+// CK27-32-NEXT:    [[TMP89:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 4
+// CK27-32-NEXT:    store ptr @.offload_sizes.5, ptr [[TMP89]], align 4
+// CK27-32-NEXT:    [[TMP90:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 5
+// CK27-32-NEXT:    store ptr @.offload_maptypes.6, ptr [[TMP90]], align 4
+// CK27-32-NEXT:    [[TMP91:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 6
+// CK27-32-NEXT:    store ptr null, ptr [[TMP91]], align 4
+// CK27-32-NEXT:    [[TMP92:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 7
+// CK27-32-NEXT:    store ptr null, ptr [[TMP92]], align 4
+// CK27-32-NEXT:    [[TMP93:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 8
+// CK27-32-NEXT:    store i64 0, ptr [[TMP93]], align 8
+// CK27-32-NEXT:    [[TMP94:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 9
+// CK27-NEXT:    store i64 0, ptr [[TMP94]], align 8
+// CK27-64-NEXT:    [[TMP95:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 9
+// CK27-64-NEXT:    store i64 0, ptr [[TMP95]], align 8
+// CK27-64-NEXT:    [[TMP96:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 10
+// CK27-64-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP96]], align 4
+// CK27-64-NEXT:    [[TMP97:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 11
+// CK27-64-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP97]], align 4
+// CK27-64-NEXT:    [[TMP98:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 12
+// CK27-64-NEXT:    store i32 0, ptr [[TMP98]], align 4
+// CK27-64-NEXT:    [[TMP99:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS18]])
+// CK27-64-NEXT:    [[TMP100:%.*]] = icmp ne i32 [[TMP99]], 0
+// CK27-64-NEXT:    br i1 [[TMP100]], label %[[OMP_OFFLOAD_FAILED19:.*]], label %[[OMP_OFFLOAD_CONT20:.*]]
+// CK27-32-NEXT:    [[TMP95:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 10
+// CK27-32-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP95]], align 4
+// CK27-32-NEXT:    [[TMP96:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 11
+// CK27-32-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP96]], align 4
+// CK27-32-NEXT:    [[TMP97:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS18]], i32 0, i32 12
+// CK27-32-NEXT:    store i32 0, ptr [[TMP97]], align 4
+// CK27-32-NEXT:    [[TMP98:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS18]])
+// CK27-32-NEXT:    [[TMP99:%.*]] = icmp ne i32 [[TMP98]], 0
+// CK27-32-NEXT:    br i1 [[TMP99]], label %[[OMP_OFFLOAD_FAILED19:.*]], label %[[OMP_OFFLOAD_CONT20:.*]]
+// CK27:       [[OMP_OFFLOAD_FAILED19]]:
+// CK27-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}(ptr [[TMP73]]) #[[ATTR2]]
+// CK27-NEXT:    br label %[[OMP_OFFLOAD_CONT20]]
+// CK27:       [[OMP_OFFLOAD_CONT20]]:
+// CK27-64-NEXT:    [[TMP101:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 0
+// CK27-64-NEXT:    store i32 3, ptr [[TMP101]], align 4
+// CK27-64-NEXT:    [[TMP102:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 1
+// CK27-64-NEXT:    store i32 0, ptr [[TMP102]], align 4
+// CK27-64-NEXT:    [[TMP103:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 2
+// CK27-64-NEXT:    store ptr null, ptr [[TMP103]], align 8
+// CK27-64-NEXT:    [[TMP104:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 3
+// CK27-64-NEXT:    store ptr null, ptr [[TMP104]], align 8
+// CK27-64-NEXT:    [[TMP105:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 4
+// CK27-64-NEXT:    store ptr null, ptr [[TMP105]], align 8
+// CK27-64-NEXT:    [[TMP106:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 5
+// CK27-64-NEXT:    store ptr null, ptr [[TMP106]], align 8
+// CK27-64-NEXT:    [[TMP107:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 6
+// CK27-64-NEXT:    store ptr null, ptr [[TMP107]], align 8
+// CK27-64-NEXT:    [[TMP108:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 7
+// CK27-64-NEXT:    store ptr null, ptr [[TMP108]], align 8
+// CK27-64-NEXT:    [[TMP109:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 8
+// CK27-32-NEXT:    [[TMP100:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 0
+// CK27-32-NEXT:    store i32 3, ptr [[TMP100]], align 4
+// CK27-32-NEXT:    [[TMP101:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 1
+// CK27-32-NEXT:    store i32 0, ptr [[TMP101]], align 4
+// CK27-32-NEXT:    [[TMP102:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 2
+// CK27-32-NEXT:    store ptr null, ptr [[TMP102]], align 4
+// CK27-32-NEXT:    [[TMP103:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 3
+// CK27-32-NEXT:    store ptr null, ptr [[TMP103]], align 4
+// CK27-32-NEXT:    [[TMP104:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 4
+// CK27-32-NEXT:    store ptr null, ptr [[TMP104]], align 4
+// CK27-32-NEXT:    [[TMP105:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 5
+// CK27-32-NEXT:    store ptr null, ptr [[TMP105]], align 4
+// CK27-32-NEXT:    [[TMP106:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 6
+// CK27-32-NEXT:    store ptr null, ptr [[TMP106]], align 4
+// CK27-32-NEXT:    [[TMP107:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 7
+// CK27-32-NEXT:    store ptr null, ptr [[TMP107]], align 4
+// CK27-32-NEXT:    [[TMP108:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 8
+// CK27-32-NEXT:    store i64 0, ptr [[TMP108]], align 8
+// CK27-32-NEXT:    [[TMP109:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 9
+// CK27-NEXT:    store i64 0, ptr [[TMP109]], align 8
+// CK27-64-NEXT:    [[TMP110:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 9
+// CK27-64-NEXT:    store i64 0, ptr [[TMP110]], align 8
+// CK27-64-NEXT:    [[TMP111:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 10
+// CK27-64-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP111]], align 4
+// CK27-64-NEXT:    [[TMP112:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 11
+// CK27-64-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP112]], align 4
+// CK27-64-NEXT:    [[TMP113:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 12
+// CK27-64-NEXT:    store i32 0, ptr [[TMP113]], align 4
+// CK27-64-NEXT:    [[TMP114:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS21]])
+// CK27-64-NEXT:    [[TMP115:%.*]] = icmp ne i32 [[TMP114]], 0
+// CK27-64-NEXT:    br i1 [[TMP115]], label %[[OMP_OFFLOAD_FAILED22:.*]], label %[[OMP_OFFLOAD_CONT23:.*]]
+// CK27-32-NEXT:    [[TMP110:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 10
+// CK27-32-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP110]], align 4
+// CK27-32-NEXT:    [[TMP111:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 11
+// CK27-32-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP111]], align 4
+// CK27-32-NEXT:    [[TMP112:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS21]], i32 0, i32 12
+// CK27-32-NEXT:    store i32 0, ptr [[TMP112]], align 4
+// CK27-32-NEXT:    [[TMP113:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS21]])
+// CK27-32-NEXT:    [[TMP114:%.*]] = icmp ne i32 [[TMP113]], 0
+// CK27-32-NEXT:    br i1 [[TMP114]], label %[[OMP_OFFLOAD_FAILED22:.*]], label %[[OMP_OFFLOAD_CONT23:.*]]
+// CK27:       [[OMP_OFFLOAD_FAILED22]]:
+// CK27-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}() #[[ATTR2]]
+// CK27-NEXT:    br label %[[OMP_OFFLOAD_CONT23]]
+// CK27:       [[OMP_OFFLOAD_CONT23]]:
+// CK27-64-NEXT:    [[TMP116:%.*]] = load ptr, ptr [[PVTPTR]], align 8
+// CK27-64-NEXT:    [[TMP117:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS24]], i32 0, i32 0
+// CK27-64-NEXT:    store ptr [[TMP116]], ptr [[TMP117]], align 8
+// CK27-64-NEXT:    [[TMP118:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS25]], i32 0, i32 0
+// CK27-64-NEXT:    store ptr [[TMP116]], ptr [[TMP118]], align 8
+// CK27-64-NEXT:    [[TMP119:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS26]], i64 0, i64 0
+// CK27-64-NEXT:    store ptr null, ptr [[TMP119]], align 8
+// CK27-64-NEXT:    [[TMP120:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS24]], i32 0, i32 0
+// CK27-64-NEXT:    [[TMP121:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS25]], i32 0, i32 0
+// CK27-64-NEXT:    [[TMP122:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 0
+// CK27-64-NEXT:    store i32 3, ptr [[TMP122]], align 4
+// CK27-64-NEXT:    [[TMP123:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 1
+// CK27-64-NEXT:    store i32 1, ptr [[TMP123]], align 4
+// CK27-64-NEXT:    [[TMP124:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 2
+// CK27-64-NEXT:    store ptr [[TMP120]], ptr [[TMP124]], align 8
+// CK27-64-NEXT:    [[TMP125:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 3
+// CK27-64-NEXT:    store ptr [[TMP121]], ptr [[TMP125]], align 8
+// CK27-64-NEXT:    [[TMP126:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 4
+// CK27-64-NEXT:    store ptr @.offload_sizes.7, ptr [[TMP126]], align 8
+// CK27-64-NEXT:    [[TMP127:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 5
+// CK27-64-NEXT:    store ptr @.offload_maptypes.8, ptr [[TMP127]], align 8
+// CK27-64-NEXT:    [[TMP128:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 6
+// CK27-64-NEXT:    store ptr null, ptr [[TMP128]], align 8
+// CK27-64-NEXT:    [[TMP129:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 7
+// CK27-64-NEXT:    store ptr null, ptr [[TMP129]], align 8
+// CK27-64-NEXT:    [[TMP130:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 8
+// CK27-32-NEXT:    [[TMP115:%.*]] = load ptr, ptr [[PVTPTR]], align 4
+// CK27-32-NEXT:    [[TMP116:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS24]], i32 0, i32 0
+// CK27-32-NEXT:    store ptr [[TMP115]], ptr [[TMP116]], align 4
+// CK27-32-NEXT:    [[TMP117:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS25]], i32 0, i32 0
+// CK27-32-NEXT:    store ptr [[TMP115]], ptr [[TMP117]], align 4
+// CK27-32-NEXT:    [[TMP118:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS26]], i32 0, i32 0
+// CK27-32-NEXT:    store ptr null, ptr [[TMP118]], align 4
+// CK27-32-NEXT:    [[TMP119:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS24]], i32 0, i32 0
+// CK27-32-NEXT:    [[TMP120:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS25]], i32 0, i32 0
+// CK27-32-NEXT:    [[TMP121:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 0
+// CK27-32-NEXT:    store i32 3, ptr [[TMP121]], align 4
+// CK27-32-NEXT:    [[TMP122:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 1
+// CK27-32-NEXT:    store i32 1, ptr [[TMP122]], align 4
+// CK27-32-NEXT:    [[TMP123:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 2
+// CK27-32-NEXT:    store ptr [[TMP119]], ptr [[TMP123]], align 4
+// CK27-32-NEXT:    [[TMP124:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 3
+// CK27-32-NEXT:    store ptr [[TMP120]], ptr [[TMP124]], align 4
+// CK27-32-NEXT:    [[TMP125:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 4
+// CK27-32-NEXT:    store ptr @.offload_sizes.7, ptr [[TMP125]], align 4
+// CK27-32-NEXT:    [[TMP126:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 5
+// CK27-32-NEXT:    store ptr @.offload_maptypes.8, ptr [[TMP126]], align 4
+// CK27-32-NEXT:    [[TMP127:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 6
+// CK27-32-NEXT:    store ptr null, ptr [[TMP127]], align 4
+// CK27-32-NEXT:    [[TMP128:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 7
+// CK27-32-NEXT:    store ptr null, ptr [[TMP128]], align 4
+// CK27-32-NEXT:    [[TMP129:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 8
+// CK27-32-NEXT:    store i64 0, ptr [[TMP129]], align 8
+// CK27-32-NEXT:    [[TMP130:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 9
+// CK27-NEXT:    store i64 0, ptr [[TMP130]], align 8
+// CK27-64-NEXT:    [[TMP131:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 9
+// CK27-64-NEXT:    store i64 0, ptr [[TMP131]], align 8
+// CK27-64-NEXT:    [[TMP132:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 10
+// CK27-64-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP132]], align 4
+// CK27-64-NEXT:    [[TMP133:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 11
+// CK27-64-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP133]], align 4
+// CK27-64-NEXT:    [[TMP134:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 12
+// CK27-64-NEXT:    store i32 0, ptr [[TMP134]], align 4
+// CK27-64-NEXT:    [[TMP135:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS27]])
+// CK27-64-NEXT:    [[TMP136:%.*]] = icmp ne i32 [[TMP135]], 0
+// CK27-64-NEXT:    br i1 [[TMP136]], label %[[OMP_OFFLOAD_FAILED28:.*]], label %[[OMP_OFFLOAD_CONT29:.*]]
+// CK27-32-NEXT:    [[TMP131:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 10
+// CK27-32-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP131]], align 4
+// CK27-32-NEXT:    [[TMP132:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 11
+// CK27-32-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP132]], align 4
+// CK27-32-NEXT:    [[TMP133:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS27]], i32 0, i32 12
+// CK27-32-NEXT:    store i32 0, ptr [[TMP133]], align 4
+// CK27-32-NEXT:    [[TMP134:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS27]])
+// CK27-32-NEXT:    [[TMP135:%.*]] = icmp ne i32 [[TMP134]], 0
+// CK27-32-NEXT:    br i1 [[TMP135]], label %[[OMP_OFFLOAD_FAILED28:.*]], label %[[OMP_OFFLOAD_CONT29:.*]]
+// CK27:       [[OMP_OFFLOAD_FAILED28]]:
+// CK27-64-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}(ptr [[TMP116]]) #[[ATTR2]]
+// CK27-32-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}(ptr [[TMP115]]) #[[ATTR2]]
+// CK27-NEXT:    br label %[[OMP_OFFLOAD_CONT29]]
+// CK27:       [[OMP_OFFLOAD_CONT29]]:
+// CK27-64-NEXT:    [[TMP137:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 0
+// CK27-64-NEXT:    store i32 3, ptr [[TMP137]], align 4
+// CK27-64-NEXT:    [[TMP138:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 1
+// CK27-64-NEXT:    store i32 0, ptr [[TMP138]], align 4
+// CK27-64-NEXT:    [[TMP139:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 2
+// CK27-64-NEXT:    store ptr null, ptr [[TMP139]], align 8
+// CK27-64-NEXT:    [[TMP140:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 3
+// CK27-64-NEXT:    store ptr null, ptr [[TMP140]], align 8
+// CK27-64-NEXT:    [[TMP141:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 4
+// CK27-64-NEXT:    store ptr null, ptr [[TMP141]], align 8
+// CK27-64-NEXT:    [[TMP142:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 5
+// CK27-64-NEXT:    store ptr null, ptr [[TMP142]], align 8
+// CK27-64-NEXT:    [[TMP143:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 6
+// CK27-64-NEXT:    store ptr null, ptr [[TMP143]], align 8
+// CK27-64-NEXT:    [[TMP144:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 7
+// CK27-64-NEXT:    store ptr null, ptr [[TMP144]], align 8
+// CK27-64-NEXT:    [[TMP145:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 8
+// CK27-32-NEXT:    [[TMP136:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 0
+// CK27-32-NEXT:    store i32 3, ptr [[TMP136]], align 4
+// CK27-32-NEXT:    [[TMP137:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 1
+// CK27-32-NEXT:    store i32 0, ptr [[TMP137]], align 4
+// CK27-32-NEXT:    [[TMP138:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 2
+// CK27-32-NEXT:    store ptr null, ptr [[TMP138]], align 4
+// CK27-32-NEXT:    [[TMP139:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 3
+// CK27-32-NEXT:    store ptr null, ptr [[TMP139]], align 4
+// CK27-32-NEXT:    [[TMP140:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 4
+// CK27-32-NEXT:    store ptr null, ptr [[TMP140]], align 4
+// CK27-32-NEXT:    [[TMP141:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 5
+// CK27-32-NEXT:    store ptr null, ptr [[TMP141]], align 4
+// CK27-32-NEXT:    [[TMP142:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 6
+// CK27-32-NEXT:    store ptr null, ptr [[TMP142]], align 4
+// CK27-32-NEXT:    [[TMP143:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 7
+// CK27-32-NEXT:    store ptr null, ptr [[TMP143]], align 4
+// CK27-32-NEXT:    [[TMP144:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 8
+// CK27-32-NEXT:    store i64 0, ptr [[TMP144]], align 8
+// CK27-32-NEXT:    [[TMP145:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 9
+// CK27-NEXT:    store i64 0, ptr [[TMP145]], align 8
+// CK27-64-NEXT:    [[TMP146:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 9
+// CK27-64-NEXT:    store i64 0, ptr [[TMP146]], align 8
+// CK27-64-NEXT:    [[TMP147:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 10
+// CK27-64-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP147]], align 4
+// CK27-64-NEXT:    [[TMP148:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 11
+// CK27-64-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP148]], align 4
+// CK27-64-NEXT:    [[TMP149:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 12
+// CK27-64-NEXT:    store i32 0, ptr [[TMP149]], align 4
+// CK27-64-NEXT:    [[TMP150:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS30]])
+// CK27-64-NEXT:    [[TMP151:%.*]] = icmp ne i32 [[TMP150]], 0
+// CK27-64-NEXT:    br i1 [[TMP151]], label %[[OMP_OFFLOAD_FAILED31:.*]], label %[[OMP_OFFLOAD_CONT32:.*]]
+// CK27-32-NEXT:    [[TMP146:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 10
+// CK27-32-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP146]], align 4
+// CK27-32-NEXT:    [[TMP147:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 11
+// CK27-32-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP147]], align 4
+// CK27-32-NEXT:    [[TMP148:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 12
+// CK27-32-NEXT:    store i32 0, ptr [[TMP148]], align 4
+// CK27-32-NEXT:    [[TMP149:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS30]])
+// CK27-32-NEXT:    [[TMP150:%.*]] = icmp ne i32 [[TMP149]], 0
+// CK27-32-NEXT:    br i1 [[TMP150]], label %[[OMP_OFFLOAD_FAILED31:.*]], label %[[OMP_OFFLOAD_CONT32:.*]]
+// CK27:       [[OMP_OFFLOAD_FAILED31]]:
+// CK27-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}() #[[ATTR2]]
+// CK27-NEXT:    br label %[[OMP_OFFLOAD_CONT32]]
+// CK27:       [[OMP_OFFLOAD_CONT32]]:
+// CK27-64-NEXT:    [[TMP152:%.*]] = load i32, ptr [[PVTSCL]], align 4
+// CK27-64-NEXT:    store i32 [[TMP152]], ptr [[PVTSCL_CASTED]], align 4
+// CK27-64-NEXT:    [[TMP153:%.*]] = load i64, ptr [[PVTSCL_CASTED]], align 8
+// CK27-64-NEXT:    [[TMP154:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS33]], i32 0, i32 0
+// CK27-64-NEXT:    store i64 [[TMP153]], ptr [[TMP154]], align 8
+// CK27-64-NEXT:    [[TMP155:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS34]], i32 0, i32 0
+// CK27-64-NEXT:    store i64 [[TMP153]], ptr [[TMP155]], align 8
+// CK27-64-NEXT:    [[TMP156:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS35]], i64 0, i64 0
+// CK27-64-NEXT:    store ptr null, ptr [[TMP156]], align 8
+// CK27-64-NEXT:    [[TMP157:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS33]], i32 0, i32 0
+// CK27-64-NEXT:    [[TMP158:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS34]], i32 0, i32 0
+// CK27-64-NEXT:    [[TMP159:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 0
+// CK27-64-NEXT:    store i32 3, ptr [[TMP159]], align 4
+// CK27-64-NEXT:    [[TMP160:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 1
+// CK27-64-NEXT:    store i32 1, ptr [[TMP160]], align 4
+// CK27-64-NEXT:    [[TMP161:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 2
+// CK27-64-NEXT:    store ptr [[TMP157]], ptr [[TMP161]], align 8
+// CK27-64-NEXT:    [[TMP162:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 3
+// CK27-64-NEXT:    store ptr [[TMP158]], ptr [[TMP162]], align 8
+// CK27-64-NEXT:    [[TMP163:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 4
+// CK27-64-NEXT:    store ptr @.offload_sizes.9, ptr [[TMP163]], align 8
+// CK27-64-NEXT:    [[TMP164:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 5
+// CK27-64-NEXT:    store ptr @.offload_maptypes.10, ptr [[TMP164]], align 8
+// CK27-64-NEXT:    [[TMP165:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 6
+// CK27-64-NEXT:    store ptr null, ptr [[TMP165]], align 8
+// CK27-64-NEXT:    [[TMP166:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 7
+// CK27-64-NEXT:    store ptr null, ptr [[TMP166]], align 8
+// CK27-64-NEXT:    [[TMP167:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 8
+// CK27-32-NEXT:    [[TMP151:%.*]] = load i32, ptr [[PVTSCL]], align 4
+// CK27-32-NEXT:    store i32 [[TMP151]], ptr [[PVTSCL_CASTED]], align 4
+// CK27-32-NEXT:    [[TMP152:%.*]] = load i32, ptr [[PVTSCL_CASTED]], align 4
+// CK27-32-NEXT:    [[TMP153:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS33]], i32 0, i32 0
+// CK27-32-NEXT:    store i32 [[TMP152]], ptr [[TMP153]], align 4
+// CK27-32-NEXT:    [[TMP154:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS34]], i32 0, i32 0
+// CK27-32-NEXT:    store i32 [[TMP152]], ptr [[TMP154]], align 4
+// CK27-32-NEXT:    [[TMP155:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS35]], i32 0, i32 0
+// CK27-32-NEXT:    store ptr null, ptr [[TMP155]], align 4
+// CK27-32-NEXT:    [[TMP156:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS33]], i32 0, i32 0
+// CK27-32-NEXT:    [[TMP157:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS34]], i32 0, i32 0
+// CK27-32-NEXT:    [[TMP158:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 0
+// CK27-32-NEXT:    store i32 3, ptr [[TMP158]], align 4
+// CK27-32-NEXT:    [[TMP159:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 1
+// CK27-32-NEXT:    store i32 1, ptr [[TMP159]], align 4
+// CK27-32-NEXT:    [[TMP160:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 2
+// CK27-32-NEXT:    store ptr [[TMP156]], ptr [[TMP160]], align 4
+// CK27-32-NEXT:    [[TMP161:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 3
+// CK27-32-NEXT:    store ptr [[TMP157]], ptr [[TMP161]], align 4
+// CK27-32-NEXT:    [[TMP162:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 4
+// CK27-32-NEXT:    store ptr @.offload_sizes.9, ptr [[TMP162]], align 4
+// CK27-32-NEXT:    [[TMP163:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 5
+// CK27-32-NEXT:    store ptr @.offload_maptypes.10, ptr [[TMP163]], align 4
+// CK27-32-NEXT:    [[TMP164:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 6
+// CK27-32-NEXT:    store ptr null, ptr [[TMP164]], align 4
+// CK27-32-NEXT:    [[TMP165:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 7
+// CK27-32-NEXT:    store ptr null, ptr [[TMP165]], align 4
+// CK27-32-NEXT:    [[TMP166:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 8
+// CK27-32-NEXT:    store i64 0, ptr [[TMP166]], align 8
+// CK27-32-NEXT:    [[TMP167:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 9
+// CK27-NEXT:    store i64 0, ptr [[TMP167]], align 8
+// CK27-64-NEXT:    [[TMP168:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 9
+// CK27-64-NEXT:    store i64 0, ptr [[TMP168]], align 8
+// CK27-64-NEXT:    [[TMP169:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 10
+// CK27-64-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP169]], align 4
+// CK27-64-NEXT:    [[TMP170:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 11
+// CK27-64-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP170]], align 4
+// CK27-64-NEXT:    [[TMP171:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 12
+// CK27-64-NEXT:    store i32 0, ptr [[TMP171]], align 4
+// CK27-64-NEXT:    [[TMP172:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS36]])
+// CK27-64-NEXT:    [[TMP173:%.*]] = icmp ne i32 [[TMP172]], 0
+// CK27-64-NEXT:    br i1 [[TMP173]], label %[[OMP_OFFLOAD_FAILED37:.*]], label %[[OMP_OFFLOAD_CONT38:.*]]
+// CK27-32-NEXT:    [[TMP168:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 10
+// CK27-32-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP168]], align 4
+// CK27-32-NEXT:    [[TMP169:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 11
+// CK27-32-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP169]], align 4
+// CK27-32-NEXT:    [[TMP170:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS36]], i32 0, i32 12
+// CK27-32-NEXT:    store i32 0, ptr [[TMP170]], align 4
+// CK27-32-NEXT:    [[TMP171:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS36]])
+// CK27-32-NEXT:    [[TMP172:%.*]] = icmp ne i32 [[TMP171]], 0
+// CK27-32-NEXT:    br i1 [[TMP172]], label %[[OMP_OFFLOAD_FAILED37:.*]], label %[[OMP_OFFLOAD_CONT38:.*]]
+// CK27:       [[OMP_OFFLOAD_FAILED37]]:
+// CK27-64-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}(i64 [[TMP153]]) #[[ATTR2]]
+// CK27-32-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}(i32 [[TMP152]]) #[[ATTR2]]
+// CK27-NEXT:    br label %[[OMP_OFFLOAD_CONT38]]
+// CK27:       [[OMP_OFFLOAD_CONT38]]:
+// CK27-64-NEXT:    [[TMP174:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 0
+// CK27-64-NEXT:    store i32 3, ptr [[TMP174]], align 4
+// CK27-64-NEXT:    [[TMP175:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 1
+// CK27-64-NEXT:    store i32 0, ptr [[TMP175]], align 4
+// CK27-64-NEXT:    [[TMP176:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 2
+// CK27-64-NEXT:    store ptr null, ptr [[TMP176]], align 8
+// CK27-64-NEXT:    [[TMP177:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 3
+// CK27-64-NEXT:    store ptr null, ptr [[TMP177]], align 8
+// CK27-64-NEXT:    [[TMP178:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 4
+// CK27-64-NEXT:    store ptr null, ptr [[TMP178]], align 8
+// CK27-64-NEXT:    [[TMP179:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 5
+// CK27-64-NEXT:    store ptr null, ptr [[TMP179]], align 8
+// CK27-64-NEXT:    [[TMP180:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 6
+// CK27-64-NEXT:    store ptr null, ptr [[TMP180]], align 8
+// CK27-64-NEXT:    [[TMP181:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 7
+// CK27-64-NEXT:    store ptr null, ptr [[TMP181]], align 8
+// CK27-64-NEXT:    [[TMP182:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 8
+// CK27-32-NEXT:    [[TMP173:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 0
+// CK27-32-NEXT:    store i32 3, ptr [[TMP173]], align 4
+// CK27-32-NEXT:    [[TMP174:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 1
+// CK27-32-NEXT:    store i32 0, ptr [[TMP174]], align 4
+// CK27-32-NEXT:    [[TMP175:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 2
+// CK27-32-NEXT:    store ptr null, ptr [[TMP175]], align 4
+// CK27-32-NEXT:    [[TMP176:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 3
+// CK27-32-NEXT:    store ptr null, ptr [[TMP176]], align 4
+// CK27-32-NEXT:    [[TMP177:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 4
+// CK27-32-NEXT:    store ptr null, ptr [[TMP177]], align 4
+// CK27-32-NEXT:    [[TMP178:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 5
+// CK27-32-NEXT:    store ptr null, ptr [[TMP178]], align 4
+// CK27-32-NEXT:    [[TMP179:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 6
+// CK27-32-NEXT:    store ptr null, ptr [[TMP179]], align 4
+// CK27-32-NEXT:    [[TMP180:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 7
+// CK27-32-NEXT:    store ptr null, ptr [[TMP180]], align 4
+// CK27-32-NEXT:    [[TMP181:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 8
+// CK27-32-NEXT:    store i64 0, ptr [[TMP181]], align 8
+// CK27-32-NEXT:    [[TMP182:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 9
+// CK27-NEXT:    store i64 0, ptr [[TMP182]], align 8
+// CK27-64-NEXT:    [[TMP183:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 9
+// CK27-64-NEXT:    store i64 0, ptr [[TMP183]], align 8
+// CK27-64-NEXT:    [[TMP184:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 10
+// CK27-64-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP184]], align 4
+// CK27-64-NEXT:    [[TMP185:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 11
+// CK27-64-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP185]], align 4
+// CK27-64-NEXT:    [[TMP186:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 12
+// CK27-64-NEXT:    store i32 0, ptr [[TMP186]], align 4
+// CK27-64-NEXT:    [[TMP187:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS39]])
+// CK27-64-NEXT:    [[TMP188:%.*]] = icmp ne i32 [[TMP187]], 0
+// CK27-64-NEXT:    br i1 [[TMP188]], label %[[OMP_OFFLOAD_FAILED40:.*]], label %[[OMP_OFFLOAD_CONT41:.*]]
+// CK27-32-NEXT:    [[TMP183:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 10
+// CK27-32-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP183]], align 4
+// CK27-32-NEXT:    [[TMP184:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 11
+// CK27-32-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP184]], align 4
+// CK27-32-NEXT:    [[TMP185:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS39]], i32 0, i32 12
+// CK27-32-NEXT:    store i32 0, ptr [[TMP185]], align 4
+// CK27-32-NEXT:    [[TMP186:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS39]])
+// CK27-32-NEXT:    [[TMP187:%.*]] = icmp ne i32 [[TMP186]], 0
+// CK27-32-NEXT:    br i1 [[TMP187]], label %[[OMP_OFFLOAD_FAILED40:.*]], label %[[OMP_OFFLOAD_CONT41:.*]]
+// CK27:       [[OMP_OFFLOAD_FAILED40]]:
+// CK27-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}() #[[ATTR2]]
+// CK27-NEXT:    br label %[[OMP_OFFLOAD_CONT41]]
+// CK27:       [[OMP_OFFLOAD_CONT41]]:
+// CK27-64-NEXT:    [[TMP189:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS42]], i32 0, i32 0
+// CK27-64-NEXT:    store ptr [[PVTARR]], ptr [[TMP189]], align 8
+// CK27-64-NEXT:    [[TMP190:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS43]], i32 0, i32 0
+// CK27-64-NEXT:    store ptr [[PVTARR]], ptr [[TMP190]], align 8
+// CK27-64-NEXT:    [[TMP191:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS44]], i64 0, i64 0
+// CK27-64-NEXT:    store ptr null, ptr [[TMP191]], align 8
+// CK27-64-NEXT:    [[TMP192:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS42]], i32 0, i32 0
+// CK27-64-NEXT:    [[TMP193:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS43]], i32 0, i32 0
+// CK27-64-NEXT:    [[TMP194:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 0
+// CK27-64-NEXT:    store i32 3, ptr [[TMP194]], align 4
+// CK27-64-NEXT:    [[TMP195:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 1
+// CK27-64-NEXT:    store i32 1, ptr [[TMP195]], align 4
+// CK27-64-NEXT:    [[TMP196:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 2
+// CK27-64-NEXT:    store ptr [[TMP192]], ptr [[TMP196]], align 8
+// CK27-64-NEXT:    [[TMP197:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 3
+// CK27-64-NEXT:    store ptr [[TMP193]], ptr [[TMP197]], align 8
+// CK27-64-NEXT:    [[TMP198:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 4
+// CK27-64-NEXT:    store ptr @.offload_sizes.11, ptr [[TMP198]], align 8
+// CK27-64-NEXT:    [[TMP199:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 5
+// CK27-64-NEXT:    store ptr @.offload_maptypes.12, ptr [[TMP199]], align 8
+// CK27-64-NEXT:    [[TMP200:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 6
+// CK27-64-NEXT:    store ptr null, ptr [[TMP200]], align 8
+// CK27-64-NEXT:    [[TMP201:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 7
+// CK27-64-NEXT:    store ptr null, ptr [[TMP201]], align 8
+// CK27-64-NEXT:    [[TMP202:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 8
+// CK27-32-NEXT:    [[TMP188:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS42]], i32 0, i32 0
+// CK27-32-NEXT:    store ptr [[PVTARR]], ptr [[TMP188]], align 4
+// CK27-32-NEXT:    [[TMP189:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS43]], i32 0, i32 0
+// CK27-32-NEXT:    store ptr [[PVTARR]], ptr [[TMP189]], align 4
+// CK27-32-NEXT:    [[TMP190:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS44]], i32 0, i32 0
+// CK27-32-NEXT:    store ptr null, ptr [[TMP190]], align 4
+// CK27-32-NEXT:    [[TMP191:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS42]], i32 0, i32 0
+// CK27-32-NEXT:    [[TMP192:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS43]], i32 0, i32 0
+// CK27-32-NEXT:    [[TMP193:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 0
+// CK27-32-NEXT:    store i32 3, ptr [[TMP193]], align 4
+// CK27-32-NEXT:    [[TMP194:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 1
+// CK27-32-NEXT:    store i32 1, ptr [[TMP194]], align 4
+// CK27-32-NEXT:    [[TMP195:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 2
+// CK27-32-NEXT:    store ptr [[TMP191]], ptr [[TMP195]], align 4
+// CK27-32-NEXT:    [[TMP196:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 3
+// CK27-32-NEXT:    store ptr [[TMP192]], ptr [[TMP196]], align 4
+// CK27-32-NEXT:    [[TMP197:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 4
+// CK27-32-NEXT:    store ptr @.offload_sizes.11, ptr [[TMP197]], align 4
+// CK27-32-NEXT:    [[TMP198:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 5
+// CK27-32-NEXT:    store ptr @.offload_maptypes.12, ptr [[TMP198]], align 4
+// CK27-32-NEXT:    [[TMP199:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 6
+// CK27-32-NEXT:    store ptr null, ptr [[TMP199]], align 4
+// CK27-32-NEXT:    [[TMP200:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 7
+// CK27-32-NEXT:    store ptr null, ptr [[TMP200]], align 4
+// CK27-32-NEXT:    [[TMP201:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 8
+// CK27-32-NEXT:    store i64 0, ptr [[TMP201]], align 8
+// CK27-32-NEXT:    [[TMP202:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 9
+// CK27-NEXT:    store i64 0, ptr [[TMP202]], align 8
+// CK27-64-NEXT:    [[TMP203:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 9
+// CK27-64-NEXT:    store i64 0, ptr [[TMP203]], align 8
+// CK27-64-NEXT:    [[TMP204:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 10
+// CK27-64-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP204]], align 4
+// CK27-64-NEXT:    [[TMP205:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 11
+// CK27-64-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP205]], align 4
+// CK27-64-NEXT:    [[TMP206:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 12
+// CK27-64-NEXT:    store i32 0, ptr [[TMP206]], align 4
+// CK27-64-NEXT:    [[TMP207:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS45]])
+// CK27-64-NEXT:    [[TMP208:%.*]] = icmp ne i32 [[TMP207]], 0
+// CK27-64-NEXT:    br i1 [[TMP208]], label %[[OMP_OFFLOAD_FAILED46:.*]], label %[[OMP_OFFLOAD_CONT47:.*]]
+// CK27-32-NEXT:    [[TMP203:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 10
+// CK27-32-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP203]], align 4
+// CK27-32-NEXT:    [[TMP204:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 11
+// CK27-32-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP204]], align 4
+// CK27-32-NEXT:    [[TMP205:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS45]], i32 0, i32 12
+// CK27-32-NEXT:    store i32 0, ptr [[TMP205]], align 4
+// CK27-32-NEXT:    [[TMP206:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS45]])
+// CK27-32-NEXT:    [[TMP207:%.*]] = icmp ne i32 [[TMP206]], 0
+// CK27-32-NEXT:    br i1 [[TMP207]], label %[[OMP_OFFLOAD_FAILED46:.*]], label %[[OMP_OFFLOAD_CONT47:.*]]
+// CK27:       [[OMP_OFFLOAD_FAILED46]]:
+// CK27-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}(ptr [[PVTARR]]) #[[ATTR2]]
+// CK27-NEXT:    br label %[[OMP_OFFLOAD_CONT47]]
+// CK27:       [[OMP_OFFLOAD_CONT47]]:
+// SIMD-ONLY26-_2-_4-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds i32, ptr [[TMP0]], i32 50
+// SIMD-ONLY26-NEXT:    [[TMP1:%.*]] = load i32, ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY26-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP1]], 1
+// SIMD-ONLY26-NEXT:    store i32 [[INC]], ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY26-_5-_3-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[PA]], align 8
+// SIMD-ONLY26-_5-_3-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds i32, ptr [[TMP2]], i64 50
+// SIMD-ONLY26-_2-_4-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[PA]], align 4
+// SIMD-ONLY26-_2-_4-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds i32, ptr [[TMP2]], i32 50
+// SIMD-ONLY26-NEXT:    [[TMP3:%.*]] = load i32, ptr [[ARRAYIDX1]], align 4
+// SIMD-ONLY26-NEXT:    [[INC2:%.*]] = add nsw i32 [[TMP3]], 1
+// SIMD-ONLY26-NEXT:    store i32 [[INC2]], ptr [[ARRAYIDX1]], align 4
+// SIMD-ONLY26-_5-_3-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[PA]], align 8
+// SIMD-ONLY26-_5-_3-NEXT:    [[ARRAYIDX3:%.*]] = getelementptr inbounds i32, ptr [[TMP4]], i64 50
+// SIMD-ONLY26-_2-_4-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[PA]], align 4
+// SIMD-ONLY26-_2-_4-NEXT:    [[ARRAYIDX3:%.*]] = getelementptr inbounds i32, ptr [[TMP4]], i32 50
+// SIMD-ONLY26-NEXT:    [[TMP5:%.*]] = load i32, ptr [[ARRAYIDX3]], align 4
+// SIMD-ONLY26-NEXT:    [[INC4:%.*]] = add nsw i32 [[TMP5]], 1
+// SIMD-ONLY26-NEXT:    store i32 [[INC4]], ptr [[ARRAYIDX3]], align 4
+// SIMD-ONLY26-_5-_3-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[PA]], align 8
+// SIMD-ONLY26-_5-_3-NEXT:    [[ARRAYIDX5:%.*]] = getelementptr inbounds i32, ptr [[TMP6]], i64 50
+// SIMD-ONLY26-_2-_4-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[PA]], align 4
+// SIMD-ONLY26-_2-_4-NEXT:    [[ARRAYIDX5:%.*]] = getelementptr inbounds i32, ptr [[TMP6]], i32 50
+// SIMD-ONLY26-NEXT:    [[TMP7:%.*]] = load i32, ptr [[ARRAYIDX5]], align 4
+// SIMD-ONLY26-NEXT:    [[INC6:%.*]] = add nsw i32 [[TMP7]], 1
+// SIMD-ONLY26-NEXT:    store i32 [[INC6]], ptr [[ARRAYIDX5]], align 4
+// SIMD-ONLY26-_5-_3-NEXT:    [[TMP8:%.*]] = load ptr, ptr [[PVTPTR7]], align 8
+// SIMD-ONLY26-_5-_3-NEXT:    [[ARRAYIDX8:%.*]] = getelementptr inbounds i32, ptr [[TMP8]], i64 5
+// SIMD-ONLY26-_2-_4-NEXT:    [[TMP8:%.*]] = load ptr, ptr [[PVTPTR7]], align 4
+// SIMD-ONLY26-_2-_4-NEXT:    [[ARRAYIDX8:%.*]] = getelementptr inbounds i32, ptr [[TMP8]], i32 5
+// SIMD-ONLY26-NEXT:    [[TMP9:%.*]] = load i32, ptr [[ARRAYIDX8]], align 4
+// SIMD-ONLY26-NEXT:    [[INC9:%.*]] = add nsw i32 [[TMP9]], 1
+// SIMD-ONLY26-NEXT:    store i32 [[INC9]], ptr [[ARRAYIDX8]], align 4
+// SIMD-ONLY26-_5-_3-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[PVTPTR]], align 8
+// SIMD-ONLY26-_5-_3-NEXT:    [[ARRAYIDX10:%.*]] = getelementptr inbounds i32, ptr [[TMP10]], i64 5
+// SIMD-ONLY26-_2-_4-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[PVTPTR]], align 4
+// SIMD-ONLY26-_2-_4-NEXT:    [[ARRAYIDX10:%.*]] = getelementptr inbounds i32, ptr [[TMP10]], i32 5
+// SIMD-ONLY26-NEXT:    [[TMP11:%.*]] = load i32, ptr [[ARRAYIDX10]], align 4
+// SIMD-ONLY26-NEXT:    [[INC11:%.*]] = add nsw i32 [[TMP11]], 1
+// SIMD-ONLY26-NEXT:    store i32 [[INC11]], ptr [[ARRAYIDX10]], align 4
+// SIMD-ONLY26-NEXT:    [[TMP12:%.*]] = load i32, ptr [[PVTSCL12]], align 4
+// SIMD-ONLY26-NEXT:    [[INC13:%.*]] = add nsw i32 [[TMP12]], 1
+// SIMD-ONLY26-NEXT:    store i32 [[INC13]], ptr [[PVTSCL12]], align 4
+// SIMD-ONLY26-NEXT:    [[TMP13:%.*]] = load i32, ptr [[PVTSCL]], align 4
+// SIMD-ONLY26-NEXT:    [[INC14:%.*]] = add nsw i32 [[TMP13]], 1
+// SIMD-ONLY26-NEXT:    store i32 [[INC14]], ptr [[PVTSCL]], align 4
+// SIMD-ONLY26-_5-_3-NEXT:    [[ARRAYIDX16:%.*]] = getelementptr inbounds [10 x i32], ptr [[PVTARR15]], i64 0, i64 5
+// SIMD-ONLY26-_2-_4-NEXT:    [[ARRAYIDX16:%.*]] = getelementptr inbounds [10 x i32], ptr [[PVTARR15]], i32 0, i32 5
+// SIMD-ONLY26-NEXT:    [[TMP14:%.*]] = load i32, ptr [[ARRAYIDX16]], align 4
+// SIMD-ONLY26-NEXT:    [[INC17:%.*]] = add nsw i32 [[TMP14]], 1
+// SIMD-ONLY26-NEXT:    store i32 [[INC17]], ptr [[ARRAYIDX16]], align 4
+// SIMD-ONLY26-_5-_3-NEXT:    [[ARRAYIDX18:%.*]] = getelementptr inbounds [10 x i32], ptr [[PVTARR]], i64 0, i64 5
+// SIMD-ONLY26-_2-_4-NEXT:    [[ARRAYIDX18:%.*]] = getelementptr inbounds [10 x i32], ptr [[PVTARR]], i32 0, i32 5
+// SIMD-ONLY26-NEXT:    [[TMP15:%.*]] = load i32, ptr [[ARRAYIDX18]], align 4
+// SIMD-ONLY26-NEXT:    [[INC19:%.*]] = add nsw i32 [[TMP15]], 1
+// SIMD-ONLY26-NEXT:    store i32 [[INC19]], ptr [[ARRAYIDX18]], align 4
+// CHECK-NEXT:    ret void
+//
+//
+//

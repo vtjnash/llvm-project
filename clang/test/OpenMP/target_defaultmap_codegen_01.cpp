@@ -6,46 +6,29 @@
 #ifdef CK1
 
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK1 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK1
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK1 -verify -Wno-vla -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3,CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20
 // Verify implicit-behavior 'storage' as alias for 'alloc' in OpenMP 6.0
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK1 -DOMP6 -verify -Wno-vla -fopenmp -fopenmp-version=60 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK1
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK1 -DOMP6 -verify -Wno-vla -fopenmp -fopenmp-version=60 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3,CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK1
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK1 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK1
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3,CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK1 -verify -Wno-vla -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK1
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK1 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY10 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK1 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY10-_7-_9-_5-_10-_13-_6 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY10 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK1 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY10 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY10-_7-_9-_5-_10-_13-_6 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK1 -verify -Wno-vla -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10,SIMD-ONLY10-_12-_11-_8-_4-_2-_3,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY10 %s
-// SIMD-ONLY10-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10,SIMD-ONLY10-_12-_11-_8-_4-_2-_3,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16 %s
 
-// CK1-LABEL: @.__omp_offloading_{{.*}}implicit_maps_double_complex{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK1-DAG: [[SIZES:@.+]] = {{.+}}constant [1 x i64] [i64 16]
 // Map types: OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 544
-// CK1-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 544]
 
-// CK1-LABEL: implicit_maps_double_complex{{.*}}(
 void implicit_maps_double_complex (int a){
   double _Complex dc = (double)a;
 
-// CK1-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK1-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK1-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK1-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK1-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK1-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK1-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK1-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK1-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK1-DAG: store ptr [[PTR:%[^,]+]], ptr [[BP1]]
-// CK1-DAG: store ptr [[PTR]], ptr [[P1]]
 
-// CK1: call void [[KERNEL:@.+]](ptr [[PTR]])
 #ifdef OMP6
 // 'storage' is an alias for 'alloc' in OpenMP 6.0
 #pragma omp target defaultmap(storage : scalar)
@@ -57,52 +40,30 @@ void implicit_maps_double_complex (int a){
   }
 }
 
-// CK1: define internal void [[KERNEL]](ptr {{.*}}[[ARG:%.+]])
-// CK1: [[ADDR:%.+]] = alloca ptr,
-// CK1: store ptr [[ARG]], ptr [[ADDR]],
-// CK1: [[REF:%.+]] = load ptr, ptr [[ADDR]],
-// CK1: {{.+}} = getelementptr inbounds nuw { double, double }, ptr [[REF]], i32 0, i32 0
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK2 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK2
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK2 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3,CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK2 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK2
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK2 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK2
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3,CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK2 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK2 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK2
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK2 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY10 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK2 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY10-_7-_9-_5-_10-_13-_6 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK2 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY10 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK2 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY10 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY10-_7-_9-_5-_10-_13-_6 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK2 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10,SIMD-ONLY10-_12-_11-_8-_4-_2-_3,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK2 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY10 %s
-// SIMD-ONLY10-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10,SIMD-ONLY10-_12-_11-_8-_4-_2-_3,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16 %s
 #ifdef CK2
 
-// CK2-LABEL: @.__omp_offloading_{{.*}}implicit_maps_double_complex{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK2-DAG: [[SIZES:@.+]] = {{.+}}constant [1 x i64] [i64 16]
 // Map types: OMP_MAP_TO  | OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 545
-// CK2-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 545]
 
-// CK2-LABEL: implicit_maps_double_complex{{.*}}(
 void implicit_maps_double_complex (int a){
   double _Complex dc = (double)a;
 
-// CK2-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK2-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK2-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK2-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK2-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK2-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK2-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK2-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK2-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK2-DAG: store ptr [[PTR:%[^,]+]], ptr [[BP1]]
-// CK2-DAG: store ptr [[PTR]], ptr [[P1]]
 
-// CK2: call void [[KERNEL:@.+]](ptr [[PTR]])
 #pragma omp target defaultmap(to \
                               : scalar)
   {
@@ -110,52 +71,30 @@ void implicit_maps_double_complex (int a){
   }
 }
 
-// CK2: define internal void [[KERNEL]](ptr {{.*}}[[ARG:%.+]])
-// CK2: [[ADDR:%.+]] = alloca ptr,
-// CK2: store ptr [[ARG]], ptr [[ADDR]],
-// CK2: [[REF:%.+]] = load ptr, ptr [[ADDR]],
-// CK2: {{.+}} = getelementptr inbounds nuw { double, double }, ptr [[REF]], i32 0, i32 0
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK3 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK3
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK3 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3,CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK3 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK3
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK3 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK3
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3,CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK3 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK3 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK3
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK3 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY10 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK3 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY10-_7-_9-_5-_10-_13-_6 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK3 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY10 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK3 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY10 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6,CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY10-_7-_9-_5-_10-_13-_6 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK3 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10,SIMD-ONLY10-_12-_11-_8-_4-_2-_3,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK3 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY10 %s
-// SIMD-ONLY10-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10,SIMD-ONLY10-_12-_11-_8-_4-_2-_3,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16 %s
 #ifdef CK3
 
-// CK3-LABEL: @.__omp_offloading_{{.*}}implicit_maps_double_complex{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK3-DAG: [[SIZES:@.+]] = {{.+}}constant [1 x i64] [i64 16]
 // Map types: OMP_MAP_FROM | OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 546
-// CK3-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 546]
 
-// CK3-LABEL: implicit_maps_double_complex{{.*}}(
 void implicit_maps_double_complex (int a){
   double _Complex dc = (double)a;
 
-// CK3-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK3-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK3-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK3-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK3-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK3-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK3-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK3-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK3-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK3-DAG: store ptr [[PTR:%[^,]+]], ptr [[BP1]]
-// CK3-DAG: store ptr [[PTR]], ptr [[P1]]
 
-// CK3: call void [[KERNEL:@.+]](ptr [[PTR]])
 #pragma omp target defaultmap(from \
                               : scalar)
   {
@@ -163,64 +102,37 @@ void implicit_maps_double_complex (int a){
   }
 }
 
-// CK3: define internal void [[KERNEL]](ptr {{.*}}[[ARG:%.+]])
-// CK3: [[ADDR:%.+]] = alloca ptr,
-// CK3: store ptr [[ARG]], ptr [[ADDR]],
-// CK3: [[REF:%.+]] = load ptr, ptr [[ADDR]],
-// CK3: {{.+}} = getelementptr inbounds nuw { double, double }, ptr [[REF]], i32 0, i32 0
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK4 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK4 --check-prefix CK4-64
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK4 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK4-64-_2-_3-CK15-_5-CK20,CK4-64-_2-_3-CK20,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK4 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK4  --check-prefix CK4-64
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK4 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK4  --check-prefix CK4-32
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK4-64-_2-_3-CK15-_5-CK20,CK4-64-_2-_3-CK20,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK4 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64,CK4-32-_3-_2-CK20
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK4 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK4  --check-prefix CK4-32
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64,CK4-32-_3-_2-CK20
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK4 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY6 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK4 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY6 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK4 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY6 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK4 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY6 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY6 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK4 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY6,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK4 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY6 %s
-// SIMD-ONLY6-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY6,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21 %s
 #ifdef CK4
 
 // For a 32-bit targets, the value doesn't fit the size of the pointer,
 // therefore it is passed by reference with a map 'to' specification.
 
-// CK4-LABEL: @.__omp_offloading_{{.*}}implicit_maps_double{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK4-DAG: [[SIZES:@.+]] = {{.+}}constant [1 x i64] [i64 8]
 // Map types: OMP_MAP_PRIVATE_VAL | OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 800
-// CK4-64-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 800]
 // Map types: OMP_MAP_TO  | OMP_MAP_PRIVATE | OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 673
-// CK4-32-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 673]
 
-// CK4-LABEL: implicit_maps_double{{.*}}(
 void implicit_maps_double (int a){
   double d = (double)a;
 
-// CK4-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK4-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK4-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK4-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK4-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK4-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK4-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK4-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK4-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
 
-// CK4-64-DAG: store i[[sz:64|32]] [[VAL:%[^,]+]], ptr [[BP1]]
-// CK4-64-DAG: store i[[sz]] [[VAL]], ptr [[P1]]
-// CK4-64-DAG: [[VAL]] = load i[[sz]], ptr [[ADDR:%.+]],
 // CK4-64-64-DAG: store double {{.+}}, ptr [[ADDR]],
 
-// CK4-32-DAG: store ptr [[DECL:%[^,]+]], ptr [[BP1]]
-// CK4-32-DAG: store ptr [[DECL]], ptr [[P1]]
 
-// CK4-64: call void [[KERNEL:@.+]](i[[sz]] [[VAL]])
-// CK4-32: call void [[KERNEL:@.+]](ptr [[DECL]])
 #pragma omp target defaultmap(firstprivate \
                               : scalar)
   {
@@ -228,60 +140,34 @@ void implicit_maps_double (int a){
   }
 }
 
-// CK4-64: define internal void [[KERNEL]](i[[sz]] [[ARG:%.+]])
-// CK4-64: [[ADDR:%.+]] = alloca i[[sz]],
-// CK4-64: store i[[sz]] [[ARG]], ptr [[ADDR]],
-// CK4-64: {{.+}} = load double, ptr [[ADDR]],
 
-// CK4-32: define internal void [[KERNEL]](ptr {{.+}}[[ARG:%.+]])
-// CK4-32: [[ADDR:%.+]] = alloca ptr,
-// CK4-32: store ptr [[ARG]], ptr [[ADDR]],
-// CK4-32: [[REF:%.+]] = load ptr, ptr [[ADDR]],
-// CK4-32: {{.+}} = load double, ptr [[REF]],
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK5 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK5
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK5 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
 // Verify implicit-behavior 'alloc' still accepted in OpenMP 6.0
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK5 -verify -Wno-vla  -fopenmp -fopenmp-version=60 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK5
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK5 -verify -Wno-vla  -fopenmp -fopenmp-version=60 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK5 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK5
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK5 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK5
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK5 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK5 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK5
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK5 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK5 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_10-_9-_7-_35-_21-_19,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK5 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK5 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_10-_9-_7-_35-_21-_19,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK5 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5,SIMD-ONLY8-_30-_25-_26-_3-_22-_31-_14-_29 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK5 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// SIMD-ONLY8-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5,SIMD-ONLY8-_30-_25-_26-_3-_22-_31-_14-_29 %s
 #ifdef CK5
 
-// CK5-LABEL: @.__omp_offloading_{{.*}}implicit_maps_array{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK5-DAG: [[SIZES:@.+]] = {{.+}}constant [1 x i64] [i64 16]
 // Map types: OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 544
-// CK5-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 544]
 
-// CK5-LABEL: implicit_maps_array{{.*}}(
 void implicit_maps_array (int a){
   double darr[2] = {(double)a, (double)a};
 
-// CK5-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK5-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK5-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK5-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK5-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK5-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK5-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK5-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK5-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK5-DAG: store ptr [[DECL:%[^,]+]], ptr [[BP1]]
-// CK5-DAG: store ptr [[DECL]], ptr [[P1]]
 
-// CK5: call void [[KERNEL:@.+]](ptr [[DECL]])
 #pragma omp target defaultmap(alloc \
                               : aggregate)
   {
@@ -290,52 +176,30 @@ void implicit_maps_array (int a){
   }
 }
 
-// CK5: define internal void [[KERNEL]](ptr {{.+}}[[ARG:%.+]])
-// CK5: [[ADDR:%.+]] = alloca ptr,
-// CK5: store ptr [[ARG]], ptr [[ADDR]],
-// CK5: [[REF:%.+]] = load ptr, ptr [[ADDR]],
-// CK5: {{.+}} = getelementptr inbounds [2 x double], ptr [[REF]], i{{64|32}} 0, i{{64|32}} 0
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK6 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK6
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK6 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK6 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK6
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK6 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK6
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK6 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK6 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK6
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK6 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK6 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_10-_9-_7-_35-_21-_19,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK6 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK6 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_10-_9-_7-_35-_21-_19,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK6 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5,SIMD-ONLY8-_30-_25-_26-_3-_22-_31-_14-_29 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK6 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// SIMD-ONLY8-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5,SIMD-ONLY8-_30-_25-_26-_3-_22-_31-_14-_29 %s
 #ifdef CK6
 
-// CK6-LABEL: @.__omp_offloading_{{.*}}implicit_maps_array{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK6-DAG: [[SIZES:@.+]] = {{.+}}constant [1 x i64] [i64 16]
 // Map types: OMP_MAP_TO | OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 545
-// CK6-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 545]
 
-// CK6-LABEL: implicit_maps_array{{.*}}(
 void implicit_maps_array (int a){
   double darr[2] = {(double)a, (double)a};
 
-  // CK6-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-  // CK6-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-  // CK6-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-  // CK6-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-  // CK6-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-  // CK6-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-  // CK6-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-  // CK6-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-  // CK6-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-  // CK6-DAG: store ptr [[DECL:%[^,]+]], ptr [[BP1]]
-  // CK6-DAG: store ptr [[DECL]], ptr [[P1]]
 
-  // CK6: call void [[KERNEL:@.+]](ptr [[DECL]])
 #pragma omp target defaultmap(to)
   {
     darr[0] += 1.0;
@@ -343,52 +207,30 @@ void implicit_maps_array (int a){
   }
 }
 
-// CK6: define internal void [[KERNEL]](ptr {{.+}}[[ARG:%.+]])
-// CK6: [[ADDR:%.+]] = alloca ptr,
-// CK6: store ptr [[ARG]], ptr [[ADDR]],
-// CK6: [[REF:%.+]] = load ptr, ptr [[ADDR]],
-// CK6: {{.+}} = getelementptr inbounds [2 x double], ptr [[REF]], i{{64|32}} 0, i{{64|32}} 0
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK7 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK7
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK7 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK7 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK7
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK7 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK7
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK7 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK7 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK7
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK7 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK7 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_10-_9-_7-_35-_21-_19,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK7 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK7 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_10-_9-_7-_35-_21-_19,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK7 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5,SIMD-ONLY8-_30-_25-_26-_3-_22-_31-_14-_29 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK7 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// SIMD-ONLY8-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5,SIMD-ONLY8-_30-_25-_26-_3-_22-_31-_14-_29 %s
 #ifdef CK7
 
-// CK7-LABEL: @.__omp_offloading_{{.*}}implicit_maps_array{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK7-DAG: [[SIZES:@.+]] = {{.+}}constant [1 x i64] [i64 16]
 // Map types: OMP_MAP_FROM | OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 546
-// CK7-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 546]
 
-// CK7-LABEL: implicit_maps_array{{.*}}(
 void implicit_maps_array (int a){
   double darr[2] = {(double)a, (double)a};
 
-// CK7-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK7-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK7-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK7-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK7-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK7-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK7-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK7-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK7-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK7-DAG: store ptr [[DECL:%[^,]+]], ptr [[BP1]]
-// CK7-DAG: store ptr [[DECL]], ptr [[P1]]
 
-// CK7: call void [[KERNEL:@.+]](ptr [[DECL]])
 #pragma omp target defaultmap(from \
                               : aggregate)
   {
@@ -397,52 +239,30 @@ void implicit_maps_array (int a){
   }
 }
 
-// CK7: define internal void [[KERNEL]](ptr {{.+}}[[ARG:%.+]])
-// CK7: [[ADDR:%.+]] = alloca ptr,
-// CK7: store ptr [[ARG]], ptr [[ADDR]],
-// CK7: [[REF:%.+]] = load ptr, ptr [[ADDR]],
-// CK7: {{.+}} = getelementptr inbounds [2 x double], ptr [[REF]], i{{64|32}} 0, i{{64|32}} 0
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK8 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK8
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK8 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK8 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK8
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK8 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK8
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK8 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK8 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK8
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK8 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK8 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_10-_9-_7-_35-_21-_19,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK8 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK8 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_10-_9-_7-_35-_21-_19,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK8 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5,SIMD-ONLY8-_30-_25-_26-_3-_22-_31-_14-_29 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK8 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// SIMD-ONLY8-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5,SIMD-ONLY8-_30-_25-_26-_3-_22-_31-_14-_29 %s
 #ifdef CK8
 
-// CK8-LABEL: @.__omp_offloading_{{.*}}implicit_maps_array{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK8-DAG: [[SIZES:@.+]] = {{.+}}constant [1 x i64] [i64 16]
 // Map types: OMP_MAP_TO | OMP_MAP_FROM | OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 547
-// CK8-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 547]
 
-// CK8-LABEL: implicit_maps_array{{.*}}(
 void implicit_maps_array (int a){
   double darr[2] = {(double)a, (double)a};
 
-  // CK8-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-  // CK8-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-  // CK8-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-  // CK8-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-  // CK8-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-  // CK8-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-  // CK8-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-  // CK8-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-  // CK8-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-  // CK8-DAG: store ptr [[DECL:%[^,]+]], ptr [[BP1]]
-  // CK8-DAG: store ptr [[DECL]], ptr [[P1]]
 
-  // CK8: call void [[KERNEL:@.+]](ptr [[DECL]])
 #pragma omp target defaultmap(tofrom)
   {
     darr[0] += 1.0;
@@ -450,56 +270,34 @@ void implicit_maps_array (int a){
   }
 }
 
-// CK8: define internal void [[KERNEL]](ptr {{.+}}[[ARG:%.+]])
-// CK8: [[ADDR:%.+]] = alloca ptr,
-// CK8: store ptr [[ARG]], ptr [[ADDR]],
-// CK8: [[REF:%.+]] = load ptr, ptr [[ADDR]],
-// CK8: {{.+}} = getelementptr inbounds [2 x double], ptr [[REF]], i{{64|32}} 0, i{{64|32}} 0
 #endif
 
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK9 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK9 --check-prefix CK9-64
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK9 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK9,CK9-64,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-CK23
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK9 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK9 --check-prefix CK9-64
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK9 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK9 --check-prefix CK9-32
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK9,CK9-64,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-CK23
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK9 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,CK9,CK9-32,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK9 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK9 --check-prefix CK9-32
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,CK9,CK9-32,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK9 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY26 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK9 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,SIMD-ONLY26,SIMD-ONLY26-_5-_4,SIMD-ONLY26-_5-_4-CK24-64-_2-_3-ONLY18-_12,SIMD-ONLY26-_5-_4-_3-_2-CK24-64-32-ONLY18-_12,SIMD-ONLY26-_5-_4-_3-_2-ONLY18-_9-_10-_11-_13 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK9 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY26 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK9 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY26 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,SIMD-ONLY26,SIMD-ONLY26-_5-_4,SIMD-ONLY26-_5-_4-CK24-64-_2-_3-ONLY18-_12,SIMD-ONLY26-_5-_4-_3-_2-CK24-64-32-ONLY18-_12,SIMD-ONLY26-_5-_4-_3-_2-ONLY18-_9-_10-_11-_13 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK9 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,SIMD-ONLY26,SIMD-ONLY26-_3-_2,SIMD-ONLY26-_3-_2-CK24-32-ONLY18,SIMD-ONLY26-_5-_4-_3-_2-CK24-64-32-ONLY18-_12,SIMD-ONLY26-_5-_4-_3-_2-ONLY18-_9-_10-_11-_13 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK9 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY26 %s
-// SIMD-ONLY26-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,SIMD-ONLY26,SIMD-ONLY26-_3-_2,SIMD-ONLY26-_3-_2-CK24-32-ONLY18,SIMD-ONLY26-_5-_4-_3-_2-CK24-64-32-ONLY18-_12,SIMD-ONLY26-_5-_4-_3-_2-ONLY18-_9-_10-_11-_13 %s
 
 #ifdef CK9
 
 
-// CK9-LABEL: @.__omp_offloading_{{.*}}zero_size_section_and_private_maps{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
-// CK9: [[SIZE09:@.+]] = private {{.*}}constant [1 x i64] [i64 40]
-// CK9: [[MTYPE09:@.+]] = private {{.*}}constant [1 x i64] [i64 673]
 
 
-// CK9-LABEL: zero_size_section_and_private_maps{{.*}}(
 void zero_size_section_and_private_maps (int ii){
   int pvtArr[10];
 
 // Region 09
-// CK9-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK9-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK9-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK9-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK9-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK9-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK9-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK9-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK9-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK9-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK9-DAG: store ptr [[VAR0]], ptr [[P0]]
 
-// CK9: call void [[CALL09:@.+]](ptr {{[^,]+}})
 #pragma omp target defaultmap(firstprivate \
                               : aggregate)
   {
@@ -511,47 +309,30 @@ void zero_size_section_and_private_maps (int ii){
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK10 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK10
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK10 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-CK11-_5-CK12-CK13-_2,CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-CK23
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK10 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK10
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK10 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK10
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-CK11-_5-CK12-CK13-_2,CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-CK23
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK10 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK10-_5-_2-CK11-_3-CK12-_4-CK13,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK10 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK10
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK10-_5-_2-CK11-_3-CK12-_4-CK13,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK10 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK10 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_2-_20-_5-_37-_15-_34-_13-_17,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK10 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK10 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_2-_20-_5-_37-_15-_34-_13-_17,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK10 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27,SIMD-ONLY8-_36-_23-_16-_4-_18-_11-_12-_6-_8-_27 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK10 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// SIMD-ONLY8-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27,SIMD-ONLY8-_36-_23-_16-_4-_18-_11-_12-_6-_8-_27 %s
 #ifdef CK10
 
 
-// CK10-LABEL: @.__omp_offloading_{{.*}}explicit_maps_single{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK10: [[SIZE:@.+]] = private {{.*}}constant [1 x i64] [i64 {{8|4}}]
 // Map types: OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 544
-// CK10: [[MTYPE:@.+]] = private {{.*}}constant [1 x i64] [i64 544]
 
-// CK10-LABEL: explicit_maps_single{{.*}}(
 void explicit_maps_single (){
   int *pa;
 
-// CK10-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK10-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK10-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK10-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK10-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK10-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK10-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK10-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK10-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK10-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK10-DAG: store ptr [[VAR0]], ptr [[P0]]
 
-// CK10: call void [[CALL:@.+]](ptr {{[^,]+}})
 #pragma omp target defaultmap(alloc \
                               : pointer)
   {
@@ -559,50 +340,32 @@ void explicit_maps_single (){
   }
 }
 
-  // CK10: define {{.+}}[[CALL]]
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK11 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK11
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK11 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-CK11-_5-CK12-CK13-_2,CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-CK23
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK11 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK11
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK11 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK11
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-CK11-_5-CK12-CK13-_2,CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-CK23
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK11 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK10-_5-_2-CK11-_3-CK12-_4-CK13,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK11 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK11
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK10-_5-_2-CK11-_3-CK12-_4-CK13,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK11 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK11 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_2-_20-_5-_37-_15-_34-_13-_17,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK11 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK11 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_2-_20-_5-_37-_15-_34-_13-_17,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK11 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27,SIMD-ONLY8-_36-_23-_16-_4-_18-_11-_12-_6-_8-_27 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK11 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// SIMD-ONLY8-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27,SIMD-ONLY8-_36-_23-_16-_4-_18-_11-_12-_6-_8-_27 %s
 #ifdef CK11
 
 
-// CK11-LABEL: @.__omp_offloading_{{.*}}explicit_maps_single{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK11: [[SIZE09:@.+]] = private {{.*}}constant [1 x i64] [i64 {{8|4}}]
 // Map types: OMP_MAP_TO | OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 545
-// CK11: [[MTYPE09:@.+]] = private {{.*}}constant [1 x i64] [i64 545]
 
-// CK11-LABEL: explicit_maps_single{{.*}}(
 void explicit_maps_single (){
   int *pa;
 
-// CK11-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK11-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK11-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK11-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK11-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK11-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK11-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK11-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK11-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK11-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK11-DAG: store ptr [[VAR0]], ptr [[P0]]
 
-// CK11: call void [[CALL09:@.+]](ptr {{[^,]+}})
 #pragma omp target defaultmap(to \
                               : pointer)
   {
@@ -610,50 +373,32 @@ void explicit_maps_single (){
   }
 }
 
-  // CK11: define {{.+}}[[CALL09]]
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK12 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK12
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK12 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-CK11-_5-CK12-CK13-_2,CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-CK23
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK12 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK12
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK12 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK12
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-CK11-_5-CK12-CK13-_2,CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-CK23
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK12 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK10-_5-_2-CK11-_3-CK12-_4-CK13,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK12 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK12
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK10-_5-_2-CK11-_3-CK12-_4-CK13,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK12 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK12 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_2-_20-_5-_37-_15-_34-_13-_17,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK12 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK12 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_2-_20-_5-_37-_15-_34-_13-_17,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK12 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27,SIMD-ONLY8-_36-_23-_16-_4-_18-_11-_12-_6-_8-_27 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK12 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// SIMD-ONLY8-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27,SIMD-ONLY8-_36-_23-_16-_4-_18-_11-_12-_6-_8-_27 %s
 #ifdef CK12
 
 
-// CK12-LABEL: @.__omp_offloading_{{.*}}explicit_maps_single{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK12: [[SIZE09:@.+]] = private {{.*}}constant [1 x i64] [i64 {{8|4}}]
 // Map types: OMP_MAP_FROM | OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 546
-// CK12: [[MTYPE09:@.+]] = private {{.*}}constant [1 x i64] [i64 546]
 
-// CK12-LABEL: explicit_maps_single{{.*}}(
 void explicit_maps_single (){
   int *pa;
 
-// CK12-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK12-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK12-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK12-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK12-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK12-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK12-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK12-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK12-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK12-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK12-DAG: store ptr [[VAR0]], ptr [[P0]]
 
-// CK12: call void [[CALL09:@.+]](ptr {{[^,]+}})
 #pragma omp target defaultmap(from \
                               : pointer)
   {
@@ -661,50 +406,32 @@ void explicit_maps_single (){
   }
 }
 
-  // CK12: define {{.+}}[[CALL09]]
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK13 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK13
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK13 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-CK11-_5-CK12-CK13-_2,CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-CK23
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK13 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK13
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK13 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK13
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-CK11-_5-CK12-CK13-_2,CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-CK23
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK13 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK10-_5-_2-CK11-_3-CK12-_4-CK13,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK13 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK13
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-CK11-CK12-CK13,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK10-_5-_2-CK11-_3-CK12-_4-CK13,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK13 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK13 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_2-_20-_5-_37-_15-_34-_13-_17,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK13 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK13 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_2-_20-_5-_37-_15-_34-_13-_17,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK13 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27,SIMD-ONLY8-_36-_23-_16-_4-_18-_11-_12-_6-_8-_27 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK13 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// SIMD-ONLY8-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27,SIMD-ONLY8-_36-_23-_16-_4-_18-_11-_12-_6-_8-_27 %s
 #ifdef CK13
 
 
-// CK13-LABEL: @.__omp_offloading_{{.*}}explicit_maps_single{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK13: [[SIZE09:@.+]] = private {{.*}}constant [1 x i64] [i64 {{8|4}}]
 // Map types: OMP_MAP_TO | OMP_MAP_FROM | OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 547
-// CK13: [[MTYPE09:@.+]] = private {{.*}}constant [1 x i64] [i64 547]
 
-// CK13-LABEL: explicit_maps_single{{.*}}(
 void explicit_maps_single (){
   int *pa;
 
-// CK13-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK13-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK13-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK13-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK13-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK13-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK13-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK13-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK13-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK13-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK13-DAG: store ptr [[VAR0]], ptr [[P0]]
 
-// CK13: call void [[CALL09:@.+]](ptr {{[^,]+}})
 #pragma omp target defaultmap(tofrom \
                               : pointer)
   {
@@ -712,50 +439,32 @@ void explicit_maps_single (){
   }
 }
 
-  // CK13: define {{.+}}[[CALL09]]
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK14 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK14
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK14 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14,CK14-_2-_4,CK14-_2-_4-CK22-_5-CK23-64-_3,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK14-_2-_4-_3-_5-CK24-64-32,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK14 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK14
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK14 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK14
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14,CK14-_2-_4,CK14-_2-_4-CK22-_5-CK23-64-_3,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK14-_2-_4-_3-_5-CK24-64-32,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK14 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK14-_2-_4-_3-_5-CK24-64-32,CK14-_3-_5,CK14-_3-_5-CK22-_4-CK23-32-_2,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK14 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK14
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK14-_2-_4-_3-_5-CK24-64-32,CK14-_3-_5,CK14-_3-_5-CK22-_4-CK23-32-_2,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK14 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK14 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_2-_20-_5-_37-_15-_34-_13-_17,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK14 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK14 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_2-_20-_5-_37-_15-_34-_13-_17,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK14 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27,SIMD-ONLY8-_36-_23-_16-_4-_18-_11-_12-_6-_8-_27 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK14 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY8 %s
-// SIMD-ONLY8-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27,SIMD-ONLY8-_36-_23-_16-_4-_18-_11-_12-_6-_8-_27 %s
 #ifdef CK14
 
 
-// CK14-LABEL: @.__omp_offloading_{{.*}}explicit_maps_single{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK14: [[SIZE09:@.+]] = private {{.*}}constant [1 x i64] zeroinitializer
 // Map types: OMP_MAP_TARGET_PARAM | OMP_MAP_LITERAL | OMP_MAP_IMPLICIT = 800
-// CK14: [[MTYPE09:@.+]] = private {{.*}}constant [1 x i64] [i64 800]
 
-// CK14-LABEL: explicit_maps_single{{.*}}(
 void explicit_maps_single (){
   int *pa;
 
-// CK14-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK14-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK14-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK14-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK14-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK14-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK14-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK14-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK14-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK14-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK14-DAG: store ptr [[VAR0]], ptr [[P0]]
 
-// CK14: call void [[CALL09:@.+]](ptr {{[^,]+}})
 #pragma omp target defaultmap(firstprivate \
                               : pointer)
   {
@@ -763,68 +472,36 @@ void explicit_maps_single (){
   }
 }
 
-  // CK14: define {{.+}}[[CALL09]]
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK15 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK15
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK15 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK15,CK15-_5-_3,CK15-_5-_3-SIMD-ONLY12-_4,CK15-_5-_3-_2-_4-SIMD-ONLY12,CK4-64-_2-_3-CK15-_5-CK20,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK15 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK15
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK15 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK15
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK15,CK15-_5-_3,CK15-_5-_3-SIMD-ONLY12-_4,CK15-_5-_3-_2-_4-SIMD-ONLY12,CK4-64-_2-_3-CK15-_5-CK20,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK15 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK15,CK15-_2-_4,CK15-_2-_4-SIMD-ONLY12-_3,CK15-_5-_3-_2-_4-SIMD-ONLY12,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK15 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK15
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK15,CK15-_2-_4,CK15-_2-_4-SIMD-ONLY12-_3,CK15-_5-_3-_2-_4-SIMD-ONLY12,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK15 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY12 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK15 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK15-_5-_3-SIMD-ONLY12-_4,CK15-_5-_3-_2-_4-SIMD-ONLY12,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY12,SIMD-ONLY12-_4-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK15 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY12 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK15 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY12 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK15-_5-_3-SIMD-ONLY12-_4,CK15-_5-_3-_2-_4-SIMD-ONLY12,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY12,SIMD-ONLY12-_4-_5 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK15 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK15-_2-_4-SIMD-ONLY12-_3,CK15-_5-_3-_2-_4-SIMD-ONLY12,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY12,SIMD-ONLY12-_2-_3,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK15 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY12 %s
-// SIMD-ONLY12-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK15-_2-_4-SIMD-ONLY12-_3,CK15-_5-_3-_2-_4-SIMD-ONLY12,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY12,SIMD-ONLY12-_2-_3,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21 %s
 #ifdef CK15
 
-// CK15-LABEL: @.__omp_offloading_{{.*}}implicit_maps_variable_length_array{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK15-DAG: [[SIZES:@.+]] = {{.+}}constant [3 x i64] [i64 {{4|8}}, i64 {{4|8}}, i64 0]
 // Map types:
 //  - OMP_MAP_LITERAL + OMP_MAP_TARGET_PARAM + OMP_MAP_IMPLICIT = 800 (vla size)
 //  - OMP_MAP_LITERAL + OMP_MAP_TARGET_PARAM + OMP_MAP_IMPLICIT = 800 (vla size)
 //  - OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 544
-// CK15-DAG: [[TYPES:@.+]] = {{.+}}constant [3 x i64] [i64 800, i64 800, i64 544]
 
-// CK15-LABEL: implicit_maps_variable_length_array{{.*}}(
 void implicit_maps_variable_length_array (int a){
   double vla[2][a];
 
-// CK15-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK15-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK15-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK15-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK15-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK15-DAG: [[SARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 4
-// CK15-DAG: store ptr [[SGEP:%.+]], ptr [[SARG]]
-// CK15-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK15-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK15-DAG: [[SGEP]] = getelementptr inbounds {{.+}}[[SS:%[^,]+]], i32 0, i32 0
 
-// CK15-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK15-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK15-DAG: store i[[sz:64|32]] 2, ptr [[BP0]]
-// CK15-DAG: store i[[sz]] 2, ptr [[P0]]
 
-// CK15-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 1
-// CK15-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 1
-// CK15-DAG: store i[[sz]] [[VAL:%.+]], ptr [[BP1]]
-// CK15-DAG: store i[[sz]] [[VAL]], ptr [[P1]]
 
-// CK15-DAG: [[BP2:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 2
-// CK15-DAG: [[P2:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 2
-// CK15-DAG: [[S2:%.+]] = getelementptr inbounds {{.+}}[[SS]], i32 0, i32 2
-// CK15-DAG: store ptr [[DECL:%.+]], ptr [[BP2]]
-// CK15-DAG: store ptr [[DECL]], ptr [[P2]]
-// CK15-DAG: store i64 [[VALS2:%.+]], ptr [[S2]],
-// CK15-DAG: [[VALS2]] = {{mul nuw i64 %.+, 8|sext i32 %.+ to i64}}
 
-// CK15: call void [[KERNEL:@.+]](i[[sz]] {{.+}}, i[[sz]] {{.+}}, ptr [[DECL]])
 #pragma omp target defaultmap(alloc \
                               : aggregate)
   {
@@ -832,40 +509,24 @@ void implicit_maps_variable_length_array (int a){
   }
 }
 
-// CK15: define internal void [[KERNEL]](i[[sz]] [[VLA0:%.+]], i[[sz]] [[VLA1:%.+]], ptr {{.*}}[[ARG:%.+]])
-// CK15: [[ADDR0:%.+]] = alloca i[[sz]],
-// CK15: [[ADDR1:%.+]] = alloca i[[sz]],
-// CK15: [[ADDR2:%.+]] = alloca ptr,
-// CK15: store i[[sz]] [[VLA0]], ptr [[ADDR0]],
-// CK15: store i[[sz]] [[VLA1]], ptr [[ADDR1]],
-// CK15: store ptr [[ARG]], ptr [[ADDR2]],
-// CK15: {{.+}} = load i[[sz]],  ptr [[ADDR0]],
-// CK15: {{.+}} = load i[[sz]],  ptr [[ADDR1]],
-// CK15: [[REF:%.+]] = load ptr, ptr [[ADDR2]],
-// CK15: {{.+}} = getelementptr inbounds double, ptr [[REF]], i[[sz]] %{{.+}}
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK16 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK16
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK16 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-CK17-_5-CK18-CK19-CK21,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK16 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK16
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK16 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK16
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-CK17-_5-CK18-CK19-CK21,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK16 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK16-_5-_4-CK17-_2-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK16 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK16
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK16-_5-_4-CK17-_2-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK16 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK16 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK16 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK16 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK16 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK16 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
-// SIMD-ONLY16-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
 #ifdef CK16
 
-// CK16-DAG: [[ST:%.+]] = type { i32, double }
-// CK16-LABEL: @.__omp_offloading_{{.*}}implicit_maps_struct{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
-// CK16-DAG: [[SIZES:@.+]] = {{.+}}constant [1 x i64] [i64 {{16|12}}]
 // Map types: OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 544
-// CK16-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 544]
 
 class SSS {
 public:
@@ -873,23 +534,10 @@ public:
   double b;
 };
 
-// CK16-LABEL: implicit_maps_struct{{.*}}(
 void implicit_maps_struct (int a){
   SSS s = {a, (double)a};
 
-// CK16-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK16-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK16-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK16-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK16-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK16-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK16-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK16-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK16-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK16-DAG: store ptr [[DECL:%.+]], ptr [[BP1]]
-// CK16-DAG: store ptr [[DECL]], ptr [[P1]]
 
-// CK16: call void [[KERNEL:@.+]](ptr [[DECL]])
 #pragma omp target defaultmap(alloc \
                               : aggregate)
   {
@@ -898,34 +546,24 @@ void implicit_maps_struct (int a){
   }
 }
 
-// CK16: define internal void [[KERNEL]](ptr {{.+}}[[ARG:%.+]])
-// CK16: [[ADDR:%.+]] = alloca ptr,
-// CK16: store ptr [[ARG]], ptr [[ADDR]],
-// CK16: [[REF:%.+]] = load ptr, ptr [[ADDR]],
-// CK16: {{.+}} = getelementptr inbounds nuw [[ST]], ptr [[REF]], i32 0, i32 0
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK17 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK17
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK17 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-CK17-_5-CK18-CK19-CK21,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK17 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK17
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK17 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK17
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-CK17-_5-CK18-CK19-CK21,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK17 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK16-_5-_4-CK17-_2-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK17 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK17
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK16-_5-_4-CK17-_2-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK17 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK17 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK17 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK17 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK17 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK17 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
-// SIMD-ONLY16-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
 #ifdef CK17
 
-// CK17-DAG: [[ST:%.+]] = type { i32, double }
-// CK17-LABEL: @.__omp_offloading_{{.*}}implicit_maps_struct{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
-// CK17-DAG: [[SIZES:@.+]] = {{.+}}constant [1 x i64] [i64 {{16|12}}]
 // Map types: OMP_MAP_TO | OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 545
-// CK17-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 545]
 
 class SSS {
 public:
@@ -933,23 +571,10 @@ public:
   double b;
 };
 
-// CK17-LABEL: implicit_maps_struct{{.*}}(
 void implicit_maps_struct (int a){
   SSS s = {a, (double)a};
 
-// CK17-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK17-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK17-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK17-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK17-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK17-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK17-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK17-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK17-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK17-DAG: store ptr [[DECL:%.+]], ptr [[BP1]]
-// CK17-DAG: store ptr [[DECL]], ptr [[P1]]
 
-// CK17: call void [[KERNEL:@.+]](ptr [[DECL]])
 #pragma omp target defaultmap(to \
                               : aggregate)
   {
@@ -958,34 +583,24 @@ void implicit_maps_struct (int a){
   }
 }
 
-// CK17: define internal void [[KERNEL]](ptr {{.+}}[[ARG:%.+]])
-// CK17: [[ADDR:%.+]] = alloca ptr,
-// CK17: store ptr [[ARG]], ptr [[ADDR]],
-// CK17: [[REF:%.+]] = load ptr, ptr [[ADDR]],
-// CK17: {{.+}} = getelementptr inbounds nuw [[ST]], ptr [[REF]], i32 0, i32 0
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK18 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK18
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK18 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-CK17-_5-CK18-CK19-CK21,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK18 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK18
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK18 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK18
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-CK17-_5-CK18-CK19-CK21,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK18 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK16-_5-_4-CK17-_2-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK18 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK18
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK16-_5-_4-CK17-_2-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK18 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK18 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK18 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK18 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK18 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK18 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
-// SIMD-ONLY16-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
 #ifdef CK18
 
-// CK18-DAG: [[ST:%.+]] = type { i32, double }
-// CK18-LABEL: @.__omp_offloading_{{.*}}implicit_maps_struct{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
-// CK18-DAG: [[SIZES:@.+]] = {{.+}}constant [1 x i64] [i64 {{16|12}}]
 // Map types: OMP_MAP_FROM | OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 546
-// CK18-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 546]
 
 class SSS {
 public:
@@ -993,23 +608,10 @@ public:
   double b;
 };
 
-// CK18-LABEL: implicit_maps_struct{{.*}}(
 void implicit_maps_struct (int a){
   SSS s = {a, (double)a};
 
-// CK18-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK18-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK18-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK18-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK18-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK18-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK18-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK18-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK18-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK18-DAG: store ptr [[DECL:%.+]], ptr [[BP1]]
-// CK18-DAG: store ptr [[DECL]], ptr [[P1]]
 
-// CK18: call void [[KERNEL:@.+]](ptr [[DECL]])
 #pragma omp target defaultmap(from \
                               : aggregate)
   {
@@ -1018,34 +620,24 @@ void implicit_maps_struct (int a){
   }
 }
 
-// CK18: define internal void [[KERNEL]](ptr {{.+}}[[ARG:%.+]])
-// CK18: [[ADDR:%.+]] = alloca ptr,
-// CK18: store ptr [[ARG]], ptr [[ADDR]],
-// CK18: [[REF:%.+]] = load ptr, ptr [[ADDR]],
-// CK18: {{.+}} = getelementptr inbounds nuw [[ST]], ptr [[REF]], i32 0, i32 0
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK19 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK19
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK19 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-CK17-_5-CK18-CK19-CK21,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK19 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK19
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK19 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK19
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-CK17-_5-CK18-CK19-CK21,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK19 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK16-_5-_4-CK17-_2-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK19 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK19
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK16-_5-_4-CK17-_2-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK19 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK19 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK19 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK19 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK19 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK19 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
-// SIMD-ONLY16-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
 #ifdef CK19
 
-// CK19-DAG: [[ST:%.+]] = type { i32, double }
-// CK19-LABEL: @.__omp_offloading_{{.*}}implicit_maps_struct{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
-// CK19-DAG: [[SIZES:@.+]] = {{.+}}constant [1 x i64] [i64 {{16|12}}]
 // Map types: OMP_MAP_TO | OMP_MAP_FROM | OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 547
-// CK19-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 547]
 
 class SSS {
 public:
@@ -1053,23 +645,10 @@ public:
   double b;
 };
 
-// CK19-LABEL: implicit_maps_struct{{.*}}(
 void implicit_maps_struct (int a){
   SSS s = {a, (double)a};
 
-// CK19-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK19-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK19-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK19-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK19-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK19-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK19-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK19-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK19-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK19-DAG: store ptr [[DECL:%.+]], ptr [[BP1]]
-// CK19-DAG: store ptr [[DECL]], ptr [[P1]]
 
-// CK19: call void [[KERNEL:@.+]](ptr [[DECL]])
 #pragma omp target defaultmap(tofrom \
                               : aggregate)
   {
@@ -1078,64 +657,37 @@ void implicit_maps_struct (int a){
   }
 }
 
-// CK19: define internal void [[KERNEL]](ptr {{.+}}[[ARG:%.+]])
-// CK19: [[ADDR:%.+]] = alloca ptr,
-// CK19: store ptr [[ARG]], ptr [[ADDR]],
-// CK19: [[REF:%.+]] = load ptr, ptr [[ADDR]],
-// CK19: {{.+}} = getelementptr inbounds nuw [[ST]], ptr [[REF]], i32 0, i32 0
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK20 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK20 --check-prefix CK20-64
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK20 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK4-64-_2-_3-CK15-_5-CK20,CK4-64-_2-_3-CK20,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK20 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK20  --check-prefix CK20-64
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK20 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK20  --check-prefix CK20-32
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK4-64-_2-_3-CK15-_5-CK20,CK4-64-_2-_3-CK20,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK20 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64,CK4-32-_3-_2-CK20
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK20 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK20  --check-prefix CK20-32
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64,CK4-32-_3-_2-CK20
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK20 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY6 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK20 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY6 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK20 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY6 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK20 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY6 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY6 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK20 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY6,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK20 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY6 %s
-// SIMD-ONLY6-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY6,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21 %s
 #ifdef CK20
 
 // For a 32-bit targets, the value doesn't fit the size of the pointer,
 // therefore it is passed by reference with a map 'to' specification.
 
-// CK20-LABEL: @.__omp_offloading_{{.*}}implicit_maps_double{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK20-DAG: [[SIZES:@.+]] = {{.+}}constant [1 x i64] [i64 8]
 // Map types: OMP_MAP_LITERAL | OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 800
-// CK20-64-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 800]
 // Map types: OMP_MAP_TO | OMP_MAP_PRIVATE | OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 673
-// CK20-32-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 673]
 
-// CK20-LABEL: implicit_maps_double{{.*}}(
 void implicit_maps_double (int a){
   double d = (double)a;
 
-// CK20-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK20-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK20-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK20-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK20-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK20-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK20-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK20-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK20-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
 
-// CK20-64-DAG: store i[[sz:64|32]] [[VAL:%[^,]+]], ptr [[BP1]]
-// CK20-64-DAG: store i[[sz]] [[VAL]], ptr [[P1]]
-// CK20-64-DAG: [[VAL]] = load i[[sz]], ptr [[ADDR:%.+]],
 // CK20-64-64-DAG: store double {{.+}}, ptr [[ADDR]],
 
-// CK20-32-DAG: store ptr [[DECL:%[^,]+]], ptr [[BP1]]
-// CK20-32-DAG: store ptr [[DECL]], ptr [[P1]]
 
-// CK20-64: call void [[KERNEL:@.+]](i[[sz]] [[VAL]])
-// CK20-32: call void [[KERNEL:@.+]](ptr [[DECL]])
 #pragma omp target defaultmap(default \
                               : scalar)
   {
@@ -1143,40 +695,26 @@ void implicit_maps_double (int a){
   }
 }
 
-// CK20-64: define internal void [[KERNEL]](i[[sz]] [[ARG:%.+]])
-// CK20-64: [[ADDR:%.+]] = alloca i[[sz]],
-// CK20-64: store i[[sz]] [[ARG]], ptr [[ADDR]],
-// CK20-64: {{.+}} = load double, ptr [[ADDR]],
 
-// CK20-32: define internal void [[KERNEL]](ptr {{.+}}[[ARG:%.+]])
-// CK20-32: [[ADDR:%.+]] = alloca ptr,
-// CK20-32: store ptr [[ARG]], ptr [[ADDR]],
-// CK20-32: [[REF:%.+]] = load ptr, ptr [[ADDR]],
-// CK20-32: {{.+}} = load double, ptr [[REF]],
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK21 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK21
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK21 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-CK17-_5-CK18-CK19-CK21,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK21 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK21
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK21 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK21
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-CK17-_5-CK18-CK19-CK21,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK21 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK16-_5-_4-CK17-_2-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK21 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK21
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21,CK16-_5-_4-CK17-_2-CK18-CK19-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21,CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21,SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK21 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK21 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK21 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK21 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK21 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK21 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY16 %s
-// SIMD-ONLY16-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20,SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16,SIMD-ONLY16,SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5 %s
 #ifdef CK21
 
-// CK21-DAG: [[ST:%.+]] = type { i32, double }
-// CK21-LABEL: @.__omp_offloading_{{.*}}implicit_maps_struct{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
-// CK21-DAG: [[SIZES:@.+]] = {{.+}}constant [1 x i64] [i64 {{16|12}}]
 // Map types: OMP_MAP_TO + OMP_MAP_FROM + OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 547
-// CK21-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 547]
 
 class SSS {
 public:
@@ -1184,23 +722,10 @@ public:
   double b;
 };
 
-// CK21-LABEL: implicit_maps_struct{{.*}}(
 void implicit_maps_struct (int a){
   SSS s = {a, (double)a};
 
-// CK21-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK21-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK21-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK21-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK21-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK21-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK21-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK21-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK21-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK21-DAG: store ptr [[DECL:%.+]], ptr [[BP1]]
-// CK21-DAG: store ptr [[DECL]], ptr [[P1]]
 
-// CK21: call void [[KERNEL:@.+]](ptr [[DECL]])
 #pragma omp target defaultmap(default \
                               : aggregate)
   {
@@ -1209,52 +734,30 @@ void implicit_maps_struct (int a){
   }
 }
 
-// CK21: define internal void [[KERNEL]](ptr {{.+}}[[ARG:%.+]])
-// CK21: [[ADDR:%.+]] = alloca ptr,
-// CK21: store ptr [[ARG]], ptr [[ADDR]],
-// CK21: [[REF:%.+]] = load ptr, ptr [[ADDR]],
-// CK21: {{.+}} = getelementptr inbounds nuw [[ST]], ptr [[REF]], i32 0, i32 0
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK22 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK22
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK22 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-CK22-_5-CK23-64-_3,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK22,CK22-_5-_2,CK22-_5-_2-_4-_3-SIMD-ONLY9,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK22 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK22
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK22 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK22
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-CK22-_5-CK23-64-_3,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK22,CK22-_5-_2,CK22-_5-_2-_4-_3-SIMD-ONLY9,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK22 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK14-_3-_5-CK22-_4-CK23-32-_2,CK22,CK22-_4-_3,CK22-_5-_2-_4-_3-SIMD-ONLY9,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK22 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK22
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK14-_3-_5-CK22-_4-CK23-32-_2,CK22,CK22-_4-_3,CK22-_5-_2-_4-_3-SIMD-ONLY9,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK22 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY9 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK22 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK22-_5-_2-_4-_3-SIMD-ONLY9,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5,SIMD-ONLY9,SIMD-ONLY9-_4-_5 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK22 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY9 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK22 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY9 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK22-_5-_2-_4-_3-SIMD-ONLY9,SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5,SIMD-ONLY9,SIMD-ONLY9-_4-_5 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK22 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK22-_5-_2-_4-_3-SIMD-ONLY9,SIMD-ONLY9,SIMD-ONLY9-_2-_3 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK22 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY9 %s
-// SIMD-ONLY9-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK22-_5-_2-_4-_3-SIMD-ONLY9,SIMD-ONLY9,SIMD-ONLY9-_2-_3 %s
 #ifdef CK22
 
-// CK22-LABEL: @.__omp_offloading_{{.*}}implicit_maps_pointer{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
-// CK22-DAG: [[SIZES:@.+]] = {{.+}}constant [1 x i64] zeroinitializer
 // Map types: OMP_MAP_TARGET_PARAM | OMP_MAP_IMPLICIT = 544
-// CK22-DAG: [[TYPES:@.+]] = {{.+}}constant [1 x i64] [i64 544]
 
-// CK22-LABEL: implicit_maps_pointer{{.*}}(
 void implicit_maps_pointer (){
   double *ddyn;
 
-// CK22-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK22-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK22-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK22-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK22-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK22-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK22-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK22-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK22-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK22-DAG: store ptr [[PTR:%[^,]+]], ptr [[BP1]]
-// CK22-DAG: store ptr [[PTR]], ptr [[P1]]
 
-// CK22: call void [[KERNEL:@.+]](ptr [[PTR]])
 #pragma omp target defaultmap(default \
                               : pointer)
   {
@@ -1263,205 +766,82 @@ void implicit_maps_pointer (){
   }
 }
 
-// CK22: define internal void [[KERNEL]](ptr {{.*}}[[ARG:%.+]])
-// CK22: [[ADDR:%.+]] = alloca ptr,
-// CK22: store ptr [[ARG]], ptr [[ADDR]],
-// CK22: [[REF:%.+]] = load ptr, ptr [[ADDR]],
-// CK22: {{.+}} = getelementptr inbounds double, ptr [[REF]], i{{64|32}} 0
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK23 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK23 --check-prefix CK23-64
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK23 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK14-_2-_4-CK22-_5-CK23-64-_3,CK23,CK23-64,CK23-64-_3-_2-32-CK24,CK23-64-_3-_2-32-SIMD-ONLY0-_5-_4,CK23-64-_3-_2-CK24,CK23-64-_3-_2-SIMD-ONLY0-_5,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-CK23
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK23 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck %s  --check-prefix CK23 --check-prefix CK23-64
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK23 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK23 --check-prefix CK23-32
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK14-_2-_4-CK22-_5-CK23-64-_3,CK23,CK23-64,CK23-64-_3-_2-32-CK24,CK23-64-_3-_2-32-SIMD-ONLY0-_5-_4,CK23-64-_3-_2-CK24,CK23-64-_3-_2-SIMD-ONLY0-_5,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-CK23
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK23 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK14-_3-_5-CK22-_4-CK23-32-_2,CK23,CK23-32,CK23-32-_3-_2-CK24,CK23-32-_3-_2-SIMD-ONLY0-_4,CK23-64-_3-_2-32-CK24,CK23-64-_3-_2-32-SIMD-ONLY0-_5-_4,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK23 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck %s  --check-prefix CK23 --check-prefix CK23-32
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK14-_3-_5-CK22-_4-CK23-32-_2,CK23,CK23-32,CK23-32-_3-_2-CK24,CK23-32-_3-_2-SIMD-ONLY0-_4,CK23-64-_3-_2-32-CK24,CK23-64-_3-_2-32-SIMD-ONLY0-_5-_4,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK23 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK23 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK23-64-_3-_2-32-SIMD-ONLY0-_5-_4,CK23-64-_3-_2-SIMD-ONLY0-_5,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY0,SIMD-ONLY0-_5-_2 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK23 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK23 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY0 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK23-64-_3-_2-32-SIMD-ONLY0-_5-_4,CK23-64-_3-_2-SIMD-ONLY0-_5,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY0,SIMD-ONLY0-_5-_2 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK23 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK23-32-_3-_2-SIMD-ONLY0-_4,CK23-64-_3-_2-32-SIMD-ONLY0-_5-_4,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY0,SIMD-ONLY0-_4-_3 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK23 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY0 %s
-// SIMD-ONLY0-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK23-32-_3-_2-SIMD-ONLY0-_4,CK23-64-_3-_2-32-SIMD-ONLY0-_5-_4,CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY0,SIMD-ONLY0-_4-_3 %s
 #ifdef CK23
 
 double *g;
 
-// CK23: @g ={{.*}} global ptr
-// CK23: [[SIZES00:@.+]] = {{.+}}constant [1 x i[[sz:64|32]]] [i{{64|32}} {{8|4}}]
-// CK23: [[TYPES00:@.+]] = {{.+}}constant [1 x i64] [i64 288]
 
-// CK23: [[SIZES01:@.+]] = {{.+}}constant [1 x i[[sz]]] [i[[sz]] {{8|4}}]
-// CK23: [[TYPES01:@.+]] = {{.+}}constant [1 x i64] [i64 288]
 
-// CK23: [[SIZES02:@.+]] = {{.+}}constant [1 x i[[sz]]] [i[[sz]] {{8|4}}]
-// CK23: [[TYPES02:@.+]] = {{.+}}constant [1 x i64] [i64 288]
 
-// CK23: [[SIZES03:@.+]] = {{.+}}constant [1 x i[[sz]]] [i[[sz]] {{8|4}}]
-// CK23: [[TYPES03:@.+]] = {{.+}}constant [1 x i64] [i64 288]
 
-// CK23: [[SIZES04:@.+]] = {{.+}}constant [1 x i[[sz]]] [i[[sz]] {{8|4}}]
-// CK23: [[TYPES04:@.+]] = {{.+}}constant [1 x i64] [i64 288]
 
-// CK23: [[SIZES05:@.+]] = {{.+}}constant [1 x i[[sz]]] [i[[sz]] {{8|4}}]
-// CK23: [[TYPES05:@.+]] = {{.+}}constant [1 x i64] [i64 288]
 
-// CK23: [[SIZES06:@.+]] = {{.+}}constant [2 x i[[sz]]] [i[[sz]] {{8|4}}, i[[sz]] {{8|4}}]
-// CK23: [[TYPES06:@.+]] = {{.+}}constant [2 x i64] [i64 288, i64 288]
 
-// CK23-LABEL: @_Z3foo{{.*}}(
 template<typename T>
 void foo(float *&lr, T *&tr) {
   float *l;
   T *t;
 
-// CK23-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK23-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK23-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK23-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK23-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK23-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK23-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK23-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK23-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK23-DAG: store ptr [[VAL:%.+]], ptr [[BP1]]
-// CK23-DAG: store ptr [[VAL]], ptr [[P1]]
-// CK23-DAG: [[VAL]] = load ptr, ptr [[ADDR:@g]],
 
-// CK23: call void [[KERNEL:@.+]](ptr [[VAL]])
 #pragma omp target is_device_ptr(g) defaultmap(none \
                                                : pointer)
   {
     ++g;
   }
 
-// CK23-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK23-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK23-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK23-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK23-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK23-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK23-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK23-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK23-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK23-DAG: store ptr [[VAL:%.+]], ptr [[BP1]]
-// CK23-DAG: store ptr [[VAL]], ptr [[P1]]
-// CK23-DAG: [[VAL]] = load ptr, ptr [[ADDR:%.+]],
 
-// CK23: call void [[KERNEL:@.+]](ptr [[VAL]])
 #pragma omp target is_device_ptr(l) defaultmap(none \
                                                : pointer)
   {
     ++l;
   }
 
-// CK23-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK23-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK23-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK23-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK23-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK23-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK23-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK23-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK23-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK23-DAG: store ptr [[VAL:%.+]], ptr [[BP1]]
-// CK23-DAG: store ptr [[VAL]], ptr [[P1]]
-// CK23-DAG: [[VAL]] = load ptr, ptr [[ADDR:%.+]],
 
-// CK23: call void [[KERNEL:@.+]](ptr [[VAL]])
 #pragma omp target is_device_ptr(t) defaultmap(none \
                                                : pointer)
   {
     ++t;
   }
 
-// CK23-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK23-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK23-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK23-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK23-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK23-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK23-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK23-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK23-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK23-DAG: store ptr [[VAL:%.+]], ptr [[BP1]]
-// CK23-DAG: store ptr [[VAL]], ptr [[P1]]
-// CK23-DAG: [[VAL]] = load ptr, ptr [[ADDR:%.+]],
-// CK23-DAG: [[ADDR]] = load ptr, ptr [[ADDR2:%.+]],
 
-// CK23: call void [[KERNEL:@.+]](ptr [[VAL]])
 #pragma omp target is_device_ptr(lr) defaultmap(none \
                                                 : pointer)
   {
     ++lr;
   }
 
-// CK23-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK23-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK23-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK23-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK23-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK23-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK23-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK23-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK23-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK23-DAG: store ptr [[VAL:%.+]], ptr [[BP1]]
-// CK23-DAG: store ptr [[VAL]], ptr [[P1]]
-// CK23-DAG: [[VAL]] = load ptr, ptr [[ADDR:%.+]],
-// CK23-DAG: [[ADDR]] = load ptr, ptr [[ADDR2:%.+]],
 
-// CK23: call void [[KERNEL:@.+]](ptr [[VAL]])
 #pragma omp target is_device_ptr(tr) defaultmap(none \
                                                 : pointer)
   {
     ++tr;
   }
 
-// CK23-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK23-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK23-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK23-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK23-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK23-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK23-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK23-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK23-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK23-DAG: store ptr [[VAL:%.+]], ptr [[BP1]]
-// CK23-DAG: store ptr [[VAL]], ptr [[P1]]
-// CK23-DAG: [[VAL]] = load ptr, ptr [[ADDR:%.+]],
-// CK23-DAG: [[ADDR]] = load ptr, ptr [[ADDR2:%.+]],
 
-// CK23: call void [[KERNEL:@.+]](ptr [[VAL]])
 #pragma omp target is_device_ptr(tr, lr) defaultmap(none \
                                                     : pointer)
   {
     ++tr;
   }
 
-// CK23-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK23-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK23-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK23-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK23-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK23-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-// CK23-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-// CK23-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 0
-// CK23-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 0
-// CK23-DAG: store ptr [[VAL:%.+]], ptr [[BP1]]
-// CK23-DAG: store ptr [[VAL]], ptr [[P1]]
-// CK23-DAG: [[VAL]] = load ptr, ptr [[ADDR:%.+]],
-// CK23-DAG: [[ADDR]] = load ptr, ptr [[ADDR2:%.+]],
 
-// CK23-DAG: [[_BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 1
-// CK23-DAG: [[_P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 1
-// CK23-DAG: store ptr [[_VAL:%.+]], ptr [[_BP1]]
-// CK23-DAG: store ptr [[_VAL]], ptr [[_P1]]
-// CK23-DAG: [[_VAL]] = load ptr, ptr [[_ADDR:%.+]],
-// CK23-DAG: [[_ADDR]] = load ptr, ptr [[_ADDR2:%.+]],
 
-// CK23: call void [[KERNEL:@.+]](ptr [[VAL]], ptr [[_VAL]])
 #pragma omp target is_device_ptr(tr, lr) defaultmap(none \
                                                     : pointer)
   {
@@ -1475,51 +855,31 @@ void bar(float *&a, int *&b) {
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK24 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK24 --check-prefix CK24-64
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK24 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-_3-_5-CK24-64-32,CK23-64-_3-_2-32-CK24,CK23-64-_3-_2-CK24,CK24,CK24-64,CK24-64-_2-_3-32-SIMD-ONLY18-_12-_4,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64,SIMD-ONLY26-_5-_4-CK24-64-_2-_3-ONLY18-_12,SIMD-ONLY26-_5-_4-_3-_2-CK24-64-32-ONLY18-_12
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK24 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK24 --check-prefix CK24-64
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK24 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK24 --check-prefix CK24-32
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24,CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-_3-_5-CK24-64-32,CK23-64-_3-_2-32-CK24,CK23-64-_3-_2-CK24,CK24,CK24-64,CK24-64-_2-_3-32-SIMD-ONLY18-_12-_4,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64,SIMD-ONLY26-_5-_4-CK24-64-_2-_3-ONLY18-_12,SIMD-ONLY26-_5-_4-_3-_2-CK24-64-32-ONLY18-_12
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK24 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-_3-_5-CK24-64-32,CK23-32-_3-_2-CK24,CK23-64-_3-_2-32-CK24,CK24,CK24-32,CK24-64-_2-_3-32-SIMD-ONLY18-_12-_4,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64,SIMD-ONLY26-_3-_2-CK24-32-ONLY18,SIMD-ONLY26-_5-_4-_3-_2-CK24-64-32-ONLY18-_12
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK24 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK24 --check-prefix CK24-32
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-_3-_5-CK24-64-32,CK23-32-_3-_2-CK24,CK23-64-_3-_2-32-CK24,CK24,CK24-32,CK24-64-_2-_3-32-SIMD-ONLY18-_12-_4,CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64,SIMD-ONLY26-_3-_2-CK24-32-ONLY18,SIMD-ONLY26-_5-_4-_3-_2-CK24-64-32-ONLY18-_12
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK24 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY18 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK24 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK24-64-_2-_3-32-SIMD-ONLY18-_12-_4,SIMD-ONLY18-_12-_4-_2-_3,SIMD-ONLY26-_5-_4-CK24-64-_2-_3-ONLY18-_12,SIMD-ONLY26-_5-_4-_3-_2-CK24-64-32-ONLY18-_12 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK24 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY18 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK24 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY18 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK24-64-_2-_3-32-SIMD-ONLY18-_12-_4,SIMD-ONLY18-_12-_4-_2-_3,SIMD-ONLY26-_5-_4-CK24-64-_2-_3-ONLY18-_12,SIMD-ONLY26-_5-_4-_3-_2-CK24-64-32-ONLY18-_12 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK24 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK24-64-_2-_3-32-SIMD-ONLY18-_12-_4,SIMD-ONLY18-_12-_4-_2-_3,SIMD-ONLY26-_3-_2-CK24-32-ONLY18,SIMD-ONLY26-_5-_4-_3-_2-CK24-64-32-ONLY18-_12 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK24 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY18 %s
-// SIMD-ONLY18-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK24-64-_2-_3-32-SIMD-ONLY18-_12-_4,SIMD-ONLY18-_12-_4-_2-_3,SIMD-ONLY26-_3-_2-CK24-32-ONLY18,SIMD-ONLY26-_5-_4-_3-_2-CK24-64-32-ONLY18-_12 %s
 #ifdef CK24
 
-// CK24-LABEL: @.__omp_offloading_{{.*}}explicit_maps_single{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
-// CK24: [[SIZE00:@.+]] = private {{.*}}constant [1 x i[[Z:64|32]]] [i[[Z:64|32]] 4]
-// CK24: [[MTYPE00:@.+]] = private {{.*}}constant [1 x i64] [i64 1059]
 
-// CK24-LABEL: @.__omp_offloading_{{.*}}explicit_maps_single{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
-// CK24: [[SIZE01:@.+]] = private {{.*}}constant [1 x i[[Z:64|32]]] [i[[Z:64|32]] 4]
-// CK24: [[MTYPE01:@.+]] = private {{.*}}constant [1 x i64] [i64 1063]
 
-// CK24-LABEL: explicit_maps_single{{.*}}(
 void explicit_maps_single (int ii){
   // Map of a scalar.
   int a = ii;
 
 // Close.
 // Region 00
-// CK24-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK24-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK24-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK24-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK24-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK24-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK24-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK24-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK24-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK24-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK24-DAG: store ptr [[VAR0]], ptr [[P0]]
 
-// CK24: call void [[CALL00:@.+]](ptr {{[^,]+}})
 #pragma omp target map(close, tofrom        \
                        : a) defaultmap(none \
                                        : scalar)
@@ -1529,20 +889,8 @@ void explicit_maps_single (int ii){
 
 // Always Close.
 // Region 01
-// CK24-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK24-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK24-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK24-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK24-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK24-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK24-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK24-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK24-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK24-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK24-DAG: store ptr [[VAR0]], ptr [[P0]]
 
-// CK24: call void [[CALL01:@.+]](ptr {{[^,]+}})
 #pragma omp target map(always close tofrom  \
                        : a) defaultmap(none \
                                        : scalar)
@@ -1550,38 +898,30 @@ void explicit_maps_single (int ii){
    a++;
   }
 }
-// CK24: define {{.+}}[[CALL00]]
-// CK24: define {{.+}}[[CALL01]]
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK25 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK25 --check-prefix CK25-64
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK25 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK25,CK25-64,CK25-64-_2-_3-32-CK26,CK25-64-_2-_3-32-SIMD-ONLY18-_9-_10-_11-_13,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK25 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK25 --check-prefix CK25-64
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK25 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK25 --check-prefix CK25-32
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK25,CK25-64,CK25-64-_2-_3-32-CK26,CK25-64-_2-_3-32-SIMD-ONLY18-_9-_10-_11-_13,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK25 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK25,CK25-32,CK25-64-_2-_3-32-CK26,CK25-64-_2-_3-32-SIMD-ONLY18-_9-_10-_11-_13,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK25 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK25 --check-prefix CK25-32
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK25,CK25-32,CK25-64-_2-_3-32-CK26,CK25-64-_2-_3-32-SIMD-ONLY18-_9-_10-_11-_13,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK25 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY18 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK25 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK25-64-_2-_3-32-SIMD-ONLY18-_9-_10-_11-_13,SIMD-ONLY18-_9-_10-_11-_13,SIMD-ONLY26-_5-_4-_3-_2-ONLY18-_9-_10-_11-_13 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK25 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY18 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK25 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY18 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK25-64-_2-_3-32-SIMD-ONLY18-_9-_10-_11-_13,SIMD-ONLY18-_9-_10-_11-_13,SIMD-ONLY26-_5-_4-_3-_2-ONLY18-_9-_10-_11-_13 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK25 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK25-64-_2-_3-32-SIMD-ONLY18-_9-_10-_11-_13,SIMD-ONLY18-_9-_10-_11-_13,SIMD-ONLY26-_5-_4-_3-_2-ONLY18-_9-_10-_11-_13 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK25 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY18 %s
-// SIMD-ONLY18-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK25-64-_2-_3-32-SIMD-ONLY18-_9-_10-_11-_13,SIMD-ONLY18-_9-_10-_11-_13,SIMD-ONLY26-_5-_4-_3-_2-ONLY18-_9-_10-_11-_13 %s
 #ifdef CK25
 
 extern int x;
 #pragma omp declare target to(x)
 
-// CK25-LABEL: @.__omp_offloading_{{.*}}declare_target_to{{.*}}_l{{[0-9]+}}.region_id = weak{{.*}} constant i8 0
 
 void declare_target_to()
 {
-  // CK25: [[C:%.+]] = load i32, ptr @x
-  // CK25: [[INC:%.+]] = add nsw i32 [[C]], 1
-  // CK25: store i32 [[INC]], ptr @x
-  // CK25: ret void
   #pragma omp target defaultmap(none : scalar)
   {
     x++;
@@ -1590,25 +930,22 @@ void declare_target_to()
 
 #endif
 ///==========================================================================///
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK26 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK26 --check-prefix CK26-64
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK26 -verify -Wno-vla  -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK25-64-_2-_3-32-CK26,CK26,CK26-64,CK26-64-_2-_3-32-SIMD-ONLY18-_5-_6-_7-_8,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK26 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK26 --check-prefix CK26-64
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK26 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK26 --check-prefix CK26-32
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK25-64-_2-_3-32-CK26,CK26,CK26-64,CK26-64-_2-_3-32-SIMD-ONLY18-_5-_6-_7-_8,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK26 -verify -Wno-vla  -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK25-64-_2-_3-32-CK26,CK26,CK26-32,CK26-64-_2-_3-32-SIMD-ONLY18-_5-_6-_7-_8,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK26 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK26 --check-prefix CK26-32
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK23-CK24-ONLY18-CK25-CK26,CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26,CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32,CK25-64-_2-_3-32-CK26,CK26,CK26-32,CK26-64-_2-_3-32-SIMD-ONLY18-_5-_6-_7-_8,CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26
 
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK26 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY18 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK26 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK26-64-_2-_3-32-SIMD-ONLY18-_5-_6-_7-_8,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY18-_5-_6,SIMD-ONLY18-_5-_6-_7-_8 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK26 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY18 %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK26 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY18 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK26-64-_2-_3-32-SIMD-ONLY18-_5-_6-_7-_8,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY18-_5-_6,SIMD-ONLY18-_5-_6-_7-_8 %s
+// RUN: %clang_cc1 -no-enable-noundef-analysis -DCK26 -verify -Wno-vla  -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK26-64-_2-_3-32-SIMD-ONLY18-_5-_6-_7-_8,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY18-_5-_6-_7-_8,SIMD-ONLY18-_7-_8 %s
 // RUN: %clang_cc1 -no-enable-noundef-analysis -DCK26 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY18 %s
-// SIMD-ONLY18-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -no-enable-noundef-analysis -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify -Wno-vla  %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-CK5-CK6-CK7-CK8-CK9-64-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-ONLY0-CK24-ONLY18,CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7,CK26-64-_2-_3-32-SIMD-ONLY18-_5-_6-_7-_8,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18,CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2,SIMD-ONLY18-_5-_6-_7-_8,SIMD-ONLY18-_7-_8 %s
 #ifdef CK26
 
-// CK26-DAG: [[SIZES:@.+]] = {{.+}}constant [3 x i64] [i64 4, i64 4096, i64 {{.+}}]
 // Map types: OMP_MAP_TO | OMP_MAP_FROM | OMP_MAP_PTR_AND_OBJ | OMP_MAP_IMPLICIT = 531
-// CK26-DAG: [[TYPES:@.+]] = {{.+}}constant [3 x i64] [i64 531, i64 531, i64 531]
 
 float Vector[1024];
 #pragma omp declare target link(Vector)
@@ -1624,17 +961,6 @@ void declare_target_link()
 #pragma omp target defaultmap(none:scalar) defaultmap(none:aggregate) defaultmap(none:pointer)
   {
 
-    // CK26-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-    // CK26-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-    // CK26-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-    // CK26-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-    // CK26-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-    // CK26-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BPS:%[^,]+]], i32 0, i32 0
-    // CK26-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[PS:%[^,]+]], i32 0, i32 0
-    // CK26-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BPS]], i32 0, i32 2
-    // CK26-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[PS]], i32 0, i32 2
-    // CK26-DAG: store ptr @ptr_decl_tgt_ref_ptr, ptr [[BP1]]
-    // CK26-DAG: store ptr @ptr, ptr [[P1]]
 
     Vector[a]++;
     ptr++;
@@ -1643,3 +969,1542 @@ void declare_target_link()
 
 #endif
 #endif
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-LABEL: define dso_local void @_Z19implicit_maps_arrayi(
+// CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21-LABEL: define dso_local void @_Z20implicit_maps_structi(
+// CK23-64-_3-_2-32-SIMD-ONLY0-_5-_4-LABEL: define dso_local void @_Z3barRPfRPi(
+// CK23-64-_3-_2-SIMD-ONLY0-_5-SAME: ptr nonnull align 8 dereferenceable(8) [[A:%.*]], ptr nonnull align 8 dereferenceable(8) [[B:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK23-32-_3-_2-SIMD-ONLY0-_4-SAME: ptr nonnull align 4 dereferenceable(4) [[A:%.*]], ptr nonnull align 4 dereferenceable(4) [[B:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK15-_5-_3-_2-_4-SIMD-ONLY12-LABEL: define dso_local void @_Z35implicit_maps_variable_length_arrayi(
+// CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5-LABEL: define dso_local void @_Z20implicit_maps_doublei(
+// CK4-64-_2-_3-SIMD-ONLY6-_9-_8-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-SAME: i32 signext [[A:%.*]]) #[[ATTR0:[0-9]+]] {
+// SIMD-ONLY6-_6-_2-CK5-_3-CK6-_4-CK7-_5-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK21-SAME: i32 [[A:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK26-64-_2-_3-32-SIMD-ONLY18-_5-_6-_7-_8-LABEL: define dso_local void @_Z19declare_target_linkv(
+// SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-LABEL: define dso_local void @_Z19implicit_maps_arrayi(
+// CK24-64-_2-_3-32-SIMD-ONLY18-_12-_4-LABEL: define dso_local void @_Z20explicit_maps_singlei(
+// CK9-LABEL: define dso_local void @_Z34zero_size_section_and_private_mapsi(
+// CK9-32-SAME: i32 [[II:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK9-64-SAME: i32 signext [[II:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-LABEL: define dso_local void @_Z20explicit_maps_singlev(
+// CK25-64-_2-_3-32-SIMD-ONLY18-_9-_10-_11-_13-LABEL: define dso_local void @_Z17declare_target_tov(
+// CK10-_3-_4-_5-_2-SIMD-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_6-_13-_17-_8-_27-CK25-64-32-ONLY18-_9-_10-_7-SAME: ) #[[ATTR0:[0-9]+]] {
+// SIMD-ONLY26-LABEL: define dso_local void @_Z34zero_size_section_and_private_mapsi(
+// SIMD-ONLY26-_5-_4-CK24-64-_2-_3-ONLY18-_12-SAME: i32 signext [[II:%.*]]) #[[ATTR0:[0-9]+]] {
+// SIMD-ONLY26-_3-_2-CK24-32-ONLY18-SAME: i32 [[II:%.*]]) #[[ATTR0:[0-9]+]] {
+// SIMD-ONLY16-LABEL: define dso_local void @_Z20implicit_maps_structi(
+// CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK9-32-CK10-ONLY8-_32-_33-_36-_23-CK11-_20-_16-CK12-_37-_18-_11-CK13-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-ONLY0-CK25-ONLY18-NEXT:  [[ENTRY:.*:]]
+// CK9-NEXT:    [[II_ADDR:%.*]] = alloca i32, align 4
+// CK9-NEXT:    [[PVTARR:%.*]] = alloca [10 x i32], align 4
+// CK10-_5-_2-CK11-_3-CK12-_4-CK13-NEXT:    [[PA:%.*]] = alloca ptr, align 4
+// CK23-64-_3-_2-SIMD-ONLY0-_5-NEXT:    [[A_ADDR:%.*]] = alloca ptr, align 8
+// CK23-64-_3-_2-SIMD-ONLY0-_5-NEXT:    [[B_ADDR:%.*]] = alloca ptr, align 8
+// CK23-64-_3-_2-SIMD-ONLY0-_5-NEXT:    store ptr [[A]], ptr [[A_ADDR]], align 8
+// CK23-64-_3-_2-SIMD-ONLY0-_5-NEXT:    store ptr [[B]], ptr [[B_ADDR]], align 8
+// CK23-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[A_ADDR]], align 8, !nonnull [[META17:![0-9]+]], !align [[META18:![0-9]+]]
+// CK23-64-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[B_ADDR]], align 8, !nonnull [[META17]], !align [[META18]]
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[A_ADDR]], align 8, !nonnull [[META2:![0-9]+]], !align [[META3:![0-9]+]]
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[B_ADDR]], align 8, !nonnull [[META2]], !align [[META3]]
+// CK23-64-_3-_2-SIMD-ONLY0-_5-NEXT:    call void @_Z3fooIiEvRPfRPT_(ptr nonnull align 8 dereferenceable(8) [[TMP0]], ptr nonnull align 8 dereferenceable(8) [[TMP1]])
+// CK23-32-_3-_2-SIMD-ONLY0-_4-NEXT:    [[A_ADDR:%.*]] = alloca ptr, align 4
+// CK23-32-_3-_2-SIMD-ONLY0-_4-NEXT:    [[B_ADDR:%.*]] = alloca ptr, align 4
+// CK23-32-_3-_2-SIMD-ONLY0-_4-NEXT:    store ptr [[A]], ptr [[A_ADDR]], align 4
+// CK23-32-_3-_2-SIMD-ONLY0-_4-NEXT:    store ptr [[B]], ptr [[B_ADDR]], align 4
+// CK23-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[A_ADDR]], align 4, !nonnull [[META18:![0-9]+]], !align [[META19:![0-9]+]]
+// CK23-32-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[B_ADDR]], align 4, !nonnull [[META18]], !align [[META19]]
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[A_ADDR]], align 4, !nonnull [[META3:![0-9]+]], !align [[META4:![0-9]+]]
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[B_ADDR]], align 4, !nonnull [[META3]], !align [[META4]]
+// CK23-32-_3-_2-SIMD-ONLY0-_4-NEXT:    call void @_Z3fooIiEvRPfRPT_(ptr nonnull align 4 dereferenceable(4) [[TMP0]], ptr nonnull align 4 dereferenceable(4) [[TMP1]])
+// CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-NEXT:    [[A_ADDR:%.*]] = alloca i32, align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-NEXT:    [[DARR:%.*]] = alloca [2 x double], align 8
+// CK16-_3-_2-CK17-_5-CK18-CK19-CK21-NEXT:    [[S:%.*]] = alloca [[CLASS_SSS:%.*]], align 8
+// CK15-_5-_3-NEXT:    [[SAVED_STACK:%.*]] = alloca ptr, align 8
+// CK15-_5-_3-NEXT:    [[__VLA_EXPR0:%.*]] = alloca i64, align 8
+// CK15-_5-_3-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [3 x ptr], align 8
+// CK15-_5-_3-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [3 x ptr], align 8
+// CK15-_5-_3-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [3 x ptr], align 8
+// CK15-_5-_3-NEXT:    [[DOTOFFLOAD_SIZES:%.*]] = alloca [3 x i64], align 8
+// CK15-_2-_4-SIMD-ONLY12-_3-NEXT:    [[SAVED_STACK:%.*]] = alloca ptr, align 4
+// CK15-_2-_4-SIMD-ONLY12-_3-NEXT:    [[__VLA_EXPR0:%.*]] = alloca i32, align 4
+// SIMD-ONLY12-_4-_5-NEXT:    [[SAVED_STACK:%.*]] = alloca ptr, align 8
+// SIMD-ONLY12-_4-_5-NEXT:    [[__VLA_EXPR0:%.*]] = alloca i64, align 8
+// CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5-NEXT:    [[D:%.*]] = alloca double, align 8
+// CK4-64-_2-_3-CK20-NEXT:    [[D_CASTED:%.*]] = alloca i64, align 8
+// CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 8
+// CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 8
+// CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 8
+// CK16-_5-_4-CK17-_2-CK18-CK19-CK21-NEXT:    [[S:%.*]] = alloca [[CLASS_SSS:%.*]], align 4
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 4
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 4
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK9-32-CK10-CK11-CK12-CK13-CK16-CK17-CK18-CK19-CK21-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 4
+// CK15-_2-_4-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [3 x ptr], align 4
+// CK15-_2-_4-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [3 x ptr], align 4
+// CK15-_2-_4-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [3 x ptr], align 4
+// CK15-_2-_4-NEXT:    [[DOTOFFLOAD_SIZES:%.*]] = alloca [3 x i64], align 4
+// CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-NEXT:    [[KERNEL_ARGS:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS:%.*]], align 8
+// CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-NEXT:    store i32 [[A]], ptr [[A_ADDR]], align 4
+// CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21-NEXT:    [[A1:%.*]] = getelementptr inbounds nuw [[CLASS_SSS]], ptr [[S]], i32 0, i32 0
+// CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-NEXT:    [[TMP0:%.*]] = load i32, ptr [[A_ADDR]], align 4
+// SIMD-ONLY12-_2-_3-NEXT:    [[TMP1:%.*]] = call ptr @llvm.stacksave.p0()
+// SIMD-ONLY12-_2-_3-NEXT:    store ptr [[TMP1]], ptr [[SAVED_STACK]], align 4
+// SIMD-ONLY12-_2-_3-NEXT:    [[TMP2:%.*]] = mul nuw i32 2, [[TMP0]]
+// SIMD-ONLY12-_2-_3-NEXT:    [[VLA:%.*]] = alloca double, i32 [[TMP2]], align 8
+// SIMD-ONLY12-_2-_3-NEXT:    store i32 [[TMP0]], ptr [[__VLA_EXPR0]], align 4
+// SIMD-ONLY12-_2-_3-NEXT:    [[TMP3:%.*]] = mul nsw i32 1, [[TMP0]]
+// SIMD-ONLY12-_2-_3-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds double, ptr [[VLA]], i32 [[TMP3]]
+// SIMD-ONLY12-_2-_3-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds double, ptr [[ARRAYIDX]], i32 3
+// SIMD-ONLY12-_2-_3-NEXT:    [[TMP4:%.*]] = load double, ptr [[ARRAYIDX1]], align 8
+// SIMD-ONLY12-_2-_3-NEXT:    [[ADD:%.*]] = fadd double [[TMP4]], 1.000000e+00
+// CK15-_5-_3-SIMD-ONLY12-_4-NEXT:    [[TMP1:%.*]] = zext i32 [[TMP0]] to i64
+// CK15-_5-_3-SIMD-ONLY12-_4-NEXT:    [[TMP2:%.*]] = call ptr @llvm.stacksave.p0()
+// CK15-_5-_3-SIMD-ONLY12-_4-NEXT:    store ptr [[TMP2]], ptr [[SAVED_STACK]], align 8
+// CK15-_5-_3-SIMD-ONLY12-_4-NEXT:    [[TMP3:%.*]] = mul nuw i64 2, [[TMP1]]
+// CK15-_5-_3-SIMD-ONLY12-_4-NEXT:    [[VLA:%.*]] = alloca double, i64 [[TMP3]], align 8
+// CK15-_5-_3-SIMD-ONLY12-_4-NEXT:    store i64 [[TMP1]], ptr [[__VLA_EXPR0]], align 8
+// SIMD-ONLY12-_4-_5-NEXT:    [[TMP4:%.*]] = mul nsw i64 1, [[TMP1]]
+// SIMD-ONLY12-_4-_5-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds double, ptr [[VLA]], i64 [[TMP4]]
+// SIMD-ONLY12-_4-_5-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds double, ptr [[ARRAYIDX]], i64 3
+// SIMD-ONLY12-_4-_5-NEXT:    [[TMP5:%.*]] = load double, ptr [[ARRAYIDX1]], align 8
+// SIMD-ONLY12-_4-_5-NEXT:    [[ADD:%.*]] = fadd double [[TMP5]], 1.000000e+00
+// SIMD-ONLY12-NEXT:    store double [[ADD]], ptr [[ARRAYIDX1]], align 8
+// SIMD-ONLY12-_2-_3-NEXT:    [[TMP5:%.*]] = load ptr, ptr [[SAVED_STACK]], align 4
+// SIMD-ONLY12-_2-_3-NEXT:    call void @llvm.stackrestore.p0(ptr [[TMP5]])
+// SIMD-ONLY18-_5-_6-_7-_8-NEXT:    [[TMP0:%.*]] = load i32, ptr @a, align 4
+// SIMD-ONLY18-_5-_6-NEXT:    [[IDXPROM:%.*]] = sext i32 [[TMP0]] to i64
+// SIMD-ONLY18-_5-_6-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [1024 x float], ptr @Vector, i64 0, i64 [[IDXPROM]]
+// SIMD-ONLY18-_7-_8-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [1024 x float], ptr @Vector, i32 0, i32 [[TMP0]]
+// SIMD-ONLY18-_5-_6-_7-_8-NEXT:    [[TMP1:%.*]] = load float, ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY18-_5-_6-_7-_8-NEXT:    [[INC:%.*]] = fadd float [[TMP1]], 1.000000e+00
+// SIMD-ONLY18-_5-_6-_7-_8-NEXT:    store float [[INC]], ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY18-_5-_6-NEXT:    [[TMP2:%.*]] = load ptr, ptr @ptr, align 8
+// SIMD-ONLY18-_7-_8-NEXT:    [[TMP2:%.*]] = load ptr, ptr @ptr, align 4
+// SIMD-ONLY18-_5-_6-_7-_8-NEXT:    [[INCDEC_PTR:%.*]] = getelementptr inbounds nuw double, ptr [[TMP2]], i32 1
+// SIMD-ONLY18-_5-_6-NEXT:    store ptr [[INCDEC_PTR]], ptr @ptr, align 8
+// SIMD-ONLY18-_7-_8-NEXT:    store ptr [[INCDEC_PTR]], ptr @ptr, align 4
+// SIMD-ONLY12-_4-_5-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[SAVED_STACK]], align 8
+// SIMD-ONLY12-_4-_5-NEXT:    call void @llvm.stackrestore.p0(ptr [[TMP6]])
+// CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-CK20-_7-NEXT:    [[CONV:%.*]] = sitofp i32 [[TMP0]] to double
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-NEXT:    store double [[CONV]], ptr [[DARR]], align 8
+// CK5-_2-_4-_5-CK6-_3-CK7-CK8-NEXT:    [[ARRAYINIT_ELEMENT:%.*]] = getelementptr inbounds double, ptr [[DARR]], i64 1
+// CK16-_3-_2-CK17-_5-CK18-CK19-CK21-NEXT:    store i32 [[TMP0]], ptr [[A1]], align 8
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-NEXT:    [[ARRAYINIT_ELEMENT:%.*]] = getelementptr inbounds double, ptr [[DARR]], i32 1
+// CK16-_5-_4-CK17-_2-CK18-CK19-CK21-NEXT:    store i32 [[TMP0]], ptr [[A1]], align 4
+// CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21-NEXT:    [[B:%.*]] = getelementptr inbounds nuw [[CLASS_SSS]], ptr [[S]], i32 0, i32 1
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP1:%.*]] = load i32, ptr [[A_ADDR]], align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-NEXT:    [[CONV1:%.*]] = sitofp i32 [[TMP1]] to double
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-NEXT:    store double [[CONV1]], ptr [[ARRAYINIT_ELEMENT]], align 8
+// CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21-NEXT:    [[CONV:%.*]] = sitofp i32 [[TMP1]] to double
+// CK16-_3-_2-CK17-_5-CK18-CK19-CK21-NEXT:    store double [[CONV]], ptr [[B]], align 8
+// CK16-_5-_4-CK17-_2-CK18-CK19-CK21-NEXT:    store double [[CONV]], ptr [[B]], align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP2:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK5-_2-_4-_5-CK6-_3-CK7-CK8-NEXT:    store ptr [[DARR]], ptr [[TMP2]], align 8
+// CK16-_3-_2-CK17-_5-CK18-CK19-CK21-NEXT:    store ptr [[S]], ptr [[TMP2]], align 8
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-NEXT:    store ptr [[DARR]], ptr [[TMP2]], align 4
+// CK16-_5-_4-CK17-_2-CK18-CK19-CK21-NEXT:    store ptr [[S]], ptr [[TMP2]], align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK5-_2-_4-_5-CK6-_3-CK7-CK8-NEXT:    store ptr [[DARR]], ptr [[TMP3]], align 8
+// CK16-_3-_2-CK17-_5-CK18-CK19-CK21-NEXT:    store ptr [[S]], ptr [[TMP3]], align 8
+// CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store ptr null, ptr [[TMP4]], align 8
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-NEXT:    store ptr [[DARR]], ptr [[TMP3]], align 4
+// CK16-_5-_4-CK17-_2-CK18-CK19-CK21-NEXT:    store ptr [[S]], ptr [[TMP3]], align 4
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store ptr null, ptr [[TMP4]], align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP7:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 0
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store i32 3, ptr [[TMP7]], align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP8:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 1
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store i32 1, ptr [[TMP8]], align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP9:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 2
+// CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store ptr [[TMP5]], ptr [[TMP9]], align 8
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store ptr [[TMP5]], ptr [[TMP9]], align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP10:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 3
+// CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5-NEXT:    store double [[CONV]], ptr [[D]], align 8
+// CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK20-_7-_4-_5-NEXT:    [[TMP1:%.*]] = load double, ptr [[D]], align 8
+// CK4-64-_2-_3-CK20-NEXT:    store double [[TMP1]], ptr [[D_CASTED]], align 8
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP2:%.*]] = load i64, ptr [[D_CASTED]], align 8
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK4-64-_2-_3-CK20-NEXT:    store i64 [[TMP2]], ptr [[TMP3]], align 8
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK4-64-_2-_3-CK20-NEXT:    store i64 [[TMP2]], ptr [[TMP4]], align 8
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK4-64-_2-_3-CK20-NEXT:    store ptr null, ptr [[TMP5]], align 8
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP8:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 0
+// CK4-64-_2-_3-CK20-NEXT:    store i32 3, ptr [[TMP8]], align 4
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP9:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 1
+// CK4-64-_2-_3-CK20-NEXT:    store i32 1, ptr [[TMP9]], align 4
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP10:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 2
+// CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21-NEXT:    store ptr [[TMP6]], ptr [[TMP10]], align 8
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store ptr [[TMP6]], ptr [[TMP10]], align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP11:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 4
+// CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store ptr @.offload_sizes, ptr [[TMP11]], align 8
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store ptr @.offload_sizes, ptr [[TMP11]], align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP12:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 5
+// CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store ptr @.offload_maptypes, ptr [[TMP12]], align 8
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store ptr @.offload_maptypes, ptr [[TMP12]], align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP13:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 6
+// CK5-_2-_4-_5-CK6-_3-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store ptr null, ptr [[TMP13]], align 8
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store ptr null, ptr [[TMP13]], align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP14:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 7
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP11:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 3
+// CK4-64-_2-_3-CK20-NEXT:    store ptr [[TMP7]], ptr [[TMP11]], align 8
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP12:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 4
+// CK4-64-_2-_3-CK20-NEXT:    store ptr @.offload_sizes, ptr [[TMP12]], align 8
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP13:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 5
+// CK4-64-_2-_3-CK20-NEXT:    store ptr @.offload_maptypes, ptr [[TMP13]], align 8
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP14:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 6
+// CK4-64-_2-_3-CK5-_4-_5-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21-NEXT:    store ptr null, ptr [[TMP14]], align 8
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store ptr null, ptr [[TMP14]], align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP15:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 8
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store i64 0, ptr [[TMP15]], align 8
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP16:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 9
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP15:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 7
+// CK15-_5-_3-NEXT:    [[TMP4:%.*]] = mul nuw i64 2, [[TMP1]]
+// CK15-_5-_3-NEXT:    [[TMP5:%.*]] = mul nuw i64 [[TMP4]], 8
+// CK15-_5-_3-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 8 [[DOTOFFLOAD_SIZES]], ptr align 8 @.offload_sizes, i64 24, i1 false)
+// CK15-_2-_4-NEXT:    [[TMP1:%.*]] = call ptr @llvm.stacksave.p0()
+// CK15-_2-_4-NEXT:    store ptr [[TMP1]], ptr [[SAVED_STACK]], align 4
+// CK15-_2-_4-NEXT:    [[TMP2:%.*]] = mul nuw i32 2, [[TMP0]]
+// CK15-_2-_4-NEXT:    [[VLA:%.*]] = alloca double, i32 [[TMP2]], align 8
+// CK15-_2-_4-NEXT:    store i32 [[TMP0]], ptr [[__VLA_EXPR0]], align 4
+// CK15-_2-_4-NEXT:    [[TMP3:%.*]] = mul nuw i32 2, [[TMP0]]
+// CK15-_2-_4-NEXT:    [[TMP4:%.*]] = mul nuw i32 [[TMP3]], 8
+// CK15-_2-_4-NEXT:    [[TMP5:%.*]] = sext i32 [[TMP4]] to i64
+// CK15-_2-_4-NEXT:    call void @llvm.memcpy.p0.p0.i32(ptr align 4 [[DOTOFFLOAD_SIZES]], ptr align 4 @.offload_sizes, i32 24, i1 false)
+// CK15-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK15-_5-_3-NEXT:    store i64 2, ptr [[TMP6]], align 8
+// CK15-_2-_4-NEXT:    store i32 2, ptr [[TMP6]], align 4
+// CK15-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK15-_5-_3-NEXT:    store i64 2, ptr [[TMP7]], align 8
+// CK15-_5-_3-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK15-_5-_3-NEXT:    store ptr null, ptr [[TMP8]], align 8
+// CK15-_2-_4-NEXT:    store i32 2, ptr [[TMP7]], align 4
+// CK15-_2-_4-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK15-_2-_4-NEXT:    store ptr null, ptr [[TMP8]], align 4
+// CK15-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 1
+// CK15-_5-_3-NEXT:    store i64 [[TMP1]], ptr [[TMP9]], align 8
+// CK15-_2-_4-NEXT:    store i32 [[TMP0]], ptr [[TMP9]], align 4
+// CK15-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 1
+// CK15-_5-_3-NEXT:    store i64 [[TMP1]], ptr [[TMP10]], align 8
+// CK15-_5-_3-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 1
+// CK15-_5-_3-NEXT:    store ptr null, ptr [[TMP11]], align 8
+// CK15-_2-_4-NEXT:    store i32 [[TMP0]], ptr [[TMP10]], align 4
+// CK15-_2-_4-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 1
+// CK15-_2-_4-NEXT:    store ptr null, ptr [[TMP11]], align 4
+// CK15-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 2
+// CK15-_5-_3-NEXT:    store ptr [[VLA]], ptr [[TMP12]], align 8
+// CK15-_2-_4-NEXT:    store ptr [[VLA]], ptr [[TMP12]], align 4
+// CK15-NEXT:    [[TMP13:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 2
+// CK15-_5-_3-NEXT:    store ptr [[VLA]], ptr [[TMP13]], align 8
+// CK15-_2-_4-NEXT:    store ptr [[VLA]], ptr [[TMP13]], align 4
+// CK15-NEXT:    [[TMP14:%.*]] = getelementptr inbounds [3 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 2
+// CK15-_5-_3-NEXT:    store i64 [[TMP5]], ptr [[TMP14]], align 8
+// CK15-_5-_3-NEXT:    [[TMP15:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 2
+// CK4-64-_2-_3-CK15-_5-CK20-NEXT:    store ptr null, ptr [[TMP15]], align 8
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP16:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 8
+// CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK20-CK21-NEXT:    store i64 0, ptr [[TMP16]], align 8
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP17:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 10
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP17]], align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP18:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 11
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP18]], align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP19:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 12
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    store i32 0, ptr [[TMP19]], align 4
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-NEXT:    [[TMP20:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z19implicit_maps_arrayi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21-NEXT:    [[TMP20:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20implicit_maps_structi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    [[TMP21:%.*]] = icmp ne i32 [[TMP20]], 0
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-CK16-CK17-CK18-CK19-CK21-NEXT:    br i1 [[TMP21]], label %[[OMP_OFFLOAD_FAILED:.*]], label %[[OMP_OFFLOAD_CONT:.*]]
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP17:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 9
+// CK4-64-_2-_3-CK20-NEXT:    store i64 0, ptr [[TMP17]], align 8
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP18:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 10
+// CK4-64-_2-_3-CK20-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP18]], align 4
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP19:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 11
+// CK4-64-_2-_3-CK20-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP19]], align 4
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP20:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 12
+// CK4-64-_2-_3-CK20-NEXT:    store i32 0, ptr [[TMP20]], align 4
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP21:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20implicit_maps_doublei_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP22:%.*]] = icmp ne i32 [[TMP21]], 0
+// CK4-64-_2-_3-CK20-NEXT:    br i1 [[TMP22]], label %[[OMP_OFFLOAD_FAILED:.*]], label %[[OMP_OFFLOAD_CONT:.*]]
+// CK15-_2-_4-NEXT:    store i64 [[TMP5]], ptr [[TMP14]], align 4
+// CK15-_2-_4-NEXT:    [[TMP15:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 2
+// CK15-_2-_4-NEXT:    store ptr null, ptr [[TMP15]], align 4
+// CK15-NEXT:    [[TMP16:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK15-NEXT:    [[TMP17:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK15-NEXT:    [[TMP18:%.*]] = getelementptr inbounds [3 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK15-NEXT:    [[TMP19:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 0
+// CK15-NEXT:    store i32 3, ptr [[TMP19]], align 4
+// CK15-NEXT:    [[TMP20:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 1
+// CK15-NEXT:    store i32 3, ptr [[TMP20]], align 4
+// CK15-NEXT:    [[TMP21:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 2
+// CK15-_5-_3-NEXT:    store ptr [[TMP16]], ptr [[TMP21]], align 8
+// CK15-_2-_4-NEXT:    store ptr [[TMP16]], ptr [[TMP21]], align 4
+// CK15-NEXT:    [[TMP22:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 3
+// CK15-_5-_3-NEXT:    store ptr [[TMP17]], ptr [[TMP22]], align 8
+// CK15-_2-_4-NEXT:    store ptr [[TMP17]], ptr [[TMP22]], align 4
+// CK15-NEXT:    [[TMP23:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 4
+// CK15-_5-_3-NEXT:    store ptr [[TMP18]], ptr [[TMP23]], align 8
+// CK15-_2-_4-NEXT:    store ptr [[TMP18]], ptr [[TMP23]], align 4
+// CK15-NEXT:    [[TMP24:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 5
+// CK15-_5-_3-NEXT:    store ptr @.offload_maptypes, ptr [[TMP24]], align 8
+// CK15-_2-_4-NEXT:    store ptr @.offload_maptypes, ptr [[TMP24]], align 4
+// CK15-NEXT:    [[TMP25:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 6
+// CK15-_5-_3-NEXT:    store ptr null, ptr [[TMP25]], align 8
+// CK15-_2-_4-NEXT:    store ptr null, ptr [[TMP25]], align 4
+// CK15-NEXT:    [[TMP26:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 7
+// CK15-_5-_3-NEXT:    store ptr null, ptr [[TMP26]], align 8
+// CK15-_2-_4-NEXT:    store ptr null, ptr [[TMP26]], align 4
+// CK15-NEXT:    [[TMP27:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 8
+// CK15-NEXT:    store i64 0, ptr [[TMP27]], align 8
+// CK15-NEXT:    [[TMP28:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 9
+// CK15-NEXT:    store i64 0, ptr [[TMP28]], align 8
+// CK15-NEXT:    [[TMP29:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 10
+// CK15-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP29]], align 4
+// CK15-NEXT:    [[TMP30:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 11
+// CK15-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP30]], align 4
+// CK15-NEXT:    [[TMP31:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 12
+// CK15-NEXT:    store i32 0, ptr [[TMP31]], align 4
+// CK15-NEXT:    [[TMP32:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z35implicit_maps_variable_length_arrayi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK15-NEXT:    [[TMP33:%.*]] = icmp ne i32 [[TMP32]], 0
+// CK15-NEXT:    br i1 [[TMP33]], label %[[OMP_OFFLOAD_FAILED:.*]], label %[[OMP_OFFLOAD_CONT:.*]]
+// CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21:       [[OMP_OFFLOAD_FAILED]]:
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z19implicit_maps_arrayi_l[0-9]+}}(ptr [[DARR]]) #[[ATTR2:[0-9]+]]
+// CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20implicit_maps_structi_l[0-9]+}}(ptr [[S]]) #[[ATTR2:[0-9]+]]
+// CK4-64-_2-_3-CK20-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20implicit_maps_doublei_l[0-9]+}}(i64 [[TMP2]]) #[[ATTR2:[0-9]+]]
+// CK15-_5-_3-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z35implicit_maps_variable_length_arrayi_l[0-9]+}}(i64 2, i64 [[TMP1]], ptr [[VLA]]) #[[ATTR4:[0-9]+]]
+// CK15-_2-_4-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z35implicit_maps_variable_length_arrayi_l[0-9]+}}(i32 2, i32 [[TMP0]], ptr [[VLA]]) #[[ATTR4:[0-9]+]]
+// CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-NEXT:    br label %[[OMP_OFFLOAD_CONT]]
+// CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21:       [[OMP_OFFLOAD_CONT]]:
+// SIMD-ONLY6-NEXT:    [[ADD:%.*]] = fadd double [[TMP1]], 1.000000e+00
+// SIMD-ONLY6-NEXT:    store double [[ADD]], ptr [[D]], align 8
+// CK10-_3-_4-SIMD-ONLY8-_32-_33-CK11-_5-_2-_20-CK12-_37-CK13-_15-_34-_13-_17-NEXT:    [[PA:%.*]] = alloca ptr, align 8
+// SIMD-ONLY8-_32-_33-_2-_20-_5-_37-_15-_34-_13-_17-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PA]], align 8
+// SIMD-ONLY8-_32-_33-_2-_20-_5-_37-_15-_34-_13-_17-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds i32, ptr [[TMP0]], i64 50
+// SIMD-ONLY8-_36-_23-_16-_4-_18-_11-_12-_6-_8-_27-NEXT:    [[PA:%.*]] = alloca ptr, align 4
+// SIMD-ONLY8-_36-_23-_16-_4-_18-_11-_12-_6-_8-_27-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PA]], align 4
+// SIMD-ONLY8-_36-_23-_16-_4-_18-_11-_12-_6-_8-_27-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds i32, ptr [[TMP0]], i32 50
+// SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27-NEXT:    [[TMP1:%.*]] = load i32, ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP1]], 1
+// SIMD-ONLY8-_32-_33-_36-_23-_2-_20-_16-_4-_5-_37-_18-_11-_15-_34-_12-_6-_13-_17-_8-_27-NEXT:    store i32 [[INC]], ptr [[ARRAYIDX]], align 4
+// CK15-_5-_3-NEXT:    [[TMP34:%.*]] = load ptr, ptr [[SAVED_STACK]], align 8
+// CK15-_2-_4-NEXT:    [[TMP34:%.*]] = load ptr, ptr [[SAVED_STACK]], align 4
+// CK15-NEXT:    call void @llvm.stackrestore.p0(ptr [[TMP34]])
+// CK4-64-_2-_3-SIMD-ONLY6-_9-_8-_6-CK5-_4-_5-CK6-CK7-CK8-ONLY8-_32-_33-_36-_23-_20-_16-_37-_18-_11-_15-_34-_12-_13-_17-_27-CK15-ONLY12-CK16-CK17-CK18-CK19-CK20-_7-CK21-CK23-32-ONLY0-ONLY18-_2-NEXT:    ret void
+//
+//
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-LABEL: define internal void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z19implicit_maps_arrayi_l[0-9]+}}(
+// CK5-_2-_4-_5-CK6-_3-CK7-CK8-SAME: ptr nonnull align 8 dereferenceable(16) [[DARR:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-SAME: ptr nonnull align 4 dereferenceable(16) [[DARR:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21-LABEL: define internal void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20implicit_maps_structi_l[0-9]+}}(
+// CK16-_3-_2-CK17-_5-CK18-CK19-CK21-SAME: ptr nonnull align 8 dereferenceable(16) [[S:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK16-_5-_4-CK17-_2-CK18-CK19-CK21-SAME: ptr nonnull align 4 dereferenceable(12) [[S:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK4-64-_2-_3-CK20-LABEL: define internal void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20implicit_maps_doublei_l[0-9]+}}(
+// CK4-64-_2-_3-CK20-SAME: i64 [[D:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK23-64-_3-_2-32-SIMD-ONLY0-_5-_4-LABEL: define linkonce_odr void @_Z3fooIiEvRPfRPT_(
+// CK23-64-_3-_2-SIMD-ONLY0-_5-SAME: ptr nonnull align 8 dereferenceable(8) [[LR:%.*]], ptr nonnull align 8 dereferenceable(8) [[TR:%.*]]) #[[ATTR0]] comdat {
+// CK23-32-_3-_2-SIMD-ONLY0-_4-SAME: ptr nonnull align 4 dereferenceable(4) [[LR:%.*]], ptr nonnull align 4 dereferenceable(4) [[TR:%.*]]) #[[ATTR0]] comdat {
+// CK15-LABEL: define internal void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z35implicit_maps_variable_length_arrayi_l[0-9]+}}(
+// CK15-_5-_3-SAME: i64 [[VLA:%.*]], i64 [[VLA1:%.*]], ptr nonnull align 8 dereferenceable(8) [[VLA3:%.*]]) #[[ATTR2:[0-9]+]] {
+// CK15-_2-_4-SAME: i32 [[VLA:%.*]], i32 [[VLA1:%.*]], ptr nonnull align 4 dereferenceable(8) [[VLA3:%.*]]) #[[ATTR2:[0-9]+]] {
+// CK4-64-_2-_3-CK5-_4-_5-_6-CK6-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK23-32-SIMD-ONLY0-NEXT:  [[ENTRY:.*:]]
+// CK5-_2-_4-_5-CK6-_3-CK7-CK8-NEXT:    [[DARR_ADDR:%.*]] = alloca ptr, align 8
+// CK5-_2-_4-_5-CK6-_3-CK7-CK8-NEXT:    store ptr [[DARR]], ptr [[DARR_ADDR]], align 8
+// CK5-_2-_4-_5-CK6-_3-CK7-CK8-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[DARR_ADDR]], align 8, !nonnull [[META5:![0-9]+]], !align [[META6:![0-9]+]]
+// CK5-_2-_4-_5-CK6-_3-CK7-CK8-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [2 x double], ptr [[TMP0]], i64 0, i64 0
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-NEXT:    [[DARR_ADDR:%.*]] = alloca ptr, align 4
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-NEXT:    store ptr [[DARR]], ptr [[DARR_ADDR]], align 4
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[DARR_ADDR]], align 4, !nonnull [[META6:![0-9]+]], !align [[META7:![0-9]+]]
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [2 x double], ptr [[TMP0]], i32 0, i32 0
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-NEXT:    [[TMP1:%.*]] = load double, ptr [[ARRAYIDX]], align 8
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-NEXT:    [[ADD:%.*]] = fadd double [[TMP1]], 1.000000e+00
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-NEXT:    store double [[ADD]], ptr [[ARRAYIDX]], align 8
+// CK5-_2-_4-_5-CK6-_3-CK7-CK8-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds [2 x double], ptr [[TMP0]], i64 0, i64 1
+// CK5-_6-_3-CK6-_2-_4-CK7-_5-CK8-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds [2 x double], ptr [[TMP0]], i32 0, i32 1
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-NEXT:    [[TMP2:%.*]] = load double, ptr [[ARRAYIDX1]], align 8
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-NEXT:    [[ADD2:%.*]] = fadd double [[TMP2]], 1.000000e+00
+// CK5-_2-_4-_5-_6-_3-CK6-CK7-CK8-NEXT:    store double [[ADD2]], ptr [[ARRAYIDX1]], align 8
+// CK16-_3-_2-CK17-_5-CK18-CK19-CK21-NEXT:    [[S_ADDR:%.*]] = alloca ptr, align 8
+// CK16-_3-_2-CK17-_5-CK18-CK19-CK21-NEXT:    store ptr [[S]], ptr [[S_ADDR]], align 8
+// CK16-_3-_2-CK17-_5-CK18-CK19-CK21-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[S_ADDR]], align 8, !nonnull [[META5:![0-9]+]], !align [[META6:![0-9]+]]
+// CK16-_5-_4-CK17-_2-CK18-CK19-CK21-NEXT:    [[S_ADDR:%.*]] = alloca ptr, align 4
+// CK16-_5-_4-CK17-_2-CK18-CK19-CK21-NEXT:    store ptr [[S]], ptr [[S_ADDR]], align 4
+// CK16-_5-_4-CK17-_2-CK18-CK19-CK21-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[S_ADDR]], align 4, !nonnull [[META6:![0-9]+]], !align [[META7:![0-9]+]]
+// CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21-NEXT:    [[A:%.*]] = getelementptr inbounds nuw [[CLASS_SSS:%.*]], ptr [[TMP0]], i32 0, i32 0
+// CK16-_3-_2-CK17-_5-CK18-CK19-CK21-NEXT:    [[TMP1:%.*]] = load i32, ptr [[A]], align 8
+// CK16-_5-_4-CK17-_2-CK18-CK19-CK21-NEXT:    [[TMP1:%.*]] = load i32, ptr [[A]], align 4
+// CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21-NEXT:    [[ADD:%.*]] = add nsw i32 [[TMP1]], 1
+// CK16-_3-_2-CK17-_5-CK18-CK19-CK21-NEXT:    store i32 [[ADD]], ptr [[A]], align 8
+// CK16-_5-_4-CK17-_2-CK18-CK19-CK21-NEXT:    store i32 [[ADD]], ptr [[A]], align 4
+// CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21-NEXT:    [[B:%.*]] = getelementptr inbounds nuw [[CLASS_SSS]], ptr [[TMP0]], i32 0, i32 1
+// CK16-_3-_2-CK17-_5-CK18-CK19-CK21-NEXT:    [[TMP2:%.*]] = load double, ptr [[B]], align 8
+// CK16-_5-_4-CK17-_2-CK18-CK19-CK21-NEXT:    [[TMP2:%.*]] = load double, ptr [[B]], align 4
+// CK16-_3-_2-_5-_4-CK17-CK18-CK19-CK21-NEXT:    [[ADD1:%.*]] = fadd double [[TMP2]], 1.000000e+00
+// CK16-_3-_2-CK17-_5-CK18-CK19-CK21-NEXT:    store double [[ADD1]], ptr [[B]], align 8
+// CK16-_5-_4-CK17-_2-CK18-CK19-CK21-NEXT:    store double [[ADD1]], ptr [[B]], align 4
+// CK4-64-_2-_3-CK20-NEXT:    [[D_ADDR:%.*]] = alloca i64, align 8
+// CK4-64-_2-_3-CK20-NEXT:    store i64 [[D]], ptr [[D_ADDR]], align 8
+// CK4-64-_2-_3-CK20-NEXT:    [[TMP0:%.*]] = load double, ptr [[D_ADDR]], align 8
+// CK4-64-_2-_3-CK20-NEXT:    [[ADD:%.*]] = fadd double [[TMP0]], 1.000000e+00
+// CK4-64-_2-_3-CK20-NEXT:    store double [[ADD]], ptr [[D_ADDR]], align 8
+// CK23-64-_3-_2-SIMD-ONLY0-_5-NEXT:    [[LR_ADDR:%.*]] = alloca ptr, align 8
+// CK23-64-_3-_2-SIMD-ONLY0-_5-NEXT:    [[TR_ADDR:%.*]] = alloca ptr, align 8
+// CK23-64-_3-_2-SIMD-ONLY0-_5-NEXT:    [[L:%.*]] = alloca ptr, align 8
+// CK23-64-_3-_2-SIMD-ONLY0-_5-NEXT:    [[T:%.*]] = alloca ptr, align 8
+// CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-CK23-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 8
+// CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-CK23-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 8
+// CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-CK23-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 8
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-NEXT:    [[KERNEL_ARGS:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS:%.*]], align 8
+// CK9-NEXT:    store i32 [[II]], ptr [[II_ADDR]], align 4
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP0:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK9-32-NEXT:    store ptr [[PVTARR]], ptr [[TMP0]], align 4
+// CK10-_5-_2-CK11-_3-CK12-_4-CK13-NEXT:    store ptr [[PA]], ptr [[TMP0]], align 4
+// CK9-64-NEXT:    store ptr [[PVTARR]], ptr [[TMP0]], align 8
+// CK10-_3-_4-CK11-_5-CK12-CK13-_2-NEXT:    store ptr [[PA]], ptr [[TMP0]], align 8
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP1:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK9-32-NEXT:    store ptr [[PVTARR]], ptr [[TMP1]], align 4
+// CK10-_5-_2-CK11-_3-CK12-_4-CK13-NEXT:    store ptr [[PA]], ptr [[TMP1]], align 4
+// CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-NEXT:    [[TMP2:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK25-NEXT:    [[TMP0:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 0
+// CK25-NEXT:    store i32 3, ptr [[TMP0]], align 4
+// CK25-NEXT:    [[TMP1:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 1
+// CK25-NEXT:    store i32 0, ptr [[TMP1]], align 4
+// CK25-NEXT:    [[TMP2:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 2
+// CK25-64-NEXT:    store ptr null, ptr [[TMP2]], align 8
+// CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-CK25-NEXT:    store ptr null, ptr [[TMP2]], align 4
+// CK9-64-NEXT:    store ptr [[PVTARR]], ptr [[TMP1]], align 8
+// CK10-_3-_4-CK11-_5-CK12-CK13-_2-NEXT:    store ptr [[PA]], ptr [[TMP1]], align 8
+// CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-NEXT:    [[TMP2:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-NEXT:    store ptr null, ptr [[TMP2]], align 8
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP5:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 0
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    store i32 3, ptr [[TMP5]], align 4
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP6:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 1
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    store i32 1, ptr [[TMP6]], align 4
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP7:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 2
+// CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-NEXT:    store ptr [[TMP3]], ptr [[TMP7]], align 4
+// CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-NEXT:    store ptr [[TMP3]], ptr [[TMP7]], align 8
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP8:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 3
+// CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-NEXT:    store ptr [[TMP4]], ptr [[TMP8]], align 4
+// CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-NEXT:    store ptr [[TMP4]], ptr [[TMP8]], align 8
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP9:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 4
+// CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-NEXT:    store ptr @.offload_sizes, ptr [[TMP9]], align 4
+// CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-NEXT:    store ptr @.offload_sizes, ptr [[TMP9]], align 8
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP10:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 5
+// CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-NEXT:    store ptr @.offload_maptypes, ptr [[TMP10]], align 4
+// CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-NEXT:    store ptr @.offload_maptypes, ptr [[TMP10]], align 8
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP11:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 6
+// CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-NEXT:    store ptr null, ptr [[TMP11]], align 4
+// CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-NEXT:    store ptr null, ptr [[TMP11]], align 8
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP12:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 7
+// CK9-32-_2-_3-CK10-_5-CK11-CK12-_4-CK13-NEXT:    store ptr null, ptr [[TMP12]], align 4
+// CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13-NEXT:    store ptr null, ptr [[TMP12]], align 8
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP13:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 8
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    store i64 0, ptr [[TMP13]], align 8
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP14:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 9
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    store i64 0, ptr [[TMP14]], align 8
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP15:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 10
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP15]], align 4
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP16:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 11
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP16]], align 4
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP17:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 12
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    store i32 0, ptr [[TMP17]], align 4
+// CK9-NEXT:    [[TMP18:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK10-_3-_4-_5-_2-CK11-CK12-CK13-NEXT:    [[TMP18:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20explicit_maps_singlev_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    [[TMP19:%.*]] = icmp ne i32 [[TMP18]], 0
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    br i1 [[TMP19]], label %[[OMP_OFFLOAD_FAILED:.*]], label %[[OMP_OFFLOAD_CONT:.*]]
+// CK25-NEXT:    [[TMP3:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 3
+// CK25-64-NEXT:    store ptr null, ptr [[TMP3]], align 8
+// CK25-32-NEXT:    store ptr null, ptr [[TMP3]], align 4
+// CK25-NEXT:    [[TMP4:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 4
+// CK25-64-NEXT:    store ptr null, ptr [[TMP4]], align 8
+// CK25-32-NEXT:    store ptr null, ptr [[TMP4]], align 4
+// CK25-NEXT:    [[TMP5:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 5
+// CK25-64-NEXT:    store ptr null, ptr [[TMP5]], align 8
+// CK25-32-NEXT:    store ptr null, ptr [[TMP5]], align 4
+// CK25-NEXT:    [[TMP6:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 6
+// CK25-64-NEXT:    store ptr null, ptr [[TMP6]], align 8
+// CK25-32-NEXT:    store ptr null, ptr [[TMP6]], align 4
+// CK25-NEXT:    [[TMP7:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 7
+// CK25-64-NEXT:    store ptr null, ptr [[TMP7]], align 8
+// CK25-32-NEXT:    store ptr null, ptr [[TMP7]], align 4
+// CK25-NEXT:    [[TMP8:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 8
+// CK25-NEXT:    store i64 0, ptr [[TMP8]], align 8
+// CK25-NEXT:    [[TMP9:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 9
+// CK25-NEXT:    store i64 0, ptr [[TMP9]], align 8
+// CK25-NEXT:    [[TMP10:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 10
+// CK25-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP10]], align 4
+// CK25-NEXT:    [[TMP11:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 11
+// CK25-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP11]], align 4
+// CK25-NEXT:    [[TMP12:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 12
+// CK25-NEXT:    store i32 0, ptr [[TMP12]], align 4
+// CK25-NEXT:    [[TMP13:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z17declare_target_tov_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK25-NEXT:    [[TMP14:%.*]] = icmp ne i32 [[TMP13]], 0
+// CK25-NEXT:    br i1 [[TMP14]], label %[[OMP_OFFLOAD_FAILED:.*]], label %[[OMP_OFFLOAD_CONT:.*]]
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25:       [[OMP_OFFLOAD_FAILED]]:
+// CK9-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}(ptr [[PVTARR]]) #[[ATTR3:[0-9]+]]
+// CK10-_3-_4-_5-_2-CK11-CK12-CK13-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20explicit_maps_singlev_l[0-9]+}}(ptr [[PA]]) #[[ATTR2:[0-9]+]]
+// CK25-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z17declare_target_tov_l[0-9]+}}() #[[ATTR2:[0-9]+]]
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-NEXT:    br label %[[OMP_OFFLOAD_CONT]]
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25:       [[OMP_OFFLOAD_CONT]]:
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-LABEL: define dso_local void @_Z28implicit_maps_double_complexi(
+// CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-ONLY8-_28-_24-_35-_21-_19-ONLY16-_20-_17-_11-_12-_14-_3-SAME: i32 signext [[A:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK4-32-_3-_2-CK20-LABEL: define dso_local void @_Z20implicit_maps_doublei(
+// CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-CK4-32-ONLY8-_30-_25-_26-_22-_31-_14-_29-ONLY16-_15-_18-_9-_16-CK20-_10-SAME: i32 [[A:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK14-LABEL: define dso_local void @_Z20explicit_maps_singlev(
+// CK22-_5-_2-_4-_3-SIMD-ONLY9-LABEL: define dso_local void @_Z21implicit_maps_pointerv(
+// CK14-_2-_4-_3-_5-CK22-SIMD-ONLY9-CK26-64-32-SAME: ) #[[ATTR0:[0-9]+]] {
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_7-_35-_22-_31-_21-_19-_14-_29-ONLY26-CK14-ONLY16-_15-_20-_17-_18-_11-_12-_13-_16-_8-CK20-CK22-ONLY9-CK24-64-ONLY18-CK26-NEXT:  [[ENTRY:.*:]]
+// CK26-64-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [3 x ptr], align 8
+// CK26-64-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [3 x ptr], align 8
+// CK26-64-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [3 x ptr], align 8
+// CK26-32-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [3 x ptr], align 4
+// CK26-32-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [3 x ptr], align 4
+// CK26-32-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [3 x ptr], align 4
+// CK26-NEXT:    [[KERNEL_ARGS:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS:%.*]], align 8
+// CK26-NEXT:    [[TMP0:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK26-64-NEXT:    store ptr @a_decl_tgt_ref_ptr, ptr [[TMP0]], align 8
+// CK26-32-NEXT:    store ptr @a_decl_tgt_ref_ptr, ptr [[TMP0]], align 4
+// CK26-NEXT:    [[TMP1:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK26-64-NEXT:    store ptr @a, ptr [[TMP1]], align 8
+// CK26-64-NEXT:    [[TMP2:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK26-64-NEXT:    store ptr null, ptr [[TMP2]], align 8
+// CK26-32-NEXT:    store ptr @a, ptr [[TMP1]], align 4
+// CK26-32-NEXT:    [[TMP2:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK26-32-NEXT:    store ptr null, ptr [[TMP2]], align 4
+// CK26-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 1
+// CK26-64-NEXT:    store ptr @Vector_decl_tgt_ref_ptr, ptr [[TMP3]], align 8
+// CK26-32-NEXT:    store ptr @Vector_decl_tgt_ref_ptr, ptr [[TMP3]], align 4
+// CK26-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 1
+// CK26-64-NEXT:    store ptr @Vector, ptr [[TMP4]], align 8
+// CK26-64-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 1
+// CK26-64-NEXT:    store ptr null, ptr [[TMP5]], align 8
+// CK26-32-NEXT:    store ptr @Vector, ptr [[TMP4]], align 4
+// CK26-32-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 1
+// CK26-32-NEXT:    store ptr null, ptr [[TMP5]], align 4
+// CK26-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 2
+// CK26-64-NEXT:    store ptr @ptr_decl_tgt_ref_ptr, ptr [[TMP6]], align 8
+// CK26-32-NEXT:    store ptr @ptr_decl_tgt_ref_ptr, ptr [[TMP6]], align 4
+// CK26-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 2
+// CK26-64-NEXT:    store ptr @ptr, ptr [[TMP7]], align 8
+// CK26-64-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 2
+// CK26-64-NEXT:    store ptr null, ptr [[TMP8]], align 8
+// CK26-32-NEXT:    store ptr @ptr, ptr [[TMP7]], align 4
+// CK26-32-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 2
+// CK26-32-NEXT:    store ptr null, ptr [[TMP8]], align 4
+// CK26-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK26-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK26-NEXT:    [[TMP11:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 0
+// CK26-NEXT:    store i32 3, ptr [[TMP11]], align 4
+// CK26-NEXT:    [[TMP12:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 1
+// CK26-NEXT:    store i32 3, ptr [[TMP12]], align 4
+// CK26-NEXT:    [[TMP13:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 2
+// CK26-64-NEXT:    store ptr [[TMP9]], ptr [[TMP13]], align 8
+// CK26-32-NEXT:    store ptr [[TMP9]], ptr [[TMP13]], align 4
+// CK26-NEXT:    [[TMP14:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 3
+// CK26-64-NEXT:    store ptr [[TMP10]], ptr [[TMP14]], align 8
+// CK26-32-NEXT:    store ptr [[TMP10]], ptr [[TMP14]], align 4
+// CK26-NEXT:    [[TMP15:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 4
+// CK26-64-NEXT:    store ptr @.offload_sizes, ptr [[TMP15]], align 8
+// CK26-32-NEXT:    store ptr @.offload_sizes, ptr [[TMP15]], align 4
+// CK26-NEXT:    [[TMP16:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 5
+// CK26-64-NEXT:    store ptr @.offload_maptypes, ptr [[TMP16]], align 8
+// CK26-32-NEXT:    store ptr @.offload_maptypes, ptr [[TMP16]], align 4
+// CK26-NEXT:    [[TMP17:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 6
+// CK26-64-NEXT:    store ptr null, ptr [[TMP17]], align 8
+// CK26-32-NEXT:    store ptr null, ptr [[TMP17]], align 4
+// CK26-NEXT:    [[TMP18:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 7
+// CK26-64-NEXT:    store ptr null, ptr [[TMP18]], align 8
+// CK26-32-NEXT:    store ptr null, ptr [[TMP18]], align 4
+// CK26-NEXT:    [[TMP19:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 8
+// CK26-NEXT:    store i64 0, ptr [[TMP19]], align 8
+// CK26-NEXT:    [[TMP20:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 9
+// CK26-NEXT:    store i64 0, ptr [[TMP20]], align 8
+// CK26-NEXT:    [[TMP21:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 10
+// CK26-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP21]], align 4
+// CK26-NEXT:    [[TMP22:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 11
+// CK26-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP22]], align 4
+// CK26-NEXT:    [[TMP23:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 12
+// CK26-NEXT:    store i32 0, ptr [[TMP23]], align 4
+// CK26-NEXT:    [[TMP24:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z19declare_target_linkv_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK26-NEXT:    [[TMP25:%.*]] = icmp ne i32 [[TMP24]], 0
+// CK26-NEXT:    br i1 [[TMP25]], label %[[OMP_OFFLOAD_FAILED:.*]], label %[[OMP_OFFLOAD_CONT:.*]]
+// CK26:       [[OMP_OFFLOAD_FAILED]]:
+// CK26-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z19declare_target_linkv_l[0-9]+}}() #[[ATTR2:[0-9]+]]
+// CK26-NEXT:    br label %[[OMP_OFFLOAD_CONT]]
+// CK26:       [[OMP_OFFLOAD_CONT]]:
+// SIMD-ONLY18-_9-_10-_11-_13-NEXT:    [[TMP0:%.*]] = load i32, ptr @x, align 4
+// SIMD-ONLY26-_5-_4-_3-_2-CK24-64-32-ONLY18-_12-NEXT:    [[II_ADDR:%.*]] = alloca i32, align 4
+// CK24-64-_2-_3-32-SIMD-ONLY18-_12-_4-NEXT:    [[A:%.*]] = alloca i32, align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[A_ADDR:%.*]] = alloca i32, align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[DC:%.*]] = alloca { double, double }, align 8
+// CK14-_2-_4-NEXT:    [[PA:%.*]] = alloca ptr, align 8
+// CK22-_5-_2-NEXT:    [[DDYN:%.*]] = alloca ptr, align 8
+// CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 8
+// CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 8
+// CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK24-64-_3-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 8
+// CK4-32-_3-_2-CK20-NEXT:    [[A_ADDR:%.*]] = alloca i32, align 4
+// CK4-32-_3-_2-CK20-NEXT:    [[D:%.*]] = alloca double, align 8
+// CK14-_3-_5-NEXT:    [[PA:%.*]] = alloca ptr, align 4
+// CK22-_4-_3-NEXT:    [[DDYN:%.*]] = alloca ptr, align 4
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP:%.*]] = alloca ptr, align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[_TMP4:%.*]] = alloca ptr, align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[_TMP6:%.*]] = alloca ptr, align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[_TMP8:%.*]] = alloca ptr, align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[_TMP9:%.*]] = alloca ptr, align 8
+// SIMD-ONLY0-_5-_2-NEXT:    store ptr [[LR]], ptr [[LR_ADDR]], align 8
+// SIMD-ONLY0-_5-_2-NEXT:    store ptr [[TR]], ptr [[TR_ADDR]], align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP0:%.*]] = load ptr, ptr @g, align 8
+// CK23-32-_3-_2-SIMD-ONLY0-_4-NEXT:    [[LR_ADDR:%.*]] = alloca ptr, align 4
+// CK23-32-_3-_2-SIMD-ONLY0-_4-NEXT:    [[TR_ADDR:%.*]] = alloca ptr, align 4
+// CK23-32-_3-_2-SIMD-ONLY0-_4-NEXT:    [[L:%.*]] = alloca ptr, align 4
+// CK23-32-_3-_2-SIMD-ONLY0-_4-NEXT:    [[T:%.*]] = alloca ptr, align 4
+// CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 4
+// CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 4
+// CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[KERNEL_ARGS:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS:%.*]], align 8
+// CK23-64-_3-_2-CK24-NEXT:    [[DOTOFFLOAD_BASEPTRS1:%.*]] = alloca [1 x ptr], align 8
+// CK23-64-_3-_2-CK24-NEXT:    [[DOTOFFLOAD_PTRS2:%.*]] = alloca [1 x ptr], align 8
+// CK23-64-_3-_2-CK24-NEXT:    [[DOTOFFLOAD_MAPPERS3:%.*]] = alloca [1 x ptr], align 8
+// CK23-32-_3-_2-CK24-NEXT:    [[DOTOFFLOAD_BASEPTRS1:%.*]] = alloca [1 x ptr], align 4
+// CK23-32-_3-_2-CK24-NEXT:    [[DOTOFFLOAD_PTRS2:%.*]] = alloca [1 x ptr], align 4
+// CK23-32-_3-_2-CK24-NEXT:    [[DOTOFFLOAD_MAPPERS3:%.*]] = alloca [1 x ptr], align 4
+// CK23-64-_3-_2-32-CK24-NEXT:    [[KERNEL_ARGS4:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// SIMD-ONLY26-NEXT:    [[PVTARR:%.*]] = alloca [10 x i32], align 4
+// SIMD-ONLY26-_5-_4-_3-_2-CK24-64-32-ONLY18-_12-NEXT:    store i32 [[II]], ptr [[II_ADDR]], align 4
+// CK24-64-_2-_3-32-SIMD-ONLY18-_12-_4-NEXT:    [[TMP0:%.*]] = load i32, ptr [[II_ADDR]], align 4
+// CK24-64-_2-_3-32-SIMD-ONLY18-_12-_4-NEXT:    store i32 [[TMP0]], ptr [[A]], align 4
+// CK14-_2-_4-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PA]], align 8
+// CK22-_5-_2-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[DDYN]], align 8
+// SIMD-ONLY18-_12-_4-_2-_3-NEXT:    [[TMP1:%.*]] = load i32, ptr [[A]], align 4
+// SIMD-ONLY18-_12-_4-_2-_3-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP1]], 1
+// SIMD-ONLY18-_12-_4-_2-_3-NEXT:    store i32 [[INC]], ptr [[A]], align 4
+// SIMD-ONLY18-_12-_4-_2-_3-NEXT:    [[TMP2:%.*]] = load i32, ptr [[A]], align 4
+// SIMD-ONLY18-_12-_4-_2-_3-NEXT:    [[INC1:%.*]] = add nsw i32 [[TMP2]], 1
+// SIMD-ONLY18-_12-_4-_2-_3-NEXT:    store i32 [[INC1]], ptr [[A]], align 4
+// SIMD-ONLY26-_5-_4-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [10 x i32], ptr [[PVTARR]], i64 0, i64 5
+// SIMD-ONLY26-_3-_2-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [10 x i32], ptr [[PVTARR]], i32 0, i32 5
+// SIMD-ONLY26-NEXT:    [[TMP0:%.*]] = load i32, ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY26-_5-_4-_3-_2-ONLY18-_9-_10-_11-_13-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP0]], 1
+// SIMD-ONLY18-_9-_10-_11-_13-NEXT:    store i32 [[INC]], ptr @x, align 4
+// SIMD-ONLY26-NEXT:    store i32 [[INC]], ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY10-NEXT:  [[ENTRY:.*]]:
+// SIMD-ONLY10-_7-_9-_12-_11-_5-_10-_8-_4-_13-_6-_2-_3-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-NEXT:    [[A_ADDR:%.*]] = alloca i32, align 4
+// SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-NEXT:    [[DARR:%.*]] = alloca [2 x double], align 8
+// SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3-NEXT:    [[S:%.*]] = alloca [[CLASS_SSS:%.*]], align 8
+// SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10-NEXT:    [[S:%.*]] = alloca [[CLASS_SSS:%.*]], align 4
+// SIMD-ONLY10-NEXT:    [[DC:%.*]] = alloca { double, double }, align 8
+// SIMD-ONLY10-_12-_11-_8-_4-_2-_3-NEXT:    [[TMP:%.*]] = alloca { double, double }, align 4
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20-NEXT:    store i32 [[A]], ptr [[A_ADDR]], align 4
+// SIMD-ONLY16-NEXT:    [[A1:%.*]] = getelementptr inbounds nuw [[CLASS_SSS]], ptr [[S]], i32 0, i32 0
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-ONLY16-_15-_20-_17-_18-_16-CK20-NEXT:    [[TMP0:%.*]] = load i32, ptr [[A_ADDR]], align 4
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK20-NEXT:    [[CONV:%.*]] = sitofp i32 [[TMP0]] to double
+// SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-NEXT:    store double [[CONV]], ptr [[DARR]], align 8
+// SIMD-ONLY8-_28-_24-_10-_9-_7-_35-_21-_19-NEXT:    [[ARRAYINIT_ELEMENT:%.*]] = getelementptr inbounds double, ptr [[DARR]], i64 1
+// SIMD-ONLY8-_30-_25-_26-_3-_22-_31-_14-_29-NEXT:    [[ARRAYINIT_ELEMENT:%.*]] = getelementptr inbounds double, ptr [[DARR]], i32 1
+// SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3-NEXT:    store i32 [[TMP0]], ptr [[A1]], align 8
+// SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10-NEXT:    store i32 [[TMP0]], ptr [[A1]], align 4
+// SIMD-ONLY16-NEXT:    [[B:%.*]] = getelementptr inbounds nuw [[CLASS_SSS]], ptr [[S]], i32 0, i32 1
+// SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY16-_6-_15-_20-_17-_18-_11-_4-_2-_12-_13-_16-_8-_5-NEXT:    [[TMP1:%.*]] = load i32, ptr [[A_ADDR]], align 4
+// SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-NEXT:    [[CONV1:%.*]] = sitofp i32 [[TMP1]] to double
+// SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-NEXT:    store double [[CONV1]], ptr [[ARRAYINIT_ELEMENT]], align 8
+// SIMD-ONLY8-_28-_24-_10-_9-_7-_35-_21-_19-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [2 x double], ptr [[DARR]], i64 0, i64 0
+// SIMD-ONLY8-_30-_25-_26-_3-_22-_31-_14-_29-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [2 x double], ptr [[DARR]], i32 0, i32 0
+// SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-NEXT:    [[TMP2:%.*]] = load double, ptr [[ARRAYIDX]], align 8
+// SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-NEXT:    [[ADD:%.*]] = fadd double [[TMP2]], 1.000000e+00
+// SIMD-ONLY9-_4-_5-NEXT:    [[DDYN:%.*]] = alloca ptr, align 8
+// SIMD-ONLY9-_4-_5-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[DDYN]], align 8
+// SIMD-ONLY9-_4-_5-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds double, ptr [[TMP0]], i64 0
+// SIMD-ONLY9-_4-_5-NEXT:    [[TMP1:%.*]] = load double, ptr [[ARRAYIDX]], align 8
+// SIMD-ONLY9-_2-_3-NEXT:    [[DDYN:%.*]] = alloca ptr, align 4
+// SIMD-ONLY9-_2-_3-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[DDYN]], align 4
+// SIMD-ONLY9-_2-_3-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds double, ptr [[TMP0]], i32 0
+// SIMD-ONLY9-_2-_3-NEXT:    [[TMP1:%.*]] = load double, ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY9-NEXT:    [[ADD:%.*]] = fadd double [[TMP1]], 1.000000e+00
+// SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-ONLY9-_4-_5-NEXT:    store double [[ADD]], ptr [[ARRAYIDX]], align 8
+// SIMD-ONLY8-_28-_24-_10-_9-_7-_35-_21-_19-NEXT:    [[ARRAYIDX2:%.*]] = getelementptr inbounds [2 x double], ptr [[DARR]], i64 0, i64 1
+// SIMD-ONLY8-_30-_25-_26-_3-_22-_31-_14-_29-NEXT:    [[ARRAYIDX2:%.*]] = getelementptr inbounds [2 x double], ptr [[DARR]], i32 0, i32 1
+// SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-NEXT:    [[TMP3:%.*]] = load double, ptr [[ARRAYIDX2]], align 8
+// SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-NEXT:    [[ADD3:%.*]] = fadd double [[TMP3]], 1.000000e+00
+// SIMD-ONLY8-_28-_24-_30-_25-_10-_9-_26-_3-_7-_35-_22-_31-_21-_19-_14-_29-NEXT:    store double [[ADD3]], ptr [[ARRAYIDX2]], align 8
+// SIMD-ONLY9-_4-_5-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[DDYN]], align 8
+// SIMD-ONLY9-_4-_5-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds double, ptr [[TMP2]], i64 1
+// SIMD-ONLY9-_4-_5-NEXT:    [[TMP3:%.*]] = load double, ptr [[ARRAYIDX1]], align 8
+// SIMD-ONLY9-_2-_3-NEXT:    store double [[ADD]], ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY9-_2-_3-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[DDYN]], align 4
+// SIMD-ONLY9-_2-_3-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds double, ptr [[TMP2]], i32 1
+// SIMD-ONLY9-_2-_3-NEXT:    [[TMP3:%.*]] = load double, ptr [[ARRAYIDX1]], align 4
+// SIMD-ONLY9-NEXT:    [[ADD2:%.*]] = fadd double [[TMP3]], 1.000000e+00
+// SIMD-ONLY9-_4-_5-NEXT:    store double [[ADD2]], ptr [[ARRAYIDX1]], align 8
+// SIMD-ONLY9-_2-_3-NEXT:    store double [[ADD2]], ptr [[ARRAYIDX1]], align 4
+// SIMD-ONLY16-NEXT:    [[CONV:%.*]] = sitofp i32 [[TMP1]] to double
+// SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3-NEXT:    store double [[CONV]], ptr [[B]], align 8
+// SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10-NEXT:    store double [[CONV]], ptr [[B]], align 4
+// SIMD-ONLY16-NEXT:    [[A2:%.*]] = getelementptr inbounds nuw [[CLASS_SSS]], ptr [[S]], i32 0, i32 0
+// SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3-NEXT:    [[TMP2:%.*]] = load i32, ptr [[A2]], align 8
+// SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10-NEXT:    [[TMP2:%.*]] = load i32, ptr [[A2]], align 4
+// SIMD-ONLY16-NEXT:    [[ADD:%.*]] = add nsw i32 [[TMP2]], 1
+// SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3-NEXT:    store i32 [[ADD]], ptr [[A2]], align 8
+// SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10-NEXT:    store i32 [[ADD]], ptr [[A2]], align 4
+// SIMD-ONLY16-NEXT:    [[B3:%.*]] = getelementptr inbounds nuw [[CLASS_SSS]], ptr [[S]], i32 0, i32 1
+// SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3-NEXT:    [[TMP3:%.*]] = load double, ptr [[B3]], align 8
+// SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10-NEXT:    [[TMP3:%.*]] = load double, ptr [[B3]], align 4
+// SIMD-ONLY16-NEXT:    [[ADD4:%.*]] = fadd double [[TMP3]], 1.000000e+00
+// SIMD-ONLY16-_21-_7-_20-_17-_11-_19-_12-_13-_14-_3-NEXT:    store double [[ADD4]], ptr [[B3]], align 8
+// SIMD-ONLY16-_6-_15-_18-_9-_4-_2-_16-_8-_5-_10-NEXT:    store double [[ADD4]], ptr [[B3]], align 4
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-NEXT:    [[DC_REALP:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[DC]], i32 0, i32 0
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-NEXT:    [[DC_IMAGP:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[DC]], i32 0, i32 1
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-NEXT:    store double [[CONV]], ptr [[DC_REALP]], align 8
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-NEXT:    store double 0.000000e+00, ptr [[DC_IMAGP]], align 8
+// CK4-32-_3-_2-CK20-NEXT:    store double [[CONV]], ptr [[D]], align 8
+// CK14-_3-_5-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PA]], align 4
+// CK22-_4-_3-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[DDYN]], align 4
+// CK23-64-NEXT:    [[DOTOFFLOAD_BASEPTRS7:%.*]] = alloca [1 x ptr], align 8
+// CK23-64-NEXT:    [[DOTOFFLOAD_PTRS8:%.*]] = alloca [1 x ptr], align 8
+// CK23-64-NEXT:    [[DOTOFFLOAD_MAPPERS9:%.*]] = alloca [1 x ptr], align 8
+// CK23-32-NEXT:    [[DOTOFFLOAD_BASEPTRS7:%.*]] = alloca [1 x ptr], align 4
+// CK23-32-NEXT:    [[DOTOFFLOAD_PTRS8:%.*]] = alloca [1 x ptr], align 4
+// CK23-32-NEXT:    [[DOTOFFLOAD_MAPPERS9:%.*]] = alloca [1 x ptr], align 4
+// CK23-NEXT:    [[KERNEL_ARGS10:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK23-64-NEXT:    [[TMP:%.*]] = alloca ptr, align 8
+// CK23-64-NEXT:    [[DOTOFFLOAD_BASEPTRS13:%.*]] = alloca [1 x ptr], align 8
+// CK23-64-NEXT:    [[DOTOFFLOAD_PTRS14:%.*]] = alloca [1 x ptr], align 8
+// CK23-64-NEXT:    [[DOTOFFLOAD_MAPPERS15:%.*]] = alloca [1 x ptr], align 8
+// CK23-32-_3-_2-SIMD-ONLY0-_4-NEXT:    [[TMP:%.*]] = alloca ptr, align 4
+// CK23-32-NEXT:    [[DOTOFFLOAD_BASEPTRS13:%.*]] = alloca [1 x ptr], align 4
+// CK23-32-NEXT:    [[DOTOFFLOAD_PTRS14:%.*]] = alloca [1 x ptr], align 4
+// CK23-32-NEXT:    [[DOTOFFLOAD_MAPPERS15:%.*]] = alloca [1 x ptr], align 4
+// CK23-NEXT:    [[KERNEL_ARGS16:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK23-64-NEXT:    [[_TMP19:%.*]] = alloca ptr, align 8
+// CK23-64-NEXT:    [[DOTOFFLOAD_BASEPTRS20:%.*]] = alloca [1 x ptr], align 8
+// CK23-64-NEXT:    [[DOTOFFLOAD_PTRS21:%.*]] = alloca [1 x ptr], align 8
+// CK23-64-NEXT:    [[DOTOFFLOAD_MAPPERS22:%.*]] = alloca [1 x ptr], align 8
+// CK23-32-NEXT:    [[_TMP19:%.*]] = alloca ptr, align 4
+// CK23-32-NEXT:    [[DOTOFFLOAD_BASEPTRS20:%.*]] = alloca [1 x ptr], align 4
+// CK23-32-NEXT:    [[DOTOFFLOAD_PTRS21:%.*]] = alloca [1 x ptr], align 4
+// CK23-32-NEXT:    [[DOTOFFLOAD_MAPPERS22:%.*]] = alloca [1 x ptr], align 4
+// CK23-NEXT:    [[KERNEL_ARGS23:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK23-64-NEXT:    [[_TMP26:%.*]] = alloca ptr, align 8
+// CK23-64-NEXT:    [[DOTOFFLOAD_BASEPTRS27:%.*]] = alloca [1 x ptr], align 8
+// CK23-64-NEXT:    [[DOTOFFLOAD_PTRS28:%.*]] = alloca [1 x ptr], align 8
+// CK23-64-NEXT:    [[DOTOFFLOAD_MAPPERS29:%.*]] = alloca [1 x ptr], align 8
+// CK23-32-NEXT:    [[_TMP26:%.*]] = alloca ptr, align 4
+// CK23-32-NEXT:    [[DOTOFFLOAD_BASEPTRS27:%.*]] = alloca [1 x ptr], align 4
+// CK23-32-NEXT:    [[DOTOFFLOAD_PTRS28:%.*]] = alloca [1 x ptr], align 4
+// CK23-32-NEXT:    [[DOTOFFLOAD_MAPPERS29:%.*]] = alloca [1 x ptr], align 4
+// CK23-NEXT:    [[KERNEL_ARGS30:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK23-64-NEXT:    [[_TMP33:%.*]] = alloca ptr, align 8
+// CK23-64-NEXT:    [[_TMP34:%.*]] = alloca ptr, align 8
+// CK23-64-NEXT:    [[DOTOFFLOAD_BASEPTRS35:%.*]] = alloca [2 x ptr], align 8
+// CK23-64-NEXT:    [[DOTOFFLOAD_PTRS36:%.*]] = alloca [2 x ptr], align 8
+// CK23-64-NEXT:    [[DOTOFFLOAD_MAPPERS37:%.*]] = alloca [2 x ptr], align 8
+// CK23-32-NEXT:    [[_TMP33:%.*]] = alloca ptr, align 4
+// CK23-32-NEXT:    [[_TMP34:%.*]] = alloca ptr, align 4
+// CK23-32-NEXT:    [[DOTOFFLOAD_BASEPTRS35:%.*]] = alloca [2 x ptr], align 4
+// CK23-32-NEXT:    [[DOTOFFLOAD_PTRS36:%.*]] = alloca [2 x ptr], align 4
+// CK23-32-NEXT:    [[DOTOFFLOAD_MAPPERS37:%.*]] = alloca [2 x ptr], align 4
+// CK23-NEXT:    [[KERNEL_ARGS38:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK23-64-NEXT:    store ptr [[LR]], ptr [[LR_ADDR]], align 8
+// CK23-64-NEXT:    store ptr [[TR]], ptr [[TR_ADDR]], align 8
+// CK23-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr @g, align 8
+// SIMD-ONLY0-_4-_3-NEXT:    [[_TMP4:%.*]] = alloca ptr, align 4
+// SIMD-ONLY0-_4-_3-NEXT:    [[_TMP6:%.*]] = alloca ptr, align 4
+// SIMD-ONLY0-_4-_3-NEXT:    [[_TMP8:%.*]] = alloca ptr, align 4
+// SIMD-ONLY0-_4-_3-NEXT:    [[_TMP9:%.*]] = alloca ptr, align 4
+// CK23-32-_3-_2-SIMD-ONLY0-_4-NEXT:    store ptr [[LR]], ptr [[LR_ADDR]], align 4
+// CK23-32-_3-_2-SIMD-ONLY0-_4-NEXT:    store ptr [[TR]], ptr [[TR_ADDR]], align 4
+// CK23-32-_3-_2-SIMD-ONLY0-_4-NEXT:    [[TMP0:%.*]] = load ptr, ptr @g, align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP1:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK24-64-NEXT:    store ptr [[A]], ptr [[TMP1]], align 8
+// CK24-32-NEXT:    store ptr [[A]], ptr [[TMP1]], align 4
+// CK1-_4-_5-_2-CK2-CK3-NEXT:    store ptr [[DC]], ptr [[TMP1]], align 8
+// CK1-_3-_6-CK2-_4-CK3-_5-NEXT:    store ptr [[DC]], ptr [[TMP1]], align 4
+// CK14-_2-_4-CK22-_5-CK23-64-_3-NEXT:    store ptr [[TMP0]], ptr [[TMP1]], align 8
+// CK4-32-_3-_2-CK20-NEXT:    store ptr [[D]], ptr [[TMP1]], align 4
+// CK14-_3-_5-CK22-_4-CK23-32-_2-NEXT:    store ptr [[TMP0]], ptr [[TMP1]], align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP2:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK24-64-NEXT:    store ptr [[A]], ptr [[TMP2]], align 8
+// CK1-_4-_5-_2-CK2-CK3-NEXT:    store ptr [[DC]], ptr [[TMP2]], align 8
+// CK14-_2-_4-CK22-_5-CK23-64-_3-NEXT:    store ptr [[TMP0]], ptr [[TMP2]], align 8
+// CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24-NEXT:    store ptr null, ptr [[TMP3]], align 8
+// CK24-32-NEXT:    store ptr [[A]], ptr [[TMP2]], align 4
+// CK1-_3-_6-CK2-_4-CK3-_5-NEXT:    store ptr [[DC]], ptr [[TMP2]], align 4
+// CK4-32-_3-_2-CK20-NEXT:    store ptr [[D]], ptr [[TMP2]], align 4
+// CK14-_3-_5-CK22-_4-CK23-32-_2-NEXT:    store ptr [[TMP0]], ptr [[TMP2]], align 4
+// CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24-NEXT:    store ptr null, ptr [[TMP3]], align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP6:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 0
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    store i32 3, ptr [[TMP6]], align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP7:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 1
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    store i32 1, ptr [[TMP7]], align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP8:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 2
+// CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24-NEXT:    store ptr [[TMP4]], ptr [[TMP8]], align 8
+// CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24-NEXT:    store ptr [[TMP4]], ptr [[TMP8]], align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP9:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 3
+// CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24-NEXT:    store ptr [[TMP5]], ptr [[TMP9]], align 8
+// CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24-NEXT:    store ptr [[TMP5]], ptr [[TMP9]], align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP10:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 4
+// CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24-NEXT:    store ptr @.offload_sizes, ptr [[TMP10]], align 8
+// CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24-NEXT:    store ptr @.offload_sizes, ptr [[TMP10]], align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP11:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 5
+// CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24-NEXT:    store ptr @.offload_maptypes, ptr [[TMP11]], align 8
+// CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24-NEXT:    store ptr @.offload_maptypes, ptr [[TMP11]], align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP12:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 6
+// CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24-NEXT:    store ptr null, ptr [[TMP12]], align 8
+// CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24-NEXT:    store ptr null, ptr [[TMP12]], align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP13:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 7
+// CK1-_4-_5-_2-CK2-CK3-CK14-CK22-CK23-64-_3-CK24-NEXT:    store ptr null, ptr [[TMP13]], align 8
+// CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK14-CK20-CK22-CK23-CK24-NEXT:    store ptr null, ptr [[TMP13]], align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP14:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 8
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    store i64 0, ptr [[TMP14]], align 8
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP15:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 9
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    store i64 0, ptr [[TMP15]], align 8
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP16:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 10
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP16]], align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP17:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 11
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP17]], align 4
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP18:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 12
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    store i32 0, ptr [[TMP18]], align 4
+// CK24-NEXT:    [[TMP19:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20explicit_maps_singlei_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[TMP19:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z28implicit_maps_double_complexi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK4-32-_3-_2-CK20-NEXT:    [[TMP19:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20implicit_maps_doublei_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK14-NEXT:    [[TMP19:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20explicit_maps_singlev_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK22-NEXT:    [[TMP19:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z21implicit_maps_pointerv_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK23-NEXT:    [[TMP19:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooIiEvRPfRPT__l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    [[TMP20:%.*]] = icmp ne i32 [[TMP19]], 0
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    br i1 [[TMP20]], label %[[OMP_OFFLOAD_FAILED:.*]], label %[[OMP_OFFLOAD_CONT:.*]]
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24:       [[OMP_OFFLOAD_FAILED]]:
+// CK24-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20explicit_maps_singlei_l[0-9]+}}(ptr [[A]]) #[[ATTR2:[0-9]+]]
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z28implicit_maps_double_complexi_l[0-9]+}}(ptr [[DC]]) #[[ATTR2:[0-9]+]]
+// CK4-32-_3-_2-CK20-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20implicit_maps_doublei_l[0-9]+}}(ptr [[D]]) #[[ATTR2:[0-9]+]]
+// CK14-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20explicit_maps_singlev_l[0-9]+}}(ptr [[TMP0]]) #[[ATTR2:[0-9]+]]
+// CK22-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z21implicit_maps_pointerv_l[0-9]+}}(ptr [[TMP0]]) #[[ATTR2:[0-9]+]]
+// CK23-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooIiEvRPfRPT__l[0-9]+}}(ptr [[TMP0]]) #[[ATTR2:[0-9]+]]
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24-NEXT:    br label %[[OMP_OFFLOAD_CONT]]
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-32-CK14-CK20-CK22-CK23-64-CK24:       [[OMP_OFFLOAD_CONT]]:
+// CK24-NEXT:    [[TMP21:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS1]], i32 0, i32 0
+// CK24-64-NEXT:    store ptr [[A]], ptr [[TMP21]], align 8
+// CK24-32-NEXT:    store ptr [[A]], ptr [[TMP21]], align 4
+// CK24-NEXT:    [[TMP22:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS2]], i32 0, i32 0
+// CK24-64-NEXT:    store ptr [[A]], ptr [[TMP22]], align 8
+// CK24-64-NEXT:    [[TMP23:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS3]], i64 0, i64 0
+// CK24-64-NEXT:    store ptr null, ptr [[TMP23]], align 8
+// CK24-32-NEXT:    store ptr [[A]], ptr [[TMP22]], align 4
+// CK24-32-NEXT:    [[TMP23:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS3]], i32 0, i32 0
+// CK24-32-NEXT:    store ptr null, ptr [[TMP23]], align 4
+// CK24-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS1]], i32 0, i32 0
+// CK24-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS2]], i32 0, i32 0
+// CK24-NEXT:    [[TMP26:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 0
+// CK24-NEXT:    store i32 3, ptr [[TMP26]], align 4
+// CK24-NEXT:    [[TMP27:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 1
+// CK24-NEXT:    store i32 1, ptr [[TMP27]], align 4
+// CK24-NEXT:    [[TMP28:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 2
+// CK24-64-NEXT:    store ptr [[TMP24]], ptr [[TMP28]], align 8
+// CK24-32-NEXT:    store ptr [[TMP24]], ptr [[TMP28]], align 4
+// CK24-NEXT:    [[TMP29:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 3
+// CK23-64-NEXT:    [[TMP21:%.*]] = load ptr, ptr [[L]], align 8
+// CK23-32-NEXT:    [[TMP21:%.*]] = load ptr, ptr [[L]], align 4
+// CK23-NEXT:    [[TMP22:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS1]], i32 0, i32 0
+// CK23-64-NEXT:    store ptr [[TMP21]], ptr [[TMP22]], align 8
+// CK23-32-NEXT:    store ptr [[TMP21]], ptr [[TMP22]], align 4
+// CK23-NEXT:    [[TMP23:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS2]], i32 0, i32 0
+// CK23-64-NEXT:    store ptr [[TMP21]], ptr [[TMP23]], align 8
+// CK23-64-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS3]], i64 0, i64 0
+// CK23-64-NEXT:    store ptr null, ptr [[TMP24]], align 8
+// CK23-32-NEXT:    store ptr [[TMP21]], ptr [[TMP23]], align 4
+// CK23-32-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS3]], i32 0, i32 0
+// CK23-32-NEXT:    store ptr null, ptr [[TMP24]], align 4
+// CK23-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS1]], i32 0, i32 0
+// CK23-NEXT:    [[TMP26:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS2]], i32 0, i32 0
+// CK23-NEXT:    [[TMP27:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 0
+// CK23-NEXT:    store i32 3, ptr [[TMP27]], align 4
+// CK23-NEXT:    [[TMP28:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 1
+// CK23-NEXT:    store i32 1, ptr [[TMP28]], align 4
+// CK23-NEXT:    [[TMP29:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 2
+// CK23-64-_3-_2-CK24-NEXT:    store ptr [[TMP25]], ptr [[TMP29]], align 8
+// CK23-32-_3-_2-CK24-NEXT:    store ptr [[TMP25]], ptr [[TMP29]], align 4
+// CK24-NEXT:    [[TMP30:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 4
+// CK24-64-NEXT:    store ptr @.offload_sizes.1, ptr [[TMP30]], align 8
+// CK24-32-NEXT:    store ptr @.offload_sizes.1, ptr [[TMP30]], align 4
+// CK24-NEXT:    [[TMP31:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 5
+// CK24-64-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP31]], align 8
+// CK24-32-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP31]], align 4
+// CK24-NEXT:    [[TMP32:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 6
+// CK24-64-NEXT:    store ptr null, ptr [[TMP32]], align 8
+// CK24-32-NEXT:    store ptr null, ptr [[TMP32]], align 4
+// CK24-NEXT:    [[TMP33:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 7
+// CK23-NEXT:    [[TMP30:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 3
+// CK23-64-NEXT:    store ptr [[TMP26]], ptr [[TMP30]], align 8
+// CK23-32-NEXT:    store ptr [[TMP26]], ptr [[TMP30]], align 4
+// CK23-NEXT:    [[TMP31:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 4
+// CK23-64-NEXT:    store ptr @.offload_sizes.1, ptr [[TMP31]], align 8
+// CK23-32-NEXT:    store ptr @.offload_sizes.1, ptr [[TMP31]], align 4
+// CK23-NEXT:    [[TMP32:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 5
+// CK23-64-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP32]], align 8
+// CK23-32-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP32]], align 4
+// CK23-NEXT:    [[TMP33:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 6
+// CK23-64-_3-_2-CK24-NEXT:    store ptr null, ptr [[TMP33]], align 8
+// CK23-32-_3-_2-CK24-NEXT:    store ptr null, ptr [[TMP33]], align 4
+// CK24-NEXT:    [[TMP34:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 8
+// CK24-NEXT:    store i64 0, ptr [[TMP34]], align 8
+// CK24-NEXT:    [[TMP35:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 9
+// CK23-NEXT:    [[TMP34:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 7
+// CK23-64-NEXT:    store ptr null, ptr [[TMP34]], align 8
+// CK23-32-NEXT:    store ptr null, ptr [[TMP34]], align 4
+// CK23-NEXT:    [[TMP35:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 8
+// CK23-64-_3-_2-32-CK24-NEXT:    store i64 0, ptr [[TMP35]], align 8
+// CK24-NEXT:    [[TMP36:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 10
+// CK24-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP36]], align 4
+// CK24-NEXT:    [[TMP37:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 11
+// CK24-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP37]], align 4
+// CK24-NEXT:    [[TMP38:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 12
+// CK24-NEXT:    store i32 0, ptr [[TMP38]], align 4
+// CK24-NEXT:    [[TMP39:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20explicit_maps_singlei_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS4]])
+// CK24-NEXT:    [[TMP40:%.*]] = icmp ne i32 [[TMP39]], 0
+// CK24-NEXT:    br i1 [[TMP40]], label %[[OMP_OFFLOAD_FAILED5:.*]], label %[[OMP_OFFLOAD_CONT6:.*]]
+// CK23-NEXT:    [[TMP36:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 9
+// CK23-NEXT:    store i64 0, ptr [[TMP36]], align 8
+// CK23-NEXT:    [[TMP37:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 10
+// CK23-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP37]], align 4
+// CK23-NEXT:    [[TMP38:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 11
+// CK23-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP38]], align 4
+// CK23-NEXT:    [[TMP39:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS4]], i32 0, i32 12
+// CK23-NEXT:    store i32 0, ptr [[TMP39]], align 4
+// CK23-NEXT:    [[TMP40:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooIiEvRPfRPT__l[0-9]+}}.region_id, ptr [[KERNEL_ARGS4]])
+// CK23-NEXT:    [[TMP41:%.*]] = icmp ne i32 [[TMP40]], 0
+// CK23-NEXT:    br i1 [[TMP41]], label %[[OMP_OFFLOAD_FAILED5:.*]], label %[[OMP_OFFLOAD_CONT6:.*]]
+// CK23-64-_3-_2-32-CK24:       [[OMP_OFFLOAD_FAILED5]]:
+// CK24-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20explicit_maps_singlei_l[0-9]+}}(ptr [[A]]) #[[ATTR2]]
+// CK23-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooIiEvRPfRPT__l[0-9]+}}(ptr [[TMP21]]) #[[ATTR2]]
+// CK23-64-_3-_2-32-CK24-NEXT:    br label %[[OMP_OFFLOAD_CONT6]]
+// CK23-64-_3-_2-32-CK24:       [[OMP_OFFLOAD_CONT6]]:
+// CK23-64-NEXT:    [[TMP42:%.*]] = load ptr, ptr [[T]], align 8
+// CK23-32-NEXT:    [[TMP42:%.*]] = load ptr, ptr [[T]], align 4
+// CK23-NEXT:    [[TMP43:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS7]], i32 0, i32 0
+// CK23-64-NEXT:    store ptr [[TMP42]], ptr [[TMP43]], align 8
+// CK23-32-NEXT:    store ptr [[TMP42]], ptr [[TMP43]], align 4
+// CK23-NEXT:    [[TMP44:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS8]], i32 0, i32 0
+// CK23-64-NEXT:    store ptr [[TMP42]], ptr [[TMP44]], align 8
+// CK23-64-NEXT:    [[TMP45:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS9]], i64 0, i64 0
+// CK23-64-NEXT:    store ptr null, ptr [[TMP45]], align 8
+// CK23-32-NEXT:    store ptr [[TMP42]], ptr [[TMP44]], align 4
+// CK23-32-NEXT:    [[TMP45:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS9]], i32 0, i32 0
+// CK23-32-NEXT:    store ptr null, ptr [[TMP45]], align 4
+// CK23-NEXT:    [[TMP46:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS7]], i32 0, i32 0
+// CK23-NEXT:    [[TMP47:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS8]], i32 0, i32 0
+// CK23-NEXT:    [[TMP48:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS10]], i32 0, i32 0
+// CK23-NEXT:    store i32 3, ptr [[TMP48]], align 4
+// CK23-NEXT:    [[TMP49:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS10]], i32 0, i32 1
+// CK23-NEXT:    store i32 1, ptr [[TMP49]], align 4
+// CK23-NEXT:    [[TMP50:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS10]], i32 0, i32 2
+// CK23-64-NEXT:    store ptr [[TMP46]], ptr [[TMP50]], align 8
+// CK23-32-NEXT:    store ptr [[TMP46]], ptr [[TMP50]], align 4
+// CK23-NEXT:    [[TMP51:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS10]], i32 0, i32 3
+// CK23-64-NEXT:    store ptr [[TMP47]], ptr [[TMP51]], align 8
+// CK23-32-NEXT:    store ptr [[TMP47]], ptr [[TMP51]], align 4
+// CK23-NEXT:    [[TMP52:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS10]], i32 0, i32 4
+// CK23-64-NEXT:    store ptr @.offload_sizes.3, ptr [[TMP52]], align 8
+// CK23-32-NEXT:    store ptr @.offload_sizes.3, ptr [[TMP52]], align 4
+// CK23-NEXT:    [[TMP53:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS10]], i32 0, i32 5
+// CK23-64-NEXT:    store ptr @.offload_maptypes.4, ptr [[TMP53]], align 8
+// CK23-32-NEXT:    store ptr @.offload_maptypes.4, ptr [[TMP53]], align 4
+// CK23-NEXT:    [[TMP54:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS10]], i32 0, i32 6
+// CK23-64-NEXT:    store ptr null, ptr [[TMP54]], align 8
+// CK23-32-NEXT:    store ptr null, ptr [[TMP54]], align 4
+// CK23-NEXT:    [[TMP55:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS10]], i32 0, i32 7
+// CK23-64-NEXT:    store ptr null, ptr [[TMP55]], align 8
+// CK23-32-NEXT:    store ptr null, ptr [[TMP55]], align 4
+// CK23-NEXT:    [[TMP56:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS10]], i32 0, i32 8
+// CK23-NEXT:    store i64 0, ptr [[TMP56]], align 8
+// CK23-NEXT:    [[TMP57:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS10]], i32 0, i32 9
+// CK23-NEXT:    store i64 0, ptr [[TMP57]], align 8
+// CK23-NEXT:    [[TMP58:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS10]], i32 0, i32 10
+// CK23-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP58]], align 4
+// CK23-NEXT:    [[TMP59:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS10]], i32 0, i32 11
+// CK23-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP59]], align 4
+// CK23-NEXT:    [[TMP60:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS10]], i32 0, i32 12
+// CK23-NEXT:    store i32 0, ptr [[TMP60]], align 4
+// CK23-NEXT:    [[TMP61:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooIiEvRPfRPT__l[0-9]+}}.region_id, ptr [[KERNEL_ARGS10]])
+// CK23-NEXT:    [[TMP62:%.*]] = icmp ne i32 [[TMP61]], 0
+// CK23-NEXT:    br i1 [[TMP62]], label %[[OMP_OFFLOAD_FAILED11:.*]], label %[[OMP_OFFLOAD_CONT12:.*]]
+// CK23:       [[OMP_OFFLOAD_FAILED11]]:
+// CK23-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooIiEvRPfRPT__l[0-9]+}}(ptr [[TMP42]]) #[[ATTR2]]
+// CK23-NEXT:    br label %[[OMP_OFFLOAD_CONT12]]
+// CK23:       [[OMP_OFFLOAD_CONT12]]:
+// CK23-64-NEXT:    [[TMP63:%.*]] = load ptr, ptr [[LR_ADDR]], align 8, !nonnull [[META17]], !align [[META18]]
+// CK23-64-NEXT:    store ptr [[TMP63]], ptr [[TMP]], align 8
+// CK23-64-NEXT:    [[TMP64:%.*]] = load ptr, ptr [[TMP]], align 8, !nonnull [[META17]], !align [[META18]]
+// CK23-64-NEXT:    [[TMP65:%.*]] = load ptr, ptr [[TMP64]], align 8
+// CK23-32-NEXT:    [[TMP63:%.*]] = load ptr, ptr [[LR_ADDR]], align 4, !nonnull [[META18]], !align [[META19]]
+// CK23-32-NEXT:    store ptr [[TMP63]], ptr [[TMP]], align 4
+// CK23-32-NEXT:    [[TMP64:%.*]] = load ptr, ptr [[TMP]], align 4, !nonnull [[META18]], !align [[META19]]
+// CK23-32-NEXT:    [[TMP65:%.*]] = load ptr, ptr [[TMP64]], align 4
+// CK23-NEXT:    [[TMP66:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS13]], i32 0, i32 0
+// CK23-64-NEXT:    store ptr [[TMP65]], ptr [[TMP66]], align 8
+// CK23-32-NEXT:    store ptr [[TMP65]], ptr [[TMP66]], align 4
+// CK23-NEXT:    [[TMP67:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS14]], i32 0, i32 0
+// CK23-64-NEXT:    store ptr [[TMP65]], ptr [[TMP67]], align 8
+// CK23-64-NEXT:    [[TMP68:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS15]], i64 0, i64 0
+// CK23-64-NEXT:    store ptr null, ptr [[TMP68]], align 8
+// CK23-32-NEXT:    store ptr [[TMP65]], ptr [[TMP67]], align 4
+// CK23-32-NEXT:    [[TMP68:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS15]], i32 0, i32 0
+// CK23-32-NEXT:    store ptr null, ptr [[TMP68]], align 4
+// CK23-NEXT:    [[TMP69:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS13]], i32 0, i32 0
+// CK23-NEXT:    [[TMP70:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS14]], i32 0, i32 0
+// CK23-NEXT:    [[TMP71:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS16]], i32 0, i32 0
+// CK23-NEXT:    store i32 3, ptr [[TMP71]], align 4
+// CK23-NEXT:    [[TMP72:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS16]], i32 0, i32 1
+// CK23-NEXT:    store i32 1, ptr [[TMP72]], align 4
+// CK23-NEXT:    [[TMP73:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS16]], i32 0, i32 2
+// CK23-64-NEXT:    store ptr [[TMP69]], ptr [[TMP73]], align 8
+// CK23-32-NEXT:    store ptr [[TMP69]], ptr [[TMP73]], align 4
+// CK23-NEXT:    [[TMP74:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS16]], i32 0, i32 3
+// CK23-64-NEXT:    store ptr [[TMP70]], ptr [[TMP74]], align 8
+// CK23-32-NEXT:    store ptr [[TMP70]], ptr [[TMP74]], align 4
+// CK23-NEXT:    [[TMP75:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS16]], i32 0, i32 4
+// CK23-64-NEXT:    store ptr @.offload_sizes.5, ptr [[TMP75]], align 8
+// CK23-32-NEXT:    store ptr @.offload_sizes.5, ptr [[TMP75]], align 4
+// CK23-NEXT:    [[TMP76:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS16]], i32 0, i32 5
+// CK23-64-NEXT:    store ptr @.offload_maptypes.6, ptr [[TMP76]], align 8
+// CK23-32-NEXT:    store ptr @.offload_maptypes.6, ptr [[TMP76]], align 4
+// CK23-NEXT:    [[TMP77:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS16]], i32 0, i32 6
+// CK23-64-NEXT:    store ptr null, ptr [[TMP77]], align 8
+// CK23-32-NEXT:    store ptr null, ptr [[TMP77]], align 4
+// CK23-NEXT:    [[TMP78:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS16]], i32 0, i32 7
+// CK23-64-NEXT:    store ptr null, ptr [[TMP78]], align 8
+// CK23-32-NEXT:    store ptr null, ptr [[TMP78]], align 4
+// CK23-NEXT:    [[TMP79:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS16]], i32 0, i32 8
+// CK23-NEXT:    store i64 0, ptr [[TMP79]], align 8
+// CK23-NEXT:    [[TMP80:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS16]], i32 0, i32 9
+// CK23-NEXT:    store i64 0, ptr [[TMP80]], align 8
+// CK23-NEXT:    [[TMP81:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS16]], i32 0, i32 10
+// CK23-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP81]], align 4
+// CK23-NEXT:    [[TMP82:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS16]], i32 0, i32 11
+// CK23-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP82]], align 4
+// CK23-NEXT:    [[TMP83:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS16]], i32 0, i32 12
+// CK23-NEXT:    store i32 0, ptr [[TMP83]], align 4
+// CK23-NEXT:    [[TMP84:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooIiEvRPfRPT__l[0-9]+}}.region_id, ptr [[KERNEL_ARGS16]])
+// CK23-NEXT:    [[TMP85:%.*]] = icmp ne i32 [[TMP84]], 0
+// CK23-NEXT:    br i1 [[TMP85]], label %[[OMP_OFFLOAD_FAILED17:.*]], label %[[OMP_OFFLOAD_CONT18:.*]]
+// CK23:       [[OMP_OFFLOAD_FAILED17]]:
+// CK23-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooIiEvRPfRPT__l[0-9]+}}(ptr [[TMP65]]) #[[ATTR2]]
+// CK23-NEXT:    br label %[[OMP_OFFLOAD_CONT18]]
+// CK23:       [[OMP_OFFLOAD_CONT18]]:
+// CK23-64-NEXT:    [[TMP86:%.*]] = load ptr, ptr [[TR_ADDR]], align 8, !nonnull [[META17]], !align [[META18]]
+// CK23-64-NEXT:    store ptr [[TMP86]], ptr [[_TMP19]], align 8
+// CK23-64-NEXT:    [[TMP87:%.*]] = load ptr, ptr [[_TMP19]], align 8, !nonnull [[META17]], !align [[META18]]
+// CK23-64-NEXT:    [[TMP88:%.*]] = load ptr, ptr [[TMP87]], align 8
+// CK23-32-NEXT:    [[TMP86:%.*]] = load ptr, ptr [[TR_ADDR]], align 4, !nonnull [[META18]], !align [[META19]]
+// CK23-32-NEXT:    store ptr [[TMP86]], ptr [[_TMP19]], align 4
+// CK23-32-NEXT:    [[TMP87:%.*]] = load ptr, ptr [[_TMP19]], align 4, !nonnull [[META18]], !align [[META19]]
+// CK23-32-NEXT:    [[TMP88:%.*]] = load ptr, ptr [[TMP87]], align 4
+// CK23-NEXT:    [[TMP89:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS20]], i32 0, i32 0
+// CK23-64-NEXT:    store ptr [[TMP88]], ptr [[TMP89]], align 8
+// CK23-32-NEXT:    store ptr [[TMP88]], ptr [[TMP89]], align 4
+// CK23-NEXT:    [[TMP90:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS21]], i32 0, i32 0
+// CK23-64-NEXT:    store ptr [[TMP88]], ptr [[TMP90]], align 8
+// CK23-64-NEXT:    [[TMP91:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS22]], i64 0, i64 0
+// CK23-64-NEXT:    store ptr null, ptr [[TMP91]], align 8
+// CK23-32-NEXT:    store ptr [[TMP88]], ptr [[TMP90]], align 4
+// CK23-32-NEXT:    [[TMP91:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS22]], i32 0, i32 0
+// CK23-32-NEXT:    store ptr null, ptr [[TMP91]], align 4
+// CK23-NEXT:    [[TMP92:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS20]], i32 0, i32 0
+// CK23-NEXT:    [[TMP93:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS21]], i32 0, i32 0
+// CK23-NEXT:    [[TMP94:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 0
+// CK23-NEXT:    store i32 3, ptr [[TMP94]], align 4
+// CK23-NEXT:    [[TMP95:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 1
+// CK23-NEXT:    store i32 1, ptr [[TMP95]], align 4
+// CK23-NEXT:    [[TMP96:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 2
+// CK23-64-NEXT:    store ptr [[TMP92]], ptr [[TMP96]], align 8
+// CK23-32-NEXT:    store ptr [[TMP92]], ptr [[TMP96]], align 4
+// CK23-NEXT:    [[TMP97:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 3
+// CK23-64-NEXT:    store ptr [[TMP93]], ptr [[TMP97]], align 8
+// CK23-32-NEXT:    store ptr [[TMP93]], ptr [[TMP97]], align 4
+// CK23-NEXT:    [[TMP98:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 4
+// CK23-64-NEXT:    store ptr @.offload_sizes.7, ptr [[TMP98]], align 8
+// CK23-32-NEXT:    store ptr @.offload_sizes.7, ptr [[TMP98]], align 4
+// CK23-NEXT:    [[TMP99:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 5
+// CK23-64-NEXT:    store ptr @.offload_maptypes.8, ptr [[TMP99]], align 8
+// CK23-32-NEXT:    store ptr @.offload_maptypes.8, ptr [[TMP99]], align 4
+// CK23-NEXT:    [[TMP100:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 6
+// CK23-64-NEXT:    store ptr null, ptr [[TMP100]], align 8
+// CK23-32-NEXT:    store ptr null, ptr [[TMP100]], align 4
+// CK23-NEXT:    [[TMP101:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 7
+// CK23-64-NEXT:    store ptr null, ptr [[TMP101]], align 8
+// CK23-32-NEXT:    store ptr null, ptr [[TMP101]], align 4
+// CK23-NEXT:    [[TMP102:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 8
+// CK23-NEXT:    store i64 0, ptr [[TMP102]], align 8
+// CK23-NEXT:    [[TMP103:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 9
+// CK23-NEXT:    store i64 0, ptr [[TMP103]], align 8
+// CK23-NEXT:    [[TMP104:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 10
+// CK23-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP104]], align 4
+// CK23-NEXT:    [[TMP105:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 11
+// CK23-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP105]], align 4
+// CK23-NEXT:    [[TMP106:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 12
+// CK23-NEXT:    store i32 0, ptr [[TMP106]], align 4
+// CK23-NEXT:    [[TMP107:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooIiEvRPfRPT__l[0-9]+}}.region_id, ptr [[KERNEL_ARGS23]])
+// CK23-NEXT:    [[TMP108:%.*]] = icmp ne i32 [[TMP107]], 0
+// CK23-NEXT:    br i1 [[TMP108]], label %[[OMP_OFFLOAD_FAILED24:.*]], label %[[OMP_OFFLOAD_CONT25:.*]]
+// CK23:       [[OMP_OFFLOAD_FAILED24]]:
+// CK23-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooIiEvRPfRPT__l[0-9]+}}(ptr [[TMP88]]) #[[ATTR2]]
+// CK23-NEXT:    br label %[[OMP_OFFLOAD_CONT25]]
+// CK23:       [[OMP_OFFLOAD_CONT25]]:
+// CK23-64-NEXT:    [[TMP109:%.*]] = load ptr, ptr [[TR_ADDR]], align 8, !nonnull [[META17]], !align [[META18]]
+// CK23-64-NEXT:    store ptr [[TMP109]], ptr [[_TMP26]], align 8
+// CK23-64-NEXT:    [[TMP110:%.*]] = load ptr, ptr [[_TMP26]], align 8, !nonnull [[META17]], !align [[META18]]
+// CK23-64-NEXT:    [[TMP111:%.*]] = load ptr, ptr [[TMP110]], align 8
+// CK23-32-NEXT:    [[TMP109:%.*]] = load ptr, ptr [[TR_ADDR]], align 4, !nonnull [[META18]], !align [[META19]]
+// CK23-32-NEXT:    store ptr [[TMP109]], ptr [[_TMP26]], align 4
+// CK23-32-NEXT:    [[TMP110:%.*]] = load ptr, ptr [[_TMP26]], align 4, !nonnull [[META18]], !align [[META19]]
+// CK23-32-NEXT:    [[TMP111:%.*]] = load ptr, ptr [[TMP110]], align 4
+// CK23-NEXT:    [[TMP112:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS27]], i32 0, i32 0
+// CK23-64-NEXT:    store ptr [[TMP111]], ptr [[TMP112]], align 8
+// CK23-32-NEXT:    store ptr [[TMP111]], ptr [[TMP112]], align 4
+// CK23-NEXT:    [[TMP113:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS28]], i32 0, i32 0
+// CK23-64-NEXT:    store ptr [[TMP111]], ptr [[TMP113]], align 8
+// CK23-64-NEXT:    [[TMP114:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS29]], i64 0, i64 0
+// CK23-64-NEXT:    store ptr null, ptr [[TMP114]], align 8
+// CK23-32-NEXT:    store ptr [[TMP111]], ptr [[TMP113]], align 4
+// CK23-32-NEXT:    [[TMP114:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS29]], i32 0, i32 0
+// CK23-32-NEXT:    store ptr null, ptr [[TMP114]], align 4
+// CK23-NEXT:    [[TMP115:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS27]], i32 0, i32 0
+// CK23-NEXT:    [[TMP116:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS28]], i32 0, i32 0
+// CK23-NEXT:    [[TMP117:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 0
+// CK23-NEXT:    store i32 3, ptr [[TMP117]], align 4
+// CK23-NEXT:    [[TMP118:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 1
+// CK23-NEXT:    store i32 1, ptr [[TMP118]], align 4
+// CK23-NEXT:    [[TMP119:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 2
+// CK23-64-NEXT:    store ptr [[TMP115]], ptr [[TMP119]], align 8
+// CK23-32-NEXT:    store ptr [[TMP115]], ptr [[TMP119]], align 4
+// CK23-NEXT:    [[TMP120:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 3
+// CK23-64-NEXT:    store ptr [[TMP116]], ptr [[TMP120]], align 8
+// CK23-32-NEXT:    store ptr [[TMP116]], ptr [[TMP120]], align 4
+// CK23-NEXT:    [[TMP121:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 4
+// CK23-64-NEXT:    store ptr @.offload_sizes.9, ptr [[TMP121]], align 8
+// CK23-32-NEXT:    store ptr @.offload_sizes.9, ptr [[TMP121]], align 4
+// CK23-NEXT:    [[TMP122:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 5
+// CK23-64-NEXT:    store ptr @.offload_maptypes.10, ptr [[TMP122]], align 8
+// CK23-32-NEXT:    store ptr @.offload_maptypes.10, ptr [[TMP122]], align 4
+// CK23-NEXT:    [[TMP123:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 6
+// CK23-64-NEXT:    store ptr null, ptr [[TMP123]], align 8
+// CK23-32-NEXT:    store ptr null, ptr [[TMP123]], align 4
+// CK23-NEXT:    [[TMP124:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 7
+// CK23-64-NEXT:    store ptr null, ptr [[TMP124]], align 8
+// CK23-32-NEXT:    store ptr null, ptr [[TMP124]], align 4
+// CK23-NEXT:    [[TMP125:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 8
+// CK23-NEXT:    store i64 0, ptr [[TMP125]], align 8
+// CK23-NEXT:    [[TMP126:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 9
+// CK23-NEXT:    store i64 0, ptr [[TMP126]], align 8
+// CK23-NEXT:    [[TMP127:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 10
+// CK23-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP127]], align 4
+// CK23-NEXT:    [[TMP128:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 11
+// CK23-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP128]], align 4
+// CK23-NEXT:    [[TMP129:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS30]], i32 0, i32 12
+// CK23-NEXT:    store i32 0, ptr [[TMP129]], align 4
+// CK23-NEXT:    [[TMP130:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooIiEvRPfRPT__l[0-9]+}}.region_id, ptr [[KERNEL_ARGS30]])
+// CK23-NEXT:    [[TMP131:%.*]] = icmp ne i32 [[TMP130]], 0
+// CK23-NEXT:    br i1 [[TMP131]], label %[[OMP_OFFLOAD_FAILED31:.*]], label %[[OMP_OFFLOAD_CONT32:.*]]
+// CK23:       [[OMP_OFFLOAD_FAILED31]]:
+// CK23-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooIiEvRPfRPT__l[0-9]+}}(ptr [[TMP111]]) #[[ATTR2]]
+// CK23-NEXT:    br label %[[OMP_OFFLOAD_CONT32]]
+// CK23:       [[OMP_OFFLOAD_CONT32]]:
+// CK23-64-NEXT:    [[TMP132:%.*]] = load ptr, ptr [[TR_ADDR]], align 8, !nonnull [[META17]], !align [[META18]]
+// CK23-64-NEXT:    store ptr [[TMP132]], ptr [[_TMP33]], align 8
+// CK23-64-NEXT:    [[TMP133:%.*]] = load ptr, ptr [[LR_ADDR]], align 8, !nonnull [[META17]], !align [[META18]]
+// CK23-64-NEXT:    store ptr [[TMP133]], ptr [[_TMP34]], align 8
+// CK23-64-NEXT:    [[TMP134:%.*]] = load ptr, ptr [[_TMP33]], align 8, !nonnull [[META17]], !align [[META18]]
+// CK23-64-NEXT:    [[TMP135:%.*]] = load ptr, ptr [[TMP134]], align 8
+// CK23-64-NEXT:    [[TMP136:%.*]] = load ptr, ptr [[_TMP34]], align 8, !nonnull [[META17]], !align [[META18]]
+// CK23-64-NEXT:    [[TMP137:%.*]] = load ptr, ptr [[TMP136]], align 8
+// CK23-32-NEXT:    [[TMP132:%.*]] = load ptr, ptr [[TR_ADDR]], align 4, !nonnull [[META18]], !align [[META19]]
+// CK23-32-NEXT:    store ptr [[TMP132]], ptr [[_TMP33]], align 4
+// CK23-32-NEXT:    [[TMP133:%.*]] = load ptr, ptr [[LR_ADDR]], align 4, !nonnull [[META18]], !align [[META19]]
+// CK23-32-NEXT:    store ptr [[TMP133]], ptr [[_TMP34]], align 4
+// CK23-32-NEXT:    [[TMP134:%.*]] = load ptr, ptr [[_TMP33]], align 4, !nonnull [[META18]], !align [[META19]]
+// CK23-32-NEXT:    [[TMP135:%.*]] = load ptr, ptr [[TMP134]], align 4
+// CK23-32-NEXT:    [[TMP136:%.*]] = load ptr, ptr [[_TMP34]], align 4, !nonnull [[META18]], !align [[META19]]
+// CK23-32-NEXT:    [[TMP137:%.*]] = load ptr, ptr [[TMP136]], align 4
+// CK23-NEXT:    [[TMP138:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS35]], i32 0, i32 0
+// CK23-64-NEXT:    store ptr [[TMP135]], ptr [[TMP138]], align 8
+// CK23-32-NEXT:    store ptr [[TMP135]], ptr [[TMP138]], align 4
+// CK23-NEXT:    [[TMP139:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS36]], i32 0, i32 0
+// CK23-64-NEXT:    store ptr [[TMP135]], ptr [[TMP139]], align 8
+// CK23-64-NEXT:    [[TMP140:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS37]], i64 0, i64 0
+// CK23-64-NEXT:    store ptr null, ptr [[TMP140]], align 8
+// CK23-32-NEXT:    store ptr [[TMP135]], ptr [[TMP139]], align 4
+// CK23-32-NEXT:    [[TMP140:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS37]], i32 0, i32 0
+// CK23-32-NEXT:    store ptr null, ptr [[TMP140]], align 4
+// CK23-NEXT:    [[TMP141:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS35]], i32 0, i32 1
+// CK23-64-NEXT:    store ptr [[TMP137]], ptr [[TMP141]], align 8
+// CK23-32-NEXT:    store ptr [[TMP137]], ptr [[TMP141]], align 4
+// CK23-NEXT:    [[TMP142:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS36]], i32 0, i32 1
+// CK23-64-NEXT:    store ptr [[TMP137]], ptr [[TMP142]], align 8
+// CK23-64-NEXT:    [[TMP143:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS37]], i64 0, i64 1
+// CK23-64-NEXT:    store ptr null, ptr [[TMP143]], align 8
+// CK23-32-NEXT:    store ptr [[TMP137]], ptr [[TMP142]], align 4
+// CK23-32-NEXT:    [[TMP143:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS37]], i32 0, i32 1
+// CK23-32-NEXT:    store ptr null, ptr [[TMP143]], align 4
+// CK23-NEXT:    [[TMP144:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS35]], i32 0, i32 0
+// CK23-NEXT:    [[TMP145:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS36]], i32 0, i32 0
+// CK23-NEXT:    [[TMP146:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS38]], i32 0, i32 0
+// CK23-NEXT:    store i32 3, ptr [[TMP146]], align 4
+// CK23-NEXT:    [[TMP147:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS38]], i32 0, i32 1
+// CK23-NEXT:    store i32 2, ptr [[TMP147]], align 4
+// CK23-NEXT:    [[TMP148:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS38]], i32 0, i32 2
+// CK23-64-NEXT:    store ptr [[TMP144]], ptr [[TMP148]], align 8
+// CK23-32-NEXT:    store ptr [[TMP144]], ptr [[TMP148]], align 4
+// CK23-NEXT:    [[TMP149:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS38]], i32 0, i32 3
+// CK23-64-NEXT:    store ptr [[TMP145]], ptr [[TMP149]], align 8
+// CK23-32-NEXT:    store ptr [[TMP145]], ptr [[TMP149]], align 4
+// CK23-NEXT:    [[TMP150:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS38]], i32 0, i32 4
+// CK23-64-NEXT:    store ptr @.offload_sizes.11, ptr [[TMP150]], align 8
+// CK23-32-NEXT:    store ptr @.offload_sizes.11, ptr [[TMP150]], align 4
+// CK23-NEXT:    [[TMP151:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS38]], i32 0, i32 5
+// CK23-64-NEXT:    store ptr @.offload_maptypes.12, ptr [[TMP151]], align 8
+// CK23-32-NEXT:    store ptr @.offload_maptypes.12, ptr [[TMP151]], align 4
+// CK23-NEXT:    [[TMP152:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS38]], i32 0, i32 6
+// CK23-64-NEXT:    store ptr null, ptr [[TMP152]], align 8
+// CK23-32-NEXT:    store ptr null, ptr [[TMP152]], align 4
+// CK23-NEXT:    [[TMP153:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS38]], i32 0, i32 7
+// CK23-64-NEXT:    store ptr null, ptr [[TMP153]], align 8
+// CK23-32-NEXT:    store ptr null, ptr [[TMP153]], align 4
+// CK23-NEXT:    [[TMP154:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS38]], i32 0, i32 8
+// CK23-NEXT:    store i64 0, ptr [[TMP154]], align 8
+// CK23-NEXT:    [[TMP155:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS38]], i32 0, i32 9
+// CK23-NEXT:    store i64 0, ptr [[TMP155]], align 8
+// CK23-NEXT:    [[TMP156:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS38]], i32 0, i32 10
+// CK23-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP156]], align 4
+// CK23-NEXT:    [[TMP157:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS38]], i32 0, i32 11
+// CK23-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP157]], align 4
+// CK23-NEXT:    [[TMP158:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS38]], i32 0, i32 12
+// CK23-NEXT:    store i32 0, ptr [[TMP158]], align 4
+// CK23-NEXT:    [[TMP159:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooIiEvRPfRPT__l[0-9]+}}.region_id, ptr [[KERNEL_ARGS38]])
+// CK23-NEXT:    [[TMP160:%.*]] = icmp ne i32 [[TMP159]], 0
+// CK23-NEXT:    br i1 [[TMP160]], label %[[OMP_OFFLOAD_FAILED39:.*]], label %[[OMP_OFFLOAD_CONT40:.*]]
+// CK23:       [[OMP_OFFLOAD_FAILED39]]:
+// CK23-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooIiEvRPfRPT__l[0-9]+}}(ptr [[TMP135]], ptr [[TMP137]]) #[[ATTR2]]
+// CK23-NEXT:    br label %[[OMP_OFFLOAD_CONT40]]
+// CK23:       [[OMP_OFFLOAD_CONT40]]:
+// SIMD-ONLY0-NEXT:    [[INCDEC_PTR:%.*]] = getelementptr inbounds nuw double, ptr [[TMP0]], i32 1
+// SIMD-ONLY0-_5-_2-NEXT:    store ptr [[INCDEC_PTR]], ptr @g, align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[L]], align 8
+// SIMD-ONLY0-_4-_3-NEXT:    store ptr [[INCDEC_PTR]], ptr @g, align 4
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[L]], align 4
+// SIMD-ONLY0-NEXT:    [[INCDEC_PTR1:%.*]] = getelementptr inbounds nuw float, ptr [[TMP1]], i32 1
+// SIMD-ONLY0-_5-_2-NEXT:    store ptr [[INCDEC_PTR1]], ptr [[L]], align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[T]], align 8
+// SIMD-ONLY0-_4-_3-NEXT:    store ptr [[INCDEC_PTR1]], ptr [[L]], align 4
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[T]], align 4
+// SIMD-ONLY0-NEXT:    [[INCDEC_PTR2:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP2]], i32 1
+// SIMD-ONLY0-_5-_2-NEXT:    store ptr [[INCDEC_PTR2]], ptr [[T]], align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[LR_ADDR]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY0-_5-_2-NEXT:    store ptr [[TMP3]], ptr [[TMP]], align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[LR_ADDR]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP5:%.*]] = load ptr, ptr [[TMP]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[TMP5]], align 8
+// SIMD-ONLY0-_4-_3-NEXT:    store ptr [[INCDEC_PTR2]], ptr [[T]], align 4
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[LR_ADDR]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_4-_3-NEXT:    store ptr [[TMP3]], ptr [[TMP]], align 4
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[LR_ADDR]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP5:%.*]] = load ptr, ptr [[TMP]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[TMP5]], align 4
+// SIMD-ONLY0-NEXT:    [[INCDEC_PTR3:%.*]] = getelementptr inbounds nuw float, ptr [[TMP6]], i32 1
+// SIMD-ONLY0-_5-_2-NEXT:    store ptr [[INCDEC_PTR3]], ptr [[TMP5]], align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP7:%.*]] = load ptr, ptr [[TR_ADDR]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY0-_5-_2-NEXT:    store ptr [[TMP7]], ptr [[_TMP4]], align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP8:%.*]] = load ptr, ptr [[TR_ADDR]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP9:%.*]] = load ptr, ptr [[_TMP4]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[TMP9]], align 8
+// SIMD-ONLY0-_4-_3-NEXT:    store ptr [[INCDEC_PTR3]], ptr [[TMP5]], align 4
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP7:%.*]] = load ptr, ptr [[TR_ADDR]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_4-_3-NEXT:    store ptr [[TMP7]], ptr [[_TMP4]], align 4
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP8:%.*]] = load ptr, ptr [[TR_ADDR]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP9:%.*]] = load ptr, ptr [[_TMP4]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP10:%.*]] = load ptr, ptr [[TMP9]], align 4
+// SIMD-ONLY0-NEXT:    [[INCDEC_PTR5:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP10]], i32 1
+// SIMD-ONLY0-_5-_2-NEXT:    store ptr [[INCDEC_PTR5]], ptr [[TMP9]], align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP11:%.*]] = load ptr, ptr [[TR_ADDR]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY0-_5-_2-NEXT:    store ptr [[TMP11]], ptr [[_TMP6]], align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP12:%.*]] = load ptr, ptr [[TR_ADDR]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[_TMP6]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP14:%.*]] = load ptr, ptr [[TMP13]], align 8
+// SIMD-ONLY0-_4-_3-NEXT:    store ptr [[INCDEC_PTR5]], ptr [[TMP9]], align 4
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP11:%.*]] = load ptr, ptr [[TR_ADDR]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_4-_3-NEXT:    store ptr [[TMP11]], ptr [[_TMP6]], align 4
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP12:%.*]] = load ptr, ptr [[TR_ADDR]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP13:%.*]] = load ptr, ptr [[_TMP6]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP14:%.*]] = load ptr, ptr [[TMP13]], align 4
+// SIMD-ONLY0-NEXT:    [[INCDEC_PTR7:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP14]], i32 1
+// SIMD-ONLY0-_5-_2-NEXT:    store ptr [[INCDEC_PTR7]], ptr [[TMP13]], align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[TR_ADDR]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY0-_5-_2-NEXT:    store ptr [[TMP15]], ptr [[_TMP8]], align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP16:%.*]] = load ptr, ptr [[LR_ADDR]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY0-_5-_2-NEXT:    store ptr [[TMP16]], ptr [[_TMP9]], align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[TR_ADDR]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP18:%.*]] = load ptr, ptr [[LR_ADDR]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP19:%.*]] = load ptr, ptr [[_TMP8]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[TMP19]], align 8
+// SIMD-ONLY0-_4-_3-NEXT:    store ptr [[INCDEC_PTR7]], ptr [[TMP13]], align 4
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP15:%.*]] = load ptr, ptr [[TR_ADDR]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_4-_3-NEXT:    store ptr [[TMP15]], ptr [[_TMP8]], align 4
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP16:%.*]] = load ptr, ptr [[LR_ADDR]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_4-_3-NEXT:    store ptr [[TMP16]], ptr [[_TMP9]], align 4
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP17:%.*]] = load ptr, ptr [[TR_ADDR]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP18:%.*]] = load ptr, ptr [[LR_ADDR]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP19:%.*]] = load ptr, ptr [[_TMP8]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[TMP19]], align 4
+// SIMD-ONLY0-NEXT:    [[INCDEC_PTR10:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP20]], i32 1
+// SIMD-ONLY0-_5-_2-NEXT:    store ptr [[INCDEC_PTR10]], ptr [[TMP19]], align 8
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP21:%.*]] = load ptr, ptr [[_TMP9]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY0-_5-_2-NEXT:    [[TMP22:%.*]] = load ptr, ptr [[TMP21]], align 8
+// SIMD-ONLY0-_4-_3-NEXT:    store ptr [[INCDEC_PTR10]], ptr [[TMP19]], align 4
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP21:%.*]] = load ptr, ptr [[_TMP9]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY0-_4-_3-NEXT:    [[TMP22:%.*]] = load ptr, ptr [[TMP21]], align 4
+// SIMD-ONLY0-NEXT:    [[INCDEC_PTR11:%.*]] = getelementptr inbounds nuw float, ptr [[TMP22]], i32 1
+// SIMD-ONLY0-_5-_2-NEXT:    store ptr [[INCDEC_PTR11]], ptr [[TMP21]], align 8
+// SIMD-ONLY0-_4-_3-NEXT:    store ptr [[INCDEC_PTR11]], ptr [[TMP21]], align 4
+// CK15-_5-_3-NEXT:    [[VLA_ADDR:%.*]] = alloca i64, align 8
+// CK15-_5-_3-NEXT:    [[VLA_ADDR2:%.*]] = alloca i64, align 8
+// CK15-_5-_3-NEXT:    [[VLA_ADDR4:%.*]] = alloca ptr, align 8
+// CK15-_5-_3-NEXT:    store i64 [[VLA]], ptr [[VLA_ADDR]], align 8
+// CK15-_5-_3-NEXT:    store i64 [[VLA1]], ptr [[VLA_ADDR2]], align 8
+// CK15-_5-_3-NEXT:    store ptr [[VLA3]], ptr [[VLA_ADDR4]], align 8
+// CK15-_5-_3-NEXT:    [[TMP0:%.*]] = load i64, ptr [[VLA_ADDR]], align 8
+// CK15-_5-_3-NEXT:    [[TMP1:%.*]] = load i64, ptr [[VLA_ADDR2]], align 8
+// CK15-_5-_3-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[VLA_ADDR4]], align 8, !nonnull [[META5:![0-9]+]], !align [[META6:![0-9]+]]
+// CK15-_5-_3-NEXT:    [[TMP3:%.*]] = mul nsw i64 1, [[TMP1]]
+// CK15-_5-_3-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds double, ptr [[TMP2]], i64 [[TMP3]]
+// CK15-_5-_3-NEXT:    [[ARRAYIDX5:%.*]] = getelementptr inbounds double, ptr [[ARRAYIDX]], i64 3
+// CK15-_2-_4-NEXT:    [[VLA_ADDR:%.*]] = alloca i32, align 4
+// CK15-_2-_4-NEXT:    [[VLA_ADDR2:%.*]] = alloca i32, align 4
+// CK15-_2-_4-NEXT:    [[VLA_ADDR4:%.*]] = alloca ptr, align 4
+// CK15-_2-_4-NEXT:    store i32 [[VLA]], ptr [[VLA_ADDR]], align 4
+// CK15-_2-_4-NEXT:    store i32 [[VLA1]], ptr [[VLA_ADDR2]], align 4
+// CK15-_2-_4-NEXT:    store ptr [[VLA3]], ptr [[VLA_ADDR4]], align 4
+// CK15-_2-_4-NEXT:    [[TMP0:%.*]] = load i32, ptr [[VLA_ADDR]], align 4
+// CK15-_2-_4-NEXT:    [[TMP1:%.*]] = load i32, ptr [[VLA_ADDR2]], align 4
+// CK15-_2-_4-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[VLA_ADDR4]], align 4, !nonnull [[META6:![0-9]+]], !align [[META7:![0-9]+]]
+// CK15-_2-_4-NEXT:    [[TMP3:%.*]] = mul nsw i32 1, [[TMP1]]
+// CK15-_2-_4-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds double, ptr [[TMP2]], i32 [[TMP3]]
+// CK15-_2-_4-NEXT:    [[ARRAYIDX5:%.*]] = getelementptr inbounds double, ptr [[ARRAYIDX]], i32 3
+// CK15-NEXT:    [[TMP4:%.*]] = load double, ptr [[ARRAYIDX5]], align 8
+// CK15-NEXT:    [[ADD:%.*]] = fadd double [[TMP4]], 1.000000e+00
+// CK15-NEXT:    store double [[ADD]], ptr [[ARRAYIDX5]], align 8
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-CK4-64-32-CK5-CK6-CK7-CK8-CK14-CK15-CK16-CK17-CK18-CK19-CK20-CK21-CK22-CK23-SIMD-ONLY0-CK24-NEXT:    ret void
+//
+//
+// CK24-LABEL: define internal void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20explicit_maps_singlei_l[0-9]+}}(
+// CK24-SAME: ptr nonnull align 4 dereferenceable(4) [[A:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-LABEL: define internal void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z28implicit_maps_double_complexi_l[0-9]+}}(
+// CK1-_4-_5-_2-CK2-CK3-SAME: ptr nonnull align 8 dereferenceable(16) [[DC:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK1-_3-_6-CK2-_4-CK3-_5-SAME: ptr nonnull align 4 dereferenceable(16) [[DC:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:  [[ENTRY:.*]]:
+// CK1-_4-_5-_2-CK2-CK3-NEXT:    [[DC_ADDR:%.*]] = alloca ptr, align 8
+// CK1-_4-_5-_2-CK2-CK3-NEXT:    store ptr [[DC]], ptr [[DC_ADDR]], align 8
+// CK1-_4-_5-_2-CK2-CK3-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[DC_ADDR]], align 8, !nonnull [[META5:![0-9]+]], !align [[META6:![0-9]+]]
+// CK1-_3-_6-CK2-_4-CK3-_5-NEXT:    [[DC_ADDR:%.*]] = alloca ptr, align 4
+// CK1-_3-_6-CK2-_4-CK3-_5-NEXT:    [[TMP:%.*]] = alloca { double, double }, align 4
+// CK1-_3-_6-CK2-_4-CK3-_5-NEXT:    store ptr [[DC]], ptr [[DC_ADDR]], align 4
+// CK1-_3-_6-CK2-_4-CK3-_5-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[DC_ADDR]], align 4, !nonnull [[META6:![0-9]+]], !align [[META7:![0-9]+]]
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[DOTREALP:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[TMP0]], i32 0, i32 0
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[DOTREAL:%.*]] = load double, ptr [[DOTREALP]], align 8
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[DOTIMAGP:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[TMP0]], i32 0, i32 1
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[DOTIMAG:%.*]] = load double, ptr [[DOTIMAGP]], align 8
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[DOTREALP1:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[TMP0]], i32 0, i32 0
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[DOTREAL2:%.*]] = load double, ptr [[DOTREALP1]], align 8
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[DOTIMAGP3:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[TMP0]], i32 0, i32 1
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[DOTIMAG4:%.*]] = load double, ptr [[DOTIMAGP3]], align 8
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[MUL_AC:%.*]] = fmul double [[DOTREAL2]], [[DOTREAL]]
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[MUL_BD:%.*]] = fmul double [[DOTIMAG4]], [[DOTIMAG]]
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[MUL_AD:%.*]] = fmul double [[DOTREAL2]], [[DOTIMAG]]
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[MUL_BC:%.*]] = fmul double [[DOTIMAG4]], [[DOTREAL]]
+// SIMD-ONLY10-NEXT:    [[DC_REALP1:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[DC]], i32 0, i32 0
+// SIMD-ONLY10-NEXT:    [[DC_REAL:%.*]] = load double, ptr [[DC_REALP1]], align 8
+// SIMD-ONLY10-NEXT:    [[DC_IMAGP2:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[DC]], i32 0, i32 1
+// SIMD-ONLY10-NEXT:    [[DC_IMAG:%.*]] = load double, ptr [[DC_IMAGP2]], align 8
+// SIMD-ONLY10-NEXT:    [[DC_REALP3:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[DC]], i32 0, i32 0
+// SIMD-ONLY10-NEXT:    [[DC_REAL4:%.*]] = load double, ptr [[DC_REALP3]], align 8
+// SIMD-ONLY10-NEXT:    [[DC_IMAGP5:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[DC]], i32 0, i32 1
+// SIMD-ONLY10-NEXT:    [[DC_IMAG6:%.*]] = load double, ptr [[DC_IMAGP5]], align 8
+// SIMD-ONLY10-NEXT:    [[MUL_AC:%.*]] = fmul double [[DC_REAL4]], [[DC_REAL]]
+// SIMD-ONLY10-NEXT:    [[MUL_BD:%.*]] = fmul double [[DC_IMAG6]], [[DC_IMAG]]
+// SIMD-ONLY10-NEXT:    [[MUL_AD:%.*]] = fmul double [[DC_REAL4]], [[DC_IMAG]]
+// SIMD-ONLY10-NEXT:    [[MUL_BC:%.*]] = fmul double [[DC_IMAG6]], [[DC_REAL]]
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-NEXT:    [[MUL_R:%.*]] = fsub double [[MUL_AC]], [[MUL_BD]]
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-NEXT:    [[MUL_I:%.*]] = fadd double [[MUL_AD]], [[MUL_BC]]
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-NEXT:    [[ISNAN_CMP:%.*]] = fcmp uno double [[MUL_R]], [[MUL_R]]
+// CK1-_4-_5-_2-CK2-CK3-NEXT:    br i1 [[ISNAN_CMP]], label %[[COMPLEX_MUL_IMAG_NAN:.*]], label %[[COMPLEX_MUL_CONT:.*]], !prof [[PROF7:![0-9]+]]
+// CK1-_3-_6-CK2-_4-CK3-_5-NEXT:    br i1 [[ISNAN_CMP]], label %[[COMPLEX_MUL_IMAG_NAN:.*]], label %[[COMPLEX_MUL_CONT:.*]], !prof [[PROF8:![0-9]+]]
+// SIMD-ONLY10-_7-_9-_5-_10-_13-_6-NEXT:    br i1 [[ISNAN_CMP]], label %[[COMPLEX_MUL_IMAG_NAN:.*]], label %[[COMPLEX_MUL_CONT:.*]], !prof [[PROF2:![0-9]+]]
+// SIMD-ONLY10-_12-_11-_8-_4-_2-_3-NEXT:    br i1 [[ISNAN_CMP]], label %[[COMPLEX_MUL_IMAG_NAN:.*]], label %[[COMPLEX_MUL_CONT:.*]], !prof [[PROF3:![0-9]+]]
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13:       [[COMPLEX_MUL_IMAG_NAN]]:
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[ISNAN_CMP5:%.*]] = fcmp uno double [[MUL_I]], [[MUL_I]]
+// CK1-_4-_5-_2-CK2-CK3-NEXT:    br i1 [[ISNAN_CMP5]], label %[[COMPLEX_MUL_LIBCALL:.*]], label %[[COMPLEX_MUL_CONT]], !prof [[PROF7]]
+// CK1-_3-_6-CK2-_4-CK3-_5-NEXT:    br i1 [[ISNAN_CMP5]], label %[[COMPLEX_MUL_LIBCALL:.*]], label %[[COMPLEX_MUL_CONT]], !prof [[PROF8]]
+// SIMD-ONLY10-NEXT:    [[ISNAN_CMP7:%.*]] = fcmp uno double [[MUL_I]], [[MUL_I]]
+// SIMD-ONLY10-_7-_9-_5-_10-_13-_6-NEXT:    br i1 [[ISNAN_CMP7]], label %[[COMPLEX_MUL_LIBCALL:.*]], label %[[COMPLEX_MUL_CONT]], !prof [[PROF2]]
+// SIMD-ONLY10-_12-_11-_8-_4-_2-_3-NEXT:    br i1 [[ISNAN_CMP7]], label %[[COMPLEX_MUL_LIBCALL:.*]], label %[[COMPLEX_MUL_CONT]], !prof [[PROF3]]
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13:       [[COMPLEX_MUL_LIBCALL]]:
+// CK1-_4-_5-_2-CK2-CK3-NEXT:    [[CALL:%.*]] = call { double, double } @__muldc3(double [[DOTREAL2]], double [[DOTIMAG4]], double [[DOTREAL]], double [[DOTIMAG]]) #[[ATTR2]]
+// SIMD-ONLY10-_7-_9-_5-_10-_13-_6-NEXT:    [[CALL:%.*]] = call { double, double } @__muldc3(double [[DC_REAL4]], double [[DC_IMAG6]], double [[DC_REAL]], double [[DC_IMAG]]) #[[ATTR1:[0-9]+]]
+// CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-NEXT:    [[TMP1:%.*]] = extractvalue { double, double } [[CALL]], 0
+// CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-NEXT:    [[TMP2:%.*]] = extractvalue { double, double } [[CALL]], 1
+// CK1-_3-_6-CK2-_4-CK3-_5-NEXT:    call void @__muldc3(ptr dead_on_unwind writable sret({ double, double }) align 4 [[TMP]], double [[DOTREAL2]], double [[DOTIMAG4]], double [[DOTREAL]], double [[DOTIMAG]]) #[[ATTR2]]
+// SIMD-ONLY10-_12-_11-_8-_4-_2-_3-NEXT:    call void @__muldc3(ptr dead_on_unwind writable sret({ double, double }) align 4 [[TMP]], double [[DC_REAL4]], double [[DC_IMAG6]], double [[DC_REAL]], double [[DC_IMAG]]) #[[ATTR1:[0-9]+]]
+// CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-NEXT:    [[TMP_REALP:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[TMP]], i32 0, i32 0
+// CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-NEXT:    [[TMP_REAL:%.*]] = load double, ptr [[TMP_REALP]], align 4
+// CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-NEXT:    [[TMP_IMAGP:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[TMP]], i32 0, i32 1
+// CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-NEXT:    [[TMP_IMAG:%.*]] = load double, ptr [[TMP_IMAGP]], align 4
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-NEXT:    br label %[[COMPLEX_MUL_CONT]]
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13:       [[COMPLEX_MUL_CONT]]:
+// CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-NEXT:    [[REAL_MUL_PHI:%.*]] = phi double [ [[MUL_R]], %[[ENTRY]] ], [ [[MUL_R]], %[[COMPLEX_MUL_IMAG_NAN]] ], [ [[TMP1]], %[[COMPLEX_MUL_LIBCALL]] ]
+// CK1-_4-_5-_2-SIMD-ONLY10-_7-_9-CK2-_10-CK3-_13-_6-NEXT:    [[IMAG_MUL_PHI:%.*]] = phi double [ [[MUL_I]], %[[ENTRY]] ], [ [[MUL_I]], %[[COMPLEX_MUL_IMAG_NAN]] ], [ [[TMP2]], %[[COMPLEX_MUL_LIBCALL]] ]
+// CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-NEXT:    [[REAL_MUL_PHI:%.*]] = phi double [ [[MUL_R]], %[[ENTRY]] ], [ [[MUL_R]], %[[COMPLEX_MUL_IMAG_NAN]] ], [ [[TMP_REAL]], %[[COMPLEX_MUL_LIBCALL]] ]
+// CK1-_3-_6-SIMD-ONLY10-_12-_11-CK2-_4-_8-CK3-_5-_2-NEXT:    [[IMAG_MUL_PHI:%.*]] = phi double [ [[MUL_I]], %[[ENTRY]] ], [ [[MUL_I]], %[[COMPLEX_MUL_IMAG_NAN]] ], [ [[TMP_IMAG]], %[[COMPLEX_MUL_LIBCALL]] ]
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[DOTREALP6:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[TMP0]], i32 0, i32 0
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    [[DOTIMAGP7:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[TMP0]], i32 0, i32 1
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    store double [[REAL_MUL_PHI]], ptr [[DOTREALP6]], align 8
+// CK1-_4-_5-_2-_3-_6-CK2-CK3-NEXT:    store double [[IMAG_MUL_PHI]], ptr [[DOTIMAGP7]], align 8
+// CK4-32-_3-_2-CK20-LABEL: define internal void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20implicit_maps_doublei_l[0-9]+}}(
+// CK4-32-_3-_2-CK20-SAME: ptr nonnull align 4 dereferenceable(8) [[D:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK14-LABEL: define internal void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20explicit_maps_singlev_l[0-9]+}}(
+// CK14-SAME: ptr [[PA:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK22-LABEL: define internal void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z21implicit_maps_pointerv_l[0-9]+}}(
+// CK22-SAME: ptr [[DDYN:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK4-32-_3-_2-CK14-_4-_5-CK20-CK22-CK24-64-NEXT:  [[ENTRY:.*:]]
+// CK24-64-NEXT:    [[A_ADDR:%.*]] = alloca ptr, align 8
+// CK24-64-NEXT:    store ptr [[A]], ptr [[A_ADDR]], align 8
+// CK24-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[A_ADDR]], align 8, !nonnull [[META7:![0-9]+]], !align [[META8:![0-9]+]]
+// CK24-32-NEXT:    [[A_ADDR:%.*]] = alloca ptr, align 4
+// CK24-32-NEXT:    store ptr [[A]], ptr [[A_ADDR]], align 4
+// CK24-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[A_ADDR]], align 4, !nonnull [[META8:![0-9]+]], !align [[META9:![0-9]+]]
+// CK24-NEXT:    [[TMP1:%.*]] = load i32, ptr [[TMP0]], align 4
+// CK14-_2-_4-NEXT:    [[PA_ADDR:%.*]] = alloca ptr, align 8
+// CK14-_2-_4-NEXT:    store ptr [[PA]], ptr [[PA_ADDR]], align 8
+// CK14-_2-_4-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PA_ADDR]], align 8
+// CK14-_2-_4-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds i32, ptr [[TMP0]], i64 50
+// CK4-32-_3-_2-CK20-NEXT:    [[D_ADDR:%.*]] = alloca ptr, align 4
+// CK4-32-_3-_2-CK20-NEXT:    [[D1:%.*]] = alloca double, align 8
+// CK4-32-_3-_2-CK20-NEXT:    store ptr [[D]], ptr [[D_ADDR]], align 4
+// CK4-32-_3-_2-CK20-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[D_ADDR]], align 4, !nonnull [[META6:![0-9]+]], !align [[META7:![0-9]+]]
+// CK4-32-_3-_2-CK20-NEXT:    [[TMP1:%.*]] = load double, ptr [[TMP0]], align 8
+// CK4-32-_3-_2-CK20-NEXT:    store double [[TMP1]], ptr [[D1]], align 8
+// CK4-32-_3-_2-CK20-NEXT:    [[TMP2:%.*]] = load double, ptr [[D1]], align 8
+// CK4-32-_3-_2-CK20-NEXT:    [[ADD:%.*]] = fadd double [[TMP2]], 1.000000e+00
+// CK4-32-_3-_2-CK20-NEXT:    store double [[ADD]], ptr [[D1]], align 8
+// CK14-_3-_5-NEXT:    [[PA_ADDR:%.*]] = alloca ptr, align 4
+// CK14-_3-_5-NEXT:    store ptr [[PA]], ptr [[PA_ADDR]], align 4
+// CK14-_3-_5-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PA_ADDR]], align 4
+// CK14-_3-_5-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds i32, ptr [[TMP0]], i32 50
+// CK14-NEXT:    [[TMP1:%.*]] = load i32, ptr [[ARRAYIDX]], align 4
+// CK14-_2-_4-_3-_5-CK24-64-32-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP1]], 1
+// CK24-NEXT:    store i32 [[INC]], ptr [[TMP0]], align 4
+// CK14-NEXT:    store i32 [[INC]], ptr [[ARRAYIDX]], align 4
+// CK22-_5-_2-NEXT:    [[DDYN_ADDR:%.*]] = alloca ptr, align 8
+// CK22-_5-_2-NEXT:    store ptr [[DDYN]], ptr [[DDYN_ADDR]], align 8
+// CK22-_5-_2-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[DDYN_ADDR]], align 8
+// CK22-_5-_2-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds double, ptr [[TMP0]], i64 0
+// CK22-_5-_2-NEXT:    [[TMP1:%.*]] = load double, ptr [[ARRAYIDX]], align 8
+// CK22-_4-_3-NEXT:    [[DDYN_ADDR:%.*]] = alloca ptr, align 4
+// CK22-_4-_3-NEXT:    store ptr [[DDYN]], ptr [[DDYN_ADDR]], align 4
+// CK22-_4-_3-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[DDYN_ADDR]], align 4
+// CK22-_4-_3-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds double, ptr [[TMP0]], i32 0
+// CK22-_4-_3-NEXT:    [[TMP1:%.*]] = load double, ptr [[ARRAYIDX]], align 4
+// CK22-NEXT:    [[ADD:%.*]] = fadd double [[TMP1]], 1.000000e+00
+// CK22-_5-_2-NEXT:    store double [[ADD]], ptr [[ARRAYIDX]], align 8
+// CK22-_5-_2-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[DDYN_ADDR]], align 8
+// CK22-_5-_2-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds double, ptr [[TMP2]], i64 1
+// CK22-_5-_2-NEXT:    [[TMP3:%.*]] = load double, ptr [[ARRAYIDX1]], align 8
+// CK22-_4-_3-NEXT:    store double [[ADD]], ptr [[ARRAYIDX]], align 4
+// CK22-_4-_3-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[DDYN_ADDR]], align 4
+// CK22-_4-_3-NEXT:    [[ARRAYIDX1:%.*]] = getelementptr inbounds double, ptr [[TMP2]], i32 1
+// CK22-_4-_3-NEXT:    [[TMP3:%.*]] = load double, ptr [[ARRAYIDX1]], align 4
+// CK22-NEXT:    [[ADD2:%.*]] = fadd double [[TMP3]], 1.000000e+00
+// CK22-_5-_2-NEXT:    store double [[ADD2]], ptr [[ARRAYIDX1]], align 8
+// CK22-_4-_3-NEXT:    store double [[ADD2]], ptr [[ARRAYIDX1]], align 4
+// SIMD-ONLY10-NEXT:    [[DC_REALP8:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[DC]], i32 0, i32 0
+// SIMD-ONLY10-NEXT:    [[DC_IMAGP9:%.*]] = getelementptr inbounds nuw { double, double }, ptr [[DC]], i32 0, i32 1
+// SIMD-ONLY10-NEXT:    store double [[REAL_MUL_PHI]], ptr [[DC_REALP8]], align 8
+// SIMD-ONLY10-NEXT:    store double [[IMAG_MUL_PHI]], ptr [[DC_IMAGP9]], align 8
+// CK1-_4-_5-_2-_3-_6-SIMD-ONLY10-_7-_9-_12-_11-CK2-_10-_8-CK3-_13-CK4-32-ONLY8-_28-_24-_30-_25-_26-_35-_22-_31-_21-_19-_14-_29-CK9-64-ONLY26-CK10-CK11-CK12-CK13-CK14-ONLY16-_15-_20-_17-_18-_16-CK20-CK22-ONLY9-CK24-ONLY18-CK25-CK26-NEXT:    ret void
+//
+//
+// CK24-64: [[META7]] = !{}
+// CK24-64: [[META8]] = !{i64 4}
+// CK24-32: [[META8]] = !{}
+// CK24-32: [[META9]] = !{i64 4}
+// CK23-64: [[META17]] = !{}
+// CK23-64: [[META18]] = !{i64 8}
+// CK23-32: [[META18]] = !{}
+// CK23-32: [[META19]] = !{i64 4}
+// SIMD-ONLY0-_5-_2: [[META2]] = !{}
+// SIMD-ONLY0-_5-_2: [[META3]] = !{i64 8}
+// SIMD-ONLY0-_4-_3: [[META3]] = !{}
+// SIMD-ONLY0-_4-_3: [[META4]] = !{i64 4}
+// CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21: [[META5]] = !{}
+// CK1-_4-_5-_2-CK2-CK3-CK5-CK6-_3-CK7-CK8-CK15-CK16-CK17-CK18-CK19-CK21: [[META6]] = !{i64 8}
+// CK1-_4-_5-_2-CK2-CK3: [[PROF7]] = !{!"branch_weights", i32 1, i32 1048575}
+// CK26-LABEL: define internal void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z19declare_target_linkv_l[0-9]+}}(
+// CK9-LABEL: define internal void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z34zero_size_section_and_private_mapsi_l[0-9]+}}(
+// CK9-SAME: ptr nonnull align 4 dereferenceable(40) [[PVTARR:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK10-_3-_4-_5-_2-CK11-CK12-CK13-LABEL: define internal void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z20explicit_maps_singlev_l[0-9]+}}(
+// CK10-_5-_2-CK11-_3-CK12-_4-CK13-SAME: ptr nonnull align 4 dereferenceable(4) [[PA:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK10-_3-_4-CK11-_5-CK12-CK13-_2-SAME: ptr nonnull align 8 dereferenceable(8) [[PA:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK25-LABEL: define internal void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z17declare_target_tov_l[0-9]+}}(
+// CK25-64-_2-_3-32-CK26-SAME: ) #[[ATTR1:[0-9]+]] {
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26-NEXT:  [[ENTRY:.*:]]
+// CK26-NEXT:    [[TMP0:%.*]] = load i32, ptr @a, align 4
+// CK26-64-NEXT:    [[IDXPROM:%.*]] = sext i32 [[TMP0]] to i64
+// CK26-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [1024 x float], ptr @Vector, i64 0, i64 [[IDXPROM]]
+// CK26-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [1024 x float], ptr @Vector, i32 0, i32 [[TMP0]]
+// CK26-NEXT:    [[TMP1:%.*]] = load float, ptr [[ARRAYIDX]], align 4
+// CK26-NEXT:    [[INC:%.*]] = fadd float [[TMP1]], 1.000000e+00
+// CK26-NEXT:    store float [[INC]], ptr [[ARRAYIDX]], align 4
+// CK26-64-NEXT:    [[TMP2:%.*]] = load ptr, ptr @ptr, align 8
+// CK26-32-NEXT:    [[TMP2:%.*]] = load ptr, ptr @ptr, align 4
+// CK26-NEXT:    [[INCDEC_PTR:%.*]] = getelementptr inbounds nuw double, ptr [[TMP2]], i32 1
+// CK26-64-NEXT:    store ptr [[INCDEC_PTR]], ptr @ptr, align 8
+// CK26-32-NEXT:    store ptr [[INCDEC_PTR]], ptr @ptr, align 4
+// CK9-32-NEXT:    [[PVTARR_ADDR:%.*]] = alloca ptr, align 4
+// CK9-64-NEXT:    [[PVTARR_ADDR:%.*]] = alloca ptr, align 8
+// CK9-NEXT:    [[PVTARR1:%.*]] = alloca [10 x i32], align 4
+// CK9-32-NEXT:    store ptr [[PVTARR]], ptr [[PVTARR_ADDR]], align 4
+// CK9-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PVTARR_ADDR]], align 4, !nonnull [[META6:![0-9]+]], !align [[META7:![0-9]+]]
+// CK9-32-NEXT:    call void @llvm.memcpy.p0.p0.i32(ptr align 4 [[PVTARR1]], ptr align 4 [[TMP0]], i32 40, i1 false)
+// CK9-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [10 x i32], ptr [[PVTARR1]], i32 0, i32 5
+// CK9-64-NEXT:    store ptr [[PVTARR]], ptr [[PVTARR_ADDR]], align 8
+// CK9-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PVTARR_ADDR]], align 8, !nonnull [[META5:![0-9]+]], !align [[META6:![0-9]+]]
+// CK9-64-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 4 [[PVTARR1]], ptr align 4 [[TMP0]], i64 40, i1 false)
+// CK9-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds [10 x i32], ptr [[PVTARR1]], i64 0, i64 5
+// CK9-NEXT:    [[TMP1:%.*]] = load i32, ptr [[ARRAYIDX]], align 4
+// CK9-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP1]], 1
+// CK10-_5-_2-CK11-_3-CK12-_4-CK13-NEXT:    [[PA_ADDR:%.*]] = alloca ptr, align 4
+// CK10-_5-_2-CK11-_3-CK12-_4-CK13-NEXT:    store ptr [[PA]], ptr [[PA_ADDR]], align 4
+// CK10-_5-_2-CK11-_3-CK12-_4-CK13-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PA_ADDR]], align 4, !nonnull [[META6:![0-9]+]], !align [[META7:![0-9]+]]
+// CK10-_5-_2-CK11-_3-CK12-_4-CK13-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[TMP0]], align 4
+// CK10-_5-_2-CK11-_3-CK12-_4-CK13-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds i32, ptr [[TMP1]], i32 50
+// CK10-_3-_4-CK11-_5-CK12-CK13-_2-NEXT:    [[PA_ADDR:%.*]] = alloca ptr, align 8
+// CK10-_3-_4-CK11-_5-CK12-CK13-_2-NEXT:    store ptr [[PA]], ptr [[PA_ADDR]], align 8
+// CK10-_3-_4-CK11-_5-CK12-CK13-_2-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PA_ADDR]], align 8, !nonnull [[META5:![0-9]+]], !align [[META6:![0-9]+]]
+// CK10-_3-_4-CK11-_5-CK12-CK13-_2-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[TMP0]], align 8
+// CK10-_3-_4-CK11-_5-CK12-CK13-_2-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds i32, ptr [[TMP1]], i64 50
+// CK10-_3-_4-_5-_2-CK11-CK12-CK13-NEXT:    [[TMP2:%.*]] = load i32, ptr [[ARRAYIDX]], align 4
+// CK10-_3-_4-_5-_2-CK11-CK12-CK13-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP2]], 1
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-NEXT:    store i32 [[INC]], ptr [[ARRAYIDX]], align 4
+// CK25-NEXT:    [[TMP0:%.*]] = load i32, ptr @x, align 4
+// CK25-NEXT:    [[INC:%.*]] = add nsw i32 [[TMP0]], 1
+// CK25-NEXT:    store i32 [[INC]], ptr @x, align 4
+// CK9-64-_2-_3-32-CK10-_4-_5-CK11-CK12-CK13-CK25-CK26-NEXT:    ret void
+//
+//
+// CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21: [[META6]] = !{}
+// CK1-_3-_6-CK2-_4-CK3-_5-CK4-32-_2-CK5-CK6-CK7-CK8-CK9-CK10-CK11-CK12-CK13-CK15-CK16-CK17-CK18-CK19-CK20-CK21: [[META7]] = !{i64 4}
+// CK1-_3-_6-CK2-_4-CK3-_5: [[PROF8]] = !{!"branch_weights", i32 1, i32 1048575}
+// CK9-64-_2-_3-CK10-_4-CK11-_5-CK12-CK13: [[META5]] = !{}
+// CK9-64: [[META6]] = !{i64 4}
+// CK10-_3-_4-CK11-_5-CK12-CK13-_2: [[META6]] = !{i64 8}
+// SIMD-ONLY10-_7-_9-_5-_10-_13-_6: [[PROF2]] = !{!"branch_weights", i32 1, i32 1048575}
+// SIMD-ONLY10-_12-_11-_8-_4-_2-_3: [[PROF3]] = !{!"branch_weights", i32 1, i32 1048575}
+//.

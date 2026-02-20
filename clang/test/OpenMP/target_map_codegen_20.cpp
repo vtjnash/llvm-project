@@ -4,98 +4,70 @@
 #define HEADER
 
 ///==========================================================================///
-// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK21,CK21-64,CK21-USE
+// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-64,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,CK21-USE
 // RUN: %clang_cc1 -DUSE -DCK21 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -DUSE -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-64,CK21-USE
-// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-32,CK21-USE
+// RUN: %clang_cc1 -DUSE -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-64,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,CK21-USE
+// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-32,CK21-32-USE-_3-_5-_6-_4-_2,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-USE
 // RUN: %clang_cc1 -DUSE -DCK21 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -DUSE -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-32,CK21-USE
+// RUN: %clang_cc1 -DUSE -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-32,CK21-32-USE-_3-_5-_6-_4-_2,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-USE
 
-// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK21,CK21-64,CK21-USE
+// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-64,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,CK21-USE
 // RUN: %clang_cc1 -DUSE -DCK21 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -DUSE -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-64,CK21-USE
-// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-32,CK21-USE
+// RUN: %clang_cc1 -DUSE -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-64,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,CK21-USE
+// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-32,CK21-32-USE-_3-_5-_6-_4-_2,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-USE
 // RUN: %clang_cc1 -DUSE -DCK21 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -DUSE -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-32,CK21-USE
+// RUN: %clang_cc1 -DUSE -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-32,CK21-32-USE-_3-_5-_6-_4-_2,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-USE
 
-// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK21,CK21-64,CK21-USE
+// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-64,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,CK21-USE
 // RUN: %clang_cc1 -DUSE -DCK21 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -DUSE -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-64,CK21-USE
-// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-32,CK21-USE
+// RUN: %clang_cc1 -DUSE -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-64,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,CK21-USE
+// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-32,CK21-32-USE-_3-_5-_6-_4-_2,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-USE
 // RUN: %clang_cc1 -DUSE -DCK21 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -DUSE -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-32,CK21-USE
+// RUN: %clang_cc1 -DUSE -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-32,CK21-32-USE-_3-_5-_6-_4-_2,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-USE
 
-// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY20 %s
+// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,SIMD-ONLY20-_8-_5,SIMD-ONLY20-_8-_5-_2-_9,SIMD-ONLY20-_8-_5-_4-_7 %s
 // RUN: %clang_cc1 -DUSE -DCK21 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -DUSE -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY20 %s
-// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY20 %s
+// RUN: %clang_cc1 -DUSE -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,SIMD-ONLY20-_8-_5,SIMD-ONLY20-_8-_5-_2-_9,SIMD-ONLY20-_8-_5-_4-_7 %s
+// RUN: %clang_cc1 -DUSE -DCK21 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,SIMD-ONLY20-_4-_7,SIMD-ONLY20-_4-_7-_3-_6,SIMD-ONLY20-_8-_5-_4-_7 %s
 // RUN: %clang_cc1 -DUSE -DCK21 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -DUSE -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY20 %s
+// RUN: %clang_cc1 -DUSE -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,SIMD-ONLY20-_4-_7,SIMD-ONLY20-_4-_7-_3-_6,SIMD-ONLY20-_8-_5-_4-_7 %s
 
-// RUN: %clang_cc1 -DCK21 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK21,CK21-64,CK21-NOUSE
+// RUN: %clang_cc1 -DCK21 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-64,CK21-64-NOUSE-_3-_4-_5-_6-_2,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,CK21-NOUSE
 // RUN: %clang_cc1 -DCK21 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-64,CK21-NOUSE
-// RUN: %clang_cc1 -DCK21 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-32,CK21-NOUSE
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-64,CK21-64-NOUSE-_3-_4-_5-_6-_2,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,CK21-NOUSE
+// RUN: %clang_cc1 -DCK21 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-32,CK21-32-NOUSE-_6-_4-_2-_5-_3,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-NOUSE
 // RUN: %clang_cc1 -DCK21 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-32,CK21-NOUSE
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-32,CK21-32-NOUSE-_6-_4-_2-_5-_3,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-NOUSE
 
-// RUN: %clang_cc1 -DCK21 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK21,CK21-64,CK21-NOUSE
+// RUN: %clang_cc1 -DCK21 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-64,CK21-64-NOUSE-_3-_4-_5-_6-_2,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,CK21-NOUSE
 // RUN: %clang_cc1 -DCK21 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-64,CK21-NOUSE
-// RUN: %clang_cc1 -DCK21 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-32,CK21-NOUSE
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-64,CK21-64-NOUSE-_3-_4-_5-_6-_2,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,CK21-NOUSE
+// RUN: %clang_cc1 -DCK21 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-32,CK21-32-NOUSE-_6-_4-_2-_5-_3,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-NOUSE
 // RUN: %clang_cc1 -DCK21 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-32,CK21-NOUSE
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-32,CK21-32-NOUSE-_6-_4-_2-_5-_3,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-NOUSE
 
-// RUN: %clang_cc1 -DCK21 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CK21,CK21-64,CK21-NOUSE
+// RUN: %clang_cc1 -DCK21 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-64,CK21-64-NOUSE-_3-_4-_5-_6-_2,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,CK21-NOUSE
 // RUN: %clang_cc1 -DCK21 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-64,CK21-NOUSE
-// RUN: %clang_cc1 -DCK21 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-32,CK21-NOUSE
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-64,CK21-64-NOUSE-_3-_4-_5-_6-_2,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,CK21-NOUSE
+// RUN: %clang_cc1 -DCK21 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-32,CK21-32-NOUSE-_6-_4-_2-_5-_3,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-NOUSE
 // RUN: %clang_cc1 -DCK21 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefixes=CK21,CK21-32,CK21-NOUSE
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK21,CK21-32,CK21-32-NOUSE-_6-_4-_2-_5-_3,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-NOUSE
 
-// RUN: %clang_cc1 -DCK21 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY20 %s
+// RUN: %clang_cc1 -DCK21 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,SIMD-ONLY20-_2-_9-_3-_6,SIMD-ONLY20-_8-_5-_2-_9 %s
 // RUN: %clang_cc1 -DCK21 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY20 %s
-// RUN: %clang_cc1 -DCK21 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY20 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9,SIMD-ONLY20-_2-_9-_3-_6,SIMD-ONLY20-_8-_5-_2-_9 %s
+// RUN: %clang_cc1 -DCK21 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-_9,SIMD-ONLY20-_2-_9-_3-_6,SIMD-ONLY20-_4-_7-_3-_6 %s
 // RUN: %clang_cc1 -DCK21 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY20 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE,SIMD-ONLY20-_2-_9-_3-_6,SIMD-ONLY20-_4-_7-_3-_6 %s
 
-// SIMD-ONLY20-NOT: {{__kmpc|__tgt}}
 #ifdef CK21
-// CK21: [[ST:%.+]] = type { i32, i32, ptr }
 
-// CK21-LABEL: @.__omp_offloading_{{.*}}foo{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK21: [[SIZE00:@.+]] = private {{.*}}constant [1 x i64] [i64 4]
-// CK21-USE: [[MTYPE00:@.+]] = private {{.*}}constant [1 x i64] [i64 35]
-// CK21-NOUSE: [[MTYPE00:@.+]] = private {{.*}}constant [1 x i64] [i64 3]
 
-// CK21-LABEL: @.__omp_offloading_{{.*}}foo{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK21: [[SIZE01:@.+]] = private {{.*}}constant [2 x i64] [i64 492, i64 {{4|8}}]
-// CK21-USE: [[MTYPE01:@.+]] = private {{.*}}constant [2 x i64] [i64 35, i64 16384]
-// CK21-NOUSE: [[MTYPE01:@.+]] = private {{.*}}constant [2 x i64] [i64 3, i64 16384]
 
-// CK21-LABEL: @.__omp_offloading_{{.*}}foo{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK21-USE: [[SIZE02:@.+]] = private {{.*}}constant [3 x i64] [i64 {{4|8}}, i64 500, i64 {{4|8}}]
-// CK21-NOUSE: [[SIZE02:@.+]] = private {{.*}}constant [2 x i64] [i64 500, i64 {{4|8}}]
-// CK21-USE: [[MTYPE02:@.+]] = private {{.*}}constant [3 x i64] [i64 547, i64 2, i64 16384]
-// CK21-NOUSE: [[MTYPE02:@.+]] = private {{.*}}constant [2 x i64] [i64 2, i64 16384]
 
-// CK21-LABEL: @.__omp_offloading_{{.*}}foo{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK21: [[SIZE03:@.+]] = private {{.*}}constant [1 x i64] [i64 492]
-// CK21-USE: [[MTYPE03:@.+]] = private {{.*}}constant [1 x i64] [i64 34]
-// CK21-NOUSE: [[MTYPE03:@.+]] = private {{.*}}constant [1 x i64] [i64 2]
 
-// CK21-LABEL: @.__omp_offloading_{{.*}}foo{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK21: [[SIZE04:@.+]] = private {{.*}}constant [1 x i64] [i64 4]
-// CK21-USE: [[MTYPE04:@.+]] = private {{.*}}constant [1 x i64] [i64 34]
-// CK21-NOUSE: [[MTYPE04:@.+]] = private {{.*}}constant [1 x i64] [i64 2]
 
-// CK21-LABEL: @.__omp_offloading_{{.*}}foo{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK21: [[SIZE05:@.+]] = private {{.*}}constant [3 x i64] [i64 0, i64 4, i64 4]
-// CK21-USE: [[MTYPE05:@.+]] = private {{.*}}constant [3 x i64] [i64 32, i64 281474976710659, i64 281474976710659]
-// CK21-NOUSE: [[MTYPE05:@.+]] = private {{.*}}constant [3 x i64] [i64 0, i64 281474976710659, i64 281474976710659]
 
-// CK21-LABEL: explicit_maps_template_args_and_members{{.*}}(
 
 template <int X, typename T>
 struct CC {
@@ -108,22 +80,8 @@ struct CC {
     T *lb;
 
 // Region 00
-// CK21-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK21-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK21-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK21-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK21-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK21-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK21-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK21-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK21-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK21-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK21-DAG: store ptr [[SEC0:%.+]], ptr [[P0]]
-// CK21-DAG: [[SEC0]] = getelementptr {{.*}}ptr [[VAR0:%.+]], i{{.+}} 0, i{{.+}} 0
 
-// CK21-USE: call void [[CALL00:@.+]](ptr {{[^,]+}})
-// CK21-NOUSE: call void [[CALL00:@.+]]()
 #pragma omp target map(A)
     {
 #ifdef USE
@@ -136,31 +94,9 @@ struct CC {
 //  &lb[0], &lb[/*lower_bound=*/0], X * sizeof(T), (TO | FROM) / (TO | FROM | PARAM)
 //  &lb,    &lb[/*lower_bound=*/0], sizeof(T*),    ATTACH
 
-// CK21-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK21-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK21-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK21-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK21-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK21-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK21-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK21-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK21-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK21-DAG: store ptr [[RLB:%.+]], ptr [[BP0]]
-// CK21-DAG: store ptr [[RLB0:%.+]], ptr [[P0]]
-// CK21-DAG: [[RLB]] = load ptr, ptr %lb
-// CK21-DAG: [[RLB0]] = getelementptr {{.*}}ptr [[RLB_1:%.+]], i{{.+}} 0
-// CK21-DAG: [[RLB_1]] = load ptr, ptr %lb
 
-// CK21-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 1
-// CK21-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 1
-// CK21-DAG: store ptr %lb, ptr [[BP1]]
-// CK21-DAG: store ptr [[RLB0_1:%.+]], ptr [[P1]]
-// CK21-DAG: [[RLB0_1]] = getelementptr {{.*}}ptr [[RLB_2:%.+]], i{{.+}} 0
-// CK21-DAG: [[RLB_2]] = load ptr, ptr %lb
 
-// CK21-USE: call void [[CALL01:@.+]](ptr {{[^,]+}})
-// CK21-NOUSE: call void [[CALL01:@.+]]()
 #pragma omp target map(lb[:X])
     {
 #ifdef USE
@@ -174,42 +110,11 @@ struct CC {
 //  &B[0],     &B[X],      2 * sizeof(T), FROM
 //  &B,        &B[X],      sizeof(T*),    ATTACH
 
-// CK21-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK21-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK21-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK21-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK21-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK21-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK21-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK21-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK21-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK21-USE-DAG: store ptr [[THIS:%.+]], ptr [[BP0]]
-// CK21-USE-DAG: store ptr [[B:%.+]], ptr [[P0]]
-// CK21-USE-DAG: [[B:%B]] = getelementptr inbounds {{.*}}[[THIS]], i{{.*}} 0, i{{.*}} 2
 
-// CK21-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 1
-// CK21-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 1
-// CK21-USE-DAG: store ptr [[VAR0:%.+]], ptr [[BP1]]
-// CK21-USE-DAG: store ptr [[SEC0:%.+]], ptr [[P1]]
-// CK21-NOUSE-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK21-NOUSE-DAG: store ptr [[SEC0:%.+]], ptr [[P0]]
 
-// CK21-DAG: [[VAR0]] = load ptr, ptr [[VAR00:%[^,]+]]
-// CK21-DAG: [[VAR00]] = getelementptr inbounds nuw %struct.CC, ptr [[THIS:%.+]], i{{.*}} 0, i{{.*}} 2
-// CK21-DAG: [[SEC0]] = getelementptr inbounds nuw float, ptr [[SEC00:%.+]], i{{.*}} 123
-// CK21-DAG: [[SEC00]] = load ptr, ptr [[SEC000:%[^,]+]]
-// CK21-DAG: [[SEC000]] = getelementptr inbounds nuw %struct.CC, ptr [[THIS]], i{{.*}} 0, i{{.*}} 2
 
-// CK21-USE-DAG: [[BP2:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 2
-// CK21-USE-DAG: [[P2:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 2
-// CK21-USE-DAG: store ptr [[VAR00:%.+]], ptr [[BP2]]
-// CK21-USE-DAG: store ptr [[SEC0:%.+]], ptr [[P2]]
-// CK21-NOUSE-DAG: store ptr [[VAR00]], ptr [[BP1]]
-// CK21-NOUSE-DAG: store ptr [[SEC0]], ptr [[P1]]
 
-// CK21-USE: call void [[CALL02:@.+]](ptr {{[^,]+}})
-// CK21-NOUSE: call void [[CALL02:@.+]]()
 #pragma omp target map(from \
                        : B [X:X + 2])
     {
@@ -219,21 +124,8 @@ struct CC {
     }
 
 // Region 03
-// CK21-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK21-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK21-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK21-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK21-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK21-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK21-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK21-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK21-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK21-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK21-DAG: store ptr [[VAR0]], ptr [[P0]]
 
-// CK21-USE: call void [[CALL03:@.+]](ptr {{[^,]+}})
-// CK21-NOUSE: call void [[CALL03:@.+]]()
 #pragma omp target map(from \
                        : la)
     {
@@ -243,21 +135,8 @@ struct CC {
     }
 
 // Region 04
-// CK21-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK21-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK21-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK21-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK21-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK21-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK21-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK21-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK21-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK21-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK21-DAG: store ptr [[VAR0]], ptr [[P0]]
 
-// CK21-USE: call void [[CALL04:@.+]](ptr {{[^,]+}})
-// CK21-NOUSE: call void [[CALL04:@.+]]()
 #pragma omp target map(from \
                        : arg)
     {
@@ -268,38 +147,10 @@ struct CC {
 
 // Make sure the extra flag is passed to the second map.
 // Region 05
-// CK21-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK21-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK21-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK21-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK21-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-// CK21-DAG: [[SARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 4
-// CK21-DAG: store ptr [[SIZES:%.+]], ptr [[SARG]]
-// CK21-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK21-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-// CK21-DAG: [[SIZES]] = getelementptr inbounds {{.+}}[[S:%[^,]+]]
 
-// CK21-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK21-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK21-DAG: [[S0:%.+]] = getelementptr inbounds {{.+}}[[S]], i{{.+}} 0, i{{.+}} 0
-// CK21-DAG: store ptr [[VAR0:%.+]], ptr [[BP0]]
-// CK21-DAG: store ptr [[SEC0:%.+]], ptr [[P0]]
-// CK21-DAG: store i64 {{%.+}}, ptr [[S0]]
-// CK21-DAG: [[SEC0]] = getelementptr {{.*}}ptr [[VAR0]], i{{.+}} 0, i{{.+}} 0
 
-// CK21-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 1
-// CK21-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 1
-// CK21-DAG: store ptr [[VAR0]], ptr [[BP1]]
-// CK21-DAG: store ptr [[SEC0]], ptr [[P1]]
 
-// CK21-DAG: [[BP2:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 2
-// CK21-DAG: [[P2:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 2
-// CK21-DAG: store ptr [[VAR2:%.+]], ptr [[BP2]]
-// CK21-DAG: store ptr [[SEC2:%.+]], ptr [[P2]]
-// CK21-DAG: [[SEC2]] = getelementptr {{.*}}ptr [[VAR2]], i{{.+}} 0, i{{.+}} 1
 
-// CK21-USE: call void [[CALL05:@.+]](ptr {{[^,]+}})
-// CK21-NOUSE: call void [[CALL05:@.+]]()
 #pragma omp target map(A, A2)
     {
 #ifdef USE
@@ -316,11 +167,855 @@ int explicit_maps_template_args_and_members(int a){
   return c.foo(a);
 }
 
-// CK21: define {{.+}}[[CALL00]]
-// CK21: define {{.+}}[[CALL01]]
-// CK21: define {{.+}}[[CALL02]]
-// CK21: define {{.+}}[[CALL03]]
-// CK21: define {{.+}}[[CALL04]]
-// CK21: define {{.+}}[[CALL05]]
 #endif // CK21
 #endif
+// CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9-LABEL: define dso_local noundef signext i32 @_Z39explicit_maps_template_args_and_membersi(
+// CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9-SAME: i32 noundef signext [[A:%.*]]) #[[ATTR0:[0-9]+]] {
+// CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE-LABEL: define dso_local noundef i32 @_Z39explicit_maps_template_args_and_membersi(
+// CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE-SAME: i32 noundef [[A:%.*]]) #[[ATTR0:[0-9]+]] {
+// CHECK-NEXT:  [[ENTRY:.*:]]
+// CHECK-NEXT:    [[A_ADDR:%.*]] = alloca i32, align 4
+// CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9-NEXT:    [[C:%.*]] = alloca [[STRUCT_CC:%.*]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE-NEXT:    [[C:%.*]] = alloca [[STRUCT_CC:%.*]], align 4
+// CHECK-NEXT:    store i32 [[A]], ptr [[A_ADDR]], align 4
+// CHECK-NEXT:    [[TMP0:%.*]] = load i32, ptr [[A_ADDR]], align 4
+// CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9-NEXT:    [[CALL:%.*]] = call noundef signext i32 @_ZN2CCILi123EiE3fooEi(ptr noundef nonnull align 8 dereferenceable(16) [[C]], i32 noundef signext [[TMP0]])
+// CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE-NEXT:    [[CALL:%.*]] = call noundef i32 @_ZN2CCILi123EiE3fooEi(ptr noundef nonnull align 4 dereferenceable(12) [[C]], i32 noundef [[TMP0]])
+// CHECK-NEXT:    ret i32 [[CALL]]
+//
+//
+// CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9-LABEL: define linkonce_odr noundef signext i32 @_ZN2CCILi123EiE3fooEi(
+// CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9-SAME: ptr noundef nonnull align 8 dereferenceable(16) [[THIS:%.*]], i32 noundef signext [[ARG:%.*]]) #[[ATTR0]] comdat {
+// CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE-LABEL: define linkonce_odr noundef i32 @_ZN2CCILi123EiE3fooEi(
+// CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE-SAME: ptr noundef nonnull align 4 dereferenceable(12) [[THIS:%.*]], i32 noundef [[ARG:%.*]]) #[[ATTR0]] comdat align 2 {
+// CHECK-NEXT:  [[ENTRY:.*:]]
+// CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 4
+// CHECK-NEXT:    [[ARG_ADDR:%.*]] = alloca i32, align 4
+// CHECK-NEXT:    [[LA:%.*]] = alloca [123 x float], align 4
+// CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9-NEXT:    [[LB:%.*]] = alloca ptr, align 8
+// CK21-64-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 8
+// CK21-64-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 8
+// CK21-64-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 8
+// CK21-32-NEXT:    [[LB:%.*]] = alloca ptr, align 4
+// CK21-32-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 4
+// CK21-32-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 4
+// CK21-32-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 4
+// CK21-NEXT:    [[KERNEL_ARGS:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS:%.*]], align 8
+// CK21-64-NEXT:    [[DOTOFFLOAD_BASEPTRS2:%.*]] = alloca [2 x ptr], align 8
+// CK21-64-NEXT:    [[DOTOFFLOAD_PTRS3:%.*]] = alloca [2 x ptr], align 8
+// CK21-64-NEXT:    [[DOTOFFLOAD_MAPPERS4:%.*]] = alloca [2 x ptr], align 8
+// CK21-32-NEXT:    [[DOTOFFLOAD_BASEPTRS2:%.*]] = alloca [2 x ptr], align 4
+// CK21-32-NEXT:    [[DOTOFFLOAD_PTRS3:%.*]] = alloca [2 x ptr], align 4
+// CK21-32-NEXT:    [[DOTOFFLOAD_MAPPERS4:%.*]] = alloca [2 x ptr], align 4
+// CK21-NEXT:    [[KERNEL_ARGS5:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[DOTOFFLOAD_BASEPTRS11:%.*]] = alloca [3 x ptr], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[DOTOFFLOAD_PTRS12:%.*]] = alloca [3 x ptr], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[DOTOFFLOAD_MAPPERS13:%.*]] = alloca [3 x ptr], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[DOTOFFLOAD_BASEPTRS11:%.*]] = alloca [3 x ptr], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[DOTOFFLOAD_PTRS12:%.*]] = alloca [3 x ptr], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[DOTOFFLOAD_MAPPERS13:%.*]] = alloca [3 x ptr], align 4
+// CK21-USE-NEXT:    [[KERNEL_ARGS14:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[DOTOFFLOAD_BASEPTRS17:%.*]] = alloca [1 x ptr], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[DOTOFFLOAD_PTRS18:%.*]] = alloca [1 x ptr], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[DOTOFFLOAD_MAPPERS19:%.*]] = alloca [1 x ptr], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[DOTOFFLOAD_BASEPTRS17:%.*]] = alloca [1 x ptr], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[DOTOFFLOAD_PTRS18:%.*]] = alloca [1 x ptr], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[DOTOFFLOAD_MAPPERS19:%.*]] = alloca [1 x ptr], align 4
+// CK21-USE-NEXT:    [[KERNEL_ARGS20:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[DOTOFFLOAD_BASEPTRS23:%.*]] = alloca [1 x ptr], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[DOTOFFLOAD_PTRS24:%.*]] = alloca [1 x ptr], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[DOTOFFLOAD_MAPPERS25:%.*]] = alloca [1 x ptr], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[DOTOFFLOAD_BASEPTRS23:%.*]] = alloca [1 x ptr], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[DOTOFFLOAD_PTRS24:%.*]] = alloca [1 x ptr], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[DOTOFFLOAD_MAPPERS25:%.*]] = alloca [1 x ptr], align 4
+// CK21-USE-NEXT:    [[KERNEL_ARGS26:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[DOTOFFLOAD_BASEPTRS30:%.*]] = alloca [3 x ptr], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[DOTOFFLOAD_PTRS31:%.*]] = alloca [3 x ptr], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[DOTOFFLOAD_MAPPERS32:%.*]] = alloca [3 x ptr], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[DOTOFFLOAD_BASEPTRS10:%.*]] = alloca [2 x ptr], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[DOTOFFLOAD_PTRS11:%.*]] = alloca [2 x ptr], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[DOTOFFLOAD_MAPPERS12:%.*]] = alloca [2 x ptr], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[DOTOFFLOAD_BASEPTRS10:%.*]] = alloca [2 x ptr], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[DOTOFFLOAD_PTRS11:%.*]] = alloca [2 x ptr], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[DOTOFFLOAD_MAPPERS12:%.*]] = alloca [2 x ptr], align 4
+// CK21-NOUSE-NEXT:    [[KERNEL_ARGS13:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[DOTOFFLOAD_BASEPTRS16:%.*]] = alloca [1 x ptr], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[DOTOFFLOAD_PTRS17:%.*]] = alloca [1 x ptr], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[DOTOFFLOAD_MAPPERS18:%.*]] = alloca [1 x ptr], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[DOTOFFLOAD_BASEPTRS16:%.*]] = alloca [1 x ptr], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[DOTOFFLOAD_PTRS17:%.*]] = alloca [1 x ptr], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[DOTOFFLOAD_MAPPERS18:%.*]] = alloca [1 x ptr], align 4
+// CK21-NOUSE-NEXT:    [[KERNEL_ARGS19:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[DOTOFFLOAD_BASEPTRS22:%.*]] = alloca [1 x ptr], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[DOTOFFLOAD_PTRS23:%.*]] = alloca [1 x ptr], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[DOTOFFLOAD_MAPPERS24:%.*]] = alloca [1 x ptr], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[DOTOFFLOAD_BASEPTRS22:%.*]] = alloca [1 x ptr], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[DOTOFFLOAD_PTRS23:%.*]] = alloca [1 x ptr], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[DOTOFFLOAD_MAPPERS24:%.*]] = alloca [1 x ptr], align 4
+// CK21-NOUSE-NEXT:    [[KERNEL_ARGS25:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[DOTOFFLOAD_BASEPTRS29:%.*]] = alloca [3 x ptr], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[DOTOFFLOAD_PTRS30:%.*]] = alloca [3 x ptr], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[DOTOFFLOAD_MAPPERS31:%.*]] = alloca [3 x ptr], align 8
+// CK21-64-NEXT:    [[DOTOFFLOAD_SIZES:%.*]] = alloca [3 x i64], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[DOTOFFLOAD_BASEPTRS30:%.*]] = alloca [3 x ptr], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[DOTOFFLOAD_PTRS31:%.*]] = alloca [3 x ptr], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[DOTOFFLOAD_MAPPERS32:%.*]] = alloca [3 x ptr], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[DOTOFFLOAD_BASEPTRS29:%.*]] = alloca [3 x ptr], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[DOTOFFLOAD_PTRS30:%.*]] = alloca [3 x ptr], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[DOTOFFLOAD_MAPPERS31:%.*]] = alloca [3 x ptr], align 4
+// CK21-32-NEXT:    [[DOTOFFLOAD_SIZES:%.*]] = alloca [3 x i64], align 4
+// CK21-USE-NEXT:    [[KERNEL_ARGS33:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK21-NOUSE-NEXT:    [[KERNEL_ARGS32:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 8
+// SIMD-ONLY20-_4-_7-_3-_6-NEXT:    [[LB:%.*]] = alloca ptr, align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 4
+// CHECK-NEXT:    store i32 [[ARG]], ptr [[ARG_ADDR]], align 4
+// CK21-64-USE-_6-_5-_4-_2-_3-SIMD-ONLY20-_8-NOUSE-_9-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-SIMD-ONLY20-_7-NOUSE-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 4
+// CHECK-NEXT:    [[A:%.*]] = getelementptr inbounds nuw [[STRUCT_CC:%.*]], ptr [[THIS1]], i32 0, i32 0
+// SIMD-ONLY20-_8-_5-_2-_9-NEXT:    [[TMP0:%.*]] = load i32, ptr [[A]], align 8
+// SIMD-ONLY20-_4-_7-_3-_6-NEXT:    [[TMP0:%.*]] = load i32, ptr [[A]], align 4
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    [[ADD:%.*]] = add nsw i32 [[TMP0]], 1
+// SIMD-ONLY20-_8-_5-NEXT:    store i32 [[ADD]], ptr [[A]], align 8
+// SIMD-ONLY20-_8-_5-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[LB]], align 8
+// SIMD-ONLY20-_8-_5-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds i32, ptr [[TMP1]], i64 4
+// SIMD-ONLY20-_4-_7-NEXT:    store i32 [[ADD]], ptr [[A]], align 4
+// SIMD-ONLY20-_4-_7-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[LB]], align 4
+// SIMD-ONLY20-_4-_7-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds i32, ptr [[TMP1]], i32 4
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    [[TMP2:%.*]] = load i32, ptr [[ARRAYIDX]], align 4
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    [[ADD2:%.*]] = add nsw i32 [[TMP2]], 1
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    store i32 [[ADD2]], ptr [[ARRAYIDX]], align 4
+// CK21-NEXT:    [[TMP0:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK21-64-NEXT:    store ptr [[THIS1]], ptr [[TMP0]], align 8
+// CK21-32-NEXT:    store ptr [[THIS1]], ptr [[TMP0]], align 4
+// CK21-NEXT:    [[TMP1:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK21-64-NEXT:    store ptr [[A]], ptr [[TMP1]], align 8
+// CK21-64-NEXT:    [[TMP2:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK21-64-NEXT:    store ptr null, ptr [[TMP2]], align 8
+// CK21-32-NEXT:    store ptr [[A]], ptr [[TMP1]], align 4
+// CK21-32-NEXT:    [[TMP2:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK21-32-NEXT:    store ptr null, ptr [[TMP2]], align 4
+// CK21-NEXT:    [[TMP3:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK21-NEXT:    [[TMP4:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK21-NEXT:    [[TMP5:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 0
+// CK21-NEXT:    store i32 3, ptr [[TMP5]], align 4
+// CK21-NEXT:    [[TMP6:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 1
+// CK21-NEXT:    store i32 1, ptr [[TMP6]], align 4
+// CK21-NEXT:    [[TMP7:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 2
+// CK21-64-NEXT:    store ptr [[TMP3]], ptr [[TMP7]], align 8
+// CK21-32-NEXT:    store ptr [[TMP3]], ptr [[TMP7]], align 4
+// CK21-NEXT:    [[TMP8:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 3
+// CK21-64-NEXT:    store ptr [[TMP4]], ptr [[TMP8]], align 8
+// CK21-32-NEXT:    store ptr [[TMP4]], ptr [[TMP8]], align 4
+// CK21-NEXT:    [[TMP9:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 4
+// CK21-64-NEXT:    store ptr @.offload_sizes, ptr [[TMP9]], align 8
+// CK21-32-NEXT:    store ptr @.offload_sizes, ptr [[TMP9]], align 4
+// CK21-NEXT:    [[TMP10:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 5
+// CK21-64-NEXT:    store ptr @.offload_maptypes, ptr [[TMP10]], align 8
+// CK21-32-NEXT:    store ptr @.offload_maptypes, ptr [[TMP10]], align 4
+// CK21-NEXT:    [[TMP11:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 6
+// CK21-64-NEXT:    store ptr null, ptr [[TMP11]], align 8
+// CK21-32-NEXT:    store ptr null, ptr [[TMP11]], align 4
+// CK21-NEXT:    [[TMP12:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 7
+// CK21-64-NEXT:    store ptr null, ptr [[TMP12]], align 8
+// CK21-32-NEXT:    store ptr null, ptr [[TMP12]], align 4
+// CK21-NEXT:    [[TMP13:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 8
+// CK21-NEXT:    store i64 0, ptr [[TMP13]], align 8
+// CK21-NEXT:    [[TMP14:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 9
+// CK21-NEXT:    store i64 0, ptr [[TMP14]], align 8
+// CK21-NEXT:    [[TMP15:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 10
+// CK21-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP15]], align 4
+// CK21-NEXT:    [[TMP16:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 11
+// CK21-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP16]], align 4
+// CK21-NEXT:    [[TMP17:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 12
+// CK21-NEXT:    store i32 0, ptr [[TMP17]], align 4
+// CK21-NEXT:    [[TMP18:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK21-NEXT:    [[TMP19:%.*]] = icmp ne i32 [[TMP18]], 0
+// CK21-NEXT:    br i1 [[TMP19]], label %[[OMP_OFFLOAD_FAILED:.*]], label %[[OMP_OFFLOAD_CONT:.*]]
+// CK21:       [[OMP_OFFLOAD_FAILED]]:
+// CK21-USE-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}(ptr [[THIS1]]) #[[ATTR2:[0-9]+]]
+// CK21-NOUSE-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}() #[[ATTR2:[0-9]+]]
+// CK21-NEXT:    br label %[[OMP_OFFLOAD_CONT]]
+// CK21:       [[OMP_OFFLOAD_CONT]]:
+// CK21-64-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[LB]], align 8
+// CK21-64-NEXT:    [[TMP21:%.*]] = load ptr, ptr [[LB]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[TMP22:%.*]] = load ptr, ptr [[LB]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP22]], i64 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP21]], i64 0
+// CK21-32-NEXT:    [[TMP20:%.*]] = load ptr, ptr [[LB]], align 4
+// CK21-32-NEXT:    [[TMP21:%.*]] = load ptr, ptr [[LB]], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[TMP22:%.*]] = load ptr, ptr [[LB]], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP22]], i32 0
+// CK21-USE-NEXT:    [[TMP23:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS2]], i32 0, i32 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[TMP21]], ptr [[TMP23]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[TMP21]], ptr [[TMP23]], align 4
+// CK21-USE-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS3]], i32 0, i32 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP24]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS4]], i64 0, i64 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP25]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP24]], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS4]], i32 0, i32 0
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP25]], align 4
+// CK21-USE-NEXT:    [[TMP26:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS2]], i32 0, i32 1
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[LB]], ptr [[TMP26]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[LB]], ptr [[TMP26]], align 4
+// CK21-USE-NEXT:    [[TMP27:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS3]], i32 0, i32 1
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP27]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[TMP28:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS4]], i64 0, i64 1
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP28]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP27]], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[TMP28:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS4]], i32 0, i32 1
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP28]], align 4
+// CK21-USE-NEXT:    [[TMP29:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS2]], i32 0, i32 0
+// CK21-USE-NEXT:    [[TMP30:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS3]], i32 0, i32 0
+// CK21-USE-NEXT:    [[TMP31:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 0
+// CK21-USE-NEXT:    store i32 3, ptr [[TMP31]], align 4
+// CK21-USE-NEXT:    [[TMP32:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 1
+// CK21-USE-NEXT:    store i32 2, ptr [[TMP32]], align 4
+// CK21-USE-NEXT:    [[TMP33:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 2
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw i32, ptr [[TMP21]], i32 0
+// CK21-NOUSE-NEXT:    [[TMP22:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS2]], i32 0, i32 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[TMP20]], ptr [[TMP22]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[TMP20]], ptr [[TMP22]], align 4
+// CK21-NOUSE-NEXT:    [[TMP23:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS3]], i32 0, i32 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP23]], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS4]], i64 0, i64 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP24]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP23]], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS4]], i32 0, i32 0
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP24]], align 4
+// CK21-NOUSE-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS2]], i32 0, i32 1
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[LB]], ptr [[TMP25]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[LB]], ptr [[TMP25]], align 4
+// CK21-NOUSE-NEXT:    [[TMP26:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS3]], i32 0, i32 1
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP26]], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[TMP27:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS4]], i64 0, i64 1
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP27]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP26]], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[TMP27:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS4]], i32 0, i32 1
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP27]], align 4
+// CK21-NOUSE-NEXT:    [[TMP28:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS2]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    [[TMP29:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS3]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    [[TMP30:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    store i32 3, ptr [[TMP30]], align 4
+// CK21-NOUSE-NEXT:    [[TMP31:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 1
+// CK21-NOUSE-NEXT:    store i32 2, ptr [[TMP31]], align 4
+// CK21-NOUSE-NEXT:    [[TMP32:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 2
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[TMP28]], ptr [[TMP32]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[TMP28]], ptr [[TMP32]], align 4
+// CK21-NOUSE-NEXT:    [[TMP33:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 3
+// CK21-64-NEXT:    store ptr [[TMP29]], ptr [[TMP33]], align 8
+// CK21-32-NEXT:    store ptr [[TMP29]], ptr [[TMP33]], align 4
+// CK21-USE-NEXT:    [[TMP34:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 3
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[TMP30]], ptr [[TMP34]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[TMP30]], ptr [[TMP34]], align 4
+// CK21-USE-NEXT:    [[TMP35:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 4
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr @.offload_sizes.1, ptr [[TMP35]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr @.offload_sizes.1, ptr [[TMP35]], align 4
+// CK21-USE-NEXT:    [[TMP36:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 5
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP36]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP36]], align 4
+// CK21-USE-NEXT:    [[TMP37:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 6
+// CK21-NOUSE-NEXT:    [[TMP34:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 4
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr @.offload_sizes.1, ptr [[TMP34]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr @.offload_sizes.1, ptr [[TMP34]], align 4
+// CK21-NOUSE-NEXT:    [[TMP35:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 5
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP35]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP35]], align 4
+// CK21-NOUSE-NEXT:    [[TMP36:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 6
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP36]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP36]], align 4
+// CK21-NOUSE-NEXT:    [[TMP37:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 7
+// CK21-64-NEXT:    store ptr null, ptr [[TMP37]], align 8
+// CK21-32-NEXT:    store ptr null, ptr [[TMP37]], align 4
+// CK21-USE-NEXT:    [[TMP38:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 7
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP38]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP38]], align 4
+// CK21-USE-NEXT:    [[TMP39:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 8
+// CK21-NOUSE-NEXT:    [[TMP38:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 8
+// CK21-NOUSE-NEXT:    store i64 0, ptr [[TMP38]], align 8
+// CK21-NOUSE-NEXT:    [[TMP39:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 9
+// CK21-NEXT:    store i64 0, ptr [[TMP39]], align 8
+// CK21-USE-NEXT:    [[TMP40:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 9
+// CK21-USE-NEXT:    store i64 0, ptr [[TMP40]], align 8
+// CK21-USE-NEXT:    [[TMP41:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 10
+// CK21-USE-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP41]], align 4
+// CK21-USE-NEXT:    [[TMP42:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 11
+// CK21-USE-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP42]], align 4
+// CK21-USE-NEXT:    [[TMP43:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 12
+// CK21-USE-NEXT:    store i32 0, ptr [[TMP43]], align 4
+// CK21-USE-NEXT:    [[TMP44:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS5]])
+// CK21-USE-NEXT:    [[TMP45:%.*]] = icmp ne i32 [[TMP44]], 0
+// CK21-USE-NEXT:    br i1 [[TMP45]], label %[[OMP_OFFLOAD_FAILED6:.*]], label %[[OMP_OFFLOAD_CONT7:.*]]
+// CK21-NOUSE-NEXT:    [[TMP40:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 10
+// CK21-NOUSE-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP40]], align 4
+// CK21-NOUSE-NEXT:    [[TMP41:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 11
+// CK21-NOUSE-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP41]], align 4
+// CK21-NOUSE-NEXT:    [[TMP42:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS5]], i32 0, i32 12
+// CK21-NOUSE-NEXT:    store i32 0, ptr [[TMP42]], align 4
+// CK21-NOUSE-NEXT:    [[TMP43:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS5]])
+// CK21-NOUSE-NEXT:    [[TMP44:%.*]] = icmp ne i32 [[TMP43]], 0
+// CK21-NOUSE-NEXT:    br i1 [[TMP44]], label %[[OMP_OFFLOAD_FAILED6:.*]], label %[[OMP_OFFLOAD_CONT7:.*]]
+// CK21:       [[OMP_OFFLOAD_FAILED6]]:
+// CK21-USE-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}(ptr [[TMP20]]) #[[ATTR2]]
+// CK21-NOUSE-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}() #[[ATTR2]]
+// CK21-NEXT:    br label %[[OMP_OFFLOAD_CONT7]]
+// CK21:       [[OMP_OFFLOAD_CONT7]]:
+// CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-NEXT:    [[B:%.*]] = getelementptr inbounds nuw [[STRUCT_CC]], ptr [[THIS1]], i32 0, i32 2
+// SIMD-ONLY20-_8-_5-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[B]], align 8
+// SIMD-ONLY20-_8-_5-NEXT:    [[ARRAYIDX3:%.*]] = getelementptr inbounds float, ptr [[TMP3]], i64 2
+// SIMD-ONLY20-_4-_7-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[B]], align 4
+// SIMD-ONLY20-_4-_7-NEXT:    [[ARRAYIDX3:%.*]] = getelementptr inbounds float, ptr [[TMP3]], i32 2
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    [[TMP4:%.*]] = load float, ptr [[ARRAYIDX3]], align 4
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    [[ADD4:%.*]] = fadd float [[TMP4]], 1.000000e+00
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    store float [[ADD4]], ptr [[ARRAYIDX3]], align 4
+// SIMD-ONLY20-_8-_5-NEXT:    [[ARRAYIDX5:%.*]] = getelementptr inbounds [123 x float], ptr [[LA]], i64 0, i64 3
+// SIMD-ONLY20-_4-_7-NEXT:    [[ARRAYIDX5:%.*]] = getelementptr inbounds [123 x float], ptr [[LA]], i32 0, i32 3
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    [[TMP5:%.*]] = load float, ptr [[ARRAYIDX5]], align 4
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    [[ADD6:%.*]] = fadd float [[TMP5]], 1.000000e+00
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    store float [[ADD6]], ptr [[ARRAYIDX5]], align 4
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    [[TMP6:%.*]] = load i32, ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    [[ADD7:%.*]] = add nsw i32 [[TMP6]], 1
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    store i32 [[ADD7]], ptr [[ARG_ADDR]], align 4
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    [[A8:%.*]] = getelementptr inbounds nuw [[STRUCT_CC]], ptr [[THIS1]], i32 0, i32 0
+// SIMD-ONLY20-_8-_5-NEXT:    [[TMP7:%.*]] = load i32, ptr [[A8]], align 8
+// SIMD-ONLY20-_4-_7-NEXT:    [[TMP7:%.*]] = load i32, ptr [[A8]], align 4
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    [[ADD9:%.*]] = add nsw i32 [[TMP7]], 1
+// SIMD-ONLY20-_8-_5-NEXT:    store i32 [[ADD9]], ptr [[A8]], align 8
+// SIMD-ONLY20-_4-_7-NEXT:    store i32 [[ADD9]], ptr [[A8]], align 4
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[TMP45:%.*]] = load ptr, ptr [[B]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[TMP45:%.*]] = load ptr, ptr [[B]], align 4
+// CK21-NEXT:    [[B8:%.*]] = getelementptr inbounds nuw [[STRUCT_CC]], ptr [[THIS1]], i32 0, i32 2
+// CK21-64-NEXT:    [[TMP46:%.*]] = load ptr, ptr [[B8]], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[ARRAYIDX9:%.*]] = getelementptr inbounds nuw float, ptr [[TMP46]], i64 123
+// CK21-32-NEXT:    [[TMP46:%.*]] = load ptr, ptr [[B8]], align 4
+// CK21-USE-NEXT:    [[B9:%.*]] = getelementptr inbounds nuw [[STRUCT_CC]], ptr [[THIS1]], i32 0, i32 2
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[TMP47:%.*]] = load ptr, ptr [[B9]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[ARRAYIDX10:%.*]] = getelementptr inbounds nuw float, ptr [[TMP47]], i64 123
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[TMP47:%.*]] = load ptr, ptr [[B9]], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[ARRAYIDX10:%.*]] = getelementptr inbounds nuw float, ptr [[TMP47]], i32 123
+// CK21-USE-NEXT:    [[TMP48:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS11]], i32 0, i32 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[THIS1]], ptr [[TMP48]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[THIS1]], ptr [[TMP48]], align 4
+// CK21-USE-NEXT:    [[TMP49:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS12]], i32 0, i32 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[B]], ptr [[TMP49]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[TMP50:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS13]], i64 0, i64 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP50]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[B]], ptr [[TMP49]], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[TMP50:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS13]], i32 0, i32 0
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP50]], align 4
+// CK21-USE-NEXT:    [[TMP51:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS11]], i32 0, i32 1
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[TMP46]], ptr [[TMP51]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[TMP46]], ptr [[TMP51]], align 4
+// CK21-USE-NEXT:    [[TMP52:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS12]], i32 0, i32 1
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[ARRAYIDX10]], ptr [[TMP52]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[TMP53:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS13]], i64 0, i64 1
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP53]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[ARRAYIDX10]], ptr [[TMP52]], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[TMP53:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS13]], i32 0, i32 1
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP53]], align 4
+// CK21-USE-NEXT:    [[TMP54:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS11]], i32 0, i32 2
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[B8]], ptr [[TMP54]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[B8]], ptr [[TMP54]], align 4
+// CK21-USE-NEXT:    [[TMP55:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS12]], i32 0, i32 2
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[ARRAYIDX10]], ptr [[TMP55]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[TMP56:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS13]], i64 0, i64 2
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP56]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[ARRAYIDX10]], ptr [[TMP55]], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[TMP56:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS13]], i32 0, i32 2
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP56]], align 4
+// CK21-USE-NEXT:    [[TMP57:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS11]], i32 0, i32 0
+// CK21-USE-NEXT:    [[TMP58:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS12]], i32 0, i32 0
+// CK21-USE-NEXT:    [[TMP59:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS14]], i32 0, i32 0
+// CK21-USE-NEXT:    store i32 3, ptr [[TMP59]], align 4
+// CK21-USE-NEXT:    [[TMP60:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS14]], i32 0, i32 1
+// CK21-USE-NEXT:    store i32 3, ptr [[TMP60]], align 4
+// CK21-USE-NEXT:    [[TMP61:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS14]], i32 0, i32 2
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[TMP57]], ptr [[TMP61]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[TMP57]], ptr [[TMP61]], align 4
+// CK21-USE-NEXT:    [[TMP62:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS14]], i32 0, i32 3
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[TMP58]], ptr [[TMP62]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[TMP58]], ptr [[TMP62]], align 4
+// CK21-USE-NEXT:    [[TMP63:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS14]], i32 0, i32 4
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr @.offload_sizes.3, ptr [[TMP63]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr @.offload_sizes.3, ptr [[TMP63]], align 4
+// CK21-USE-NEXT:    [[TMP64:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS14]], i32 0, i32 5
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr @.offload_maptypes.4, ptr [[TMP64]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr @.offload_maptypes.4, ptr [[TMP64]], align 4
+// CK21-USE-NEXT:    [[TMP65:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS14]], i32 0, i32 6
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP65]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP65]], align 4
+// CK21-USE-NEXT:    [[TMP66:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS14]], i32 0, i32 7
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP66]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP66]], align 4
+// CK21-USE-NEXT:    [[TMP67:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS14]], i32 0, i32 8
+// CK21-USE-NEXT:    store i64 0, ptr [[TMP67]], align 8
+// CK21-USE-NEXT:    [[TMP68:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS14]], i32 0, i32 9
+// CK21-USE-NEXT:    store i64 0, ptr [[TMP68]], align 8
+// CK21-USE-NEXT:    [[TMP69:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS14]], i32 0, i32 10
+// CK21-USE-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP69]], align 4
+// CK21-USE-NEXT:    [[TMP70:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS14]], i32 0, i32 11
+// CK21-USE-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP70]], align 4
+// CK21-USE-NEXT:    [[TMP71:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS14]], i32 0, i32 12
+// CK21-USE-NEXT:    store i32 0, ptr [[TMP71]], align 4
+// CK21-USE-NEXT:    [[TMP72:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS14]])
+// CK21-USE-NEXT:    [[TMP73:%.*]] = icmp ne i32 [[TMP72]], 0
+// CK21-USE-NEXT:    br i1 [[TMP73]], label %[[OMP_OFFLOAD_FAILED15:.*]], label %[[OMP_OFFLOAD_CONT16:.*]]
+// CK21-USE:       [[OMP_OFFLOAD_FAILED15]]:
+// CK21-USE-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}(ptr [[THIS1]]) #[[ATTR2]]
+// CK21-USE-NEXT:    br label %[[OMP_OFFLOAD_CONT16]]
+// CK21-USE:       [[OMP_OFFLOAD_CONT16]]:
+// CK21-USE-NEXT:    [[TMP74:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS17]], i32 0, i32 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[LA]], ptr [[TMP74]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[LA]], ptr [[TMP74]], align 4
+// CK21-USE-NEXT:    [[TMP75:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS18]], i32 0, i32 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[LA]], ptr [[TMP75]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[TMP76:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS19]], i64 0, i64 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP76]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[LA]], ptr [[TMP75]], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[TMP76:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS19]], i32 0, i32 0
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP76]], align 4
+// CK21-USE-NEXT:    [[TMP77:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS17]], i32 0, i32 0
+// CK21-USE-NEXT:    [[TMP78:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS18]], i32 0, i32 0
+// CK21-USE-NEXT:    [[TMP79:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS20]], i32 0, i32 0
+// CK21-USE-NEXT:    store i32 3, ptr [[TMP79]], align 4
+// CK21-USE-NEXT:    [[TMP80:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS20]], i32 0, i32 1
+// CK21-USE-NEXT:    store i32 1, ptr [[TMP80]], align 4
+// CK21-USE-NEXT:    [[TMP81:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS20]], i32 0, i32 2
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[TMP77]], ptr [[TMP81]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[TMP77]], ptr [[TMP81]], align 4
+// CK21-USE-NEXT:    [[TMP82:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS20]], i32 0, i32 3
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[TMP78]], ptr [[TMP82]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[TMP78]], ptr [[TMP82]], align 4
+// CK21-USE-NEXT:    [[TMP83:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS20]], i32 0, i32 4
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr @.offload_sizes.5, ptr [[TMP83]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr @.offload_sizes.5, ptr [[TMP83]], align 4
+// CK21-USE-NEXT:    [[TMP84:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS20]], i32 0, i32 5
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr @.offload_maptypes.6, ptr [[TMP84]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr @.offload_maptypes.6, ptr [[TMP84]], align 4
+// CK21-USE-NEXT:    [[TMP85:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS20]], i32 0, i32 6
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP85]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP85]], align 4
+// CK21-USE-NEXT:    [[TMP86:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS20]], i32 0, i32 7
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP86]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP86]], align 4
+// CK21-USE-NEXT:    [[TMP87:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS20]], i32 0, i32 8
+// CK21-USE-NEXT:    store i64 0, ptr [[TMP87]], align 8
+// CK21-USE-NEXT:    [[TMP88:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS20]], i32 0, i32 9
+// CK21-USE-NEXT:    store i64 0, ptr [[TMP88]], align 8
+// CK21-USE-NEXT:    [[TMP89:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS20]], i32 0, i32 10
+// CK21-USE-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP89]], align 4
+// CK21-USE-NEXT:    [[TMP90:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS20]], i32 0, i32 11
+// CK21-USE-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP90]], align 4
+// CK21-USE-NEXT:    [[TMP91:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS20]], i32 0, i32 12
+// CK21-USE-NEXT:    store i32 0, ptr [[TMP91]], align 4
+// CK21-USE-NEXT:    [[TMP92:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS20]])
+// CK21-USE-NEXT:    [[TMP93:%.*]] = icmp ne i32 [[TMP92]], 0
+// CK21-USE-NEXT:    br i1 [[TMP93]], label %[[OMP_OFFLOAD_FAILED21:.*]], label %[[OMP_OFFLOAD_CONT22:.*]]
+// CK21-USE:       [[OMP_OFFLOAD_FAILED21]]:
+// CK21-USE-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}(ptr [[LA]]) #[[ATTR2]]
+// CK21-USE-NEXT:    br label %[[OMP_OFFLOAD_CONT22]]
+// CK21-USE:       [[OMP_OFFLOAD_CONT22]]:
+// CK21-USE-NEXT:    [[TMP94:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS23]], i32 0, i32 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP94]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP94]], align 4
+// CK21-USE-NEXT:    [[TMP95:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS24]], i32 0, i32 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP95]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[TMP96:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS25]], i64 0, i64 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP96]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP95]], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[TMP96:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS25]], i32 0, i32 0
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP96]], align 4
+// CK21-USE-NEXT:    [[TMP97:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS23]], i32 0, i32 0
+// CK21-USE-NEXT:    [[TMP98:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS24]], i32 0, i32 0
+// CK21-USE-NEXT:    [[TMP99:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS26]], i32 0, i32 0
+// CK21-USE-NEXT:    store i32 3, ptr [[TMP99]], align 4
+// CK21-USE-NEXT:    [[TMP100:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS26]], i32 0, i32 1
+// CK21-USE-NEXT:    store i32 1, ptr [[TMP100]], align 4
+// CK21-USE-NEXT:    [[TMP101:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS26]], i32 0, i32 2
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[TMP97]], ptr [[TMP101]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[TMP97]], ptr [[TMP101]], align 4
+// CK21-USE-NEXT:    [[TMP102:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS26]], i32 0, i32 3
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[TMP98]], ptr [[TMP102]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[TMP98]], ptr [[TMP102]], align 4
+// CK21-USE-NEXT:    [[TMP103:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS26]], i32 0, i32 4
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr @.offload_sizes.7, ptr [[TMP103]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr @.offload_sizes.7, ptr [[TMP103]], align 4
+// CK21-USE-NEXT:    [[TMP104:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS26]], i32 0, i32 5
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr @.offload_maptypes.8, ptr [[TMP104]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr @.offload_maptypes.8, ptr [[TMP104]], align 4
+// CK21-USE-NEXT:    [[TMP105:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS26]], i32 0, i32 6
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP105]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP105]], align 4
+// CK21-USE-NEXT:    [[TMP106:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS26]], i32 0, i32 7
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP106]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP106]], align 4
+// CK21-USE-NEXT:    [[TMP107:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS26]], i32 0, i32 8
+// CK21-USE-NEXT:    store i64 0, ptr [[TMP107]], align 8
+// CK21-USE-NEXT:    [[TMP108:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS26]], i32 0, i32 9
+// CK21-USE-NEXT:    store i64 0, ptr [[TMP108]], align 8
+// CK21-USE-NEXT:    [[TMP109:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS26]], i32 0, i32 10
+// CK21-USE-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP109]], align 4
+// CK21-USE-NEXT:    [[TMP110:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS26]], i32 0, i32 11
+// CK21-USE-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP110]], align 4
+// CK21-USE-NEXT:    [[TMP111:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS26]], i32 0, i32 12
+// CK21-USE-NEXT:    store i32 0, ptr [[TMP111]], align 4
+// CK21-USE-NEXT:    [[TMP112:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS26]])
+// CK21-USE-NEXT:    [[TMP113:%.*]] = icmp ne i32 [[TMP112]], 0
+// CK21-USE-NEXT:    br i1 [[TMP113]], label %[[OMP_OFFLOAD_FAILED27:.*]], label %[[OMP_OFFLOAD_CONT28:.*]]
+// CK21-USE:       [[OMP_OFFLOAD_FAILED27]]:
+// CK21-USE-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}(ptr [[ARG_ADDR]]) #[[ATTR2]]
+// CK21-USE-NEXT:    br label %[[OMP_OFFLOAD_CONT28]]
+// CK21-USE:       [[OMP_OFFLOAD_CONT28]]:
+// CK21-USE-NEXT:    [[A29:%.*]] = getelementptr inbounds nuw [[STRUCT_CC]], ptr [[THIS1]], i32 0, i32 0
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[ARRAYIDX9:%.*]] = getelementptr inbounds nuw float, ptr [[TMP46]], i32 123
+// CK21-NOUSE-NEXT:    [[TMP47:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS10]], i32 0, i32 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[TMP45]], ptr [[TMP47]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[TMP45]], ptr [[TMP47]], align 4
+// CK21-NOUSE-NEXT:    [[TMP48:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS11]], i32 0, i32 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[ARRAYIDX9]], ptr [[TMP48]], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[TMP49:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS12]], i64 0, i64 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP49]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[ARRAYIDX9]], ptr [[TMP48]], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[TMP49:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS12]], i32 0, i32 0
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP49]], align 4
+// CK21-NOUSE-NEXT:    [[TMP50:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS10]], i32 0, i32 1
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[B]], ptr [[TMP50]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[B]], ptr [[TMP50]], align 4
+// CK21-NOUSE-NEXT:    [[TMP51:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS11]], i32 0, i32 1
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[ARRAYIDX9]], ptr [[TMP51]], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[TMP52:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS12]], i64 0, i64 1
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP52]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[ARRAYIDX9]], ptr [[TMP51]], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[TMP52:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS12]], i32 0, i32 1
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP52]], align 4
+// CK21-NOUSE-NEXT:    [[TMP53:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS10]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    [[TMP54:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS11]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    [[TMP55:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS13]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    store i32 3, ptr [[TMP55]], align 4
+// CK21-NOUSE-NEXT:    [[TMP56:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS13]], i32 0, i32 1
+// CK21-NOUSE-NEXT:    store i32 2, ptr [[TMP56]], align 4
+// CK21-NOUSE-NEXT:    [[TMP57:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS13]], i32 0, i32 2
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[TMP53]], ptr [[TMP57]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[TMP53]], ptr [[TMP57]], align 4
+// CK21-NOUSE-NEXT:    [[TMP58:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS13]], i32 0, i32 3
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[TMP54]], ptr [[TMP58]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[TMP54]], ptr [[TMP58]], align 4
+// CK21-NOUSE-NEXT:    [[TMP59:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS13]], i32 0, i32 4
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr @.offload_sizes.3, ptr [[TMP59]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr @.offload_sizes.3, ptr [[TMP59]], align 4
+// CK21-NOUSE-NEXT:    [[TMP60:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS13]], i32 0, i32 5
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr @.offload_maptypes.4, ptr [[TMP60]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr @.offload_maptypes.4, ptr [[TMP60]], align 4
+// CK21-NOUSE-NEXT:    [[TMP61:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS13]], i32 0, i32 6
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP61]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP61]], align 4
+// CK21-NOUSE-NEXT:    [[TMP62:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS13]], i32 0, i32 7
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP62]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP62]], align 4
+// CK21-NOUSE-NEXT:    [[TMP63:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS13]], i32 0, i32 8
+// CK21-NOUSE-NEXT:    store i64 0, ptr [[TMP63]], align 8
+// CK21-NOUSE-NEXT:    [[TMP64:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS13]], i32 0, i32 9
+// CK21-NOUSE-NEXT:    store i64 0, ptr [[TMP64]], align 8
+// CK21-NOUSE-NEXT:    [[TMP65:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS13]], i32 0, i32 10
+// CK21-NOUSE-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP65]], align 4
+// CK21-NOUSE-NEXT:    [[TMP66:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS13]], i32 0, i32 11
+// CK21-NOUSE-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP66]], align 4
+// CK21-NOUSE-NEXT:    [[TMP67:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS13]], i32 0, i32 12
+// CK21-NOUSE-NEXT:    store i32 0, ptr [[TMP67]], align 4
+// CK21-NOUSE-NEXT:    [[TMP68:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS13]])
+// CK21-NOUSE-NEXT:    [[TMP69:%.*]] = icmp ne i32 [[TMP68]], 0
+// CK21-NOUSE-NEXT:    br i1 [[TMP69]], label %[[OMP_OFFLOAD_FAILED14:.*]], label %[[OMP_OFFLOAD_CONT15:.*]]
+// CK21-NOUSE:       [[OMP_OFFLOAD_FAILED14]]:
+// CK21-NOUSE-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}() #[[ATTR2]]
+// CK21-NOUSE-NEXT:    br label %[[OMP_OFFLOAD_CONT15]]
+// CK21-NOUSE:       [[OMP_OFFLOAD_CONT15]]:
+// CK21-NOUSE-NEXT:    [[TMP70:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS16]], i32 0, i32 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[LA]], ptr [[TMP70]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[LA]], ptr [[TMP70]], align 4
+// CK21-NOUSE-NEXT:    [[TMP71:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS17]], i32 0, i32 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[LA]], ptr [[TMP71]], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[TMP72:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS18]], i64 0, i64 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP72]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[LA]], ptr [[TMP71]], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[TMP72:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS18]], i32 0, i32 0
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP72]], align 4
+// CK21-NOUSE-NEXT:    [[TMP73:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS16]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    [[TMP74:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS17]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    [[TMP75:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS19]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    store i32 3, ptr [[TMP75]], align 4
+// CK21-NOUSE-NEXT:    [[TMP76:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS19]], i32 0, i32 1
+// CK21-NOUSE-NEXT:    store i32 1, ptr [[TMP76]], align 4
+// CK21-NOUSE-NEXT:    [[TMP77:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS19]], i32 0, i32 2
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[TMP73]], ptr [[TMP77]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[TMP73]], ptr [[TMP77]], align 4
+// CK21-NOUSE-NEXT:    [[TMP78:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS19]], i32 0, i32 3
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[TMP74]], ptr [[TMP78]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[TMP74]], ptr [[TMP78]], align 4
+// CK21-NOUSE-NEXT:    [[TMP79:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS19]], i32 0, i32 4
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr @.offload_sizes.5, ptr [[TMP79]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr @.offload_sizes.5, ptr [[TMP79]], align 4
+// CK21-NOUSE-NEXT:    [[TMP80:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS19]], i32 0, i32 5
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr @.offload_maptypes.6, ptr [[TMP80]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr @.offload_maptypes.6, ptr [[TMP80]], align 4
+// CK21-NOUSE-NEXT:    [[TMP81:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS19]], i32 0, i32 6
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP81]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP81]], align 4
+// CK21-NOUSE-NEXT:    [[TMP82:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS19]], i32 0, i32 7
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP82]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP82]], align 4
+// CK21-NOUSE-NEXT:    [[TMP83:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS19]], i32 0, i32 8
+// CK21-NOUSE-NEXT:    store i64 0, ptr [[TMP83]], align 8
+// CK21-NOUSE-NEXT:    [[TMP84:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS19]], i32 0, i32 9
+// CK21-NOUSE-NEXT:    store i64 0, ptr [[TMP84]], align 8
+// CK21-NOUSE-NEXT:    [[TMP85:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS19]], i32 0, i32 10
+// CK21-NOUSE-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP85]], align 4
+// CK21-NOUSE-NEXT:    [[TMP86:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS19]], i32 0, i32 11
+// CK21-NOUSE-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP86]], align 4
+// CK21-NOUSE-NEXT:    [[TMP87:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS19]], i32 0, i32 12
+// CK21-NOUSE-NEXT:    store i32 0, ptr [[TMP87]], align 4
+// CK21-NOUSE-NEXT:    [[TMP88:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS19]])
+// CK21-NOUSE-NEXT:    [[TMP89:%.*]] = icmp ne i32 [[TMP88]], 0
+// CK21-NOUSE-NEXT:    br i1 [[TMP89]], label %[[OMP_OFFLOAD_FAILED20:.*]], label %[[OMP_OFFLOAD_CONT21:.*]]
+// CK21-NOUSE:       [[OMP_OFFLOAD_FAILED20]]:
+// CK21-NOUSE-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}() #[[ATTR2]]
+// CK21-NOUSE-NEXT:    br label %[[OMP_OFFLOAD_CONT21]]
+// CK21-NOUSE:       [[OMP_OFFLOAD_CONT21]]:
+// CK21-NOUSE-NEXT:    [[TMP90:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS22]], i32 0, i32 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP90]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP90]], align 4
+// CK21-NOUSE-NEXT:    [[TMP91:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS23]], i32 0, i32 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP91]], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[TMP92:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS24]], i64 0, i64 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP92]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[ARG_ADDR]], ptr [[TMP91]], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[TMP92:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS24]], i32 0, i32 0
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP92]], align 4
+// CK21-NOUSE-NEXT:    [[TMP93:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS22]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    [[TMP94:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS23]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    [[TMP95:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS25]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    store i32 3, ptr [[TMP95]], align 4
+// CK21-NOUSE-NEXT:    [[TMP96:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS25]], i32 0, i32 1
+// CK21-NOUSE-NEXT:    store i32 1, ptr [[TMP96]], align 4
+// CK21-NOUSE-NEXT:    [[TMP97:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS25]], i32 0, i32 2
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[TMP93]], ptr [[TMP97]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[TMP93]], ptr [[TMP97]], align 4
+// CK21-NOUSE-NEXT:    [[TMP98:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS25]], i32 0, i32 3
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[TMP94]], ptr [[TMP98]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[TMP94]], ptr [[TMP98]], align 4
+// CK21-NOUSE-NEXT:    [[TMP99:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS25]], i32 0, i32 4
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr @.offload_sizes.7, ptr [[TMP99]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr @.offload_sizes.7, ptr [[TMP99]], align 4
+// CK21-NOUSE-NEXT:    [[TMP100:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS25]], i32 0, i32 5
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr @.offload_maptypes.8, ptr [[TMP100]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr @.offload_maptypes.8, ptr [[TMP100]], align 4
+// CK21-NOUSE-NEXT:    [[TMP101:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS25]], i32 0, i32 6
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP101]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP101]], align 4
+// CK21-NOUSE-NEXT:    [[TMP102:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS25]], i32 0, i32 7
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP102]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP102]], align 4
+// CK21-NOUSE-NEXT:    [[TMP103:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS25]], i32 0, i32 8
+// CK21-NOUSE-NEXT:    store i64 0, ptr [[TMP103]], align 8
+// CK21-NOUSE-NEXT:    [[TMP104:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS25]], i32 0, i32 9
+// CK21-NOUSE-NEXT:    store i64 0, ptr [[TMP104]], align 8
+// CK21-NOUSE-NEXT:    [[TMP105:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS25]], i32 0, i32 10
+// CK21-NOUSE-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP105]], align 4
+// CK21-NOUSE-NEXT:    [[TMP106:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS25]], i32 0, i32 11
+// CK21-NOUSE-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP106]], align 4
+// CK21-NOUSE-NEXT:    [[TMP107:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS25]], i32 0, i32 12
+// CK21-NOUSE-NEXT:    store i32 0, ptr [[TMP107]], align 4
+// CK21-NOUSE-NEXT:    [[TMP108:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS25]])
+// CK21-NOUSE-NEXT:    [[TMP109:%.*]] = icmp ne i32 [[TMP108]], 0
+// CK21-NOUSE-NEXT:    br i1 [[TMP109]], label %[[OMP_OFFLOAD_FAILED26:.*]], label %[[OMP_OFFLOAD_CONT27:.*]]
+// CK21-NOUSE:       [[OMP_OFFLOAD_FAILED26]]:
+// CK21-NOUSE-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}() #[[ATTR2]]
+// CK21-NOUSE-NEXT:    br label %[[OMP_OFFLOAD_CONT27]]
+// CK21-NOUSE:       [[OMP_OFFLOAD_CONT27]]:
+// CK21-NOUSE-NEXT:    [[A28:%.*]] = getelementptr inbounds nuw [[STRUCT_CC]], ptr [[THIS1]], i32 0, i32 0
+// CK21-64-USE-_6-32-_3-_5-_4-_2-SIMD-ONLY20-_8-_7-NOUSE-NEXT:    [[A2:%.*]] = getelementptr inbounds nuw [[STRUCT_CC]], ptr [[THIS1]], i32 0, i32 1
+// CK21-USE-NEXT:    [[TMP114:%.*]] = getelementptr i32, ptr [[A2]], i32 1
+// CK21-USE-NEXT:    [[TMP115:%.*]] = ptrtoint ptr [[TMP114]] to i64
+// CK21-USE-NEXT:    [[TMP116:%.*]] = ptrtoint ptr [[A29]] to i64
+// CK21-USE-NEXT:    [[TMP117:%.*]] = sub i64 [[TMP115]], [[TMP116]]
+// CK21-USE-NEXT:    [[TMP118:%.*]] = sdiv exact i64 [[TMP117]], ptrtoint (ptr getelementptr (i8, ptr null, i32 1) to i64)
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    [[TMP8:%.*]] = load i32, ptr [[A2]], align 4
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    [[ADD10:%.*]] = add nsw i32 [[TMP8]], 1
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    store i32 [[ADD10]], ptr [[A2]], align 4
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    [[A11:%.*]] = getelementptr inbounds nuw [[STRUCT_CC]], ptr [[THIS1]], i32 0, i32 0
+// SIMD-ONLY20-_8-_5-NEXT:    [[TMP9:%.*]] = load i32, ptr [[A11]], align 8
+// SIMD-ONLY20-_4-_7-NEXT:    [[TMP9:%.*]] = load i32, ptr [[A11]], align 4
+// SIMD-ONLY20-_8-_5-_4-_7-NEXT:    ret i32 [[TMP9]]
+// SIMD-ONLY20-_2-_9-_3-_6-NEXT:    ret i32 [[TMP0]]
+// CK21-NOUSE-NEXT:    [[TMP110:%.*]] = getelementptr i32, ptr [[A2]], i32 1
+// CK21-NOUSE-NEXT:    [[TMP111:%.*]] = ptrtoint ptr [[TMP110]] to i64
+// CK21-NOUSE-NEXT:    [[TMP112:%.*]] = ptrtoint ptr [[A28]] to i64
+// CK21-NOUSE-NEXT:    [[TMP113:%.*]] = sub i64 [[TMP111]], [[TMP112]]
+// CK21-NOUSE-NEXT:    [[TMP114:%.*]] = sdiv exact i64 [[TMP113]], ptrtoint (ptr getelementptr (i8, ptr null, i32 1) to i64)
+// CK21-64-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 8 [[DOTOFFLOAD_SIZES]], ptr align 8 @.offload_sizes.9, i64 24, i1 false)
+// CK21-32-NEXT:    call void @llvm.memcpy.p0.p0.i32(ptr align 4 [[DOTOFFLOAD_SIZES]], ptr align 4 @.offload_sizes.9, i32 24, i1 false)
+// CK21-USE-NEXT:    [[TMP119:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS30]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    [[TMP115:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS29]], i32 0, i32 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[THIS1]], ptr [[TMP115]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[THIS1]], ptr [[TMP115]], align 4
+// CK21-NOUSE-NEXT:    [[TMP116:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS30]], i32 0, i32 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[A28]], ptr [[TMP116]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[A28]], ptr [[TMP116]], align 4
+// CK21-NOUSE-NEXT:    [[TMP117:%.*]] = getelementptr inbounds [3 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store i64 [[TMP114]], ptr [[TMP117]], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[TMP118:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS31]], i64 0, i64 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP118]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store i64 [[TMP114]], ptr [[TMP117]], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[TMP118:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS31]], i32 0, i32 0
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP118]], align 4
+// CK21-NOUSE-NEXT:    [[TMP119:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS29]], i32 0, i32 1
+// CK21-64-NEXT:    store ptr [[THIS1]], ptr [[TMP119]], align 8
+// CK21-32-NEXT:    store ptr [[THIS1]], ptr [[TMP119]], align 4
+// CK21-USE-NEXT:    [[TMP120:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS31]], i32 0, i32 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[A29]], ptr [[TMP120]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[A29]], ptr [[TMP120]], align 4
+// CK21-USE-NEXT:    [[TMP121:%.*]] = getelementptr inbounds [3 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store i64 [[TMP118]], ptr [[TMP121]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[TMP122:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS32]], i64 0, i64 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP122]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store i64 [[TMP118]], ptr [[TMP121]], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[TMP122:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS32]], i32 0, i32 0
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP122]], align 4
+// CK21-USE-NEXT:    [[TMP123:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS30]], i32 0, i32 1
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[THIS1]], ptr [[TMP123]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[THIS1]], ptr [[TMP123]], align 4
+// CK21-USE-NEXT:    [[TMP124:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS31]], i32 0, i32 1
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[A29]], ptr [[TMP124]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[TMP125:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS32]], i64 0, i64 1
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP125]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[A29]], ptr [[TMP124]], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[TMP125:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS32]], i32 0, i32 1
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP125]], align 4
+// CK21-USE-NEXT:    [[TMP126:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS30]], i32 0, i32 2
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[THIS1]], ptr [[TMP126]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[THIS1]], ptr [[TMP126]], align 4
+// CK21-USE-NEXT:    [[TMP127:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS31]], i32 0, i32 2
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[A2]], ptr [[TMP127]], align 8
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[TMP128:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS32]], i64 0, i64 2
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP128]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[A2]], ptr [[TMP127]], align 4
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[TMP128:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS32]], i32 0, i32 2
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP128]], align 4
+// CK21-USE-NEXT:    [[TMP129:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS30]], i32 0, i32 0
+// CK21-USE-NEXT:    [[TMP130:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS31]], i32 0, i32 0
+// CK21-USE-NEXT:    [[TMP131:%.*]] = getelementptr inbounds [3 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK21-USE-NEXT:    [[TMP132:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS33]], i32 0, i32 0
+// CK21-USE-NEXT:    store i32 3, ptr [[TMP132]], align 4
+// CK21-USE-NEXT:    [[TMP133:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS33]], i32 0, i32 1
+// CK21-USE-NEXT:    store i32 3, ptr [[TMP133]], align 4
+// CK21-USE-NEXT:    [[TMP134:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS33]], i32 0, i32 2
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[TMP129]], ptr [[TMP134]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[TMP129]], ptr [[TMP134]], align 4
+// CK21-USE-NEXT:    [[TMP135:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS33]], i32 0, i32 3
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[TMP130]], ptr [[TMP135]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[TMP130]], ptr [[TMP135]], align 4
+// CK21-USE-NEXT:    [[TMP136:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS33]], i32 0, i32 4
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr [[TMP131]], ptr [[TMP136]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr [[TMP131]], ptr [[TMP136]], align 4
+// CK21-USE-NEXT:    [[TMP137:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS33]], i32 0, i32 5
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr @.offload_maptypes.10, ptr [[TMP137]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr @.offload_maptypes.10, ptr [[TMP137]], align 4
+// CK21-USE-NEXT:    [[TMP138:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS33]], i32 0, i32 6
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP138]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP138]], align 4
+// CK21-USE-NEXT:    [[TMP139:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS33]], i32 0, i32 7
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    store ptr null, ptr [[TMP139]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    store ptr null, ptr [[TMP139]], align 4
+// CK21-USE-NEXT:    [[TMP140:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS33]], i32 0, i32 8
+// CK21-USE-NEXT:    store i64 0, ptr [[TMP140]], align 8
+// CK21-USE-NEXT:    [[TMP141:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS33]], i32 0, i32 9
+// CK21-USE-NEXT:    store i64 0, ptr [[TMP141]], align 8
+// CK21-USE-NEXT:    [[TMP142:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS33]], i32 0, i32 10
+// CK21-USE-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP142]], align 4
+// CK21-USE-NEXT:    [[TMP143:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS33]], i32 0, i32 11
+// CK21-USE-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP143]], align 4
+// CK21-USE-NEXT:    [[TMP144:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS33]], i32 0, i32 12
+// CK21-USE-NEXT:    store i32 0, ptr [[TMP144]], align 4
+// CK21-USE-NEXT:    [[TMP145:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS33]])
+// CK21-USE-NEXT:    [[TMP146:%.*]] = icmp ne i32 [[TMP145]], 0
+// CK21-USE-NEXT:    br i1 [[TMP146]], label %[[OMP_OFFLOAD_FAILED34:.*]], label %[[OMP_OFFLOAD_CONT35:.*]]
+// CK21-USE:       [[OMP_OFFLOAD_FAILED34]]:
+// CK21-USE-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}(ptr [[THIS1]]) #[[ATTR2]]
+// CK21-USE-NEXT:    br label %[[OMP_OFFLOAD_CONT35]]
+// CK21-USE:       [[OMP_OFFLOAD_CONT35]]:
+// CK21-USE-NEXT:    [[A36:%.*]] = getelementptr inbounds nuw [[STRUCT_CC]], ptr [[THIS1]], i32 0, i32 0
+// CK21-64-USE-_6-_5-_4-_2-_3-NEXT:    [[TMP147:%.*]] = load i32, ptr [[A36]], align 8
+// CK21-32-USE-_3-_5-_6-_4-_2-NEXT:    [[TMP147:%.*]] = load i32, ptr [[A36]], align 4
+// CK21-USE-NEXT:    ret i32 [[TMP147]]
+// CK21-NOUSE-NEXT:    [[TMP120:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS30]], i32 0, i32 1
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[A28]], ptr [[TMP120]], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[TMP121:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS31]], i64 0, i64 1
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP121]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[A28]], ptr [[TMP120]], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[TMP121:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS31]], i32 0, i32 1
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP121]], align 4
+// CK21-NOUSE-NEXT:    [[TMP122:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS29]], i32 0, i32 2
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[THIS1]], ptr [[TMP122]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[THIS1]], ptr [[TMP122]], align 4
+// CK21-NOUSE-NEXT:    [[TMP123:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS30]], i32 0, i32 2
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[A2]], ptr [[TMP123]], align 8
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[TMP124:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS31]], i64 0, i64 2
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP124]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[A2]], ptr [[TMP123]], align 4
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[TMP124:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS31]], i32 0, i32 2
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP124]], align 4
+// CK21-NOUSE-NEXT:    [[TMP125:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS29]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    [[TMP126:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS30]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    [[TMP127:%.*]] = getelementptr inbounds [3 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    [[TMP128:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS32]], i32 0, i32 0
+// CK21-NOUSE-NEXT:    store i32 3, ptr [[TMP128]], align 4
+// CK21-NOUSE-NEXT:    [[TMP129:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS32]], i32 0, i32 1
+// CK21-NOUSE-NEXT:    store i32 3, ptr [[TMP129]], align 4
+// CK21-NOUSE-NEXT:    [[TMP130:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS32]], i32 0, i32 2
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[TMP125]], ptr [[TMP130]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[TMP125]], ptr [[TMP130]], align 4
+// CK21-NOUSE-NEXT:    [[TMP131:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS32]], i32 0, i32 3
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[TMP126]], ptr [[TMP131]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[TMP126]], ptr [[TMP131]], align 4
+// CK21-NOUSE-NEXT:    [[TMP132:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS32]], i32 0, i32 4
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr [[TMP127]], ptr [[TMP132]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr [[TMP127]], ptr [[TMP132]], align 4
+// CK21-NOUSE-NEXT:    [[TMP133:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS32]], i32 0, i32 5
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr @.offload_maptypes.10, ptr [[TMP133]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr @.offload_maptypes.10, ptr [[TMP133]], align 4
+// CK21-NOUSE-NEXT:    [[TMP134:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS32]], i32 0, i32 6
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP134]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP134]], align 4
+// CK21-NOUSE-NEXT:    [[TMP135:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS32]], i32 0, i32 7
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    store ptr null, ptr [[TMP135]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    store ptr null, ptr [[TMP135]], align 4
+// CK21-NOUSE-NEXT:    [[TMP136:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS32]], i32 0, i32 8
+// CK21-NOUSE-NEXT:    store i64 0, ptr [[TMP136]], align 8
+// CK21-NOUSE-NEXT:    [[TMP137:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS32]], i32 0, i32 9
+// CK21-NOUSE-NEXT:    store i64 0, ptr [[TMP137]], align 8
+// CK21-NOUSE-NEXT:    [[TMP138:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS32]], i32 0, i32 10
+// CK21-NOUSE-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP138]], align 4
+// CK21-NOUSE-NEXT:    [[TMP139:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS32]], i32 0, i32 11
+// CK21-NOUSE-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP139]], align 4
+// CK21-NOUSE-NEXT:    [[TMP140:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS32]], i32 0, i32 12
+// CK21-NOUSE-NEXT:    store i32 0, ptr [[TMP140]], align 4
+// CK21-NOUSE-NEXT:    [[TMP141:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS32]])
+// CK21-NOUSE-NEXT:    [[TMP142:%.*]] = icmp ne i32 [[TMP141]], 0
+// CK21-NOUSE-NEXT:    br i1 [[TMP142]], label %[[OMP_OFFLOAD_FAILED33:.*]], label %[[OMP_OFFLOAD_CONT34:.*]]
+// CK21-NOUSE:       [[OMP_OFFLOAD_FAILED33]]:
+// CK21-NOUSE-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}() #[[ATTR2]]
+// CK21-NOUSE-NEXT:    br label %[[OMP_OFFLOAD_CONT34]]
+// CK21-NOUSE:       [[OMP_OFFLOAD_CONT34]]:
+// CK21-NOUSE-NEXT:    [[A35:%.*]] = getelementptr inbounds nuw [[STRUCT_CC]], ptr [[THIS1]], i32 0, i32 0
+// CK21-64-NOUSE-_3-_4-_5-_6-_2-NEXT:    [[TMP143:%.*]] = load i32, ptr [[A35]], align 8
+// CK21-32-NOUSE-_6-_4-_2-_5-_3-NEXT:    [[TMP143:%.*]] = load i32, ptr [[A35]], align 4
+// CK21-NOUSE-NEXT:    ret i32 [[TMP143]]
+//
+//
+// CK21-NOUSE-LABEL: define internal void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN2CCILi123EiE3fooEi_l[0-9]+}}(
+// CK21-NOUSE-SAME: ) #[[ATTR1:[0-9]+]] {
+// CK21-NOUSE-NEXT:  [[ENTRY:.*:]]
+// CK21-NOUSE-NEXT:    ret void
+//
+//

@@ -4,50 +4,38 @@
 #define HEADER
 
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK29 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK29 --check-prefix CK29-64
+// RUN: %clang_cc1 -DCK29 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK29,CK29-64,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28-_2,CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28
 // RUN: %clang_cc1 -DCK29 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK29 --check-prefix CK29-64
-// RUN: %clang_cc1 -DCK29 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK29 --check-prefix CK29-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK29,CK29-64,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28-_2,CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28
+// RUN: %clang_cc1 -DCK29 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK29,CK29-32,CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28-_2
 // RUN: %clang_cc1 -DCK29 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK29 --check-prefix CK29-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK29,CK29-32,CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28-_2
 
-// RUN: %clang_cc1 -DCK29 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK29 --check-prefix CK29-64
+// RUN: %clang_cc1 -DCK29 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK29,CK29-64,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28-_2,CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28
 // RUN: %clang_cc1 -DCK29 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK29 --check-prefix CK29-64
-// RUN: %clang_cc1 -DCK29 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK29 --check-prefix CK29-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK29,CK29-64,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28-_2,CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28
+// RUN: %clang_cc1 -DCK29 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK29,CK29-32,CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28-_2
 // RUN: %clang_cc1 -DCK29 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK29 --check-prefix CK29-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK29,CK29-32,CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28-_2
 
-// RUN: %clang_cc1 -DCK29 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefix CK29 --check-prefix CK29-64
+// RUN: %clang_cc1 -DCK29 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK29,CK29-64,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28-_2,CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28
 // RUN: %clang_cc1 -DCK29 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK29 --check-prefix CK29-64
-// RUN: %clang_cc1 -DCK29 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK29 --check-prefix CK29-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK29,CK29-64,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28-_2,CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28
+// RUN: %clang_cc1 -DCK29 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK29,CK29-32,CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28-_2
 // RUN: %clang_cc1 -DCK29 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s  --check-prefix CK29 --check-prefix CK29-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK29,CK29-32,CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28-_2
 
-// RUN: %clang_cc1 -DCK29 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY28 %s
+// RUN: %clang_cc1 -DCK29 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28-_2,CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28,SIMD-ONLY28,SIMD-ONLY28-_5-_3 %s
 // RUN: %clang_cc1 -DCK29 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY28 %s
-// RUN: %clang_cc1 -DCK29 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY28 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28-_2,CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28,SIMD-ONLY28,SIMD-ONLY28-_5-_3 %s
+// RUN: %clang_cc1 -DCK29 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28,SIMD-ONLY28,SIMD-ONLY28-_2-_4 %s
 // RUN: %clang_cc1 -DCK29 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  --check-prefix SIMD-ONLY28 %s
-// SIMD-ONLY28-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28,CK29-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY28-_2,SIMD-ONLY28,SIMD-ONLY28-_2-_4 %s
 #ifdef CK29
 
-// CK29: [[SSA:%.+]] = type { ptr, ptr }
-// CK29: [[SSB:%.+]]  = type { ptr, ptr }
 
-// CK29-LABEL: @.__omp_offloading_{{.*}}foo{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK29: [[SIZE00:@.+]] = private {{.*}}constant [3 x i64] [i64 {{8|16}}, i64 80, i64 {{4|8}}]
-// CK29: [[MTYPE00:@.+]] = private {{.*}}constant [3 x i64] [i64 [[#0x223]], i64 3, i64 [[#0x4000]]]
 
-// CK29-LABEL: @.__omp_offloading_{{.*}}foo{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK29: [[SIZE01:@.+]] = private {{.*}}constant [3 x i64] [i64 {{8|16}}, i64 80, i64 {{4|8}}]
-// CK29: [[MTYPE01:@.+]] = private {{.*}}constant [3 x i64] [i64 [[#0x223]], i64 3, i64 [[#0x4000]]]
 
-// CK29-LABEL: @.__omp_offloading_{{.*}}foo{{.*}}_l{{[0-9]+}}.region_id = weak constant i8 0
-// CK29: [[SIZE02:@.+]] = private {{.*}}constant [3 x i64] [i64 {{8|16}}, i64 80, i64 {{4|8}}]
-// CK29: [[MTYPE02:@.+]] = private {{.*}}constant [3 x i64] [i64 [[#0x223]], i64 3, i64 [[#0x4000]]]
 
 struct SSA{
   double *p;
@@ -60,7 +48,6 @@ struct SSB{
   SSA *&pr;
   SSB(SSA *&pr) : pr(pr) {}
 
-  // CK29-LABEL: define {{.+}}foo
   void foo() {
 
 // Region 00
@@ -69,44 +56,13 @@ struct SSB{
 // &p->pr[0], &p->pr[0], 10 * sizeof(p->pr[0]), TO | FROM
 // &p->pr,    &p->pr[0], sizeof(void*),         ATTACH
 
-// CK29-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK29-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK29-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK29-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK29-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
 
-// CK29-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK29-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK29-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK29-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK29-DAG: store ptr [[THIS:%.+]], ptr [[BP0]]
-// CK29-DAG: store ptr [[THIS]], ptr [[P0]]
 
-// CK29-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 1
-// CK29-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 1
-// CK29-DAG: store ptr [[PR_DEREF_LOAD:%.+]], ptr [[BP1]]
-// CK29-DAG: store ptr [[SEC1:%.+]], ptr [[P1]]
 
-// CK29-DAG: [[PR_DEREF_LOAD]] = load ptr, ptr [[PR_DEREF:%[^,]+]]
-// CK29-DAG: [[PR_DEREF]] = load ptr, ptr [[PR:%[^,]+]]
-// CK29-DAG: [[PR]] = getelementptr inbounds nuw %struct.SSA, ptr [[P_LOAD:%.+]], i32 0, i32 1
-// CK29-DAG: [[P_LOAD]] = load ptr, ptr [[THIS_P:%[^,]+]]
-// CK29-DAG: [[THIS_P]] = getelementptr inbounds nuw %struct.SSB, ptr [[THIS]], i32 0, i32 0
 
-// CK29-DAG: [[SEC1]] = getelementptr inbounds nuw double, ptr [[PR_DEREF_LOAD1:%.+]], i{{.*}} 0
-// CK29-DAG: [[PR_DEREF_LOAD1]] = load ptr, ptr [[PR_DEREF1:%[^,]+]]
-// CK29-DAG: [[PR_DEREF]] = load ptr, ptr [[PR1:%[^,]+]]
-// CK29-DAG: [[PR1]] = getelementptr inbounds nuw %struct.SSA, ptr [[P_LOAD1:%.+]], i32 0, i32 1
-// CK29-DAG: [[P_LOAD1]] = load ptr, ptr [[THIS_P1:%[^,]+]]
-// CK29-DAG: [[THIS_P1]] = getelementptr inbounds nuw %struct.SSB, ptr [[THIS]], i32 0, i32 0
 
-// CK29-DAG: [[BP2:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 2
-// CK29-DAG: [[P2:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 2
-// CK29-DAG: store ptr [[PR_DEREF:%.+]], ptr [[BP2]]
-// CK29-DAG: store ptr [[SEC1:%.+]], ptr [[P2]]
 
-// CK29: call void [[CALL00:@.+]](ptr {{[^,]+}})
 #pragma omp target map(p->pr[:10])
     {
       p->pr++;
@@ -118,44 +74,13 @@ struct SSB{
 // &pr->p[0], &pr->p[0], 10 * sizeof(pr->p[0]), TO | FROM
 // &pr->p,    &pr->p[0], sizeof(void*),         ATTACH
 
-// CK29-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK29-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK29-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK29-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK29-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
 
-// CK29-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK29-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK29-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK29-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK29-DAG: store ptr [[THIS:%.+]], ptr [[BP0]]
-// CK29-DAG: store ptr [[THIS]], ptr [[P0]]
 
-// CK29-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 1
-// CK29-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 1
-// CK29-DAG: store ptr [[PR_P_LOAD:%.+]], ptr [[BP1]]
-// CK29-DAG: store ptr [[SEC1:%.+]], ptr [[P1]]
 
-// CK29-DAG: [[PR_P_LOAD]] = load ptr, ptr [[PR_P:%[^,]+]]
-// CK29-DAG: [[PR_P]] = getelementptr inbounds nuw %struct.SSA, ptr [[PR_DEREF_LOAD:%.+]], i32 0, i32 0
-// CK29-DAG: [[PR_DEREF_LOAD]] = load ptr, ptr [[PR_DEREF:%[^,]+]]
-// CK29-DAG: [[PR_DEREF]] = load ptr, ptr [[PR:%[^,]+]]
-// CK29-DAG: [[PR]] = getelementptr inbounds nuw %struct.SSB, ptr [[THIS]], i32 0, i32 1
 
-// CK29-DAG: [[SEC1]] = getelementptr inbounds nuw double, ptr [[PR_P_LOAD1:%.+]], i{{.*}} 0
-// CK29-DAG: [[PR_P_LOAD1]] = load ptr, ptr [[PR_P1:%[^,]+]]
-// CK29-DAG: [[PR_P1]] = getelementptr inbounds nuw %struct.SSA, ptr [[PR_DEREF_LOAD1:%.+]], i32 0, i32 0
-// CK29-DAG: [[PR_DEREF_LOAD1]] = load ptr, ptr [[PR_DEREF1:%[^,]+]]
-// CK29-DAG: [[PR_DEREF1]] = load ptr, ptr [[PR1:%[^,]+]]
-// CK29-DAG: [[PR1]] = getelementptr inbounds nuw %struct.SSB, ptr [[THIS]], i32 0, i32 1
 
-// CK29-DAG: [[BP2:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 2
-// CK29-DAG: [[P2:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 2
-// CK29-DAG: store ptr [[PR_P]], ptr [[BP2]]
-// CK29-DAG: store ptr [[SEC1:%.+]], ptr [[P2]]
 
-// CK29: call void [[CALL00:@.+]](ptr {{[^,]+}})
 #pragma omp target map(pr->p[:10])
     {
       pr->p++;
@@ -167,46 +92,13 @@ struct SSB{
 // &pr->pr[0], &pr->pr[0], 10 * sizeof(pr->pr[0]), TO | FROM
 // &pr->pr,    &pr->pr[0], sizeof(void*),          ATTACH
 
-// CK29-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-// CK29-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-// CK29-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-// CK29-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-// CK29-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
 
-// CK29-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-// CK29-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
 
-// CK29-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-// CK29-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-// CK29-DAG: store ptr [[THIS:%.+]], ptr [[BP0]]
-// CK29-DAG: store ptr [[THIS]], ptr [[P0]]
 
-// CK29-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 1
-// CK29-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 1
-// CK29-DAG: store ptr [[PR_PR_DEREF_LOAD:%.+]], ptr [[BP1]]
-// CK29-DAG: store ptr [[SEC1:%.+]], ptr [[P1]]
 
-// CK29-DAG: [[PR_PR_DEREF_LOAD]] = load ptr, ptr [[PR_PR_DEREF:%[^,]+]]
-// CK29-DAG: [[PR_PR_DEREF]] = load ptr, ptr [[PR_PR:%[^,]+]]
-// CK29-DAG: [[PR_PR]] = getelementptr inbounds nuw %struct.SSA, ptr [[PR_DEREF_LOAD:%.+]], i32 0, i32 1
-// CK29-DAG: [[PR_DEREF_LOAD]] = load ptr, ptr [[PR_DEREF:%[^,]+]]
-// CK29-DAG: [[PR_DEREF]] = load ptr, ptr [[PR:%[^,]+]]
-// CK29-DAG: [[PR]] = getelementptr inbounds nuw %struct.SSB, ptr [[THIS]], i32 0, i32 1
 
-// CK29-DAG: [[SEC1]] = getelementptr inbounds nuw double, ptr [[PR_PR_DEREF_LOAD1:%.+]], i{{.*}} 0
-// CK29-DAG: [[PR_PR_DEREF_LOAD1]] = load ptr, ptr [[PR_PR_DEREF1:%[^,]+]]
-// CK29-DAG: [[PR_PR_DEREF1]] = load ptr, ptr [[PR_PR1:%[^,]+]]
-// CK29-DAG: [[PR_PR1]] = getelementptr inbounds nuw %struct.SSA, ptr [[PR_DEREF_LOAD1:%.+]], i32 0, i32 1
-// CK29-DAG: [[PR_DEREF_LOAD1]] = load ptr, ptr [[PR_DEREF1:%[^,]+]]
-// CK29-DAG: [[PR_DEREF1]] = load ptr, ptr [[PR1:%[^,]+]]
-// CK29-DAG: [[PR1]] = getelementptr inbounds nuw %struct.SSB, ptr [[THIS]], i32 0, i32 1
 
-// CK29-DAG: [[BP2:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 2
-// CK29-DAG: [[P2:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 2
-// CK29-DAG: store ptr [[PR_PR_DEREF:%.+]], ptr [[BP2]]
-// CK29-DAG: store ptr [[SEC1:%.+]], ptr [[P2]]
 
-// CK29: call void [[CALL00:@.+]](ptr {{[^,]+}})
 #pragma omp target map(pr->pr[:10])
     {
       pr->pr++;
@@ -222,3 +114,463 @@ void explicit_maps_member_pointer_references(SSA *sap) {
 }
 #endif // CK29
 #endif
+// CHECK-LABEL: define dso_local void @_Z39explicit_maps_member_pointer_referencesP3SSA(
+// CHECK-SAME: ptr noundef [[SAP:%.*]]) #[[ATTR0:[0-9]+]] {
+// CHECK-NEXT:  [[ENTRY:.*:]]
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[SAP_ADDR:%.*]] = alloca ptr, align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[D:%.*]] = alloca ptr, align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[SA:%.*]] = alloca [[STRUCT_SSA:%.*]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[SB:%.*]] = alloca [[STRUCT_SSB:%.*]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    store ptr [[SAP]], ptr [[SAP_ADDR]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    call void @_ZN3SSAC1ERPd(ptr noundef nonnull align 8 dereferenceable(16) [[SA]], ptr noundef nonnull align 8 dereferenceable(8) [[D]])
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    call void @_ZN3SSBC1ERP3SSA(ptr noundef nonnull align 8 dereferenceable(16) [[SB]], ptr noundef nonnull align 8 dereferenceable(8) [[SAP_ADDR]])
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    call void @_ZN3SSB3fooEv(ptr noundef nonnull align 8 dereferenceable(16) [[SB]])
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[SAP_ADDR:%.*]] = alloca ptr, align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[D:%.*]] = alloca ptr, align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[SA:%.*]] = alloca [[STRUCT_SSA:%.*]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[SB:%.*]] = alloca [[STRUCT_SSB:%.*]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    store ptr [[SAP]], ptr [[SAP_ADDR]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    call void @_ZN3SSAC1ERPd(ptr noundef nonnull align 4 dereferenceable(8) [[SA]], ptr noundef nonnull align 4 dereferenceable(4) [[D]])
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    call void @_ZN3SSBC1ERP3SSA(ptr noundef nonnull align 4 dereferenceable(8) [[SB]], ptr noundef nonnull align 4 dereferenceable(4) [[SAP_ADDR]])
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    call void @_ZN3SSB3fooEv(ptr noundef nonnull align 4 dereferenceable(8) [[SB]])
+// CHECK-NEXT:    ret void
+//
+//
+// CHECK-LABEL: define linkonce_odr void @_ZN3SSAC1ERPd(
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-SAME: ptr noundef nonnull align 8 dereferenceable(16) [[THIS:%.*]], ptr noundef nonnull align 8 dereferenceable(8) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat {
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-SAME: ptr noundef nonnull align 4 dereferenceable(8) [[THIS:%.*]], ptr noundef nonnull align 4 dereferenceable(4) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat align 2 {
+// CHECK-NEXT:  [[ENTRY:.*:]]
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    call void @_ZN3SSAC2ERPd(ptr noundef nonnull align 8 dereferenceable(16) [[THIS1]], ptr noundef nonnull align 8 dereferenceable(8) [[TMP0]])
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    call void @_ZN3SSAC2ERPd(ptr noundef nonnull align 4 dereferenceable(8) [[THIS1]], ptr noundef nonnull align 4 dereferenceable(4) [[TMP0]])
+// CHECK-NEXT:    ret void
+//
+//
+// CHECK-LABEL: define linkonce_odr void @_ZN3SSBC1ERP3SSA(
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-SAME: ptr noundef nonnull align 8 dereferenceable(16) [[THIS:%.*]], ptr noundef nonnull align 8 dereferenceable(8) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat {
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-SAME: ptr noundef nonnull align 4 dereferenceable(8) [[THIS:%.*]], ptr noundef nonnull align 4 dereferenceable(4) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat align 2 {
+// CHECK-NEXT:  [[ENTRY:.*:]]
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    call void @_ZN3SSBC2ERP3SSA(ptr noundef nonnull align 8 dereferenceable(16) [[THIS1]], ptr noundef nonnull align 8 dereferenceable(8) [[TMP0]])
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    call void @_ZN3SSBC2ERP3SSA(ptr noundef nonnull align 4 dereferenceable(8) [[THIS1]], ptr noundef nonnull align 4 dereferenceable(4) [[TMP0]])
+// CHECK-NEXT:    ret void
+//
+//
+// CHECK-LABEL: define linkonce_odr void @_ZN3SSB3fooEv(
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-SAME: ptr noundef nonnull align 8 dereferenceable(16) [[THIS:%.*]]) #[[ATTR0]] comdat {
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-SAME: ptr noundef nonnull align 4 dereferenceable(8) [[THIS:%.*]]) #[[ATTR0]] comdat align 2 {
+// CHECK-NEXT:  [[ENTRY:.*:]]
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 8
+// CK29-64-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [3 x ptr], align 8
+// CK29-64-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [3 x ptr], align 8
+// CK29-64-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [3 x ptr], align 8
+// CK29-64-NEXT:    [[KERNEL_ARGS:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS:%.*]], align 8
+// CK29-64-NEXT:    [[DOTOFFLOAD_BASEPTRS9:%.*]] = alloca [3 x ptr], align 8
+// CK29-64-NEXT:    [[DOTOFFLOAD_PTRS10:%.*]] = alloca [3 x ptr], align 8
+// CK29-64-NEXT:    [[DOTOFFLOAD_MAPPERS11:%.*]] = alloca [3 x ptr], align 8
+// CK29-64-NEXT:    [[KERNEL_ARGS12:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK29-64-NEXT:    [[DOTOFFLOAD_BASEPTRS20:%.*]] = alloca [3 x ptr], align 8
+// CK29-64-NEXT:    [[DOTOFFLOAD_PTRS21:%.*]] = alloca [3 x ptr], align 8
+// CK29-64-NEXT:    [[DOTOFFLOAD_MAPPERS22:%.*]] = alloca [3 x ptr], align 8
+// CK29-64-NEXT:    [[KERNEL_ARGS23:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 8
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 4
+// CK29-32-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [3 x ptr], align 4
+// CK29-32-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [3 x ptr], align 4
+// CK29-32-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [3 x ptr], align 4
+// CK29-32-NEXT:    [[KERNEL_ARGS:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS:%.*]], align 8
+// CK29-32-NEXT:    [[DOTOFFLOAD_BASEPTRS9:%.*]] = alloca [3 x ptr], align 4
+// CK29-32-NEXT:    [[DOTOFFLOAD_PTRS10:%.*]] = alloca [3 x ptr], align 4
+// CK29-32-NEXT:    [[DOTOFFLOAD_MAPPERS11:%.*]] = alloca [3 x ptr], align 4
+// CK29-32-NEXT:    [[KERNEL_ARGS12:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK29-32-NEXT:    [[DOTOFFLOAD_BASEPTRS20:%.*]] = alloca [3 x ptr], align 4
+// CK29-32-NEXT:    [[DOTOFFLOAD_PTRS21:%.*]] = alloca [3 x ptr], align 4
+// CK29-32-NEXT:    [[DOTOFFLOAD_MAPPERS22:%.*]] = alloca [3 x ptr], align 4
+// CK29-32-NEXT:    [[KERNEL_ARGS23:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 4
+// CHECK-NEXT:    [[P:%.*]] = getelementptr inbounds nuw [[STRUCT_SSB:%.*]], ptr [[THIS1]], i32 0, i32 0
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[P]], align 8
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[P]], align 4
+// CHECK-NEXT:    [[PR:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA:%.*]], ptr [[TMP0]], i32 0, i32 1
+// CK29-64-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[PR]], align 8, !nonnull [[META9:![0-9]+]], !align [[META10:![0-9]+]]
+// CK29-32-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[PR]], align 4, !nonnull [[META10:![0-9]+]], !align [[META11:![0-9]+]]
+// SIMD-ONLY28-_5-_3-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[PR]], align 8, !nonnull [[META2:![0-9]+]], !align [[META3:![0-9]+]]
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[TMP1]], align 8
+// SIMD-ONLY28-_2-_4-NEXT:    [[TMP1:%.*]] = load ptr, ptr [[PR]], align 4, !nonnull [[META3:![0-9]+]], !align [[META4:![0-9]+]]
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[TMP2:%.*]] = load ptr, ptr [[TMP1]], align 4
+// CK29-NEXT:    [[P2:%.*]] = getelementptr inbounds nuw [[STRUCT_SSB]], ptr [[THIS1]], i32 0, i32 0
+// CK29-64-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[P2]], align 8
+// CK29-32-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[P2]], align 4
+// CK29-NEXT:    [[PR3:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP3]], i32 0, i32 1
+// CK29-64-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[PR3]], align 8, !nonnull [[META9]], !align [[META10]]
+// CK29-64-NEXT:    [[TMP5:%.*]] = load ptr, ptr [[TMP4]], align 8
+// CK29-64-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw double, ptr [[TMP5]], i64 0
+// CK29-32-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[PR3]], align 4, !nonnull [[META10]], !align [[META11]]
+// CK29-32-NEXT:    [[TMP5:%.*]] = load ptr, ptr [[TMP4]], align 4
+// CK29-32-NEXT:    [[ARRAYIDX:%.*]] = getelementptr inbounds nuw double, ptr [[TMP5]], i32 0
+// CK29-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK29-64-NEXT:    store ptr [[THIS1]], ptr [[TMP6]], align 8
+// CK29-32-NEXT:    store ptr [[THIS1]], ptr [[TMP6]], align 4
+// CK29-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK29-64-NEXT:    store ptr [[THIS1]], ptr [[TMP7]], align 8
+// CK29-64-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK29-64-NEXT:    store ptr null, ptr [[TMP8]], align 8
+// CK29-32-NEXT:    store ptr [[THIS1]], ptr [[TMP7]], align 4
+// CK29-32-NEXT:    [[TMP8:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK29-32-NEXT:    store ptr null, ptr [[TMP8]], align 4
+// CK29-NEXT:    [[TMP9:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 1
+// CK29-64-NEXT:    store ptr [[TMP2]], ptr [[TMP9]], align 8
+// CK29-32-NEXT:    store ptr [[TMP2]], ptr [[TMP9]], align 4
+// CK29-NEXT:    [[TMP10:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 1
+// CK29-64-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP10]], align 8
+// CK29-64-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 1
+// CK29-64-NEXT:    store ptr null, ptr [[TMP11]], align 8
+// CK29-32-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP10]], align 4
+// CK29-32-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 1
+// CK29-32-NEXT:    store ptr null, ptr [[TMP11]], align 4
+// CK29-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 2
+// CK29-64-NEXT:    store ptr [[TMP1]], ptr [[TMP12]], align 8
+// CK29-32-NEXT:    store ptr [[TMP1]], ptr [[TMP12]], align 4
+// CK29-NEXT:    [[TMP13:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 2
+// CK29-64-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP13]], align 8
+// CK29-64-NEXT:    [[TMP14:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 2
+// CK29-64-NEXT:    store ptr null, ptr [[TMP14]], align 8
+// CK29-32-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP13]], align 4
+// CK29-32-NEXT:    [[TMP14:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 2
+// CK29-32-NEXT:    store ptr null, ptr [[TMP14]], align 4
+// CK29-NEXT:    [[TMP15:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK29-NEXT:    [[TMP16:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK29-NEXT:    [[TMP17:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 0
+// CK29-NEXT:    store i32 3, ptr [[TMP17]], align 4
+// CK29-NEXT:    [[TMP18:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 1
+// CK29-NEXT:    store i32 3, ptr [[TMP18]], align 4
+// CK29-NEXT:    [[TMP19:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 2
+// CK29-64-NEXT:    store ptr [[TMP15]], ptr [[TMP19]], align 8
+// CK29-32-NEXT:    store ptr [[TMP15]], ptr [[TMP19]], align 4
+// CK29-NEXT:    [[TMP20:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 3
+// CK29-64-NEXT:    store ptr [[TMP16]], ptr [[TMP20]], align 8
+// CK29-32-NEXT:    store ptr [[TMP16]], ptr [[TMP20]], align 4
+// CK29-NEXT:    [[TMP21:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 4
+// CK29-64-NEXT:    store ptr @.offload_sizes, ptr [[TMP21]], align 8
+// CK29-32-NEXT:    store ptr @.offload_sizes, ptr [[TMP21]], align 4
+// CK29-NEXT:    [[TMP22:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 5
+// CK29-64-NEXT:    store ptr @.offload_maptypes, ptr [[TMP22]], align 8
+// CK29-32-NEXT:    store ptr @.offload_maptypes, ptr [[TMP22]], align 4
+// CK29-NEXT:    [[TMP23:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 6
+// CK29-64-NEXT:    store ptr null, ptr [[TMP23]], align 8
+// CK29-32-NEXT:    store ptr null, ptr [[TMP23]], align 4
+// CK29-NEXT:    [[TMP24:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 7
+// CK29-64-NEXT:    store ptr null, ptr [[TMP24]], align 8
+// CK29-32-NEXT:    store ptr null, ptr [[TMP24]], align 4
+// CK29-NEXT:    [[TMP25:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 8
+// CK29-NEXT:    store i64 0, ptr [[TMP25]], align 8
+// CK29-NEXT:    [[TMP26:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 9
+// CK29-NEXT:    store i64 0, ptr [[TMP26]], align 8
+// CK29-NEXT:    [[TMP27:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 10
+// CK29-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP27]], align 4
+// CK29-NEXT:    [[TMP28:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 11
+// CK29-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP28]], align 4
+// CK29-NEXT:    [[TMP29:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 12
+// CK29-NEXT:    store i32 0, ptr [[TMP29]], align 4
+// CK29-NEXT:    [[TMP30:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN3SSB3fooEv_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK29-NEXT:    [[TMP31:%.*]] = icmp ne i32 [[TMP30]], 0
+// CK29-NEXT:    br i1 [[TMP31]], label %[[OMP_OFFLOAD_FAILED:.*]], label %[[OMP_OFFLOAD_CONT:.*]]
+// CK29:       [[OMP_OFFLOAD_FAILED]]:
+// CK29-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN3SSB3fooEv_l[0-9]+}}(ptr [[THIS1]]) #[[ATTR2:[0-9]+]]
+// CK29-NEXT:    br label %[[OMP_OFFLOAD_CONT]]
+// CK29:       [[OMP_OFFLOAD_CONT]]:
+// CK29-NEXT:    [[PR4:%.*]] = getelementptr inbounds nuw [[STRUCT_SSB]], ptr [[THIS1]], i32 0, i32 1
+// CK29-64-NEXT:    [[TMP32:%.*]] = load ptr, ptr [[PR4]], align 8, !nonnull [[META9]], !align [[META10]]
+// CK29-64-NEXT:    [[TMP33:%.*]] = load ptr, ptr [[TMP32]], align 8
+// CK29-32-NEXT:    [[TMP32:%.*]] = load ptr, ptr [[PR4]], align 4, !nonnull [[META10]], !align [[META11]]
+// CK29-32-NEXT:    [[TMP33:%.*]] = load ptr, ptr [[TMP32]], align 4
+// CK29-NEXT:    [[P5:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP33]], i32 0, i32 0
+// CK29-64-NEXT:    [[TMP34:%.*]] = load ptr, ptr [[P5]], align 8
+// CK29-32-NEXT:    [[TMP34:%.*]] = load ptr, ptr [[P5]], align 4
+// CK29-NEXT:    [[PR6:%.*]] = getelementptr inbounds nuw [[STRUCT_SSB]], ptr [[THIS1]], i32 0, i32 1
+// CK29-64-NEXT:    [[TMP35:%.*]] = load ptr, ptr [[PR6]], align 8, !nonnull [[META9]], !align [[META10]]
+// CK29-64-NEXT:    [[TMP36:%.*]] = load ptr, ptr [[TMP35]], align 8
+// CK29-32-NEXT:    [[TMP35:%.*]] = load ptr, ptr [[PR6]], align 4, !nonnull [[META10]], !align [[META11]]
+// CK29-32-NEXT:    [[TMP36:%.*]] = load ptr, ptr [[TMP35]], align 4
+// CK29-NEXT:    [[P7:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP36]], i32 0, i32 0
+// CK29-64-NEXT:    [[TMP37:%.*]] = load ptr, ptr [[P7]], align 8
+// CK29-64-NEXT:    [[ARRAYIDX8:%.*]] = getelementptr inbounds nuw double, ptr [[TMP37]], i64 0
+// CK29-32-NEXT:    [[TMP37:%.*]] = load ptr, ptr [[P7]], align 4
+// CK29-32-NEXT:    [[ARRAYIDX8:%.*]] = getelementptr inbounds nuw double, ptr [[TMP37]], i32 0
+// CK29-NEXT:    [[TMP38:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS9]], i32 0, i32 0
+// CK29-64-NEXT:    store ptr [[THIS1]], ptr [[TMP38]], align 8
+// CK29-32-NEXT:    store ptr [[THIS1]], ptr [[TMP38]], align 4
+// CK29-NEXT:    [[TMP39:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS10]], i32 0, i32 0
+// CK29-64-NEXT:    store ptr [[THIS1]], ptr [[TMP39]], align 8
+// CK29-64-NEXT:    [[TMP40:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS11]], i64 0, i64 0
+// CK29-64-NEXT:    store ptr null, ptr [[TMP40]], align 8
+// CK29-32-NEXT:    store ptr [[THIS1]], ptr [[TMP39]], align 4
+// CK29-32-NEXT:    [[TMP40:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS11]], i32 0, i32 0
+// CK29-32-NEXT:    store ptr null, ptr [[TMP40]], align 4
+// CK29-NEXT:    [[TMP41:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS9]], i32 0, i32 1
+// CK29-64-NEXT:    store ptr [[TMP34]], ptr [[TMP41]], align 8
+// CK29-32-NEXT:    store ptr [[TMP34]], ptr [[TMP41]], align 4
+// CK29-NEXT:    [[TMP42:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS10]], i32 0, i32 1
+// CK29-64-NEXT:    store ptr [[ARRAYIDX8]], ptr [[TMP42]], align 8
+// CK29-64-NEXT:    [[TMP43:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS11]], i64 0, i64 1
+// CK29-64-NEXT:    store ptr null, ptr [[TMP43]], align 8
+// CK29-32-NEXT:    store ptr [[ARRAYIDX8]], ptr [[TMP42]], align 4
+// CK29-32-NEXT:    [[TMP43:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS11]], i32 0, i32 1
+// CK29-32-NEXT:    store ptr null, ptr [[TMP43]], align 4
+// CK29-NEXT:    [[TMP44:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS9]], i32 0, i32 2
+// CK29-64-NEXT:    store ptr [[P5]], ptr [[TMP44]], align 8
+// CK29-32-NEXT:    store ptr [[P5]], ptr [[TMP44]], align 4
+// CK29-NEXT:    [[TMP45:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS10]], i32 0, i32 2
+// CK29-64-NEXT:    store ptr [[ARRAYIDX8]], ptr [[TMP45]], align 8
+// CK29-64-NEXT:    [[TMP46:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS11]], i64 0, i64 2
+// CK29-64-NEXT:    store ptr null, ptr [[TMP46]], align 8
+// CK29-32-NEXT:    store ptr [[ARRAYIDX8]], ptr [[TMP45]], align 4
+// CK29-32-NEXT:    [[TMP46:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS11]], i32 0, i32 2
+// CK29-32-NEXT:    store ptr null, ptr [[TMP46]], align 4
+// CK29-NEXT:    [[TMP47:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS9]], i32 0, i32 0
+// CK29-NEXT:    [[TMP48:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS10]], i32 0, i32 0
+// CK29-NEXT:    [[TMP49:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS12]], i32 0, i32 0
+// CK29-NEXT:    store i32 3, ptr [[TMP49]], align 4
+// CK29-NEXT:    [[TMP50:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS12]], i32 0, i32 1
+// CK29-NEXT:    store i32 3, ptr [[TMP50]], align 4
+// CK29-NEXT:    [[TMP51:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS12]], i32 0, i32 2
+// CK29-64-NEXT:    store ptr [[TMP47]], ptr [[TMP51]], align 8
+// CK29-32-NEXT:    store ptr [[TMP47]], ptr [[TMP51]], align 4
+// CK29-NEXT:    [[TMP52:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS12]], i32 0, i32 3
+// CK29-64-NEXT:    store ptr [[TMP48]], ptr [[TMP52]], align 8
+// CK29-32-NEXT:    store ptr [[TMP48]], ptr [[TMP52]], align 4
+// CK29-NEXT:    [[TMP53:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS12]], i32 0, i32 4
+// CK29-64-NEXT:    store ptr @.offload_sizes.1, ptr [[TMP53]], align 8
+// CK29-32-NEXT:    store ptr @.offload_sizes.1, ptr [[TMP53]], align 4
+// CK29-NEXT:    [[TMP54:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS12]], i32 0, i32 5
+// CK29-64-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP54]], align 8
+// CK29-32-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP54]], align 4
+// CK29-NEXT:    [[TMP55:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS12]], i32 0, i32 6
+// CK29-64-NEXT:    store ptr null, ptr [[TMP55]], align 8
+// CK29-32-NEXT:    store ptr null, ptr [[TMP55]], align 4
+// CK29-NEXT:    [[TMP56:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS12]], i32 0, i32 7
+// CK29-64-NEXT:    store ptr null, ptr [[TMP56]], align 8
+// CK29-32-NEXT:    store ptr null, ptr [[TMP56]], align 4
+// CK29-NEXT:    [[TMP57:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS12]], i32 0, i32 8
+// CK29-NEXT:    store i64 0, ptr [[TMP57]], align 8
+// CK29-NEXT:    [[TMP58:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS12]], i32 0, i32 9
+// CK29-NEXT:    store i64 0, ptr [[TMP58]], align 8
+// CK29-NEXT:    [[TMP59:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS12]], i32 0, i32 10
+// CK29-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP59]], align 4
+// CK29-NEXT:    [[TMP60:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS12]], i32 0, i32 11
+// CK29-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP60]], align 4
+// CK29-NEXT:    [[TMP61:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS12]], i32 0, i32 12
+// CK29-NEXT:    store i32 0, ptr [[TMP61]], align 4
+// CK29-NEXT:    [[TMP62:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN3SSB3fooEv_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS12]])
+// CK29-NEXT:    [[TMP63:%.*]] = icmp ne i32 [[TMP62]], 0
+// CK29-NEXT:    br i1 [[TMP63]], label %[[OMP_OFFLOAD_FAILED13:.*]], label %[[OMP_OFFLOAD_CONT14:.*]]
+// CK29:       [[OMP_OFFLOAD_FAILED13]]:
+// CK29-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN3SSB3fooEv_l[0-9]+}}(ptr [[THIS1]]) #[[ATTR2]]
+// CK29-NEXT:    br label %[[OMP_OFFLOAD_CONT14]]
+// CK29:       [[OMP_OFFLOAD_CONT14]]:
+// CK29-NEXT:    [[PR15:%.*]] = getelementptr inbounds nuw [[STRUCT_SSB]], ptr [[THIS1]], i32 0, i32 1
+// CK29-64-NEXT:    [[TMP64:%.*]] = load ptr, ptr [[PR15]], align 8, !nonnull [[META9]], !align [[META10]]
+// CK29-64-NEXT:    [[TMP65:%.*]] = load ptr, ptr [[TMP64]], align 8
+// CK29-32-NEXT:    [[TMP64:%.*]] = load ptr, ptr [[PR15]], align 4, !nonnull [[META10]], !align [[META11]]
+// CK29-32-NEXT:    [[TMP65:%.*]] = load ptr, ptr [[TMP64]], align 4
+// CK29-NEXT:    [[PR16:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP65]], i32 0, i32 1
+// CK29-64-NEXT:    [[TMP66:%.*]] = load ptr, ptr [[PR16]], align 8, !nonnull [[META9]], !align [[META10]]
+// CK29-64-NEXT:    [[TMP67:%.*]] = load ptr, ptr [[TMP66]], align 8
+// CK29-32-NEXT:    [[TMP66:%.*]] = load ptr, ptr [[PR16]], align 4, !nonnull [[META10]], !align [[META11]]
+// CK29-32-NEXT:    [[TMP67:%.*]] = load ptr, ptr [[TMP66]], align 4
+// CK29-NEXT:    [[PR17:%.*]] = getelementptr inbounds nuw [[STRUCT_SSB]], ptr [[THIS1]], i32 0, i32 1
+// CK29-64-NEXT:    [[TMP68:%.*]] = load ptr, ptr [[PR17]], align 8, !nonnull [[META9]], !align [[META10]]
+// CK29-64-NEXT:    [[TMP69:%.*]] = load ptr, ptr [[TMP68]], align 8
+// CK29-32-NEXT:    [[TMP68:%.*]] = load ptr, ptr [[PR17]], align 4, !nonnull [[META10]], !align [[META11]]
+// CK29-32-NEXT:    [[TMP69:%.*]] = load ptr, ptr [[TMP68]], align 4
+// CK29-NEXT:    [[PR18:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP69]], i32 0, i32 1
+// CK29-64-NEXT:    [[TMP70:%.*]] = load ptr, ptr [[PR18]], align 8, !nonnull [[META9]], !align [[META10]]
+// CK29-64-NEXT:    [[TMP71:%.*]] = load ptr, ptr [[TMP70]], align 8
+// CK29-64-NEXT:    [[ARRAYIDX19:%.*]] = getelementptr inbounds nuw double, ptr [[TMP71]], i64 0
+// CK29-32-NEXT:    [[TMP70:%.*]] = load ptr, ptr [[PR18]], align 4, !nonnull [[META10]], !align [[META11]]
+// CK29-32-NEXT:    [[TMP71:%.*]] = load ptr, ptr [[TMP70]], align 4
+// CK29-32-NEXT:    [[ARRAYIDX19:%.*]] = getelementptr inbounds nuw double, ptr [[TMP71]], i32 0
+// CK29-NEXT:    [[TMP72:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS20]], i32 0, i32 0
+// CK29-64-NEXT:    store ptr [[THIS1]], ptr [[TMP72]], align 8
+// CK29-32-NEXT:    store ptr [[THIS1]], ptr [[TMP72]], align 4
+// CK29-NEXT:    [[TMP73:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS21]], i32 0, i32 0
+// CK29-64-NEXT:    store ptr [[THIS1]], ptr [[TMP73]], align 8
+// CK29-64-NEXT:    [[TMP74:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS22]], i64 0, i64 0
+// CK29-64-NEXT:    store ptr null, ptr [[TMP74]], align 8
+// CK29-32-NEXT:    store ptr [[THIS1]], ptr [[TMP73]], align 4
+// CK29-32-NEXT:    [[TMP74:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS22]], i32 0, i32 0
+// CK29-32-NEXT:    store ptr null, ptr [[TMP74]], align 4
+// CK29-NEXT:    [[TMP75:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS20]], i32 0, i32 1
+// CK29-64-NEXT:    store ptr [[TMP67]], ptr [[TMP75]], align 8
+// CK29-32-NEXT:    store ptr [[TMP67]], ptr [[TMP75]], align 4
+// CK29-NEXT:    [[TMP76:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS21]], i32 0, i32 1
+// CK29-64-NEXT:    store ptr [[ARRAYIDX19]], ptr [[TMP76]], align 8
+// CK29-64-NEXT:    [[TMP77:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS22]], i64 0, i64 1
+// CK29-64-NEXT:    store ptr null, ptr [[TMP77]], align 8
+// CK29-32-NEXT:    store ptr [[ARRAYIDX19]], ptr [[TMP76]], align 4
+// CK29-32-NEXT:    [[TMP77:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS22]], i32 0, i32 1
+// CK29-32-NEXT:    store ptr null, ptr [[TMP77]], align 4
+// CK29-NEXT:    [[TMP78:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS20]], i32 0, i32 2
+// CK29-64-NEXT:    store ptr [[TMP66]], ptr [[TMP78]], align 8
+// CK29-32-NEXT:    store ptr [[TMP66]], ptr [[TMP78]], align 4
+// CK29-NEXT:    [[TMP79:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS21]], i32 0, i32 2
+// CK29-64-NEXT:    store ptr [[ARRAYIDX19]], ptr [[TMP79]], align 8
+// CK29-64-NEXT:    [[TMP80:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS22]], i64 0, i64 2
+// CK29-64-NEXT:    store ptr null, ptr [[TMP80]], align 8
+// CK29-32-NEXT:    store ptr [[ARRAYIDX19]], ptr [[TMP79]], align 4
+// CK29-32-NEXT:    [[TMP80:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS22]], i32 0, i32 2
+// CK29-32-NEXT:    store ptr null, ptr [[TMP80]], align 4
+// CK29-NEXT:    [[TMP81:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS20]], i32 0, i32 0
+// CK29-NEXT:    [[TMP82:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS21]], i32 0, i32 0
+// CK29-NEXT:    [[TMP83:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 0
+// CK29-NEXT:    store i32 3, ptr [[TMP83]], align 4
+// CK29-NEXT:    [[TMP84:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 1
+// CK29-NEXT:    store i32 3, ptr [[TMP84]], align 4
+// CK29-NEXT:    [[TMP85:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 2
+// CK29-64-NEXT:    store ptr [[TMP81]], ptr [[TMP85]], align 8
+// CK29-32-NEXT:    store ptr [[TMP81]], ptr [[TMP85]], align 4
+// CK29-NEXT:    [[TMP86:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 3
+// CK29-64-NEXT:    store ptr [[TMP82]], ptr [[TMP86]], align 8
+// CK29-32-NEXT:    store ptr [[TMP82]], ptr [[TMP86]], align 4
+// CK29-NEXT:    [[TMP87:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 4
+// CK29-64-NEXT:    store ptr @.offload_sizes.3, ptr [[TMP87]], align 8
+// CK29-32-NEXT:    store ptr @.offload_sizes.3, ptr [[TMP87]], align 4
+// CK29-NEXT:    [[TMP88:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 5
+// CK29-64-NEXT:    store ptr @.offload_maptypes.4, ptr [[TMP88]], align 8
+// CK29-32-NEXT:    store ptr @.offload_maptypes.4, ptr [[TMP88]], align 4
+// CK29-NEXT:    [[TMP89:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 6
+// CK29-64-NEXT:    store ptr null, ptr [[TMP89]], align 8
+// CK29-32-NEXT:    store ptr null, ptr [[TMP89]], align 4
+// CK29-NEXT:    [[TMP90:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 7
+// CK29-64-NEXT:    store ptr null, ptr [[TMP90]], align 8
+// CK29-32-NEXT:    store ptr null, ptr [[TMP90]], align 4
+// CK29-NEXT:    [[TMP91:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 8
+// CK29-NEXT:    store i64 0, ptr [[TMP91]], align 8
+// CK29-NEXT:    [[TMP92:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 9
+// CK29-NEXT:    store i64 0, ptr [[TMP92]], align 8
+// CK29-NEXT:    [[TMP93:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 10
+// CK29-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP93]], align 4
+// CK29-NEXT:    [[TMP94:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 11
+// CK29-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP94]], align 4
+// CK29-NEXT:    [[TMP95:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS23]], i32 0, i32 12
+// CK29-NEXT:    store i32 0, ptr [[TMP95]], align 4
+// CK29-NEXT:    [[TMP96:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN3SSB3fooEv_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS23]])
+// CK29-NEXT:    [[TMP97:%.*]] = icmp ne i32 [[TMP96]], 0
+// CK29-NEXT:    br i1 [[TMP97]], label %[[OMP_OFFLOAD_FAILED24:.*]], label %[[OMP_OFFLOAD_CONT25:.*]]
+// CK29:       [[OMP_OFFLOAD_FAILED24]]:
+// CK29-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__ZN3SSB3fooEv_l[0-9]+}}(ptr [[THIS1]]) #[[ATTR2]]
+// CK29-NEXT:    br label %[[OMP_OFFLOAD_CONT25]]
+// CK29:       [[OMP_OFFLOAD_CONT25]]:
+// SIMD-ONLY28-NEXT:    [[INCDEC_PTR:%.*]] = getelementptr inbounds nuw double, ptr [[TMP2]], i32 1
+// SIMD-ONLY28-_5-_3-NEXT:    store ptr [[INCDEC_PTR]], ptr [[TMP1]], align 8
+// SIMD-ONLY28-_2-_4-NEXT:    store ptr [[INCDEC_PTR]], ptr [[TMP1]], align 4
+// SIMD-ONLY28-NEXT:    [[PR2:%.*]] = getelementptr inbounds nuw [[STRUCT_SSB]], ptr [[THIS1]], i32 0, i32 1
+// SIMD-ONLY28-_5-_3-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[PR2]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY28-_5-_3-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[TMP3]], align 8
+// SIMD-ONLY28-_2-_4-NEXT:    [[TMP3:%.*]] = load ptr, ptr [[PR2]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY28-_2-_4-NEXT:    [[TMP4:%.*]] = load ptr, ptr [[TMP3]], align 4
+// SIMD-ONLY28-NEXT:    [[P3:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP4]], i32 0, i32 0
+// SIMD-ONLY28-_5-_3-NEXT:    [[TMP5:%.*]] = load ptr, ptr [[P3]], align 8
+// SIMD-ONLY28-_2-_4-NEXT:    [[TMP5:%.*]] = load ptr, ptr [[P3]], align 4
+// SIMD-ONLY28-NEXT:    [[INCDEC_PTR4:%.*]] = getelementptr inbounds nuw double, ptr [[TMP5]], i32 1
+// SIMD-ONLY28-_5-_3-NEXT:    store ptr [[INCDEC_PTR4]], ptr [[P3]], align 8
+// SIMD-ONLY28-_2-_4-NEXT:    store ptr [[INCDEC_PTR4]], ptr [[P3]], align 4
+// SIMD-ONLY28-NEXT:    [[PR5:%.*]] = getelementptr inbounds nuw [[STRUCT_SSB]], ptr [[THIS1]], i32 0, i32 1
+// SIMD-ONLY28-_5-_3-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[PR5]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY28-_5-_3-NEXT:    [[TMP7:%.*]] = load ptr, ptr [[TMP6]], align 8
+// SIMD-ONLY28-_2-_4-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[PR5]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY28-_2-_4-NEXT:    [[TMP7:%.*]] = load ptr, ptr [[TMP6]], align 4
+// SIMD-ONLY28-NEXT:    [[PR6:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA]], ptr [[TMP7]], i32 0, i32 1
+// SIMD-ONLY28-_5-_3-NEXT:    [[TMP8:%.*]] = load ptr, ptr [[PR6]], align 8, !nonnull [[META2]], !align [[META3]]
+// SIMD-ONLY28-_5-_3-NEXT:    [[TMP9:%.*]] = load ptr, ptr [[TMP8]], align 8
+// SIMD-ONLY28-_2-_4-NEXT:    [[TMP8:%.*]] = load ptr, ptr [[PR6]], align 4, !nonnull [[META3]], !align [[META4]]
+// SIMD-ONLY28-_2-_4-NEXT:    [[TMP9:%.*]] = load ptr, ptr [[TMP8]], align 4
+// SIMD-ONLY28-NEXT:    [[INCDEC_PTR7:%.*]] = getelementptr inbounds nuw double, ptr [[TMP9]], i32 1
+// SIMD-ONLY28-_5-_3-NEXT:    store ptr [[INCDEC_PTR7]], ptr [[TMP8]], align 8
+// SIMD-ONLY28-_2-_4-NEXT:    store ptr [[INCDEC_PTR7]], ptr [[TMP8]], align 4
+// CHECK-NEXT:    ret void
+//
+//
+// CHECK-LABEL: define linkonce_odr void @_ZN3SSAC2ERPd(
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-SAME: ptr noundef nonnull align 8 dereferenceable(16) [[THIS:%.*]], ptr noundef nonnull align 8 dereferenceable(8) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat {
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-SAME: ptr noundef nonnull align 4 dereferenceable(8) [[THIS:%.*]], ptr noundef nonnull align 4 dereferenceable(4) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat align 2 {
+// CHECK-NEXT:  [[ENTRY:.*:]]
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 8
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 4
+// CHECK-NEXT:    [[PR2:%.*]] = getelementptr inbounds nuw [[STRUCT_SSA:%.*]], ptr [[THIS1]], i32 0, i32 1
+// CK29-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 8, !nonnull [[META9]], !align [[META10]]
+// CK29-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 4, !nonnull [[META10]], !align [[META11]]
+// SIMD-ONLY28-_5-_3-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 8, !nonnull [[META2]], !align [[META3]]
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    store ptr [[TMP0]], ptr [[PR2]], align 8
+// SIMD-ONLY28-_2-_4-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 4, !nonnull [[META3]], !align [[META4]]
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    store ptr [[TMP0]], ptr [[PR2]], align 4
+// CHECK-NEXT:    ret void
+//
+//
+// CHECK-LABEL: define linkonce_odr void @_ZN3SSBC2ERP3SSA(
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-SAME: ptr noundef nonnull align 8 dereferenceable(16) [[THIS:%.*]], ptr noundef nonnull align 8 dereferenceable(8) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat {
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-SAME: ptr noundef nonnull align 4 dereferenceable(8) [[THIS:%.*]], ptr noundef nonnull align 4 dereferenceable(4) [[PR:%.*]]) unnamed_addr #[[ATTR0]] comdat align 2 {
+// CHECK-NEXT:  [[ENTRY:.*:]]
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 8
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 8
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[PR_ADDR:%.*]] = alloca ptr, align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    store ptr [[PR]], ptr [[PR_ADDR]], align 4
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 4
+// CHECK-NEXT:    [[PR2:%.*]] = getelementptr inbounds nuw [[STRUCT_SSB:%.*]], ptr [[THIS1]], i32 0, i32 1
+// CK29-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 8, !nonnull [[META9]], !align [[META10]]
+// CK29-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 4, !nonnull [[META10]], !align [[META11]]
+// SIMD-ONLY28-_5-_3-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 8, !nonnull [[META2]], !align [[META3]]
+// CK29-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY28-NEXT:    store ptr [[TMP0]], ptr [[PR2]], align 8
+// SIMD-ONLY28-_2-_4-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[PR_ADDR]], align 4, !nonnull [[META3]], !align [[META4]]
+// CK29-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY28-NEXT:    store ptr [[TMP0]], ptr [[PR2]], align 4
+// CHECK-NEXT:    ret void
+//
+//
+//
+// CK29-64: [[META9]] = !{}
+// CK29-64: [[META10]] = !{i64 8}
+// CK29-32: [[META10]] = !{}
+// CK29-32: [[META11]] = !{i64 4}
+// SIMD-ONLY28-_5-_3: [[META2]] = !{}
+// SIMD-ONLY28-_5-_3: [[META3]] = !{i64 8}
+//.
+// SIMD-ONLY28-_2-_4: [[META3]] = !{}
+// SIMD-ONLY28-_2-_4: [[META4]] = !{i64 4}
+//.

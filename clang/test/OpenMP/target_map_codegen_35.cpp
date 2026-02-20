@@ -4,20 +4,19 @@
 #define HEADER
 
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK35 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefix CK35 --check-prefix CK35-64
+// RUN: %clang_cc1 -DCK35 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CHECK,CK35,CK35-64,CK35-64-_3-_2-32-SIMD-ONLY32-_5-_4,CK35-64-_3-_2-32-SIMD-ONLY32-_5-_4-_2,CK35-64-_3-_2-SIMD-ONLY32-_5-_4
 // RUN: %clang_cc1 -DCK35 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck %s  --check-prefix CK35 --check-prefix CK35-64
-// RUN: %clang_cc1 -DCK35 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s  --check-prefix CK35 --check-prefix CK35-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck %s --check-prefixes=CHECK,CK35,CK35-64,CK35-64-_3-_2-32-SIMD-ONLY32-_5-_4,CK35-64-_3-_2-32-SIMD-ONLY32-_5-_4-_2,CK35-64-_3-_2-SIMD-ONLY32-_5-_4
+// RUN: %clang_cc1 -DCK35 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck %s --check-prefixes=CHECK,CK35,CK35-32,CK35-32-_2-_3-SIMD-ONLY32,CK35-64-_3-_2-32-SIMD-ONLY32-_5-_4,CK35-64-_3-_2-32-SIMD-ONLY32-_5-_4-_2
 // RUN: %clang_cc1 -DCK35 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck %s  --check-prefix CK35 --check-prefix CK35-32
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck %s --check-prefixes=CHECK,CK35,CK35-32,CK35-32-_2-_3-SIMD-ONLY32,CK35-64-_3-_2-32-SIMD-ONLY32-_5-_4,CK35-64-_3-_2-32-SIMD-ONLY32-_5-_4-_2
 
-// RUN: %clang_cc1 -DCK35 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY32 %s
+// RUN: %clang_cc1 -DCK35 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CHECK,CK35-64-_3-_2-32-SIMD-ONLY32-_5-_4,CK35-64-_3-_2-32-SIMD-ONLY32-_5-_4-_2,CK35-64-_3-_2-SIMD-ONLY32-_5-_4,SIMD-ONLY32-_5-_4 %s
 // RUN: %clang_cc1 -DCK35 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY32 %s
-// RUN: %clang_cc1 -DCK35 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefix SIMD-ONLY32 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck --check-prefixes=CHECK,CK35-64-_3-_2-32-SIMD-ONLY32-_5-_4,CK35-64-_3-_2-32-SIMD-ONLY32-_5-_4-_2,CK35-64-_3-_2-SIMD-ONLY32-_5-_4,SIMD-ONLY32-_5-_4 %s
+// RUN: %clang_cc1 -DCK35 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck --check-prefixes=CHECK,CK35-32-_2-_3-SIMD-ONLY32,CK35-64-_3-_2-32-SIMD-ONLY32-_5-_4,SIMD-ONLY32-_3-_2 %s
 // RUN: %clang_cc1 -DCK35 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck --check-prefix SIMD-ONLY32 %s
-// SIMD-ONLY32-NOT: {{__kmpc|__tgt}}
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck --check-prefixes=CHECK,CK35-32-_2-_3-SIMD-ONLY32,CK35-64-_3-_2-32-SIMD-ONLY32-_5-_4-_2,SIMD-ONLY32-_3-_2 %s
 #ifdef CK35
 
 class S {
@@ -28,121 +27,52 @@ public:
   void foo();
 };
 
-// CK35-DAG: [[SIZE_TO:@.+]] = private {{.*}}constant [3 x i64] [i64 0, i64 0, i64 8]
 // TARGET_PARAM = 0x20
 // MEMBER_OF_1 | TO = 0x1000000000001
 // MEMBER_OF_1 | PTR_AND_OBJ | TO = 0x1000000000011
-// CK35-DAG: [[MTYPE_TO:@.+]] = {{.+}}constant [3 x i64] [i64 [[#0x20]], i64 [[#0x1000000000001]], i64 [[#0x1000000000011]]]
-// CK35-DAG: [[SIZE_FROM:@.+]] = private {{.*}}constant [2 x i64] [i64 0, i64 8]
 // TARGET_PARAM = 0x20
 // MEMBER_OF_1 | PTR_AND_OBJ | FROM = 0x1000000000012
-// CK35-DAG: [[MTYPE_FROM:@.+]] = {{.+}}constant [2 x i64] [i64 [[#0x20]], i64 [[#0x1000000000012]]]
 
 void ref_map() {
   double b;
   S s(b);
 
-  // CK35-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-  // CK35-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-  // CK35-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-  // CK35-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-  // CK35-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-  // CK35-DAG: [[SARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 4
-  // CK35-DAG: store ptr [[SIZES:%.+]], ptr [[SARG]]
-  // CK35-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK35-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-  // CK35-DAG: [[SIZES]] = getelementptr inbounds {{.+}}[[S:%[^,]+]]
 
   // pass TARGET_PARAM {&s, &s, ((ptr)(&s+1)-(ptr)&s)}
 
-  // CK35-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK35-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK35-DAG: [[S0:%.+]] = getelementptr inbounds {{.+}}[[S]], i{{.+}} 0, i{{.+}} 0
 
 
-  // CK35-DAG: store ptr [[S_ADDR:%.+]], ptr [[BP0]],
-  // CK35-DAG: store ptr [[S_ADDR]], ptr [[P0]],
-  // CK35-DAG: store i64 [[S_SIZE:%.+]], ptr [[S0]],
 
-  // CK35-DAG: [[S_SIZE]] = sdiv exact i64 [[SZ:%.+]], ptrtoint (ptr getelementptr (i8, ptr null, i32 1) to i64)
-  // CK35-DAG: [[SZ]] = sub i64 [[S_1_INTPTR:%.+]], [[S_INTPTR:%.+]]
-  // CK35-DAG: [[S_1_INTPTR]] = ptrtoint ptr [[S_1_VOID:%.+]] to i64
-  // CK35-DAG: [[S_INTPTR]] = ptrtoint ptr [[S_VOID:%.+]] to i64
-  // CK35-DAG: [[S_1:%.+]] = getelementptr %class.S, ptr [[S_ADDR]], i32 1
 
   // pass MEMBER_OF_1 | TO {&s, &s, ((ptr)(&s.a+1)-(ptr)&s)} to copy the data of s.a.
 
-  // CK35-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 1
-  // CK35-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 1
-  // CK35-DAG: [[S1:%.+]] = getelementptr inbounds {{.+}}[[S]], i{{.+}} 0, i{{.+}} 1
 
 
-  // CK35-DAG: store ptr [[S_ADDR]], ptr [[BP1]],
-  // CK35-DAG: store ptr [[S_ADDR]], ptr [[P1]],
-  // CK35-DAG: store i64 [[A_SIZE:%.+]], ptr [[S1]],
 
-  // CK35-DAG: [[A_SIZE]] = sdiv exact i64 [[SZ:%.+]], ptrtoint (ptr getelementptr (i8, ptr null, i32 1) to i64)
-  // CK35-DAG: [[SZ]] = sub i64 [[B_BEGIN_INTPTR:%.+]], [[S_INTPTR:%.+]]
-  // CK35-DAG: [[S_INTPTR]] = ptrtoint ptr [[S_VOID:%.+]] to i64
-  // CK35-DAG: [[B_BEGIN_INTPTR]] = ptrtoint ptr [[B_BEGIN_VOID:%.+]] to i64
-  // CK35-DAG: [[B_ADDR:%.+]] = getelementptr inbounds nuw %class.S, ptr [[S_ADDR]], i32 0, i32 1
 
   // pass MEMBER_OF_1 | PTR_AND_OBJ | TO {&s, &s.b, 8|4} to copy the data of s.b.
 
-  // CK35-DAG: [[BP2:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 2
-  // CK35-DAG: [[P2:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 2
 
 
-  // CK35-DAG: store ptr [[S_ADDR]], ptr [[BP2]],
-  // CK35-DAG: store ptr [[B_ADDR:%.+]], ptr [[P2]],
 
-  // CK35-DAG: [[B_ADDR]] = load ptr, ptr [[B_REF:%.+]], align {{[0-9]+}}, !nonnull !{{[0-9]+}}, !align !{{[0-9]+}}
-  // CK35-DAG: [[B_REF]] = getelementptr inbounds nuw %class.S, ptr [[S_ADDR]], i32 0, i32 1
 
   #pragma omp target map(to: s, s.b)
   s.foo();
 
   // CK35 : call void
 
-  // CK35-DAG: call i32 @__tgt_target_kernel(ptr @{{.+}}, i64 -1, i32 -1, i32 0, ptr @.{{.+}}.region_id, ptr [[ARGS:%.+]])
-  // CK35-DAG: [[BPARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 2
-  // CK35-DAG: store ptr [[BPGEP:%.+]], ptr [[BPARG]]
-  // CK35-DAG: [[PARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 3
-  // CK35-DAG: store ptr [[PGEP:%.+]], ptr [[PARG]]
-  // CK35-DAG: [[SARG:%.+]] = getelementptr inbounds {{.+}}[[ARGS]], i32 0, i32 4
-  // CK35-DAG: store ptr [[SIZES:%.+]], ptr [[SARG]]
-  // CK35-DAG: [[BPGEP]] = getelementptr inbounds {{.+}}[[BP:%[^,]+]]
-  // CK35-DAG: [[PGEP]] = getelementptr inbounds {{.+}}[[P:%[^,]+]]
-  // CK35-DAG: [[SIZES]] = getelementptr inbounds {{.+}}[[S:%[^,]+]]
 
   // pass TARGET_PARAM {&s, &s.b, ((ptr)(&s.b+1)-(ptr)&s.b)}
 
-  // CK35-DAG: [[BP0:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 0
-  // CK35-DAG: [[P0:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 0
-  // CK35-DAG: [[S0:%.+]] = getelementptr inbounds {{.+}}[[S]], i{{.+}} 0, i{{.+}} 0
 
 
-  // CK35-DAG: store ptr [[S_ADDR]], ptr [[BP0]],
-  // CK35-DAG: store ptr [[SB_ADDR:%.+]], ptr [[P0]],
-  // CK35-DAG: store i64 [[B_SIZE:%.+]], ptr [[S0]],
 
-  // CK35-DAG: [[B_SIZE]] = sdiv exact i64 [[SZ:%.+]], ptrtoint (ptr getelementptr (i8, ptr null, i32 1) to i64)
-  // CK35-DAG: [[SZ]] = sub i64 [[SB_1_INTPTR:%.+]], [[SB_INTPTR:%.+]]
-  // CK35-DAG: [[SB_1_INTPTR]] = ptrtoint ptr [[SB_1_VOID:%.+]] to i64
-  // CK35-DAG: [[SB_INTPTR]] = ptrtoint ptr [[SB_VOID:%.+]] to i64
-  // CK35-DAG: [[SB_ADDR:%.+]] = getelementptr inbounds nuw %class.S, ptr [[S_ADDR]], i32 0, i32 1
-  // CK35-DAG: [[SB_1:%.+]] = getelementptr ptr, ptr [[SB_ADDR]], i{{.+}} 1
 
   // pass MEMBER_OF_1 | PTR_AND_OBJ | FROM {&s, &s.b, 8|4} to copy the data of s.c.
 
-  // CK35-DAG: [[BP1:%.+]] = getelementptr inbounds {{.+}}[[BP]], i{{.+}} 0, i{{.+}} 1
-  // CK35-DAG: [[P1:%.+]] = getelementptr inbounds {{.+}}[[P]], i{{.+}} 0, i{{.+}} 1
 
 
-  // CK35-DAG: store ptr [[S_ADDR]], ptr [[BP1]],
-  // CK35-DAG: store ptr [[B_ADDR:%.+]], ptr [[P1]],
 
-  // CK35-DAG: [[B_ADDR]] = load ptr, ptr [[SB_ADDR]],
 
   #pragma omp target map(from: s.b)
   s.foo();
@@ -150,3 +80,279 @@ void ref_map() {
 
 #endif // CK35
 #endif
+// CHECK-LABEL: define dso_local void @_Z7ref_mapv(
+// CHECK-SAME: ) #[[ATTR0:[0-9]+]] {
+// CHECK-NEXT:  [[ENTRY:.*:]]
+// CHECK-NEXT:    [[B:%.*]] = alloca double, align 8
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-NEXT:    [[S:%.*]] = alloca [[CLASS_S:%.*]], align 8
+// CK35-64-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [3 x ptr], align 8
+// CK35-64-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [3 x ptr], align 8
+// CK35-64-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [3 x ptr], align 8
+// CK35-64-NEXT:    [[DOTOFFLOAD_SIZES:%.*]] = alloca [3 x i64], align 8
+// SIMD-ONLY32-_5-_4-NEXT:    call void @_ZN1SC1ERd(ptr noundef nonnull align 8 dereferenceable(16) [[S]], ptr noundef nonnull align 8 dereferenceable(8) [[B]])
+// SIMD-ONLY32-_5-_4-NEXT:    call void @_ZN1S3fooEv(ptr noundef nonnull align 8 dereferenceable(16) [[S]])
+// SIMD-ONLY32-_5-_4-NEXT:    call void @_ZN1S3fooEv(ptr noundef nonnull align 8 dereferenceable(16) [[S]])
+// CK35-32-_2-_3-SIMD-ONLY32-NEXT:    [[S:%.*]] = alloca [[CLASS_S:%.*]], align 4
+// CK35-32-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [3 x ptr], align 4
+// CK35-32-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [3 x ptr], align 4
+// CK35-32-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [3 x ptr], align 4
+// CK35-32-NEXT:    [[DOTOFFLOAD_SIZES:%.*]] = alloca [3 x i64], align 4
+// CK35-NEXT:    [[KERNEL_ARGS:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS:%.*]], align 8
+// CK35-64-NEXT:    [[DOTOFFLOAD_BASEPTRS4:%.*]] = alloca [2 x ptr], align 8
+// CK35-64-NEXT:    [[DOTOFFLOAD_PTRS5:%.*]] = alloca [2 x ptr], align 8
+// CK35-64-NEXT:    [[DOTOFFLOAD_MAPPERS6:%.*]] = alloca [2 x ptr], align 8
+// CK35-64-NEXT:    [[DOTOFFLOAD_SIZES7:%.*]] = alloca [2 x i64], align 8
+// CK35-32-NEXT:    [[DOTOFFLOAD_BASEPTRS4:%.*]] = alloca [2 x ptr], align 4
+// CK35-32-NEXT:    [[DOTOFFLOAD_PTRS5:%.*]] = alloca [2 x ptr], align 4
+// CK35-32-NEXT:    [[DOTOFFLOAD_MAPPERS6:%.*]] = alloca [2 x ptr], align 4
+// CK35-32-NEXT:    [[DOTOFFLOAD_SIZES7:%.*]] = alloca [2 x i64], align 4
+// CK35-NEXT:    [[KERNEL_ARGS8:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS]], align 8
+// CK35-64-NEXT:    call void @_ZN1SC1ERd(ptr noundef nonnull align 8 dereferenceable(16) [[S]], ptr noundef nonnull align 8 dereferenceable(8) [[B]])
+// CK35-64-NEXT:    [[TMP0:%.*]] = getelementptr i8, ptr [[S]], i64 15
+// CK35-32-_2-_3-SIMD-ONLY32-NEXT:    call void @_ZN1SC1ERd(ptr noundef nonnull align 4 dereferenceable(8) [[S]], ptr noundef nonnull align 4 dereferenceable(8) [[B]])
+// CK35-32-NEXT:    [[TMP0:%.*]] = getelementptr i8, ptr [[S]], i32 7
+// CK35-NEXT:    [[B1:%.*]] = getelementptr inbounds nuw [[CLASS_S]], ptr [[S]], i32 0, i32 1
+// CK35-NEXT:    [[TMP1:%.*]] = ptrtoint ptr [[B1]] to i64
+// CK35-NEXT:    [[TMP2:%.*]] = ptrtoint ptr [[S]] to i64
+// CK35-NEXT:    [[TMP3:%.*]] = sub i64 [[TMP1]], [[TMP2]]
+// CK35-NEXT:    [[TMP4:%.*]] = sdiv exact i64 [[TMP3]], ptrtoint (ptr getelementptr (i8, ptr null, i32 1) to i64)
+// CK35-64-NEXT:    [[TMP5:%.*]] = getelementptr ptr, ptr [[B1]], i64 1
+// CK35-32-NEXT:    [[TMP5:%.*]] = getelementptr ptr, ptr [[B1]], i32 1
+// CK35-NEXT:    [[B2:%.*]] = getelementptr inbounds nuw [[CLASS_S]], ptr [[S]], i32 0, i32 1
+// CK35-64-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[B2]], align 8, !nonnull [[META7:![0-9]+]], !align [[META8:![0-9]+]]
+// CK35-32-NEXT:    [[TMP6:%.*]] = load ptr, ptr [[B2]], align 4, !nonnull [[META8:![0-9]+]], !align [[META9:![0-9]+]]
+// CK35-NEXT:    [[TMP7:%.*]] = getelementptr [[CLASS_S]], ptr [[S]], i32 1
+// CK35-NEXT:    [[TMP8:%.*]] = ptrtoint ptr [[TMP7]] to i64
+// CK35-NEXT:    [[TMP9:%.*]] = ptrtoint ptr [[S]] to i64
+// CK35-NEXT:    [[TMP10:%.*]] = sub i64 [[TMP8]], [[TMP9]]
+// CK35-NEXT:    [[TMP11:%.*]] = sdiv exact i64 [[TMP10]], ptrtoint (ptr getelementptr (i8, ptr null, i32 1) to i64)
+// CK35-64-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 8 [[DOTOFFLOAD_SIZES]], ptr align 8 @.offload_sizes, i64 24, i1 false)
+// CK35-32-NEXT:    call void @llvm.memcpy.p0.p0.i32(ptr align 4 [[DOTOFFLOAD_SIZES]], ptr align 4 @.offload_sizes, i32 24, i1 false)
+// CK35-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK35-64-NEXT:    store ptr [[S]], ptr [[TMP12]], align 8
+// CK35-32-NEXT:    store ptr [[S]], ptr [[TMP12]], align 4
+// CK35-NEXT:    [[TMP13:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK35-64-NEXT:    store ptr [[S]], ptr [[TMP13]], align 8
+// CK35-32-NEXT:    store ptr [[S]], ptr [[TMP13]], align 4
+// CK35-NEXT:    [[TMP14:%.*]] = getelementptr inbounds [3 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK35-64-NEXT:    store i64 [[TMP11]], ptr [[TMP14]], align 8
+// CK35-64-NEXT:    [[TMP15:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
+// CK35-64-NEXT:    store ptr null, ptr [[TMP15]], align 8
+// CK35-32-NEXT:    store i64 [[TMP11]], ptr [[TMP14]], align 4
+// CK35-32-NEXT:    [[TMP15:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 0
+// CK35-32-NEXT:    store ptr null, ptr [[TMP15]], align 4
+// CK35-NEXT:    [[TMP16:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 1
+// CK35-64-NEXT:    store ptr [[S]], ptr [[TMP16]], align 8
+// CK35-32-NEXT:    store ptr [[S]], ptr [[TMP16]], align 4
+// CK35-NEXT:    [[TMP17:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 1
+// CK35-64-NEXT:    store ptr [[S]], ptr [[TMP17]], align 8
+// CK35-32-NEXT:    store ptr [[S]], ptr [[TMP17]], align 4
+// CK35-NEXT:    [[TMP18:%.*]] = getelementptr inbounds [3 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 1
+// CK35-64-NEXT:    store i64 [[TMP4]], ptr [[TMP18]], align 8
+// CK35-64-NEXT:    [[TMP19:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 1
+// CK35-64-NEXT:    store ptr null, ptr [[TMP19]], align 8
+// CK35-32-NEXT:    store i64 [[TMP4]], ptr [[TMP18]], align 4
+// CK35-32-NEXT:    [[TMP19:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 1
+// CK35-32-NEXT:    store ptr null, ptr [[TMP19]], align 4
+// CK35-NEXT:    [[TMP20:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 2
+// CK35-64-NEXT:    store ptr [[S]], ptr [[TMP20]], align 8
+// CK35-32-NEXT:    store ptr [[S]], ptr [[TMP20]], align 4
+// CK35-NEXT:    [[TMP21:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 2
+// CK35-64-NEXT:    store ptr [[TMP6]], ptr [[TMP21]], align 8
+// CK35-64-NEXT:    [[TMP22:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 2
+// CK35-64-NEXT:    store ptr null, ptr [[TMP22]], align 8
+// CK35-32-NEXT:    store ptr [[TMP6]], ptr [[TMP21]], align 4
+// CK35-32-NEXT:    [[TMP22:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i32 0, i32 2
+// CK35-32-NEXT:    store ptr null, ptr [[TMP22]], align 4
+// CK35-NEXT:    [[TMP23:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
+// CK35-NEXT:    [[TMP24:%.*]] = getelementptr inbounds [3 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
+// CK35-NEXT:    [[TMP25:%.*]] = getelementptr inbounds [3 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
+// CK35-NEXT:    [[TMP26:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 0
+// CK35-NEXT:    store i32 3, ptr [[TMP26]], align 4
+// CK35-NEXT:    [[TMP27:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 1
+// CK35-NEXT:    store i32 3, ptr [[TMP27]], align 4
+// CK35-NEXT:    [[TMP28:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 2
+// CK35-64-NEXT:    store ptr [[TMP23]], ptr [[TMP28]], align 8
+// CK35-32-NEXT:    store ptr [[TMP23]], ptr [[TMP28]], align 4
+// CK35-NEXT:    [[TMP29:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 3
+// CK35-64-NEXT:    store ptr [[TMP24]], ptr [[TMP29]], align 8
+// CK35-32-NEXT:    store ptr [[TMP24]], ptr [[TMP29]], align 4
+// CK35-NEXT:    [[TMP30:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 4
+// CK35-64-NEXT:    store ptr [[TMP25]], ptr [[TMP30]], align 8
+// CK35-32-NEXT:    store ptr [[TMP25]], ptr [[TMP30]], align 4
+// CK35-NEXT:    [[TMP31:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 5
+// CK35-64-NEXT:    store ptr @.offload_maptypes, ptr [[TMP31]], align 8
+// CK35-32-NEXT:    store ptr @.offload_maptypes, ptr [[TMP31]], align 4
+// CK35-NEXT:    [[TMP32:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 6
+// CK35-64-NEXT:    store ptr null, ptr [[TMP32]], align 8
+// CK35-32-NEXT:    store ptr null, ptr [[TMP32]], align 4
+// CK35-NEXT:    [[TMP33:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 7
+// CK35-64-NEXT:    store ptr null, ptr [[TMP33]], align 8
+// CK35-32-NEXT:    store ptr null, ptr [[TMP33]], align 4
+// CK35-NEXT:    [[TMP34:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 8
+// CK35-NEXT:    store i64 0, ptr [[TMP34]], align 8
+// CK35-NEXT:    [[TMP35:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 9
+// CK35-NEXT:    store i64 0, ptr [[TMP35]], align 8
+// CK35-NEXT:    [[TMP36:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 10
+// CK35-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP36]], align 4
+// CK35-NEXT:    [[TMP37:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 11
+// CK35-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP37]], align 4
+// CK35-NEXT:    [[TMP38:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 12
+// CK35-NEXT:    store i32 0, ptr [[TMP38]], align 4
+// CK35-NEXT:    [[TMP39:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z7ref_mapv_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK35-NEXT:    [[TMP40:%.*]] = icmp ne i32 [[TMP39]], 0
+// CK35-NEXT:    br i1 [[TMP40]], label %[[OMP_OFFLOAD_FAILED:.*]], label %[[OMP_OFFLOAD_CONT:.*]]
+// CK35:       [[OMP_OFFLOAD_FAILED]]:
+// CK35-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z7ref_mapv_l[0-9]+}}(ptr [[S]]) #[[ATTR4:[0-9]+]]
+// CK35-NEXT:    br label %[[OMP_OFFLOAD_CONT]]
+// CK35:       [[OMP_OFFLOAD_CONT]]:
+// CK35-NEXT:    [[B3:%.*]] = getelementptr inbounds nuw [[CLASS_S]], ptr [[S]], i32 0, i32 1
+// CK35-64-NEXT:    [[TMP41:%.*]] = load ptr, ptr [[B3]], align 8, !nonnull [[META7]], !align [[META8]]
+// CK35-32-NEXT:    [[TMP41:%.*]] = load ptr, ptr [[B3]], align 4, !nonnull [[META8]], !align [[META9]]
+// CK35-NEXT:    [[TMP42:%.*]] = getelementptr ptr, ptr [[B3]], i32 1
+// CK35-NEXT:    [[TMP43:%.*]] = ptrtoint ptr [[TMP42]] to i64
+// CK35-NEXT:    [[TMP44:%.*]] = ptrtoint ptr [[B3]] to i64
+// CK35-NEXT:    [[TMP45:%.*]] = sub i64 [[TMP43]], [[TMP44]]
+// CK35-NEXT:    [[TMP46:%.*]] = sdiv exact i64 [[TMP45]], ptrtoint (ptr getelementptr (i8, ptr null, i32 1) to i64)
+// CK35-64-NEXT:    call void @llvm.memcpy.p0.p0.i64(ptr align 8 [[DOTOFFLOAD_SIZES7]], ptr align 8 @.offload_sizes.1, i64 16, i1 false)
+// CK35-32-NEXT:    call void @llvm.memcpy.p0.p0.i32(ptr align 4 [[DOTOFFLOAD_SIZES7]], ptr align 4 @.offload_sizes.1, i32 16, i1 false)
+// CK35-NEXT:    [[TMP47:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS4]], i32 0, i32 0
+// CK35-64-NEXT:    store ptr [[S]], ptr [[TMP47]], align 8
+// CK35-32-NEXT:    store ptr [[S]], ptr [[TMP47]], align 4
+// CK35-NEXT:    [[TMP48:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS5]], i32 0, i32 0
+// CK35-64-NEXT:    store ptr [[B3]], ptr [[TMP48]], align 8
+// CK35-32-NEXT:    store ptr [[B3]], ptr [[TMP48]], align 4
+// CK35-NEXT:    [[TMP49:%.*]] = getelementptr inbounds [2 x i64], ptr [[DOTOFFLOAD_SIZES7]], i32 0, i32 0
+// CK35-64-NEXT:    store i64 [[TMP46]], ptr [[TMP49]], align 8
+// CK35-64-NEXT:    [[TMP50:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS6]], i64 0, i64 0
+// CK35-64-NEXT:    store ptr null, ptr [[TMP50]], align 8
+// CK35-32-NEXT:    store i64 [[TMP46]], ptr [[TMP49]], align 4
+// CK35-32-NEXT:    [[TMP50:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS6]], i32 0, i32 0
+// CK35-32-NEXT:    store ptr null, ptr [[TMP50]], align 4
+// CK35-NEXT:    [[TMP51:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS4]], i32 0, i32 1
+// CK35-64-NEXT:    store ptr [[S]], ptr [[TMP51]], align 8
+// CK35-32-NEXT:    store ptr [[S]], ptr [[TMP51]], align 4
+// CK35-NEXT:    [[TMP52:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS5]], i32 0, i32 1
+// CK35-64-NEXT:    store ptr [[TMP41]], ptr [[TMP52]], align 8
+// CK35-64-NEXT:    [[TMP53:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS6]], i64 0, i64 1
+// CK35-64-NEXT:    store ptr null, ptr [[TMP53]], align 8
+// CK35-32-NEXT:    store ptr [[TMP41]], ptr [[TMP52]], align 4
+// CK35-32-NEXT:    [[TMP53:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS6]], i32 0, i32 1
+// CK35-32-NEXT:    store ptr null, ptr [[TMP53]], align 4
+// CK35-NEXT:    [[TMP54:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS4]], i32 0, i32 0
+// CK35-NEXT:    [[TMP55:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS5]], i32 0, i32 0
+// CK35-NEXT:    [[TMP56:%.*]] = getelementptr inbounds [2 x i64], ptr [[DOTOFFLOAD_SIZES7]], i32 0, i32 0
+// CK35-NEXT:    [[TMP57:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS8]], i32 0, i32 0
+// CK35-NEXT:    store i32 3, ptr [[TMP57]], align 4
+// CK35-NEXT:    [[TMP58:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS8]], i32 0, i32 1
+// CK35-NEXT:    store i32 2, ptr [[TMP58]], align 4
+// CK35-NEXT:    [[TMP59:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS8]], i32 0, i32 2
+// CK35-64-NEXT:    store ptr [[TMP54]], ptr [[TMP59]], align 8
+// CK35-32-NEXT:    store ptr [[TMP54]], ptr [[TMP59]], align 4
+// CK35-NEXT:    [[TMP60:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS8]], i32 0, i32 3
+// CK35-64-NEXT:    store ptr [[TMP55]], ptr [[TMP60]], align 8
+// CK35-32-NEXT:    store ptr [[TMP55]], ptr [[TMP60]], align 4
+// CK35-NEXT:    [[TMP61:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS8]], i32 0, i32 4
+// CK35-64-NEXT:    store ptr [[TMP56]], ptr [[TMP61]], align 8
+// CK35-32-NEXT:    store ptr [[TMP56]], ptr [[TMP61]], align 4
+// CK35-NEXT:    [[TMP62:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS8]], i32 0, i32 5
+// CK35-64-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP62]], align 8
+// CK35-32-NEXT:    store ptr @.offload_maptypes.2, ptr [[TMP62]], align 4
+// CK35-NEXT:    [[TMP63:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS8]], i32 0, i32 6
+// CK35-64-NEXT:    store ptr null, ptr [[TMP63]], align 8
+// CK35-32-NEXT:    store ptr null, ptr [[TMP63]], align 4
+// CK35-NEXT:    [[TMP64:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS8]], i32 0, i32 7
+// CK35-64-NEXT:    store ptr null, ptr [[TMP64]], align 8
+// CK35-32-NEXT:    store ptr null, ptr [[TMP64]], align 4
+// CK35-NEXT:    [[TMP65:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS8]], i32 0, i32 8
+// CK35-NEXT:    store i64 0, ptr [[TMP65]], align 8
+// CK35-NEXT:    [[TMP66:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS8]], i32 0, i32 9
+// CK35-NEXT:    store i64 0, ptr [[TMP66]], align 8
+// CK35-NEXT:    [[TMP67:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS8]], i32 0, i32 10
+// CK35-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP67]], align 4
+// CK35-NEXT:    [[TMP68:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS8]], i32 0, i32 11
+// CK35-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP68]], align 4
+// CK35-NEXT:    [[TMP69:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS8]], i32 0, i32 12
+// CK35-NEXT:    store i32 0, ptr [[TMP69]], align 4
+// CK35-NEXT:    [[TMP70:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z7ref_mapv_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS8]])
+// CK35-NEXT:    [[TMP71:%.*]] = icmp ne i32 [[TMP70]], 0
+// CK35-NEXT:    br i1 [[TMP71]], label %[[OMP_OFFLOAD_FAILED9:.*]], label %[[OMP_OFFLOAD_CONT10:.*]]
+// CK35:       [[OMP_OFFLOAD_FAILED9]]:
+// CK35-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z7ref_mapv_l[0-9]+}}(ptr [[S]]) #[[ATTR4]]
+// CK35-NEXT:    br label %[[OMP_OFFLOAD_CONT10]]
+// CK35:       [[OMP_OFFLOAD_CONT10]]:
+// SIMD-ONLY32-_3-_2-NEXT:    call void @_ZN1S3fooEv(ptr noundef nonnull align 4 dereferenceable(8) [[S]])
+// SIMD-ONLY32-_3-_2-NEXT:    call void @_ZN1S3fooEv(ptr noundef nonnull align 4 dereferenceable(8) [[S]])
+// CHECK-NEXT:    ret void
+//
+//
+// CHECK-LABEL: define linkonce_odr void @_ZN1SC1ERd(
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-SAME: ptr noundef nonnull align 8 dereferenceable(16) [[THIS:%.*]], ptr noundef nonnull align 8 dereferenceable(8) [[B:%.*]]) unnamed_addr #[[ATTR0]] comdat {
+// CK35-32-_2-_3-SIMD-ONLY32-SAME: ptr noundef nonnull align 4 dereferenceable(8) [[THIS:%.*]], ptr noundef nonnull align 4 dereferenceable(8) [[B:%.*]]) unnamed_addr #[[ATTR0]] comdat align 2 {
+// CHECK-NEXT:  [[ENTRY:.*:]]
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 8
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-NEXT:    [[B_ADDR:%.*]] = alloca ptr, align 8
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 8
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-NEXT:    store ptr [[B]], ptr [[B_ADDR]], align 8
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 8
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[B_ADDR]], align 8
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-NEXT:    call void @_ZN1SC2ERd(ptr noundef nonnull align 8 dereferenceable(16) [[THIS1]], ptr noundef nonnull align 8 dereferenceable(8) [[TMP0]])
+// CK35-32-_2-_3-SIMD-ONLY32-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 4
+// CK35-32-_2-_3-SIMD-ONLY32-NEXT:    [[B_ADDR:%.*]] = alloca ptr, align 4
+// CK35-32-_2-_3-SIMD-ONLY32-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 4
+// CK35-32-_2-_3-SIMD-ONLY32-NEXT:    store ptr [[B]], ptr [[B_ADDR]], align 4
+// CK35-32-_2-_3-SIMD-ONLY32-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 4
+// CK35-32-_2-_3-SIMD-ONLY32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[B_ADDR]], align 4
+// CK35-32-_2-_3-SIMD-ONLY32-NEXT:    call void @_ZN1SC2ERd(ptr noundef nonnull align 4 dereferenceable(8) [[THIS1]], ptr noundef nonnull align 4 dereferenceable(8) [[TMP0]])
+// CHECK-NEXT:    ret void
+//
+//
+// CK35-LABEL: define internal void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z7ref_mapv_l[0-9]+}}(
+// CK35-64-SAME: ptr noundef nonnull align 8 dereferenceable(16) [[S:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK35-32-SAME: ptr noundef nonnull align 4 dereferenceable(8) [[S:%.*]]) #[[ATTR1:[0-9]+]] {
+// CK35-NEXT:  [[ENTRY:.*:]]
+// CK35-64-NEXT:    [[S_ADDR:%.*]] = alloca ptr, align 8
+// CK35-64-NEXT:    store ptr [[S]], ptr [[S_ADDR]], align 8
+// CK35-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[S_ADDR]], align 8, !nonnull [[META7]], !align [[META8]]
+// CK35-64-NEXT:    call void @_ZN1S3fooEv(ptr noundef nonnull align 8 dereferenceable(16) [[TMP0]])
+// CK35-32-NEXT:    [[S_ADDR:%.*]] = alloca ptr, align 4
+// CK35-32-NEXT:    store ptr [[S]], ptr [[S_ADDR]], align 4
+// CK35-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[S_ADDR]], align 4, !nonnull [[META8]], !align [[META9]]
+// CK35-32-NEXT:    call void @_ZN1S3fooEv(ptr noundef nonnull align 4 dereferenceable(8) [[TMP0]])
+// CK35-NEXT:    ret void
+//
+//
+// CHECK-LABEL: define linkonce_odr void @_ZN1SC2ERd(
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-SAME: ptr noundef nonnull align 8 dereferenceable(16) [[THIS:%.*]], ptr noundef nonnull align 8 dereferenceable(8) [[B:%.*]]) unnamed_addr #[[ATTR0]] comdat {
+// CK35-32-_2-_3-SIMD-ONLY32-SAME: ptr noundef nonnull align 4 dereferenceable(8) [[THIS:%.*]], ptr noundef nonnull align 4 dereferenceable(8) [[B:%.*]]) unnamed_addr #[[ATTR0]] comdat align 2 {
+// CHECK-NEXT:  [[ENTRY:.*:]]
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 8
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-NEXT:    [[B_ADDR:%.*]] = alloca ptr, align 8
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 8
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-NEXT:    store ptr [[B]], ptr [[B_ADDR]], align 8
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 8
+// CK35-32-_2-_3-SIMD-ONLY32-NEXT:    [[THIS_ADDR:%.*]] = alloca ptr, align 4
+// CK35-32-_2-_3-SIMD-ONLY32-NEXT:    [[B_ADDR:%.*]] = alloca ptr, align 4
+// CK35-32-_2-_3-SIMD-ONLY32-NEXT:    store ptr [[THIS]], ptr [[THIS_ADDR]], align 4
+// CK35-32-_2-_3-SIMD-ONLY32-NEXT:    store ptr [[B]], ptr [[B_ADDR]], align 4
+// CK35-32-_2-_3-SIMD-ONLY32-NEXT:    [[THIS1:%.*]] = load ptr, ptr [[THIS_ADDR]], align 4
+// CHECK-NEXT:    [[B2:%.*]] = getelementptr inbounds nuw [[CLASS_S:%.*]], ptr [[THIS1]], i32 0, i32 1
+// CK35-64-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[B_ADDR]], align 8, !nonnull [[META7]], !align [[META8]]
+// CK35-32-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[B_ADDR]], align 4, !nonnull [[META8]], !align [[META9]]
+// SIMD-ONLY32-_5-_4-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[B_ADDR]], align 8, !nonnull [[META2:![0-9]+]], !align [[META3:![0-9]+]]
+// CK35-64-_3-_2-SIMD-ONLY32-_5-_4-NEXT:    store ptr [[TMP0]], ptr [[B2]], align 8
+// SIMD-ONLY32-_3-_2-NEXT:    [[TMP0:%.*]] = load ptr, ptr [[B_ADDR]], align 4, !nonnull [[META3:![0-9]+]], !align [[META4:![0-9]+]]
+// CK35-32-_2-_3-SIMD-ONLY32-NEXT:    store ptr [[TMP0]], ptr [[B2]], align 4
+// CHECK-NEXT:    ret void
+//
+//
+// CK35-64: [[META7]] = !{}
+// CK35-64: [[META8]] = !{i64 8}
+// CK35-32: [[META8]] = !{}
+// CK35-32: [[META9]] = !{i64 4}
+// SIMD-ONLY32-_5-_4: [[META2]] = !{}
+// SIMD-ONLY32-_5-_4: [[META3]] = !{i64 8}
+//.
+// SIMD-ONLY32-_3-_2: [[META3]] = !{}
+// SIMD-ONLY32-_3-_2: [[META4]] = !{i64 4}
+//.
