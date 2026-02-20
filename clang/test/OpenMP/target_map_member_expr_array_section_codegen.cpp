@@ -103,10 +103,7 @@ maptest<float> a;
 // CHECK-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP10]], align 8
 // CHECK-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 1
 // CHECK-NEXT:    store ptr null, ptr [[TMP11]], align 8
-// CHECK-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
-// CHECK-NEXT:    [[TMP13:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
-// CHECK-NEXT:    [[TMP14:%.*]] = getelementptr inbounds [2 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
-// CHECK-NEXT:    call void @__tgt_target_data_begin_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 2, ptr [[TMP12]], ptr [[TMP13]], ptr [[TMP14]], ptr @.offload_maptypes, ptr null, ptr null)
+// CHECK-NEXT:    call void @__tgt_target_data_begin_mapper(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 2, ptr [[DOTOFFLOAD_BASEPTRS]], ptr [[DOTOFFLOAD_PTRS]], ptr [[DOTOFFLOAD_SIZES]], ptr @.offload_maptypes, ptr null, ptr null)
 // CHECK-NEXT:    ret void
 //
 //
@@ -146,10 +143,7 @@ maptest<float> a;
 // CHECK-NEXT:    store ptr [[ARRAYIDX]], ptr [[TMP10]], align 8
 // CHECK-NEXT:    [[TMP11:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 1
 // CHECK-NEXT:    store ptr null, ptr [[TMP11]], align 8
-// CHECK-NEXT:    [[TMP12:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
-// CHECK-NEXT:    [[TMP13:%.*]] = getelementptr inbounds [2 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
-// CHECK-NEXT:    [[TMP14:%.*]] = getelementptr inbounds [2 x i64], ptr [[DOTOFFLOAD_SIZES]], i32 0, i32 0
-// CHECK-NEXT:    call void @__tgt_target_data_end_mapper(ptr @[[GLOB1]], i64 -1, i32 2, ptr [[TMP12]], ptr [[TMP13]], ptr [[TMP14]], ptr @.offload_maptypes.2, ptr null, ptr null)
+// CHECK-NEXT:    call void @__tgt_target_data_end_mapper(ptr @[[GLOB1]], i64 -1, i32 2, ptr [[DOTOFFLOAD_BASEPTRS]], ptr [[DOTOFFLOAD_PTRS]], ptr [[DOTOFFLOAD_SIZES]], ptr @.offload_maptypes.2, ptr null, ptr null)
 // CHECK-NEXT:    ret void
 //
 //

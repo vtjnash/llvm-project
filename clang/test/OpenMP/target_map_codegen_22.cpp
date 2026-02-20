@@ -4,33 +4,33 @@
 #define HEADER
 
 ///==========================================================================///
-// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK23,CK23-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY22,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22
+// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22
 // RUN: %clang_cc1 -std=c++11 -DCK23 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -std=c++11 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK23,CK23-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY22,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22
-// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK23,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22,CK23-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY22
+// RUN: %clang_cc1 -std=c++11 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22
+// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22
 // RUN: %clang_cc1 -std=c++11 -DCK23 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -std=c++11 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK23,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22,CK23-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY22
+// RUN: %clang_cc1 -std=c++11 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22
 
-// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK23,CK23-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY22,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22
+// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22
 // RUN: %clang_cc1 -std=c++11 -DCK23 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -std=c++11 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK23,CK23-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY22,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22
-// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK23,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22,CK23-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY22
+// RUN: %clang_cc1 -std=c++11 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22
+// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22
 // RUN: %clang_cc1 -std=c++11 -DCK23 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -std=c++11 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK23,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22,CK23-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY22
+// RUN: %clang_cc1 -std=c++11 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22
 
-// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK23,CK23-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY22,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22
+// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22
 // RUN: %clang_cc1 -std=c++11 -DCK23 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -std=c++11 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK23,CK23-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY22,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22
-// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK23,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22,CK23-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY22
+// RUN: %clang_cc1 -std=c++11 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22
+// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22
 // RUN: %clang_cc1 -std=c++11 -DCK23 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -std=c++11 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK23,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22,CK23-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY22
+// RUN: %clang_cc1 -std=c++11 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22
 
-// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK23-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY22,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22 %s
+// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK-CK,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22 %s
 // RUN: %clang_cc1 -std=c++11 -DCK23 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -std=c++11 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK23-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY22,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22 %s
-// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22,CK23-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY22 %s
+// RUN: %clang_cc1 -std=c++11 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK-CK,CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22 %s
+// RUN: %clang_cc1 -std=c++11 -DCK23 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK-CK,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22 %s
 // RUN: %clang_cc1 -std=c++11 -DCK23 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -std=c++11 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22 %s
+// RUN: %clang_cc1 -std=c++11 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK-CK,CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22 %s
 #ifdef CK23
 
 
@@ -91,32 +91,32 @@ int explicit_maps_inside_captured(int a){
 // CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22-SAME: i32 noundef signext [[A:%.*]]) #[[ATTR0:[0-9]+]] {
 // CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22-LABEL: define dso_local noundef i32 @_Z29explicit_maps_inside_capturedi(
 // CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22-SAME: i32 noundef [[A:%.*]]) #[[ATTR0:[0-9]+]] {
-// CHECK-NEXT:  [[ENTRY:.*:]]
-// CHECK-NEXT:    [[A_ADDR:%.*]] = alloca i32, align 4
-// CHECK-NEXT:    [[B:%.*]] = alloca float, align 4
-// CHECK-NEXT:    [[C:%.*]] = alloca [100 x float], align 4
+// CHECK-CK-NEXT:  [[ENTRY:.*:]]
+// CHECK-CK-NEXT:    [[A_ADDR:%.*]] = alloca i32, align 4
+// CHECK-CK-NEXT:    [[B:%.*]] = alloca float, align 4
+// CHECK-CK-NEXT:    [[C:%.*]] = alloca [100 x float], align 4
 // CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22-NEXT:    [[D:%.*]] = alloca ptr, align 8
 // CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22-NEXT:    [[REF_TMP:%.*]] = alloca [[CLASS_ANON:%.*]], align 8
 // CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22-NEXT:    [[D:%.*]] = alloca ptr, align 4
 // CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22-NEXT:    [[REF_TMP:%.*]] = alloca [[CLASS_ANON:%.*]], align 4
-// CHECK-NEXT:    store i32 [[A]], ptr [[A_ADDR]], align 4
-// CHECK-NEXT:    [[TMP0:%.*]] = getelementptr inbounds nuw [[CLASS_ANON]], ptr [[REF_TMP]], i32 0, i32 0
+// CHECK-CK-NEXT:    store i32 [[A]], ptr [[A_ADDR]], align 4
+// CHECK-CK-NEXT:    [[TMP0:%.*]] = getelementptr inbounds nuw [[CLASS_ANON]], ptr [[REF_TMP]], i32 0, i32 0
 // CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22-NEXT:    store ptr [[A_ADDR]], ptr [[TMP0]], align 8
 // CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22-NEXT:    store ptr [[A_ADDR]], ptr [[TMP0]], align 4
-// CHECK-NEXT:    [[TMP1:%.*]] = getelementptr inbounds nuw [[CLASS_ANON]], ptr [[REF_TMP]], i32 0, i32 1
+// CHECK-CK-NEXT:    [[TMP1:%.*]] = getelementptr inbounds nuw [[CLASS_ANON]], ptr [[REF_TMP]], i32 0, i32 1
 // CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22-NEXT:    store ptr [[B]], ptr [[TMP1]], align 8
 // CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22-NEXT:    store ptr [[B]], ptr [[TMP1]], align 4
-// CHECK-NEXT:    [[TMP2:%.*]] = getelementptr inbounds nuw [[CLASS_ANON]], ptr [[REF_TMP]], i32 0, i32 2
+// CHECK-CK-NEXT:    [[TMP2:%.*]] = getelementptr inbounds nuw [[CLASS_ANON]], ptr [[REF_TMP]], i32 0, i32 2
 // CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22-NEXT:    store ptr [[C]], ptr [[TMP2]], align 8
 // CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22-NEXT:    store ptr [[C]], ptr [[TMP2]], align 4
-// CHECK-NEXT:    [[TMP3:%.*]] = getelementptr inbounds nuw [[CLASS_ANON]], ptr [[REF_TMP]], i32 0, i32 3
+// CHECK-CK-NEXT:    [[TMP3:%.*]] = getelementptr inbounds nuw [[CLASS_ANON]], ptr [[REF_TMP]], i32 0, i32 3
 // CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22-NEXT:    store ptr [[D]], ptr [[TMP3]], align 8
 // CK23-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY22-NEXT:    call void @"_ZZ29explicit_maps_inside_capturediENK3$_0clEv"(ptr noundef nonnull align 8 dereferenceable(32) [[REF_TMP]])
 // CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22-NEXT:    store ptr [[D]], ptr [[TMP3]], align 4
 // CK23-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY22-NEXT:    call void @"_ZZ29explicit_maps_inside_capturediENK3$_0clEv"(ptr noundef nonnull align 4 dereferenceable(16) [[REF_TMP]])
-// CHECK-NEXT:    [[TMP4:%.*]] = load float, ptr [[B]], align 4
-// CHECK-NEXT:    [[CONV:%.*]] = fptosi float [[TMP4]] to i32
-// CHECK-NEXT:    ret i32 [[CONV]]
+// CHECK-CK-NEXT:    [[TMP4:%.*]] = load float, ptr [[B]], align 4
+// CHECK-CK-NEXT:    [[CONV:%.*]] = fptosi float [[TMP4]] to i32
+// CHECK-CK-NEXT:    ret i32 [[CONV]]
 //
 //
 //

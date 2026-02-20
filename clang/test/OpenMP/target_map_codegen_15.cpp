@@ -4,33 +4,33 @@
 #define HEADER
 
 ///==========================================================================///
-// RUN: %clang_cc1 -DCK16 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK16,CK16-64,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15
+// RUN: %clang_cc1 -DCK16 -verify -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK16,CK16-64,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15
 // RUN: %clang_cc1 -DCK16 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK16,CK16-64,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15
-// RUN: %clang_cc1 -DCK16 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK16,CK16-32,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK16,CK16-64,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15
+// RUN: %clang_cc1 -DCK16 -verify -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK16,CK16-32,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15
 // RUN: %clang_cc1 -DCK16 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK16,CK16-32,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15
+// RUN: %clang_cc1 -fopenmp -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK16,CK16-32,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15
 
-// RUN: %clang_cc1 -DCK16 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK16,CK16-64,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15
+// RUN: %clang_cc1 -DCK16 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK16,CK16-64,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15
 // RUN: %clang_cc1 -DCK16 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK16,CK16-64,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15
-// RUN: %clang_cc1 -DCK16 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK16,CK16-32,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK16,CK16-64,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15
+// RUN: %clang_cc1 -DCK16 -verify -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK16,CK16-32,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15
 // RUN: %clang_cc1 -DCK16 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK16,CK16-32,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=45 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK16,CK16-32,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15
 
-// RUN: %clang_cc1 -DCK16 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK16,CK16-64,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15
+// RUN: %clang_cc1 -DCK16 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK16,CK16-64,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15
 // RUN: %clang_cc1 -DCK16 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK16,CK16-64,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15
-// RUN: %clang_cc1 -DCK16 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK16,CK16-32,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK16,CK16-64,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15
+// RUN: %clang_cc1 -DCK16 -verify -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK16,CK16-32,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15
 // RUN: %clang_cc1 -DCK16 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK,CK16,CK16-32,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15
+// RUN: %clang_cc1 -fopenmp -fopenmp-version=50 -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap  %s --check-prefixes=CHECK-CK,CK16,CK16-32,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15
 
-// RUN: %clang_cc1 -DCK16 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15,SIMD-ONLY15 %s
+// RUN: %clang_cc1 -DCK16 -verify -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK-CK,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15,SIMD-ONLY15 %s
 // RUN: %clang_cc1 -DCK16 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -std=c++11 -triple powerpc64le-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15,SIMD-ONLY15 %s
-// RUN: %clang_cc1 -DCK16 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,SIMD-ONLY15 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=powerpc64le-ibm-linux-gnu -x c++ -triple powerpc64le-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK-CK,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15,SIMD-ONLY15 %s
+// RUN: %clang_cc1 -DCK16 -verify -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -emit-llvm %s -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK-CK,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,CK16-64-_7-_4-32-_2-_5-_6-_3-SIMD-ONLY15,SIMD-ONLY15 %s
 // RUN: %clang_cc1 -DCK16 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -std=c++11 -triple i386-unknown-unknown -emit-pch -o %t %s
-// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,SIMD-ONLY15 %s
+// RUN: %clang_cc1 -fopenmp-simd -fopenmp-targets=i386-pc-linux-gnu -x c++ -triple i386-unknown-unknown -std=c++11 -include-pch %t -verify %s -emit-llvm -o - | FileCheck -allow-deprecated-dag-overlap --check-prefixes=CHECK-CK,CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15,SIMD-ONLY15 %s
 #ifdef CK16
 
 // Map types:
@@ -55,29 +55,29 @@ void implicit_maps_templated_function (int a){
 
 #endif // CK16
 #endif
-// CHECK-LABEL: define dso_local void @_Z32implicit_maps_templated_functioni(
+// CHECK-CK-LABEL: define dso_local void @_Z32implicit_maps_templated_functioni(
 // CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15-SAME: i32 noundef signext [[A:%.*]]) #[[ATTR0:[0-9]+]] {
 // CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15-SAME: i32 noundef [[A:%.*]]) #[[ATTR0:[0-9]+]] {
-// CHECK-NEXT:  [[ENTRY:.*:]]
-// CHECK-NEXT:    [[A_ADDR:%.*]] = alloca i32, align 4
-// CHECK-NEXT:    [[I:%.*]] = alloca i32, align 4
-// CHECK-NEXT:    store i32 [[A]], ptr [[A_ADDR]], align 4
-// CHECK-NEXT:    [[TMP0:%.*]] = load i32, ptr [[A_ADDR]], align 4
-// CHECK-NEXT:    store i32 [[TMP0]], ptr [[I]], align 4
-// CHECK-NEXT:    [[TMP1:%.*]] = load i32, ptr [[I]], align 4
+// CHECK-CK-NEXT:  [[ENTRY:.*:]]
+// CHECK-CK-NEXT:    [[A_ADDR:%.*]] = alloca i32, align 4
+// CHECK-CK-NEXT:    [[I:%.*]] = alloca i32, align 4
+// CHECK-CK-NEXT:    store i32 [[A]], ptr [[A_ADDR]], align 4
+// CHECK-CK-NEXT:    [[TMP0:%.*]] = load i32, ptr [[A_ADDR]], align 4
+// CHECK-CK-NEXT:    store i32 [[TMP0]], ptr [[I]], align 4
+// CHECK-CK-NEXT:    [[TMP1:%.*]] = load i32, ptr [[I]], align 4
 // CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15-NEXT:    [[CALL:%.*]] = call noundef signext i32 @_Z3fooILi543EEii(i32 noundef signext [[TMP1]])
 // CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15-NEXT:    [[CALL:%.*]] = call noundef i32 @_Z3fooILi543EEii(i32 noundef [[TMP1]])
-// CHECK-NEXT:    store i32 [[CALL]], ptr [[I]], align 4
-// CHECK-NEXT:    ret void
+// CHECK-CK-NEXT:    store i32 [[CALL]], ptr [[I]], align 4
+// CHECK-CK-NEXT:    ret void
 //
 //
 // CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15-LABEL: define linkonce_odr noundef signext i32 @_Z3fooILi543EEii(
 // CK16-64-_7-_4-_6-_5-_3-_2-SIMD-ONLY15-SAME: i32 noundef signext [[D:%.*]]) #[[ATTR0]] comdat {
 // CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15-LABEL: define linkonce_odr noundef i32 @_Z3fooILi543EEii(
 // CK16-32-_2-_5-_7-_4-_6-_3-SIMD-ONLY15-SAME: i32 noundef [[D:%.*]]) #[[ATTR0]] comdat {
-// CHECK-NEXT:  [[ENTRY:.*:]]
-// CHECK-NEXT:    [[D_ADDR:%.*]] = alloca i32, align 4
-// CHECK-NEXT:    [[RES:%.*]] = alloca i32, align 4
+// CHECK-CK-NEXT:  [[ENTRY:.*:]]
+// CHECK-CK-NEXT:    [[D_ADDR:%.*]] = alloca i32, align 4
+// CHECK-CK-NEXT:    [[RES:%.*]] = alloca i32, align 4
 // CK16-32-NEXT:    [[RES_CASTED:%.*]] = alloca i32, align 4
 // CK16-32-NEXT:    [[DOTOFFLOAD_BASEPTRS:%.*]] = alloca [1 x ptr], align 4
 // CK16-32-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 4
@@ -87,10 +87,10 @@ void implicit_maps_templated_function (int a){
 // CK16-64-NEXT:    [[DOTOFFLOAD_PTRS:%.*]] = alloca [1 x ptr], align 8
 // CK16-64-NEXT:    [[DOTOFFLOAD_MAPPERS:%.*]] = alloca [1 x ptr], align 8
 // CK16-NEXT:    [[KERNEL_ARGS:%.*]] = alloca [[STRUCT___TGT_KERNEL_ARGUMENTS:%.*]], align 8
-// CHECK-NEXT:    store i32 [[D]], ptr [[D_ADDR]], align 4
-// CHECK-NEXT:    [[TMP0:%.*]] = load i32, ptr [[D_ADDR]], align 4
-// CHECK-NEXT:    store i32 [[TMP0]], ptr [[RES]], align 4
-// CHECK-NEXT:    [[TMP1:%.*]] = load i32, ptr [[RES]], align 4
+// CHECK-CK-NEXT:    store i32 [[D]], ptr [[D_ADDR]], align 4
+// CHECK-CK-NEXT:    [[TMP0:%.*]] = load i32, ptr [[D_ADDR]], align 4
+// CHECK-CK-NEXT:    store i32 [[TMP0]], ptr [[RES]], align 4
+// CHECK-CK-NEXT:    [[TMP1:%.*]] = load i32, ptr [[RES]], align 4
 // CK16-NEXT:    store i32 [[TMP1]], ptr [[RES_CASTED]], align 4
 // CK16-32-NEXT:    [[TMP2:%.*]] = load i32, ptr [[RES_CASTED]], align 4
 // CK16-64-NEXT:    [[TMP2:%.*]] = load i64, ptr [[RES_CASTED]], align 8
@@ -104,50 +104,48 @@ void implicit_maps_templated_function (int a){
 // CK16-64-NEXT:    store i64 [[TMP2]], ptr [[TMP4]], align 8
 // CK16-64-NEXT:    [[TMP5:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_MAPPERS]], i64 0, i64 0
 // CK16-64-NEXT:    store ptr null, ptr [[TMP5]], align 8
-// CK16-NEXT:    [[TMP6:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_BASEPTRS]], i32 0, i32 0
-// CK16-NEXT:    [[TMP7:%.*]] = getelementptr inbounds [1 x ptr], ptr [[DOTOFFLOAD_PTRS]], i32 0, i32 0
-// CK16-NEXT:    [[TMP8:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 0
-// CK16-NEXT:    store i32 3, ptr [[TMP8]], align 4
-// CK16-NEXT:    [[TMP9:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 1
-// CK16-NEXT:    store i32 1, ptr [[TMP9]], align 4
-// CK16-NEXT:    [[TMP10:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 2
-// CK16-32-NEXT:    store ptr [[TMP6]], ptr [[TMP10]], align 4
-// CK16-64-NEXT:    store ptr [[TMP6]], ptr [[TMP10]], align 8
-// CK16-NEXT:    [[TMP11:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 3
-// CK16-32-NEXT:    store ptr [[TMP7]], ptr [[TMP11]], align 4
-// CK16-64-NEXT:    store ptr [[TMP7]], ptr [[TMP11]], align 8
-// CK16-NEXT:    [[TMP12:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 4
-// CK16-32-NEXT:    store ptr @.offload_sizes, ptr [[TMP12]], align 4
-// CK16-64-NEXT:    store ptr @.offload_sizes, ptr [[TMP12]], align 8
-// CK16-NEXT:    [[TMP13:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 5
-// CK16-32-NEXT:    store ptr @.offload_maptypes, ptr [[TMP13]], align 4
-// CK16-64-NEXT:    store ptr @.offload_maptypes, ptr [[TMP13]], align 8
-// CK16-NEXT:    [[TMP14:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 6
-// CK16-32-NEXT:    store ptr null, ptr [[TMP14]], align 4
-// CK16-64-NEXT:    store ptr null, ptr [[TMP14]], align 8
-// CK16-NEXT:    [[TMP15:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 7
-// CK16-32-NEXT:    store ptr null, ptr [[TMP15]], align 4
-// CK16-64-NEXT:    store ptr null, ptr [[TMP15]], align 8
-// CK16-NEXT:    [[TMP16:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 8
-// CK16-NEXT:    store i64 0, ptr [[TMP16]], align 8
-// CK16-NEXT:    [[TMP17:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 9
-// CK16-NEXT:    store i64 0, ptr [[TMP17]], align 8
-// CK16-NEXT:    [[TMP18:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 10
-// CK16-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP18]], align 4
-// CK16-NEXT:    [[TMP19:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 11
-// CK16-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP19]], align 4
-// CK16-NEXT:    [[TMP20:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 12
-// CK16-NEXT:    store i32 0, ptr [[TMP20]], align 4
-// CK16-NEXT:    [[TMP21:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooILi543EEii_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
-// CK16-NEXT:    [[TMP22:%.*]] = icmp ne i32 [[TMP21]], 0
-// CK16-NEXT:    br i1 [[TMP22]], label %[[OMP_OFFLOAD_FAILED:.*]], label %[[OMP_OFFLOAD_CONT:.*]]
+// CK16-NEXT:    [[TMP6:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 0
+// CK16-NEXT:    store i32 3, ptr [[TMP6]], align 4
+// CK16-NEXT:    [[TMP7:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 1
+// CK16-NEXT:    store i32 1, ptr [[TMP7]], align 4
+// CK16-NEXT:    [[TMP8:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 2
+// CK16-32-NEXT:    store ptr [[DOTOFFLOAD_BASEPTRS]], ptr [[TMP8]], align 4
+// CK16-64-NEXT:    store ptr [[DOTOFFLOAD_BASEPTRS]], ptr [[TMP8]], align 8
+// CK16-NEXT:    [[TMP9:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 3
+// CK16-32-NEXT:    store ptr [[DOTOFFLOAD_PTRS]], ptr [[TMP9]], align 4
+// CK16-64-NEXT:    store ptr [[DOTOFFLOAD_PTRS]], ptr [[TMP9]], align 8
+// CK16-NEXT:    [[TMP10:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 4
+// CK16-32-NEXT:    store ptr @.offload_sizes, ptr [[TMP10]], align 4
+// CK16-64-NEXT:    store ptr @.offload_sizes, ptr [[TMP10]], align 8
+// CK16-NEXT:    [[TMP11:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 5
+// CK16-32-NEXT:    store ptr @.offload_maptypes, ptr [[TMP11]], align 4
+// CK16-64-NEXT:    store ptr @.offload_maptypes, ptr [[TMP11]], align 8
+// CK16-NEXT:    [[TMP12:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 6
+// CK16-32-NEXT:    store ptr null, ptr [[TMP12]], align 4
+// CK16-64-NEXT:    store ptr null, ptr [[TMP12]], align 8
+// CK16-NEXT:    [[TMP13:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 7
+// CK16-32-NEXT:    store ptr null, ptr [[TMP13]], align 4
+// CK16-64-NEXT:    store ptr null, ptr [[TMP13]], align 8
+// CK16-NEXT:    [[TMP14:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 8
+// CK16-NEXT:    store i64 0, ptr [[TMP14]], align 8
+// CK16-NEXT:    [[TMP15:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 9
+// CK16-NEXT:    store i64 0, ptr [[TMP15]], align 8
+// CK16-NEXT:    [[TMP16:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 10
+// CK16-NEXT:    store [3 x i32] [i32 -1, i32 0, i32 0], ptr [[TMP16]], align 4
+// CK16-NEXT:    [[TMP17:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 11
+// CK16-NEXT:    store [3 x i32] zeroinitializer, ptr [[TMP17]], align 4
+// CK16-NEXT:    [[TMP18:%.*]] = getelementptr inbounds nuw [[STRUCT___TGT_KERNEL_ARGUMENTS]], ptr [[KERNEL_ARGS]], i32 0, i32 12
+// CK16-NEXT:    store i32 0, ptr [[TMP18]], align 4
+// CK16-NEXT:    [[TMP19:%.*]] = call i32 @__tgt_target_kernel(ptr @[[GLOB1:[0-9]+]], i64 -1, i32 -1, i32 0, ptr @.{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooILi543EEii_l[0-9]+}}.region_id, ptr [[KERNEL_ARGS]])
+// CK16-NEXT:    [[TMP20:%.*]] = icmp ne i32 [[TMP19]], 0
+// CK16-NEXT:    br i1 [[TMP20]], label %[[OMP_OFFLOAD_FAILED:.*]], label %[[OMP_OFFLOAD_CONT:.*]]
 // CK16:       [[OMP_OFFLOAD_FAILED]]:
 // CK16-32-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooILi543EEii_l[0-9]+}}(i32 [[TMP2]]) #[[ATTR2:[0-9]+]]
 // CK16-64-NEXT:    call void @{{__omp_offloading_[0-9a-z]+_[0-9a-z]+__Z3fooILi543EEii_l[0-9]+}}(i64 [[TMP2]]) #[[ATTR2:[0-9]+]]
 // CK16-NEXT:    br label %[[OMP_OFFLOAD_CONT]]
 // CK16:       [[OMP_OFFLOAD_CONT]]:
-// CK16-NEXT:    [[TMP23:%.*]] = load i32, ptr [[RES]], align 4
-// CK16-NEXT:    ret i32 [[TMP23]]
+// CK16-NEXT:    [[TMP21:%.*]] = load i32, ptr [[RES]], align 4
+// CK16-NEXT:    ret i32 [[TMP21]]
 // SIMD-ONLY15-NEXT:    [[ADD:%.*]] = add nsw i32 [[TMP1]], 543
 // SIMD-ONLY15-NEXT:    store i32 [[ADD]], ptr [[RES]], align 4
 // SIMD-ONLY15-NEXT:    [[TMP2:%.*]] = load i32, ptr [[RES]], align 4
