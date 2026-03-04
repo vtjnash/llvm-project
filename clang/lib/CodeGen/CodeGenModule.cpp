@@ -70,6 +70,7 @@
 #include "llvm/Support/Hash.h"
 #include "llvm/Support/TimeProfiler.h"
 #include "llvm/TargetParser/AArch64TargetParser.h"
+#include "llvm/Support/DynamicLibrary.h"
 #include "llvm/TargetParser/RISCVISAInfo.h"
 #include "llvm/TargetParser/Triple.h"
 #include "llvm/TargetParser/X86TargetParser.h"
@@ -113,6 +114,13 @@ createTargetCodeGenInfo(CodeGenModule &CGM) {
   const TargetInfo &Target = CGM.getTarget();
   const llvm::Triple &Triple = Target.getTriple();
   const CodeGenOptions &CodeGenOpts = CGM.getCodeGenOpts();
+
+  using GetABIFn =
+      TargetCodeGenInfo *(*)(const llvm::Triple *, CodeGenModule *);
+  if (auto Fn = (GetABIFn)llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(
+          "getCBackendABIForTarget"))
+    if (auto ABI = Fn(&Triple, &CGM))
+      return std::unique_ptr<TargetCodeGenInfo>(ABI);
 
   switch (Triple.getArch()) {
   default:
@@ -330,8 +338,9 @@ createTargetCodeGenInfo(CodeGenModule &CGM) {
 }
 
 const TargetCodeGenInfo &CodeGenModule::getTargetCodeGenInfo() {
-  if (!TheTargetCodeGenInfo)
+  if (!TheTargetCodeGenInfo) {
     TheTargetCodeGenInfo = createTargetCodeGenInfo(*this);
+  }
   return *TheTargetCodeGenInfo;
 }
 

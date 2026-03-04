@@ -108,6 +108,42 @@ void addCygMingDefines(const LangOptions &Opts, MacroBuilder &Builder) {
 // Driver code
 //===----------------------------------------------------------------------===//
 
+namespace {
+class CBackendTargetInfo : public TargetInfo {
+public:
+  CBackendTargetInfo(const llvm::Triple &Triple, const TargetOptions &)
+      : TargetInfo(Triple) {
+    bool Is64 = Triple.isArch64Bit();
+    bool IsWindows = Triple.isOSWindows();
+    IntWidth = IntAlign = 32;
+    PointerWidth = PointerAlign = Is64 ? 64 : 32;
+    LongWidth = LongAlign = IsWindows ? 32 : PointerWidth;
+    LongLongWidth = LongLongAlign = 64;
+    SizeType = Is64 && IsWindows ? UnsignedLongLong : UnsignedLong;
+    PtrDiffType = Is64 && IsWindows ? SignedLongLong : SignedLong;
+    IntPtrType = Is64 && IsWindows ? SignedLongLong : SignedLong;
+    if (Is64)
+      resetDataLayout("e-m:e-p:64:64-i64:64-i128:128-n32:64-S128");
+    else
+      resetDataLayout("e-m:e-p:32:32-i64:64-i128:128-n32:64-S128");
+  }
+  void getTargetDefines(const LangOptions &, MacroBuilder &) const override {}
+  ArrayRef<Builtin::Info> getTargetBuiltins() const override { return {}; }
+  BuiltinVaListKind getBuiltinVaListKind() const override {
+    return TargetInfo::VoidPtrBuiltinVaList;
+  }
+  ArrayRef<const char *> getGCCRegNames() const override { return {}; }
+  ArrayRef<TargetInfo::GCCRegAlias> getGCCRegAliases() const override {
+    return {};
+  }
+  bool validateAsmConstraint(const char *&,
+                             TargetInfo::ConstraintInfo &) const override {
+    return false;
+  }
+  std::string_view getClobbers() const override { return ""; }
+};
+} // namespace
+
 std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
                                            const TargetOptions &Opts) {
   llvm::Triple::OSType os = Triple.getOS();
@@ -115,6 +151,10 @@ std::unique_ptr<TargetInfo> AllocateTarget(const llvm::Triple &Triple,
   switch (Triple.getArch()) {
   default:
     return nullptr;
+
+  case llvm::Triple::llvm32:
+  case llvm::Triple::llvm64:
+    return std::make_unique<CBackendTargetInfo>(Triple, Opts);
 
   case llvm::Triple::arc:
     return std::make_unique<ARCTargetInfo>(Triple, Opts);
