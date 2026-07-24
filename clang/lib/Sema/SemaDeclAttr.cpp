@@ -473,6 +473,17 @@ static bool checkFunParamsAreScopedLockable(Sema &S,
 
 static bool checkThreadSafetyAttrSubject(Sema &S, Decl *D, const ParsedAttr &AL,
                                          bool CheckParmVar = false) {
+  // A capability attribute on a typedef describes the requirements of calls
+  // made through values of that type, so it is only meaningful when the type
+  // is a function pointer.
+  if (const auto *TND = dyn_cast<TypedefNameDecl>(D)) {
+    if (TND->getUnderlyingType()->isFunctionPointerType())
+      return true;
+    S.Diag(AL.getLoc(), diag::warn_thread_attribute_not_on_fun_ptr)
+        << AL << /*typedef*/ 2;
+    return false;
+  }
+
   const auto *VD = dyn_cast<ValueDecl>(D);
   if (!VD || isa<FunctionDecl>(VD))
     return true;

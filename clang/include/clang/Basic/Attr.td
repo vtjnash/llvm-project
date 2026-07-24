@@ -4124,7 +4124,7 @@ def AssertCapability : InheritableAttr {
                    Clang<"assert_shared_capability", 0>,
                    GNU<"assert_exclusive_lock">,
                    GNU<"assert_shared_lock">];
-  let Subjects = SubjectList<[Function, Var, Field]>;
+  let Subjects = SubjectList<[Function, Var, Field, TypedefName]>;
   let LateParsed = LateAttrParseExperimentalExt;
   let TemplateDependent = 1;
   let ParseArgumentsAsUnevaluated = 1;
@@ -4143,7 +4143,7 @@ def AcquireCapability : InheritableAttr {
                    Clang<"acquire_shared_capability", 0>,
                    GNU<"exclusive_lock_function">,
                    GNU<"shared_lock_function">];
-  let Subjects = SubjectList<[Function, Var, Field]>;
+  let Subjects = SubjectList<[Function, Var, Field, TypedefName]>;
   let LateParsed = LateAttrParseExperimentalExt;
   let TemplateDependent = 1;
   let ParseArgumentsAsUnevaluated = 1;
@@ -4162,7 +4162,7 @@ def TryAcquireCapability : InheritableAttr {
                    Clang<"try_acquire_shared_capability", 0>,
                    GNU<"exclusive_trylock_function">,
                    GNU<"shared_trylock_function">];
-  let Subjects = SubjectList<[Function, Var, Field]>;
+  let Subjects = SubjectList<[Function, Var, Field, TypedefName]>;
   let LateParsed = LateAttrParseExperimentalExt;
   let TemplateDependent = 1;
   let ParseArgumentsAsUnevaluated = 1;
@@ -4181,7 +4181,7 @@ def ReleaseCapability : InheritableAttr {
                    Clang<"release_shared_capability", 0>,
                    Clang<"release_generic_capability", 0>,
                    Clang<"unlock_function", 0>];
-  let Subjects = SubjectList<[Function, Var, Field]>;
+  let Subjects = SubjectList<[Function, Var, Field, TypedefName]>;
   let LateParsed = LateAttrParseExperimentalExt;
   let TemplateDependent = 1;
   let ParseArgumentsAsUnevaluated = 1;
@@ -4209,7 +4209,7 @@ def RequiresCapability : InheritableAttr {
   let ParseArgumentsAsUnevaluated = 1;
   let InheritEvenIfAlreadyPresent = 1;
   let ParseArgsInFunctionScope = 1;
-  let Subjects = SubjectList<[Function, Var, Field]>;
+  let Subjects = SubjectList<[Function, Var, Field, TypedefName]>;
   let Accessors = [Accessor<"isShared", [Clang<"requires_shared_capability", 0>,
                                          Clang<"shared_locks_required", 0>]>];
   let Documentation = [Undocumented];
@@ -4287,7 +4287,7 @@ def LocksExcluded : InheritableAttr {
   let ParseArgumentsAsUnevaluated = 1;
   let InheritEvenIfAlreadyPresent = 1;
   let ParseArgsInFunctionScope = 1;
-  let Subjects = SubjectList<[Function, Var, Field]>;
+  let Subjects = SubjectList<[Function, Var, Field, TypedefName]>;
   let Documentation = [Undocumented];
 }
 

@@ -355,6 +355,59 @@ void test_fp_param_acquire(void) {
   mutex_exclusive_unlock(&mu1);
 }
 
+// Capability attributes on a function pointer typedef. They describe the
+// function reached through any value of that type, exactly as when written
+// directly on a variable, parameter, or field of that type, and are checked
+// wherever such a value is called.
+typedef void (*cb_requires_t)(void) EXCLUSIVE_LOCKS_REQUIRED(mu1);
+typedef void (*cb_lock_t)(void) EXCLUSIVE_LOCK_FUNCTION(mu1);
+typedef void (*cb_unlock_t)(void) UNLOCK_FUNCTION(mu1);
+
+void test_typedef_param(cb_requires_t cb) {
+  cb(); // expected-warning {{calling function 'cb' requires holding mutex 'mu1' exclusively}}
+}
+
+void test_typedef_var(void) {
+  cb_requires_t cb = 0;
+  cb(); // expected-warning {{calling function 'cb' requires holding mutex 'mu1' exclusively}}
+}
+
+struct TDOps { cb_requires_t run; };
+void test_typedef_field(struct TDOps *o) {
+  o->run(); // expected-warning {{calling function 'run' requires holding mutex 'mu1' exclusively}}
+}
+
+// Holding the required capability silences the warning.
+void test_typedef_param_ok(cb_requires_t cb) {
+  mutex_exclusive_lock(&mu1);
+  cb();
+  mutex_exclusive_unlock(&mu1);
+}
+
+// Acquire/release on a typedef affect the lockset at the call site.
+int td_guarded GUARDED_BY(mu1);
+void test_typedef_acquire_release(cb_lock_t lock, cb_unlock_t unlock) {
+  lock();
+  td_guarded = 1;
+  unlock();
+}
+
+// A capability attribute on a non-function-pointer typedef is rejected: it
+// would have no call site to constrain.
+typedef int bad_requires_t EXCLUSIVE_LOCKS_REQUIRED(mu1); // expected-warning {{'exclusive_locks_required' attribute on a typedef requires the typedef to be of function pointer type}}
+
+// Limitations of the typedef form:
+//   1. Recognition relies on the typedef sugar surviving: a value reached
+//      through a cast or __typeof__ that strips it to the bare function
+//      pointer type carries no requirement, so this call is unchecked.
+void test_typedef_sugar_stripped(cb_requires_t cb) {
+  void (*raw)(void) = cb;
+  raw(); // no warning: the typedef sugar (and its attribute) is gone
+}
+//   2. The attribute arguments resolve in the typedef's own scope, so they can
+//      name globals (as above) but not the pointee's parameters -- there is no
+//      parameter declaration on the typedef to refer to.
+
 // Function pointer attributes referring to parameters.
 struct BDev {
   struct Mutex lock;

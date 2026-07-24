@@ -75,6 +75,21 @@ static bool isCallbackParam(const ParmVarDecl *Param) {
   return T->isFunctionPointerType() || T->isFunctionType();
 }
 
+/// If the function pointer type of \p D is spelled through a typedef, return
+/// that typedef declaration. Capability attributes written on such a typedef
+/// describe the pointee, exactly as when written directly on \p D, and so are
+/// honored at calls made through \p D. Returns null otherwise.
+static const TypedefNameDecl *getFunctionPointerTypedef(const NamedDecl *D) {
+  const auto *VD = dyn_cast<ValueDecl>(D);
+  if (!VD)
+    return nullptr;
+  QualType T = VD->getType().getNonReferenceType();
+  if (!T->isFunctionPointerType())
+    return nullptr;
+  const auto *TT = T->getAs<TypedefType>();
+  return TT ? TT->getDecl() : nullptr;
+}
+
 /// Issue a warning about an invalid lock expression
 static void warnInvalidLock(ThreadSafetyHandler &Handler,
                             const Expr *MutexExp, const NamedDecl *D,
@@ -2259,7 +2274,14 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
     Loc = Exp->getExprLoc();
   }
 
-  for(const Attr *At : D->attrs()) {
+  // Attributes may be written directly on the called declaration, or, when it
+  // is a value of function pointer type, on the typedef used to spell that
+  // type; both describe the function reached through the call.
+  SmallVector<const Attr *, 4> Attrs(D->attrs().begin(), D->attrs().end());
+  if (const TypedefNameDecl *TND = getFunctionPointerTypedef(D))
+    Attrs.append(TND->attrs().begin(), TND->attrs().end());
+
+  for (const Attr *At : Attrs) {
     switch (At->getKind()) {
       // When we encounter a lock function, we need to add the lock to our
       // lockset.
