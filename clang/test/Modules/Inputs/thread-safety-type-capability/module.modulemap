@@ -1,0 +1,3 @@
+module mutexes { header "mutexes.h" export * }
+module a { header "a.h" export * }
+module b { header "b.h" export * }

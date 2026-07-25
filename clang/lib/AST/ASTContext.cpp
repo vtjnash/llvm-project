@@ -11692,6 +11692,7 @@ QualType ASTContext::mergeFunctionTypes(QualType lhs, QualType rhs,
   FunctionType::ExtInfo einfo = lbaseInfo.withNoReturn(NoReturn);
 
   std::optional<FunctionEffectSet> MergedFX;
+  std::optional<ArrayRef<const Attr *>> MergedCapAttrs;
 
   if (lproto && rproto) { // two C99 style function prototypes
     assert((AllowCXX ||
@@ -11729,6 +11730,21 @@ QualType ASTContext::mergeFunctionTypes(QualType lhs, QualType rhs,
       if (*MergedFX != LHSFX)
         allLTypes = false;
       if (*MergedFX != RHSFX)
+        allRTypes = false;
+    }
+
+    // Thread-safety capability attributes are handled similarly to noreturn
+    // and function effects, see above: a redeclaration keeps the union of the
+    // requirements written on either declaration, while a composite type can
+    // only state what both operands state.
+    ArrayRef<const Attr *> LHSCaps = lproto->getCapabilityAttrs();
+    ArrayRef<const Attr *> RHSCaps = rproto->getCapabilityAttrs();
+    if (!areEquivalentCapabilityAttrSets(LHSCaps, RHSCaps, *this)) {
+      MergedCapAttrs =
+          mergeCapabilityAttrs(LHSCaps, RHSCaps, *this, IsConditionalOperator);
+      if (!areEquivalentCapabilityAttrSets(*MergedCapAttrs, LHSCaps, *this))
+        allLTypes = false;
+      if (!areEquivalentCapabilityAttrSets(*MergedCapAttrs, RHSCaps, *this))
         allRTypes = false;
     }
 
@@ -11777,6 +11793,8 @@ QualType ASTContext::mergeFunctionTypes(QualType lhs, QualType rhs,
         newParamInfos.empty() ? nullptr : newParamInfos.data();
     if (MergedFX)
       EPI.FunctionEffects = *MergedFX;
+    if (MergedCapAttrs)
+      EPI.ExtraAttributeInfo.CapabilityAttrs = *MergedCapAttrs;
     return getFunctionType(retType, types, EPI);
   }
 

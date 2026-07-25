@@ -1629,8 +1629,32 @@ ASTNodeImporter::VisitFunctionProtoType(const FunctionProtoType *T) {
   if (Err)
     return std::move(Err);
 
-  return Importer.getToContext().getFunctionType(
-      *ToReturnTypeOrErr, ArgTypes, ToEPI);
+  // The extra attribute info is part of the canonical function type, so
+  // dropping it here would import a type that is not the same type.
+  ASTContext &ToCtx = Importer.getToContext();
+  const FunctionType::FunctionTypeExtraAttributeInfo &FromExtraAttrInfo =
+      FromEPI.ExtraAttributeInfo;
+  if (FromExtraAttrInfo) {
+    ToEPI.ExtraAttributeInfo.CFISalt =
+        FromExtraAttrInfo.CFISalt.copy(ToCtx.getAllocator());
+
+    SmallVector<const Attr *, 4> ToCapAttrs;
+    ToCapAttrs.reserve(FromExtraAttrInfo.CapabilityAttrs.size());
+    for (const Attr *FromAttr : FromExtraAttrInfo.CapabilityAttrs) {
+      Expected<Attr *> ToAttrOrErr = Importer.Import(FromAttr);
+      if (!ToAttrOrErr)
+        return ToAttrOrErr.takeError();
+      ToCapAttrs.push_back(*ToAttrOrErr);
+    }
+    if (!ToCapAttrs.empty()) {
+      const Attr **Storage = ToCtx.Allocate<const Attr *>(ToCapAttrs.size());
+      llvm::copy(ToCapAttrs, Storage);
+      ToEPI.ExtraAttributeInfo.CapabilityAttrs =
+          ArrayRef<const Attr *>(Storage, ToCapAttrs.size());
+    }
+  }
+
+  return ToCtx.getFunctionType(*ToReturnTypeOrErr, ArgTypes, ToEPI);
 }
 
 ExpectedType ASTNodeImporter::VisitUnresolvedUsingType(

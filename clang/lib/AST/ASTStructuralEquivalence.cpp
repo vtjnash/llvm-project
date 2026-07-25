@@ -884,6 +884,43 @@ static bool IsEquivalentExceptionSpec(StructuralEquivalenceContext &Context,
   return true;
 }
 
+/// Check the equivalence of the thread-safety capability attributes carried
+/// by two function types. These are part of the canonical type, so two
+/// otherwise identical prototypes that state different requirements are not
+/// equivalent. areEquivalentCapabilityAttrs cannot be used here: it compares
+/// two attributes within one ASTContext, whereas the two prototypes come from
+/// different ones, so the capability arguments have to be compared
+/// structurally (as noexcept expressions are, above).
+static bool IsEquivalentCapabilityAttrs(StructuralEquivalenceContext &Context,
+                                        const FunctionProtoType *Proto1,
+                                        const FunctionProtoType *Proto2) {
+  ArrayRef<const Attr *> Attrs1 = Proto1->getCapabilityAttrs();
+  ArrayRef<const Attr *> Attrs2 = Proto2->getCapabilityAttrs();
+  if (Attrs1.size() != Attrs2.size())
+    return false;
+
+  // The attributes are compared pairwise rather than as sets: their order is
+  // already significant to the folding set that uniques these types.
+  for (auto [A1, A2] : llvm::zip_equal(Attrs1, Attrs2)) {
+    if (A1->getKind() != A2->getKind())
+      return false;
+    if (getCapabilityAttrSemantics(A1) != getCapabilityAttrSemantics(A2))
+      return false;
+    if (!IsStructurallyEquivalent(Context, getCapabilityAttrSuccessValue(A1),
+                                  getCapabilityAttrSuccessValue(A2)))
+      return false;
+    ArrayRef<const Expr *> Args1 = getCapabilityAttrArgs(A1);
+    ArrayRef<const Expr *> Args2 = getCapabilityAttrArgs(A2);
+    if (Args1.size() != Args2.size())
+      return false;
+    for (auto [E1, E2] : llvm::zip_equal(Args1, Args2))
+      if (!IsStructurallyEquivalent(Context, E1, E2))
+        return false;
+  }
+
+  return true;
+}
+
 /// Determine structural equivalence of two types.
 bool ASTStructuralEquivalence::isEquivalent(
     StructuralEquivalenceContext &Context, QualType T1, QualType T2) {
@@ -1165,6 +1202,9 @@ bool ASTStructuralEquivalence::isEquivalent(
     const auto *OrigProto2 =
         cast<FunctionProtoType>(OrigT2.getDesugaredType(Context.ToCtx));
     if (!IsEquivalentExceptionSpec(Context, OrigProto1, OrigProto2))
+      return false;
+
+    if (!IsEquivalentCapabilityAttrs(Context, Proto1, Proto2))
       return false;
 
     // Fall through to check the bits common with FunctionNoProtoType.

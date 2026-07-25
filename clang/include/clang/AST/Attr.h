@@ -447,6 +447,19 @@ bool isCapabilityAttr(const Attr *A);
 /// capabilities the attribute refers to.
 ArrayRef<const Expr *> getCapabilityAttrArgs(const Attr *A);
 
+/// The semantic state of a thread-safety capability attribute that is encoded
+/// in its spelling rather than in its arguments: sharedness, and for
+/// release_capability genericness. Two attributes of the same kind whose
+/// semantics differ state different requirements; two differently spelled
+/// synonyms (e.g. exclusive_locks_required and requires_capability) do not.
+unsigned getCapabilityAttrSemantics(const Attr *A);
+
+/// The success value of a try_acquire_capability attribute, or null for any
+/// other attribute. It is a separate argument, not reported by
+/// getCapabilityAttrArgs, but two try-acquires with different success values
+/// state different requirements.
+const Expr *getCapabilityAttrSuccessValue(const Attr *A);
+
 /// Whether two thread-safety capability attributes state the same
 /// requirement: same kind, same sharedness/genericness, same try-acquire
 /// success value, and the same capability arguments -- but not necessarily
@@ -456,6 +469,29 @@ ArrayRef<const Expr *> getCapabilityAttrArgs(const Attr *A);
 /// folded into its type compare equal exactly when they are redundant.
 bool areEquivalentCapabilityAttrs(const Attr *A, const Attr *B,
                                   const ASTContext &Context);
+
+/// Whether two sets of capability attributes state the same requirements,
+/// ignoring their order and any duplicates within a set.
+bool areEquivalentCapabilityAttrSets(ArrayRef<const Attr *> LHS,
+                                     ArrayRef<const Attr *> RHS,
+                                     const ASTContext &Context);
+
+/// Combine the capability attributes of two function types that are being
+/// merged into one, dropping duplicates (per areEquivalentCapabilityAttrs).
+///
+/// Merging a redeclaration with a previous one takes the union: supplemental
+/// information is commonly written on only one of the declarations, and the
+/// merged type should preserve all of it. Forming a composite type (the
+/// conditional operator) takes the intersection instead: the result could be
+/// either operand, so it can only promise what both operands promise. This
+/// mirrors how noreturn and function effects are merged.
+///
+/// The result is allocated in \p Context, except that an operand's own array
+/// is returned unchanged when the merge did not add anything to it.
+ArrayRef<const Attr *> mergeCapabilityAttrs(ArrayRef<const Attr *> LHS,
+                                            ArrayRef<const Attr *> RHS,
+                                            const ASTContext &Context,
+                                            bool IsIntersection);
 
 }  // end namespace clang
 

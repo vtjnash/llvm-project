@@ -14,6 +14,7 @@
 
 #include "clang/AST/ODRHash.h"
 
+#include "clang/AST/Attr.h"
 #include "clang/AST/DeclVisitor.h"
 #include "clang/AST/NestedNameSpecifier.h"
 #include "clang/AST/TypeVisitor.h"
@@ -864,6 +865,15 @@ public:
     }
   }
 
+  /// A capability attribute's argument may be null (e.g. after an error), and
+  /// it is only reachable as a 'const Expr *'.
+  void AddCapabilityAttrExpr(const Expr *E) {
+    Hash.AddBoolean(E);
+    if (E) {
+      Hash.AddStmt(E);
+    }
+  }
+
   void AddDecl(const Decl *D) {
     Hash.AddBoolean(D);
     if (D) {
@@ -1054,6 +1064,24 @@ public:
     ID.AddInteger(T->getNumParams());
     for (auto ParamType : T->getParamTypes())
       AddQualType(ParamType);
+
+    // Thread-safety capability attributes are part of the canonical function
+    // type, so two modules that declare the same entity with and without them
+    // must not merge silently. Mirror FunctionTypeExtraAttributeInfo::Profile:
+    // hash each attribute's kind, the sharedness/genericness encoded in its
+    // spelling (but not the spelling itself, so synonyms still merge),
+    // try-acquire's success value, and its capability arguments.
+    ArrayRef<const Attr *> CapAttrs = T->getCapabilityAttrs();
+    ID.AddInteger(CapAttrs.size());
+    for (const Attr *A : CapAttrs) {
+      ID.AddInteger(A->getKind());
+      ID.AddInteger(getCapabilityAttrSemantics(A));
+      AddCapabilityAttrExpr(getCapabilityAttrSuccessValue(A));
+      ArrayRef<const Expr *> Args = getCapabilityAttrArgs(A);
+      ID.AddInteger(Args.size());
+      for (const Expr *E : Args)
+        AddCapabilityAttrExpr(E);
+    }
 
     VisitFunctionType(T);
   }

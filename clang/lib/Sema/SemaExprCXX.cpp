@@ -15,6 +15,7 @@
 #include "TypeLocBuilder.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/ASTLambda.h"
+#include "clang/AST/Attr.h"
 #include "clang/AST/CXXInheritance.h"
 #include "clang/AST/CharUnits.h"
 #include "clang/AST/DeclCXX.h"
@@ -6515,6 +6516,17 @@ QualType Sema::FindCompositePointerType(SourceLocation Loc,
             EPI1.CFIUncheckedCallee || EPI2.CFIUncheckedCallee;
         EPI1.CFIUncheckedCallee = CFIUncheckedCallee;
         EPI2.CFIUncheckedCallee = CFIUncheckedCallee;
+
+        // A call through the composite could reach either operand, so it can
+        // only be required to hold the capabilities that both operands
+        // require -- the same rule ASTContext::mergeFunctionTypes applies for
+        // the C conditional operator. Adjusting these is never an error in
+        // itself; the thread-safety analysis does the real checking.
+        ArrayRef<const Attr *> CapAttrs = mergeCapabilityAttrs(
+            FPT1->getCapabilityAttrs(), FPT2->getCapabilityAttrs(), Context,
+            /*IsIntersection=*/true);
+        EPI1.ExtraAttributeInfo.CapabilityAttrs = CapAttrs;
+        EPI2.ExtraAttributeInfo.CapabilityAttrs = CapAttrs;
 
         // The result is nothrow if both operands are.
         SmallVector<QualType, 8> ExceptionTypeStorage;

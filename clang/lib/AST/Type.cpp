@@ -4130,6 +4130,37 @@ ArrayRef<const Expr *> clang::getCapabilityAttrArgs(const Attr *A) {
   }
 }
 
+/// Sharedness and genericness are encoded in the attribute's spelling rather
+/// than in its arguments, so every consumer that distinguishes capability
+/// requirements has to account for them separately. Do not use the spelling
+/// index itself: differently spelled synonyms (e.g. exclusive_locks_required
+/// and requires_capability) state the same requirement.
+unsigned clang::getCapabilityAttrSemantics(const Attr *A) {
+  switch (A->getKind()) {
+  case attr::RequiresCapability:
+    return cast<RequiresCapabilityAttr>(A)->isShared();
+  case attr::AcquireCapability:
+    return cast<AcquireCapabilityAttr>(A)->isShared();
+  case attr::AssertCapability:
+    return cast<AssertCapabilityAttr>(A)->isShared();
+  case attr::TryAcquireCapability:
+    return cast<TryAcquireCapabilityAttr>(A)->isShared();
+  case attr::ReleaseCapability: {
+    const auto *RA = cast<ReleaseCapabilityAttr>(A);
+    return unsigned(RA->isShared()) | (unsigned(RA->isGeneric()) << 1);
+  }
+  default:
+    // LocksExcluded, and any future kind, carry no extra semantic state.
+    return 0;
+  }
+}
+
+const Expr *clang::getCapabilityAttrSuccessValue(const Attr *A) {
+  if (const auto *TA = dyn_cast<TryAcquireCapabilityAttr>(A))
+    return TA->getSuccessValue();
+  return nullptr;
+}
+
 /// Add everything that makes \p A a distinct capability requirement -- its
 /// kind, the sharedness and genericness encoded in its spelling, try-acquire's
 /// success value, and its capability arguments -- to \p ID. Two attributes
@@ -4146,41 +4177,11 @@ static void profileCapabilityAttr(llvm::FoldingSetNodeID &ID, const Attr *A,
 
   ID.AddInteger(A->getKind());
 
-  // Sharedness and genericness are encoded in the attribute's spelling, and
-  // try-acquire's success value is a separate argument; none of these are
+  // The spelling-encoded semantics and try-acquire's success value are not
   // reported by getCapabilityAttrArgs, so they have to be profiled here or
-  // semantically different function types collide in the folding set. Do
-  // not profile the spelling index itself: differently spelled synonyms
-  // (e.g. exclusive_locks_required and requires_capability) must unify.
-  unsigned Semantics = 0;
-  const Expr *SuccessValue = nullptr;
-  switch (A->getKind()) {
-  case attr::RequiresCapability:
-    Semantics = cast<RequiresCapabilityAttr>(A)->isShared();
-    break;
-  case attr::AcquireCapability:
-    Semantics = cast<AcquireCapabilityAttr>(A)->isShared();
-    break;
-  case attr::AssertCapability:
-    Semantics = cast<AssertCapabilityAttr>(A)->isShared();
-    break;
-  case attr::ReleaseCapability: {
-    const auto *RA = cast<ReleaseCapabilityAttr>(A);
-    Semantics = unsigned(RA->isShared()) | (unsigned(RA->isGeneric()) << 1);
-    break;
-  }
-  case attr::TryAcquireCapability: {
-    const auto *TA = cast<TryAcquireCapabilityAttr>(A);
-    Semantics = TA->isShared();
-    SuccessValue = TA->getSuccessValue();
-    break;
-  }
-  default:
-    // LocksExcluded, and any future kind, carry no extra semantic state.
-    break;
-  }
-  ID.AddInteger(Semantics);
-  ProfileExpr(SuccessValue);
+  // semantically different function types collide in the folding set.
+  ID.AddInteger(getCapabilityAttrSemantics(A));
+  ProfileExpr(getCapabilityAttrSuccessValue(A));
 
   // The argument count separates one attribute's argument stream from the
   // next one's.
@@ -4200,6 +4201,66 @@ bool clang::areEquivalentCapabilityAttrs(const Attr *A, const Attr *B,
   profileCapabilityAttr(IDA, A, Context);
   profileCapabilityAttr(IDB, B, Context);
   return IDA == IDB;
+}
+
+/// Whether \p Set already states the requirement \p A states. The sets are
+/// tiny (one attribute per written annotation), so a linear scan is fine.
+static bool containsEquivalentCapabilityAttr(ArrayRef<const Attr *> Set,
+                                             const Attr *A,
+                                             const ASTContext &Context) {
+  return llvm::any_of(Set, [&](const Attr *B) {
+    return areEquivalentCapabilityAttrs(A, B, Context);
+  });
+}
+
+bool clang::areEquivalentCapabilityAttrSets(ArrayRef<const Attr *> LHS,
+                                            ArrayRef<const Attr *> RHS,
+                                            const ASTContext &Context) {
+  if (LHS.data() == RHS.data() && LHS.size() == RHS.size())
+    return true;
+  auto IsSubset = [&](ArrayRef<const Attr *> A, ArrayRef<const Attr *> B) {
+    return llvm::all_of(A, [&](const Attr *X) {
+      return containsEquivalentCapabilityAttr(B, X, Context);
+    });
+  };
+  return IsSubset(LHS, RHS) && IsSubset(RHS, LHS);
+}
+
+ArrayRef<const Attr *> clang::mergeCapabilityAttrs(ArrayRef<const Attr *> LHS,
+                                                   ArrayRef<const Attr *> RHS,
+                                                   const ASTContext &Context,
+                                                   bool IsIntersection) {
+  // The overwhelmingly common cases: nothing to merge, or one side says
+  // everything the other does. Returning an operand's own array keeps the
+  // merged type identical to that operand's, so callers can reuse it.
+  if (LHS.empty() || RHS.empty())
+    return IsIntersection ? ArrayRef<const Attr *>()
+                          : (LHS.empty() ? RHS : LHS);
+  if (areEquivalentCapabilityAttrSets(LHS, RHS, Context))
+    return LHS;
+
+  SmallVector<const Attr *, 4> Merged;
+  auto Add = [&](const Attr *A) {
+    if (!containsEquivalentCapabilityAttr(Merged, A, Context))
+      Merged.push_back(A);
+  };
+  for (const Attr *A : LHS)
+    if (!IsIntersection || containsEquivalentCapabilityAttr(RHS, A, Context))
+      Add(A);
+  if (!IsIntersection)
+    for (const Attr *A : RHS)
+      Add(A);
+
+  if (Merged.empty())
+    return {};
+  if (areEquivalentCapabilityAttrSets(Merged, LHS, Context))
+    return LHS;
+  if (areEquivalentCapabilityAttrSets(Merged, RHS, Context))
+    return RHS;
+
+  const Attr **Storage = Context.Allocate<const Attr *>(Merged.size());
+  llvm::copy(Merged, Storage);
+  return ArrayRef<const Attr *>(Storage, Merged.size());
 }
 
 void FunctionType::FunctionTypeExtraAttributeInfo::Profile(

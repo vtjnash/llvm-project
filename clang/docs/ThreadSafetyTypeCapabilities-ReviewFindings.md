@@ -349,7 +349,7 @@ attrs' arg streams are concatenated with no boundary, so
   is now silently ignored until F12's diagnostic lands (a `static` local
   still folds); tested and FIXME'd.
 
-- [ ] **F14. Type-identity machinery is unaware of `CapabilityAttrs`.**
+- [x] **F14. Type-identity machinery is unaware of `CapabilityAttrs`.**
   All pre-existing code that assumes function-type identity is fully captured
   elsewhere: `ODRHash::VisitFunctionProtoType` (`ODRHash.cpp:1053`),
   `ASTStructuralEquivalence` (`ASTStructuralEquivalence.cpp:1146`),
@@ -360,18 +360,79 @@ attrs' arg streams are concatenated with no boundary, so
   current design: hash/compare/import/merge them (merge rule: union for
   redeclarations, mirroring function effects). Needed regardless of Part IV,
   and `mergeFunctionTypes` union is a prerequisite for value-decl folding
-  (Part III B1).
+  (Part III B1). *All four done in P6. Two helpers were extracted from
+  `profileCapabilityAttr` so that every consumer agrees on what makes two
+  requirements different: `getCapabilityAttrSemantics` (the
+  sharedness/genericness encoded in the spelling — but not the spelling, so
+  synonyms still unify) and `getCapabilityAttrSuccessValue`. Two more were
+  added for the merge rules: `areEquivalentCapabilityAttrSets` (set equality,
+  order- and duplicate-insensitive) and `mergeCapabilityAttrs` (union or
+  intersection, deduplicating, returning an operand's own array when the merge
+  did not change it so callers can keep that operand's type).*
+  - [x] **F14a. `ODRHash`.** Hashes kind + semantics + success value +
+    arguments (via `ODRHash::AddStmt`), mirroring
+    `FunctionTypeExtraAttributeInfo::Profile`. Before this, two modules whose
+    class definitions differed only in *which* capability a member typedef
+    required merged silently (the annotated-vs-unannotated case happened to be
+    caught elsewhere; the different-mutex case was not). T1 covers both.
+  - [x] **F14b. `ASTStructuralEquivalence`.** New
+    `IsEquivalentCapabilityAttrs`, called from the `FunctionProto` case.
+    `areEquivalentCapabilityAttrs` is unusable here because it compares within
+    one `ASTContext`; the arguments are compared with `IsStructurallyEquivalent`
+    instead, following the noexcept-expression precedent.
+  - [x] **F14c. `ASTImporter`.** `ToEPI.ExtraAttributeInfo` is now populated:
+    each attribute through `ASTImporter::Import(const Attr *)`, the array
+    allocated in the destination context, and the `CFISalt` string copied into
+    the destination allocator (that half was a pre-existing bug).
+  - [x] **F14d. `mergeFunctionTypes`.** Union for redeclaration merging,
+    intersection when `IsConditionalOperator`, `allLTypes`/`allRTypes` cleared
+    per side, exactly parallel to the neighbouring `FunctionEffects` block.
 
-- [ ] **F15. C++ conditional operator hard-errors between caps and non-caps
+- [x] **F15. C++ conditional operator hard-errors between caps and non-caps
   function pointers.** Composite-pointer-type computation was not taught the
   transparency that `IsFunctionConversion` got; `c ? a : b` errors in C++
   (and silently takes the LHS type in C). Fix: strip/intersect capability
-  attrs when forming composite pointer types.
+  attrs when forming composite pointer types. *Done in P6:
+  `Sema::FindCompositePointerType` intersects the two attribute sets in the
+  same `Steps.size() == 1` block that already merges noreturn, cfi-unchecked
+  and the exception spec. The C side is fixed through F14d's
+  `IsConditionalOperator` path — it did indeed take the LHS before, and now
+  intersects. Tested in both languages, in both operand orders, including an
+  empty intersection.*
 
-- [ ] **F16. Redeclaring an annotated typedef without the annotation is a
+- [x] **F16. Redeclaring an annotated typedef without the annotation is a
   hard error** (`MergeTypedefNameDecl`, both C and C++). Will bite
   annotate-the-system-header patterns. Decide transparency vs. strictness
   (consistent with F15/IsFunctionConversion → transparency) + test either way.
+  ***Decision (P6): keep it strict; no code change, behavior documented by
+  test.*** Rationale:
+  1. *The closest in-tree analogue behaves this way.* Function effects
+     (`[[clang::nonblocking]]`) are also carried in the canonical function
+     type, are also an analysis-only property rather than an ABI contract, are
+     also made transparent in `IsFunctionConversion`, and are also
+     union/intersect-merged in `mergeFunctionTypes` — and
+     `typedef void (*F)() [[clang::nonblocking]]; typedef void (*F)();` is a
+     hard error today, in both C and C++. Diverging here would be an
+     unexplainable inconsistency in review. The same holds for every other
+     type-carried property: noexcept, calling convention, `cfi_salt`.
+  2. *A typedef redefinition is not a conversion seam.* The transparency
+     argument applies where a value of one type must be usable as another
+     (implicit conversion, composite type) — there, F15/`IsFunctionConversion`
+     now apply it. Redefinition is a question of type *identity*, and the two
+     underlying types genuinely are different types.
+  3. *Strictness protects against annotation drift*, which is the conservative
+     default for a safety analysis; transparency would let a distant, later
+     redefinition silently attach requirements to a name.
+  4. *The system-header pattern is served differently.* Redefining a typedef
+     is not actually how headers get annotated: it is ill-formed in C++ class
+     scope and `-Wtypedef-redefinition` in pre-C11 C. Annotating the header
+     itself, or wrapping it, is the supported route.
+
+  Note that this is *not* in tension with F14d: C type *compatibility*
+  (`mergeTypes`, used for redeclarations of functions and variables) unions
+  the requirements, while typedef *redefinition* (`hasSameType`, C11 6.7p3
+  "the same type") stays strict. Function effects draw the line in exactly the
+  same place.
 
 - [ ] **F17. `IsFunctionConversion` rebuilds the type even when the attr sets
   are equal.** (`SemaOverload.cpp:2059-2067`) Neighbouring effects block
@@ -402,8 +463,21 @@ attrs' arg streams are concatenated with no boundary, so
 
 ### Test gaps (fold into the fixes above; sweep at the end)
 
-- [ ] **T1.** No Modules test (only PCH) — the case that would catch F14's
-  ODR-hash gap.
+- [x] **T1.** No Modules test (only PCH) — the case that would catch F14's
+  ODR-hash gap. *Done in P6:
+  `clang/test/Modules/thread-safety-type-capability.cpp` (plus
+  `Inputs/thread-safety-type-capability/`) builds two modules that define the
+  same classes with a member typedef carrying a requirement, and asserts that
+  identical requirements — and differently spelled synonyms for one — merge
+  silently, while a different mutex, a missing annotation, and a different
+  sharedness each produce an ODR-mismatch diagnostic. The different-mutex case
+  is the one that used to merge silently. The `ASTImporter`/structural
+  equivalence half is covered at lit level instead of by a unit test (see the
+  deviation note under F14c's tests):
+  `clang/test/ASTMerge/thread-safety-type-capability/test.c` asserts through
+  `-ast-dump` that an imported caps-carrying typedef keeps its requirement, and
+  through `-ast-merge` of two ASTs that the cross-TU
+  `-Wodr` check distinguishes different requirements while merging equal ones.*
 - [x] **T2.** `ast-print` covers only `requires`/`release`; add try-acquire
   (with success value), assert, locks_excluded, shared variants, and a
   re-parse round-trip RUN line (exposes F6). *Done in P2: all six kinds,
@@ -474,7 +548,17 @@ attrs' arg streams are concatenated with no boundary, so
   in C, `mergeFunctionTypes` returns the attr-free side → requirement
   silently lost. So the `mergeFunctionTypes` work is a *prerequisite* for
   VarDecl folding, not a later item. `FieldDecl` is immune (never
-  redeclared) → **fields can ship before variables**.
+  redeclared) → **fields can ship before variables**. *The C half is
+  **satisfied** by P6 (F14d): `mergeFunctionTypes` now unions the requirement
+  sets for redeclaration merging, so the C twin of the redecl-without-attr
+  test will keep the requirement (already true today for a function parameter
+  of a caps-carrying typedef; see
+  `clang/test/Sema/thread-safety-type-capability-merge.c`). The C++ half is
+  not: `MergeVarDeclTypes` still compares with `hasSameType` and would reject
+  a folded variable's attr-free redeclaration. That is untestable until W4
+  folds `VarDecl`s at all, so it stays part of W4 — the fix there is to try
+  `mergeCapabilityAttrs`-based merging before diagnosing, using the same union
+  rule.*
 - **B2 (= F3/F13). Dependent args fold unsubstituted** — must fix first.
 
 **Key design recommendations (reversing two TODO assumptions)**
@@ -510,7 +594,11 @@ already inert for fn-ptr params), `Sema` checks that run pre-fold, and
   (pointer size/align unchanged; `TypeInfo` keyed on canonical `Type*`). In C,
   TSA field attrs are not late-parsed (`ParseDecl.cpp:4958`), and the
   non-late path (`SemaDecl.cpp:19630`) precedes record completion.
-- [ ] **W3** = F14 `mergeFunctionTypes`/`MergeVarDeclTypes` union (blocker B1).
+- [~] **W3** = F14 `mergeFunctionTypes`/`MergeVarDeclTypes` union (blocker B1).
+  *`mergeFunctionTypes` landed with P6 (F14d), which unblocks the C half of
+  B1. `MergeVarDeclTypes` is untestable until there is a folded `VarDecl` to
+  redeclare, so it moves into W4; `mergeCapabilityAttrs` is there to be
+  reused.*
 - [ ] **W4. Fold `VarDecl`** (after W3), excluding `ParmVarDecl`.
   `ProcessDeclAttributes` at `SemaDecl.cpp:8277` precedes merge and
   initializer checking for namespace/block scope. Residual hazard: in-class
@@ -585,7 +673,9 @@ var + field; `FPOps`/`BDevOps` C structs must stay unfolded; full
    and reattributed to a pre-existing Sema duplicate.)
 6. **P6**: F14 identity consistency (ODRHash, structural equivalence,
    ASTImporter, mergeFunctionTypes union) + F15 + F16 transparency; T1
-   Modules test.
+   Modules test. ✔ (F16 decided the other way: strictness, matching function
+   effects — see its entry. `MergeVarDeclTypes`, W3's C++ half, deferred to
+   W4 for want of anything to test it with.)
 7. **P7**: F4 stale member-typedef canonical — investigate; fix or document
    as known limitation tied to Part IV.
 8. **P8**: F12 ignored-attr diagnostic; F17; F18 style sweep.
