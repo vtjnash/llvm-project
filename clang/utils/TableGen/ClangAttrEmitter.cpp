@@ -1355,6 +1355,11 @@ namespace {
     VariadicExprArgument(StringRef ArgName, StringRef Attr)
         : VariadicArgument(ArgName, Attr, "Expr *") {}
 
+    void writeValueImpl(raw_ostream &OS) const override {
+      // Print the expression, not the pointer value it is stored as.
+      OS << "    Val->printPretty(OS, nullptr, Policy);\n";
+    }
+
     void writeASTVisitorTraversal(raw_ostream &OS) const override {
       OS << "  {\n";
       OS << "    " << getType() << " *I = A->" << getLowerName()

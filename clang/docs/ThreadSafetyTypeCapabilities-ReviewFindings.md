@@ -117,14 +117,23 @@ attrs' arg streams are concatenated with no boundary, so
   void (*const cfp)(void) REQ(mu)` → assignable) and `_Nonnull`. Fix: split
   off `Qualifiers` and re-apply; preserve sugar where feasible.
 
-- [ ] **F6. `-ast-print` drops try-acquire's success value and doesn't
+- [x] **F6. `-ast-print` drops try-acquire's success value and doesn't
   re-parse.** (`TypePrinter.cpp:1122-1163`) The hand-rolled printer uses
   `getCapabilityAttrArgs`, which excludes `SuccessValue`; printed output is
-  not round-trippable. Fix: call the tblgen `A->printPretty(OS, Policy)`
-  instead of the spelling switch (the comment's rationale is inaccurate — the
-  stored attr keeps its spelling index; what's unstable is *which* attr got
-  stored, i.e. F1). Also fixes `unlock_function` → `release_generic_capability`
-  re-spelling churn.
+  not round-trippable. Fixed by printing every argument (success value first)
+  and `A->getSpelling()`, so `unlock_function` is no longer re-spelled to
+  `release_generic_capability`. *Not* `A->printPretty`, as originally planned:
+  it emits `[[clang::…]]` for a C++11-spelled attribute, and that spelling is
+  rejected in the trailing position of a function declarator (these are
+  declaration attributes; only the GNU spelling slides onto the declaration
+  from there), so the output would still not re-parse — see F19. The old
+  comment's claim was half right: the attr does keep its spelling index, but
+  spelling is deliberately not profiled (F1), so the surviving folding-set
+  node's spelling is what gets printed for every synonym.
+  - Also fixed the tblgen bug this uncovered: `VariadicExprArgument` printed
+    its expressions with `OS << Val`, i.e. as a pointer value
+    (`__attribute__((requires_capability(0x3fcc7b58)))`) in every
+    `Attr::printPretty` of a thread-safety or `annotate` attribute.
 
 - [ ] **F7. Duplicate diagnostics when the same requirement is on both decl
   and type.** `handleCall` (`ThreadSafety.cpp:2197-2200`) concatenates without
@@ -216,13 +225,30 @@ attrs' arg streams are concatenated with no boundary, so
   defined in `Type.cpp`; move to `AttrImpl.cpp`. (d) Null-arg skipping in
   `Profile` (folded into F1's separator fix).
 
+- [ ] **F19. A C++11-spelled capability attribute is not accepted where the
+  type printer has to write it.** Found while fixing F6.
+  `[[clang::requires_capability(mu)]] typedef void (*cb)(void);` folds fine,
+  but `typedef void (*cb)() [[clang::requires_capability(mu)]];` — the only
+  place a *type* can carry the attribute — is rejected with
+  `err_attribute_not_type_attr` ("attribute cannot be applied to types"),
+  because these are declaration attributes and only GNU-syntax ones slide from
+  the declarator onto the declaration. So the printer has to normalize to the
+  GNU syntax (see F6), and a user cannot write the C++11 spelling on, say, a
+  function parameter's function-pointer type. Now that the attributes really
+  are part of the function type, `ProcessTypeAttributeList` arguably should
+  accept them there.
+
 ### Test gaps (fold into the fixes above; sweep at the end)
 
 - [ ] **T1.** No Modules test (only PCH) — the case that would catch F14's
   ODR-hash gap.
-- [ ] **T2.** `ast-print` covers only `requires`/`release`; add try-acquire
+- [x] **T2.** `ast-print` covers only `requires`/`release`; add try-acquire
   (with success value), assert, locks_excluded, shared variants, and a
-  re-parse round-trip RUN line (exposes F6).
+  re-parse round-trip RUN line (exposes F6). *Done in P2: all six kinds,
+  shared/generic variants, every GNU-legacy spelling, the C++11 spelling, and
+  a parse-back + print-again round trip in
+  `clang/test/AST/ast-print-thread-safety-attrs.cpp`. Still missing: a printed
+  template/dependent case (leave to P3's T4).*
 - [ ] **T3.** `warn-thread-safety-parsing.cpp` has no typedef-arm coverage of
   `warn_thread_attribute_not_on_fun_ptr` (C++ side).
 - [ ] **T4.** No tests: typedef in a template (F3), `using` alias (F8),

@@ -1119,52 +1119,38 @@ void TypePrinter::printFunctionProtoAfter(const FunctionProtoType *T,
   if (T->hasCFIUncheckedCallee())
     OS << " __attribute__((cfi_unchecked_callee))";
 
+  // Print the capability attributes the type carries with the name the user
+  // spelled them with, and with all of their arguments, so that the printed
+  // type parses back to the same type. Two spellings of the same attribute
+  // unify (see FunctionTypeExtraAttributeInfo::Profile), so the name printed
+  // is the one from the first type folded into the folding set node.
+  //
+  // Attr::printPretty is not used: it would print a C++11-spelled attribute as
+  // '[[clang::...]]', which is rejected in this position because these are
+  // declaration attributes (only the GNU spelling slides onto the declaration
+  // from here). The GNU spelling is accepted for every one of them.
   for (const Attr *A : T->getCapabilityAttrs()) {
-    // Use a canonical spelling per attribute kind: the spelling index a user
-    // wrote (e.g. 'exclusive_locks_required' vs 'requires_capability') is not
-    // reliably preserved on the type, so printing it would be nondeterministic.
-    StringRef Name;
-    switch (A->getKind()) {
-    case attr::RequiresCapability:
-      Name = cast<RequiresCapabilityAttr>(A)->isShared()
-                 ? "requires_shared_capability"
-                 : "requires_capability";
-      break;
-    case attr::AcquireCapability:
-      Name = cast<AcquireCapabilityAttr>(A)->isShared()
-                 ? "acquire_shared_capability"
-                 : "acquire_capability";
-      break;
-    case attr::ReleaseCapability: {
-      const auto *RA = cast<ReleaseCapabilityAttr>(A);
-      Name = RA->isGeneric()  ? "release_generic_capability"
-             : RA->isShared() ? "release_shared_capability"
-                              : "release_capability";
-      break;
+    const auto *TA = dyn_cast<TryAcquireCapabilityAttr>(A);
+    // The success value is a separate argument, not part of args().
+    const Expr *SuccessValue = TA ? TA->getSuccessValue() : nullptr;
+    ArrayRef<const Expr *> Args = getCapabilityAttrArgs(A);
+    OS << " __attribute__((" << A->getSpelling();
+    if (SuccessValue || !Args.empty()) {
+      OS << '(';
+      llvm::ListSeparator Sep;
+      if (SuccessValue) {
+        OS << Sep;
+        SuccessValue->printPretty(OS, nullptr, Policy);
+      }
+      for (const Expr *E : Args) {
+        OS << Sep;
+        // An argument can be null after an error.
+        if (E)
+          E->printPretty(OS, nullptr, Policy);
+      }
+      OS << ')';
     }
-    case attr::TryAcquireCapability:
-      Name = cast<TryAcquireCapabilityAttr>(A)->isShared()
-                 ? "try_acquire_shared_capability"
-                 : "try_acquire_capability";
-      break;
-    case attr::AssertCapability:
-      Name = cast<AssertCapabilityAttr>(A)->isShared()
-                 ? "assert_shared_capability"
-                 : "assert_capability";
-      break;
-    case attr::LocksExcluded:
-      Name = "locks_excluded";
-      break;
-    default:
-      continue;
-    }
-    OS << " __attribute__((" << Name << '(';
-    llvm::ListSeparator Sep;
-    for (const Expr *E : getCapabilityAttrArgs(A)) {
-      OS << Sep;
-      E->printPretty(OS, nullptr, Policy);
-    }
-    OS << ")))";
+    OS << "))";
   }
 
   if (T->hasTrailingReturn()) {
