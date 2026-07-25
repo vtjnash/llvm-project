@@ -3804,10 +3804,12 @@ FunctionProtoType::FunctionProtoType(QualType result, ArrayRef<QualType> params,
     FunctionTypeBits.HasExtraBitfields = false;
   }
 
-  // Propagate any extra attribute information.
+  // Propagate any extra attribute information. The trailing storage is raw
+  // memory, so every field must be assigned (not just the ones in use).
   if (epi.requiresFunctionProtoTypeExtraAttributeInfo()) {
     auto &ExtraAttrInfo = *getTrailingObjects<FunctionTypeExtraAttributeInfo>();
     ExtraAttrInfo.CFISalt = epi.ExtraAttributeInfo.CFISalt;
+    ExtraAttrInfo.CapabilityAttrs = epi.ExtraAttributeInfo.CapabilityAttrs;
 
     // Also set the bit in FunctionTypeExtraBitfields.
     auto &ExtraBits = *getTrailingObjects<FunctionTypeExtraBitfields>();
@@ -4067,7 +4069,7 @@ void FunctionProtoType::Profile(llvm::FoldingSetNodeID &ID, QualType Result,
   }
 
   epi.ExtInfo.Profile(ID);
-  epi.ExtraAttributeInfo.Profile(ID);
+  epi.ExtraAttributeInfo.Profile(ID, Context);
 
   unsigned EffectCount = epi.FunctionEffects.size();
   bool HasConds = !epi.FunctionEffects.Conditions.empty();
@@ -4087,6 +4089,57 @@ void FunctionProtoType::Profile(llvm::FoldingSetNodeID &ID,
                                 const ASTContext &Ctx) {
   Profile(ID, getReturnType(), param_type_begin(), getNumParams(),
           getExtProtoInfo(), Ctx, isCanonicalUnqualified());
+}
+
+bool clang::isCapabilityAttr(const Attr *A) {
+  switch (A->getKind()) {
+  case attr::RequiresCapability:
+  case attr::AcquireCapability:
+  case attr::ReleaseCapability:
+  case attr::TryAcquireCapability:
+  case attr::AssertCapability:
+  case attr::LocksExcluded:
+    return true;
+  default:
+    return false;
+  }
+}
+
+/// The mutex-expression arguments of a thread-safety capability attribute.
+/// These identify which capabilities the attribute refers to and are what
+/// distinguishes two otherwise-identical function types.
+ArrayRef<const Expr *> clang::getCapabilityAttrArgs(const Attr *A) {
+  auto Args = [](const auto *CA) -> ArrayRef<Expr *> {
+    return ArrayRef<Expr *>(CA->args_begin(), CA->args_size());
+  };
+  switch (A->getKind()) {
+  case attr::RequiresCapability:
+    return Args(cast<RequiresCapabilityAttr>(A));
+  case attr::AcquireCapability:
+    return Args(cast<AcquireCapabilityAttr>(A));
+  case attr::ReleaseCapability:
+    return Args(cast<ReleaseCapabilityAttr>(A));
+  case attr::TryAcquireCapability:
+    return Args(cast<TryAcquireCapabilityAttr>(A));
+  case attr::AssertCapability:
+    return Args(cast<AssertCapabilityAttr>(A));
+  case attr::LocksExcluded:
+    return Args(cast<LocksExcludedAttr>(A));
+  default:
+    return {};
+  }
+}
+
+void FunctionType::FunctionTypeExtraAttributeInfo::Profile(
+    llvm::FoldingSetNodeID &ID, const ASTContext &Context) const {
+  ID.AddString(CFISalt);
+  ID.AddInteger(CapabilityAttrs.size());
+  for (const Attr *A : CapabilityAttrs) {
+    ID.AddInteger(A->getKind());
+    for (const Expr *E : getCapabilityAttrArgs(A))
+      if (E)
+        E->Profile(ID, Context, /*Canonical=*/true);
+  }
 }
 
 TypeCoupledDeclRefInfo::TypeCoupledDeclRefInfo(ValueDecl *D, bool Deref)

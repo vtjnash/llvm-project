@@ -435,6 +435,18 @@ inline ParameterABI ParameterABIAttr::getABI() const {
     llvm_unreachable("bad parameter ABI attribute kind");
   }
 }
+
+/// Whether \p A is a thread-safety capability attribute that can be carried on
+/// a function type: requires_capability, acquire_capability,
+/// release_capability, try_acquire_capability, assert_capability,
+/// locks_excluded, and their shared variants.
+bool isCapabilityAttr(const Attr *A);
+
+/// The mutex-expression arguments of a thread-safety capability attribute
+/// (see isCapabilityAttr), or empty if \p A is not one. These identify which
+/// capabilities the attribute refers to.
+ArrayRef<const Expr *> getCapabilityAttrArgs(const Attr *A);
+
 }  // end namespace clang
 
 #endif

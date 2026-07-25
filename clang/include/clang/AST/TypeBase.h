@@ -4867,9 +4867,19 @@ public:
     /// A CFI "salt" that differentiates functions with the same prototype.
     StringRef CFISalt;
 
-    operator bool() const { return !CFISalt.empty(); }
+    /// Thread-safety capability attributes written on the function type,
+    /// making the requirements part of the type itself rather than of a
+    /// particular declaration: requires_capability, acquire_capability,
+    /// release_capability, try_acquire_capability, assert_capability,
+    /// locks_excluded, and their shared variants. The array and the
+    /// attributes it references are allocated in the ASTContext.
+    ArrayRef<const Attr *> CapabilityAttrs;
 
-    void Profile(llvm::FoldingSetNodeID &ID) const { ID.AddString(CFISalt); }
+    operator bool() const {
+      return !CFISalt.empty() || !CapabilityAttrs.empty();
+    }
+
+    void Profile(llvm::FoldingSetNodeID &ID, const ASTContext &Context) const;
   };
 
   /// The AArch64 SME ACLE (Arm C/C++ Language Extensions) define a number
@@ -5896,6 +5906,17 @@ public:
     if (hasExtraAttributeInfo())
       return *getTrailingObjects<FunctionTypeExtraAttributeInfo>();
     return FunctionTypeExtraAttributeInfo();
+  }
+
+  /// The thread-safety capability attributes carried by this function type,
+  /// if any. These make capability requirements part of the type, so calls
+  /// through any value of this type are checked. See
+  /// FunctionTypeExtraAttributeInfo::CapabilityAttrs.
+  ArrayRef<const Attr *> getCapabilityAttrs() const {
+    if (hasExtraAttributeInfo())
+      return getTrailingObjects<FunctionTypeExtraAttributeInfo>()
+          ->CapabilityAttrs;
+    return {};
   }
 
   /// Return a bitmask describing the SME attributes on the function type, see
