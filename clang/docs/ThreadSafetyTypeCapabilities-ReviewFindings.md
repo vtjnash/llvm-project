@@ -155,8 +155,20 @@ attrs' arg streams are concatenated with no boundary, so
   - **Observed, not caused by the fix:** converting a plain function pointer
     to one carrying a requirement is now a real conversion (the requirement is
     part of the canonical type), so a `_Nullable` → `_Nonnull` conversion that
-    also adds the requirement warns *twice*, once per conversion step. Same
-    family as F7; if F7's dedup does not cover it, note it there.
+    also adds the requirement warns *twice*, once per conversion step.
+    Investigated in P5, and it is **not** the same family as F7 and not this
+    feature's bug: `Sema::PerformImplicitConversion` calls
+    `diagnoseNullableToNonnullConversion` at its tail
+    (`SemaExprCXX.cpp:5452`) *and* `Sema::ImpCastExprToType` calls it again
+    for the cast it builds (`Sema.cpp:797`), so **any** nullable→non-null
+    conversion that also produces a cast warns twice. Reproduces with no
+    thread-safety attribute in sight — `void f(D *_Nullable d) { B *_Nonnull
+    b = d; }`, `int *_Nullable` → `const int *_Nonnull`, `int *_Nullable` →
+    `void *_Nonnull` all emit `-Wnullable-to-nonnull-conversion` twice. All a
+    type-carried requirement did was turn a formerly identity conversion into
+    a real one, exposing the pre-existing duplicate. Fixing it belongs in
+    Sema's conversion diagnostics (it would change expectations across
+    unrelated nullability tests) and is out of scope for this series.
 
 - [x] **F6. `-ast-print` drops try-acquire's success value and doesn't
   re-parse.** (`TypePrinter.cpp:1122-1163`) The hand-rolled printer uses
@@ -176,13 +188,32 @@ attrs' arg streams are concatenated with no boundary, so
     (`__attribute__((requires_capability(0x3fcc7b58)))`) in every
     `Attr::printPretty` of a thread-safety or `annotate` attribute.
 
-- [ ] **F7. Duplicate diagnostics when the same requirement is on both decl
+- [x] **F7. Duplicate diagnostics when the same requirement is on both decl
   and type.** `handleCall` (`ThreadSafety.cpp:2197-2200`) concatenates without
   dedup; verified double warning for `void f(req_cb_t cb REQUIRES(mu))`.
   Pointer-identity dedup is insufficient here (distinct `Attr*` objects);
   dedup on kind + resolved capability, or skip decl attrs already present in
   the type set. Also **F7b (perf)**: don't copy `D->attrs()` into a
   `SmallVector` on every call when the type carries nothing.
+  Fixed in P5. The double warning came from `requires_capability` and
+  `locks_excluded` warning per attribute *before* any set insertion; the
+  acquire/release/assert kinds were already silently deduped by
+  `CapExprSet::push_back_nodup`, which is why only those two kinds doubled.
+  Dedup is done at the attribute level, using the folding-set notion of
+  equality: `Type.cpp`'s per-attribute profiling was factored out of
+  `FunctionTypeExtraAttributeInfo::Profile` into `profileCapabilityAttr`, and
+  `clang::areEquivalentCapabilityAttrs` (declared in `Attr.h`) compares two
+  attributes by that profile. So two attributes are redundant exactly when
+  they would produce the same function type — spelling-independent
+  (`exclusive_locks_required` vs `requires_capability` dedup), but sharedness-,
+  genericness- and success-value–sensitive (shared and exclusive requirements
+  on the same mutex stay two diagnostics). Applied both in `handleCall` and in
+  `getTryAcquireCapabilityAttrs`.
+  - **F7b** fixed by the same change: the `SmallVector` copy is gone. The
+    per-attribute switch became a `HandleAttr` lambda, `D->attrs()` is looped
+    over directly, and the redundancy test (and the `D->getASTContext()` walk
+    it needs) is skipped entirely when the callee type carries no capability
+    attributes — the common case now costs one `ArrayRef::empty()` check.
 
 - [x] **F8. `using`-alias declarations accept the attribute and silently
   ignore it.** `ActOnAliasDeclaration` → `ProcessDeclAttributeList` never
@@ -263,12 +294,42 @@ attrs' arg streams are concatenated with no boundary, so
   get distinct types, and uses of the instantiated name are checked against
   the substituted mutex. See F3 for the residual in-template limitation.
 
-- [ ] **F11. Calls with no `NamedDecl` callee are unchecked; docs overstate.**
+- [x] **F11. Calls with no `NamedDecl` callee are unchecked; docs overstate.**
   (`ThreadSafety.cpp:81-88`; `handleCall` requires `getCalleeDecl()`.)
   Verified unchecked: `tab[0]()`, `(*pp)()`, `get()()` for a caps typedef.
   Fix: read caps from the callee *expression's* type when there is no decl
   (best-effort), and/or soften `ThreadSafetyAnalysis.md`'s "calls through any
   value of that type are checked".
+  Fixed in P5, in two independent halves:
+  - **Where the attributes come from.** `getTypeCapabilityAttrs(Exp, D)`
+    replaces `getCalleeFunctionProtoType(D)` at every use. It reads the
+    *callee expression's* type, which is the type of the value actually being
+    called, and consults the declaration only when the callee expression has
+    no function type of its own (a member call, whose callee is a bound
+    member) or when there is no call expression at all (implicit destructor
+    calls). This alone fixes `(*pp)()`: a declaration *was* reachable there
+    (`pp`), but its type is a pointer *to* the function pointer, so the
+    requirement was invisible.
+  - **What the call is attributed to.** `getCalleeDeclForAnalysis` falls back,
+    when `getCalleeDecl()` names nothing *and* the callee type carries
+    capability attributes, to `getIndirectCalleeDecl` — the declaration the
+    function pointer was loaded from, found by walking array subscripts down
+    to a `DeclRefExpr` or `MemberExpr`. That covers `tab[0]()` and
+    `s->tab[0]()`. Used by `BuildLockset::VisitCallExpr` and by
+    `getTerminatorTrylockCall`, so try-acquire on a branch works through an
+    array element too.
+  - **Residual, deliberate:** a callee that is not loaded from a declaration
+    at all — `get()()`, `((req_cb_t)p)()` — is still unchecked. Making it work
+    needs a null `NamedDecl` to flow through `handleCall`, and the three
+    diagnostics that name the callee (`warn_fun_requires_lock` and its
+    `_precise` twin take a `NamedDecl` and stream it as `%1`,
+    `warn_fun_excludes_mutex` and `warn_fun_requires_negative_cap` take a
+    name string) would each need a nameless variant, plus null-tolerance in
+    `SExprBuilder::translateAttrExpr`'s `dyn_cast<CXXMethodDecl>(D)`. That is
+    a handler-interface change disproportionate to the case; FIXME tests
+    record it in `warn-thread-safety-analysis.cpp`.
+  - Doc sentence softened (see D2): `ThreadSafetyAnalysis.md` now states which
+    callee forms are checked, shows the unchecked one, and notes the F7 dedup.
 
 - [ ] **F12. Non-foldable typedef attributes are accepted and silently
   no-op.** When `capabilityArgIsContextFree` bails (object-relative args),
@@ -371,8 +432,13 @@ attrs' arg streams are concatenated with no boundary, so
   nullability plus const, and the assignment error a dropped `const` would
   hide; `clang/test/SemaCXX/thread-safety-type-capability-alias.cpp`: the
   alias cases listed under F8, with FIXME tests for F8a and F8b), plus
-  const/`_Nonnull` round-trip cases in the ast-print test. Still open: F7 and
-  F2's CodeGen test, in their own patches.*
+  const/`_Nonnull` round-trip cases in the ast-print test. F7 done in P5
+  (`warn-thread-safety-analysis.cpp`, namespace `FunctionPointers`: the
+  decl+type duplicate for requires/excludes/acquire/release/try-acquire, a
+  differently spelled duplicate, and the two non-duplicates — a different
+  mutex, and shared vs exclusive on the same one — that must still warn
+  twice), together with the F11 positive and FIXME cases. Still open: F2's
+  CodeGen test, in its own patch.*
 
 ### Doc gaps
 
@@ -380,11 +446,16 @@ attrs' arg streams are concatenated with no boundary, so
   feature AND the behavior change in `f2fc9cc59cf8` (fn-ptr parameter attrs no
   longer seed the caller's entry lockset — a silent semantic change to
   existing annotations).
-- [ ] **D2.** `ThreadSafetyAnalysis.md` overstates coverage (F11) and omits
+- [~] **D2.** `ThreadSafetyAnalysis.md` overstates coverage (F11) and omits
   the two limitations users hit first: `using` aliases (fixed in P4, but the
   attribute's position on an alias declaration and the F8a alias-template hole
   need saying) and object-relative args silently ignored (F12, until
-  diagnosed).
+  diagnosed). *The F11 half is done in P5: "calls through any of them are
+  checked" no longer claims more than the analysis delivers — the doc now
+  lists the callee forms that are checked, shows the unchecked
+  not-loaded-from-a-declaration case as a FIXME example, and states that a
+  requirement written on both a declaration and its type is reported once.
+  Still open: the `using`-alias and F12 paragraphs, in P9.*
 - [ ] **D3.** TODO doc corrections: regression section (resolved by F1),
   "mangling is already safe" inverted (F2), parameters rationale wrong (see
   Part III W5).
@@ -412,7 +483,9 @@ attrs' arg streams are concatenated with no boundary, so
    F7 — in `handleCall` and `getTryAcquireCapabilityAttrs`). Dropping is what
    breaks redecl attr inheritance, `-ast-dump`, and future function-decl
    folding. Keep the drop for typedefs (decl is never the callee; printer
-   already emits from the type).
+   already emits from the type). *The dedup half landed in P5, so this
+   prerequisite is met: a value decl that keeps its attributes and also has
+   them in its type is checked once.*
 2. Set **only `ValueDecl::setType`**, leave the `TypeSourceInfo` untouched
    (decl/TSI divergence is an accepted pattern, cf. `ParmVarDecl` decay); the
    current typedef fold's `getTrivialTypeSourceInfo` replacement loses
@@ -507,7 +580,9 @@ var + field; `FPOps`/`BDevOps` C structs must stay unfolded; full
    (Residuals recorded: F5's unrebuildable sugar, F8a alias templates, F8b
    attribute-in-declarator, F8c alias printing.)
 5. **P5**: F7 dedup + F7b perf; F11 callee-expression fallback (best-effort);
-   tests.
+   tests. ✔ (Residual recorded: F11's callees that no declaration is reachable
+   from. D2's F11 half done; the F5 two-step-conversion note was investigated
+   and reattributed to a pre-existing Sema duplicate.)
 6. **P6**: F14 identity consistency (ODRHash, structural equivalence,
    ASTImporter, mergeFunctionTypes union) + F15 + F16 transparency; T1
    Modules test.

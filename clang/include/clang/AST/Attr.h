@@ -447,6 +447,16 @@ bool isCapabilityAttr(const Attr *A);
 /// capabilities the attribute refers to.
 ArrayRef<const Expr *> getCapabilityAttrArgs(const Attr *A);
 
+/// Whether two thread-safety capability attributes state the same
+/// requirement: same kind, same sharedness/genericness, same try-acquire
+/// success value, and the same capability arguments -- but not necessarily
+/// the same spelling, and not necessarily the same Attr object. This is the
+/// same notion of equality that distinguishes function types carrying
+/// capability attributes, so an attribute written on a declaration and one
+/// folded into its type compare equal exactly when they are redundant.
+bool areEquivalentCapabilityAttrs(const Attr *A, const Attr *B,
+                                  const ASTContext &Context);
+
 }  // end namespace clang
 
 #endif

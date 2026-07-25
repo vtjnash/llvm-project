@@ -90,19 +90,92 @@ static const FunctionProtoType *getCalleeFunctionProtoType(const NamedDecl *D) {
   return T->getAs<FunctionProtoType>();
 }
 
+/// The capability attributes carried by the function type a call goes
+/// through. \p Exp is the call (null for implicitly called destructors) and
+/// \p D the declaration it was resolved to.
+///
+/// The callee *expression's* type is authoritative: it is the type of the
+/// value actually being called, which is not always the type of the
+/// declaration the expression happens to name. In `(*pp)()` the named
+/// declaration is `pp`, whose own type is a pointer *to* the function
+/// pointer. The declaration is consulted only when the callee expression has
+/// no function type of its own -- a member call, whose callee is a bound
+/// member -- or when there is no call expression at all.
+static ArrayRef<const Attr *> getTypeCapabilityAttrs(const Expr *Exp,
+                                                     const NamedDecl *D) {
+  const FunctionProtoType *FPT = nullptr;
+  if (const auto *CE = dyn_cast_or_null<CallExpr>(Exp)) {
+    QualType T = CE->getCallee()->getType();
+    if (T->isFunctionPointerType() || T->isBlockPointerType())
+      T = T->getPointeeType();
+    FPT = T->getAs<FunctionProtoType>();
+  }
+  if (!FPT && D)
+    FPT = getCalleeFunctionProtoType(D);
+  if (!FPT)
+    return {};
+  return FPT->getCapabilityAttrs();
+}
+
+/// Whether \p A states a requirement that \p TypeAttrs already states, i.e.
+/// whether checking \p A would repeat a check. This happens when the same
+/// annotation is written both on the callee declaration and on the (typedef'd)
+/// function type it is declared with; the two are distinct Attr objects, so
+/// they have to be compared semantically.
+static bool isStatedByType(const Attr *A, ArrayRef<const Attr *> TypeAttrs,
+                           const ASTContext &Ctx) {
+  return llvm::any_of(TypeAttrs, [&](const Attr *TA) {
+    return areEquivalentCapabilityAttrs(A, TA, Ctx);
+  });
+}
+
 /// The try-acquire capability attributes that apply to a call through \p D,
 /// gathered both from the declaration and from the function type reached
-/// through it (e.g. a typedef that folded the attribute into the type).
+/// through it (e.g. a typedef that folded the attribute into the type), with
+/// requirements stated in both places reported once.
 static llvm::SmallVector<const TryAcquireCapabilityAttr *, 2>
-getTryAcquireCapabilityAttrs(const NamedDecl *D) {
+getTryAcquireCapabilityAttrs(const Expr *Exp, const NamedDecl *D) {
   llvm::SmallVector<const TryAcquireCapabilityAttr *, 2> Attrs;
+  ArrayRef<const Attr *> TypeAttrs = getTypeCapabilityAttrs(Exp, D);
+  const ASTContext *Ctx = TypeAttrs.empty() ? nullptr : &D->getASTContext();
   for (const auto *A : D->specific_attrs<TryAcquireCapabilityAttr>())
-    Attrs.push_back(A);
-  if (const FunctionProtoType *FPT = getCalleeFunctionProtoType(D))
-    for (const Attr *A : FPT->getCapabilityAttrs())
-      if (const auto *TA = dyn_cast<TryAcquireCapabilityAttr>(A))
-        Attrs.push_back(TA);
+    if (!Ctx || !isStatedByType(A, TypeAttrs, *Ctx))
+      Attrs.push_back(A);
+  for (const Attr *A : TypeAttrs)
+    if (const auto *TA = dyn_cast<TryAcquireCapabilityAttr>(A))
+      Attrs.push_back(TA);
   return Attrs;
+}
+
+/// Best-effort declaration to attribute a call to when the callee expression
+/// references none directly: the declaration the called function pointer was
+/// loaded from. For `tab[0]()` that is `tab`, and for `s->tab[0]()` the field
+/// `tab`. The declaration does not describe the callee -- the type does --
+/// but the analysis needs a name for diagnostics and a context for attribute
+/// expressions. Returns null when the callee is not loaded from a
+/// declaration at all (e.g. `get()()`), in which case the call stays
+/// unchecked.
+static const NamedDecl *getIndirectCalleeDecl(const Expr *Callee) {
+  const Expr *E = Callee->IgnoreParenImpCasts();
+  while (const auto *ASE = dyn_cast<ArraySubscriptExpr>(E))
+    E = ASE->getBase()->IgnoreParenImpCasts();
+  if (const auto *DRE = dyn_cast<DeclRefExpr>(E))
+    return DRE->getDecl();
+  if (const auto *ME = dyn_cast<MemberExpr>(E))
+    return ME->getMemberDecl();
+  return nullptr;
+}
+
+/// The declaration a call should be attributed to: the callee declaration if
+/// the callee expression names one, otherwise -- and only if the type the call
+/// goes through carries capability attributes that would otherwise go
+/// unchecked -- the declaration the function pointer was loaded from.
+static const NamedDecl *getCalleeDeclForAnalysis(const CallExpr *Exp) {
+  if (const auto *D = dyn_cast_or_null<NamedDecl>(Exp->getCalleeDecl()))
+    return D;
+  if (getTypeCapabilityAttrs(Exp, nullptr).empty())
+    return nullptr;
+  return getIndirectCalleeDecl(Exp->getCallee());
 }
 
 /// Issue a warning about an invalid lock expression
@@ -1759,8 +1832,8 @@ ThreadSafetyAnalyzer::getTerminatorTrylockCall(const CFGBlock *Block,
   if (!Exp)
     return {};
 
-  auto *FunDecl = dyn_cast_or_null<NamedDecl>(Exp->getCalleeDecl());
-  if (!FunDecl || getTryAcquireCapabilityAttrs(FunDecl).empty())
+  const NamedDecl *FunDecl = getCalleeDeclForAnalysis(Exp);
+  if (!FunDecl || getTryAcquireCapabilityAttrs(Exp, FunDecl).empty())
     return {};
 
   return {Exp, FunDecl, std::move(Cleanup)};
@@ -1784,7 +1857,7 @@ void ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
   CapExprSet SharedLocksToAdd;
 
   // If the condition is a call to a Trylock function, then grab the attributes
-  for (const auto *Attr : getTryAcquireCapabilityAttrs(FunDecl))
+  for (const auto *Attr : getTryAcquireCapabilityAttrs(Exp, FunDecl))
     getMutexIDs(Attr->isShared() ? SharedLocksToAdd : ExclusiveLocksToAdd, Attr,
                 Exp, FunDecl, PredBlock, CurrBlock, Attr->getSuccessValue(),
                 Negate);
@@ -1809,7 +1882,7 @@ void ThreadSafetyAnalyzer::getTerminatorTrylockCaps(const CFGBlock *Block,
   if (!Exp)
     return;
 
-  for (const auto *Attr : getTryAcquireCapabilityAttrs(FunDecl))
+  for (const auto *Attr : getTryAcquireCapabilityAttrs(Exp, FunDecl))
     getMutexIDs(Caps, Attr, Exp, FunDecl);
 }
 
@@ -2289,16 +2362,8 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
     Loc = Exp->getExprLoc();
   }
 
-  // Capability attributes may be written directly on the called declaration,
-  // or carried by the function type reached through the call (e.g. via a
-  // typedef that folds the requirement into the type); both describe the
-  // function reached through the call.
-  SmallVector<const Attr *, 4> Attrs(D->attrs().begin(), D->attrs().end());
-  if (const FunctionProtoType *FPT = getCalleeFunctionProtoType(D))
-    Attrs.append(FPT->getCapabilityAttrs().begin(),
-                 FPT->getCapabilityAttrs().end());
-
-  for (const Attr *At : Attrs) {
+  // Check one attribute describing the function reached through the call.
+  auto HandleAttr = [&](const Attr *At) {
     switch (At->getKind()) {
       // When we encounter a lock function, we need to add the lock to our
       // lockset.
@@ -2370,7 +2435,24 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
       default:
         break;
     }
-  }
+  };
+
+  // Capability attributes may be written directly on the called declaration,
+  // or carried by the function type reached through the call (e.g. via a
+  // typedef that folds the requirement into the type); both describe the
+  // function reached through the call. A requirement can be stated in both
+  // places at once -- writing it on a parameter that already has a
+  // function-pointer typedef type carrying it, say -- and must then be checked
+  // once, not reported twice. The two are distinct Attr objects, so redundancy
+  // is decided semantically. When the type carries nothing, which is the
+  // overwhelmingly common case, this costs nothing beyond the empty check.
+  ArrayRef<const Attr *> TypeAttrs = getTypeCapabilityAttrs(Exp, D);
+  const ASTContext *Ctx = TypeAttrs.empty() ? nullptr : &D->getASTContext();
+  for (const Attr *At : D->attrs())
+    if (!Ctx || !isStatedByType(At, TypeAttrs, *Ctx))
+      HandleAttr(At);
+  for (const Attr *At : TypeAttrs)
+    HandleAttr(At);
 
   std::optional<CallExpr::const_arg_range> Args;
   if (Exp) {
@@ -2641,9 +2723,7 @@ void BuildLockset::VisitCallExpr(const CallExpr *Exp) {
     examineArguments(Exp->getDirectCallee(), Exp->arg_begin(), Exp->arg_end());
   }
 
-  auto *D = dyn_cast_or_null<NamedDecl>(Exp->getCalleeDecl());
-
-  if (D)
+  if (const NamedDecl *D = getCalleeDeclForAnalysis(Exp))
     handleCall(Exp, D);
   else
     // Even if we cannot handle the call, we need to update the context for the

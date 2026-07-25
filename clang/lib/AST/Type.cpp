@@ -4130,11 +4130,12 @@ ArrayRef<const Expr *> clang::getCapabilityAttrArgs(const Attr *A) {
   }
 }
 
-void FunctionType::FunctionTypeExtraAttributeInfo::Profile(
-    llvm::FoldingSetNodeID &ID, const ASTContext &Context) const {
-  ID.AddString(CFISalt);
-  ID.AddInteger(CapabilityAttrs.size());
-
+/// Add everything that makes \p A a distinct capability requirement -- its
+/// kind, the sharedness and genericness encoded in its spelling, try-acquire's
+/// success value, and its capability arguments -- to \p ID. Two attributes
+/// with the same profile state the same requirement.
+static void profileCapabilityAttr(llvm::FoldingSetNodeID &ID, const Attr *A,
+                                  const ASTContext &Context) {
   // A capability attribute argument may be null (e.g. after an error), so a
   // sentinel keeps a missing argument distinguishable from a present one.
   auto ProfileExpr = [&](const Expr *E) {
@@ -4143,52 +4144,71 @@ void FunctionType::FunctionTypeExtraAttributeInfo::Profile(
       E->Profile(ID, Context, /*Canonical=*/true);
   };
 
-  for (const Attr *A : CapabilityAttrs) {
-    ID.AddInteger(A->getKind());
+  ID.AddInteger(A->getKind());
 
-    // Sharedness and genericness are encoded in the attribute's spelling, and
-    // try-acquire's success value is a separate argument; none of these are
-    // reported by getCapabilityAttrArgs, so they have to be profiled here or
-    // semantically different function types collide in the folding set. Do
-    // not profile the spelling index itself: differently spelled synonyms
-    // (e.g. exclusive_locks_required and requires_capability) must unify.
-    unsigned Semantics = 0;
-    const Expr *SuccessValue = nullptr;
-    switch (A->getKind()) {
-    case attr::RequiresCapability:
-      Semantics = cast<RequiresCapabilityAttr>(A)->isShared();
-      break;
-    case attr::AcquireCapability:
-      Semantics = cast<AcquireCapabilityAttr>(A)->isShared();
-      break;
-    case attr::AssertCapability:
-      Semantics = cast<AssertCapabilityAttr>(A)->isShared();
-      break;
-    case attr::ReleaseCapability: {
-      const auto *RA = cast<ReleaseCapabilityAttr>(A);
-      Semantics = unsigned(RA->isShared()) | (unsigned(RA->isGeneric()) << 1);
-      break;
-    }
-    case attr::TryAcquireCapability: {
-      const auto *TA = cast<TryAcquireCapabilityAttr>(A);
-      Semantics = TA->isShared();
-      SuccessValue = TA->getSuccessValue();
-      break;
-    }
-    default:
-      // LocksExcluded, and any future kind, carry no extra semantic state.
-      break;
-    }
-    ID.AddInteger(Semantics);
-    ProfileExpr(SuccessValue);
-
-    // The argument count separates one attribute's argument stream from the
-    // next one's.
-    ArrayRef<const Expr *> Args = getCapabilityAttrArgs(A);
-    ID.AddInteger(Args.size());
-    for (const Expr *E : Args)
-      ProfileExpr(E);
+  // Sharedness and genericness are encoded in the attribute's spelling, and
+  // try-acquire's success value is a separate argument; none of these are
+  // reported by getCapabilityAttrArgs, so they have to be profiled here or
+  // semantically different function types collide in the folding set. Do
+  // not profile the spelling index itself: differently spelled synonyms
+  // (e.g. exclusive_locks_required and requires_capability) must unify.
+  unsigned Semantics = 0;
+  const Expr *SuccessValue = nullptr;
+  switch (A->getKind()) {
+  case attr::RequiresCapability:
+    Semantics = cast<RequiresCapabilityAttr>(A)->isShared();
+    break;
+  case attr::AcquireCapability:
+    Semantics = cast<AcquireCapabilityAttr>(A)->isShared();
+    break;
+  case attr::AssertCapability:
+    Semantics = cast<AssertCapabilityAttr>(A)->isShared();
+    break;
+  case attr::ReleaseCapability: {
+    const auto *RA = cast<ReleaseCapabilityAttr>(A);
+    Semantics = unsigned(RA->isShared()) | (unsigned(RA->isGeneric()) << 1);
+    break;
   }
+  case attr::TryAcquireCapability: {
+    const auto *TA = cast<TryAcquireCapabilityAttr>(A);
+    Semantics = TA->isShared();
+    SuccessValue = TA->getSuccessValue();
+    break;
+  }
+  default:
+    // LocksExcluded, and any future kind, carry no extra semantic state.
+    break;
+  }
+  ID.AddInteger(Semantics);
+  ProfileExpr(SuccessValue);
+
+  // The argument count separates one attribute's argument stream from the
+  // next one's.
+  ArrayRef<const Expr *> Args = getCapabilityAttrArgs(A);
+  ID.AddInteger(Args.size());
+  for (const Expr *E : Args)
+    ProfileExpr(E);
+}
+
+bool clang::areEquivalentCapabilityAttrs(const Attr *A, const Attr *B,
+                                         const ASTContext &Context) {
+  if (A == B)
+    return true;
+  if (A->getKind() != B->getKind())
+    return false;
+  llvm::FoldingSetNodeID IDA, IDB;
+  profileCapabilityAttr(IDA, A, Context);
+  profileCapabilityAttr(IDB, B, Context);
+  return IDA == IDB;
+}
+
+void FunctionType::FunctionTypeExtraAttributeInfo::Profile(
+    llvm::FoldingSetNodeID &ID, const ASTContext &Context) const {
+  ID.AddString(CFISalt);
+  ID.AddInteger(CapabilityAttrs.size());
+
+  for (const Attr *A : CapabilityAttrs)
+    profileCapabilityAttr(ID, A, Context);
 }
 
 TypeCoupledDeclRefInfo::TypeCoupledDeclRefInfo(ValueDecl *D, bool Deref)

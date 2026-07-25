@@ -555,7 +555,7 @@ When a capability attribute is written on a `typedef` of function pointer
 type, it becomes part of the type itself rather than of a single declaration.
 Every value of that type -- variables, parameters, fields, and the results of
 `auto` deduction or template instantiation -- then carries the requirement,
-and calls through any of them are checked:
+and calls through them are checked:
 
 ```c++
 Mutex mu;
@@ -588,6 +588,25 @@ This form works for all of the capability attributes (`REQUIRES`, `ACQUIRE`,
 variants). It is limited to arguments that do not depend on a particular
 object: a requirement that names a member of the enclosing class or a
 parameter cannot be part of the type and stays on the declaration.
+
+A call is checked whenever the analysis can name the declaration the function
+pointer came from, which covers variables, parameters, fields, elements of
+arrays of such a type, and pointers dereferenced on the way to the call
+(`tab[0]()`, `(*pp)()`, `s->tab[0]()`). A callee that is not loaded from a
+declaration at all -- the result of another call, or a cast -- is currently
+*not* checked, even though its type carries the requirement:
+
+```c++
+callback_t get_cb();
+
+void unchecked() {
+  get_cb()();               // FIXME: no warning; nothing names the callee
+}
+```
+
+Writing the same requirement both on a declaration and on the type it is
+declared with (`void f(callback_t cb REQUIRES(mu))`) states one requirement,
+and is reported once.
 
 ### Warning flags
 

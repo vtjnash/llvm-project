@@ -8385,4 +8385,120 @@ struct Host {
   }
 };
 
+// The same requirement can be stated twice: once on the declaration and once
+// by the type it is declared with. It describes one requirement either way,
+// so it must be checked once. The two attributes are distinct objects and may
+// even be spelled differently, so redundancy is decided semantically.
+Mutex mu2;
+
+void test_dup_requires(req_cb_t cb EXCLUSIVE_LOCKS_REQUIRED(mu)) {
+  cb(); // expected-warning {{calling function 'cb' requires holding mutex 'mu' exclusively}}
+}
+
+void test_dup_requires_other_spelling(
+    req_cb_t cb __attribute__((requires_capability(mu)))) {
+  cb(); // expected-warning {{calling function 'cb' requires holding mutex 'mu' exclusively}}
+}
+
+// Different capabilities are not redundant.
+void test_distinct_requires(req_cb_t cb EXCLUSIVE_LOCKS_REQUIRED(mu2)) {
+  cb(); // expected-warning {{calling function 'cb' requires holding mutex 'mu2' exclusively}} expected-warning {{calling function 'cb' requires holding mutex 'mu' exclusively}}
+}
+
+// Neither are the same capability required in different modes.
+void test_shared_and_exclusive(req_cb_t cb SHARED_LOCKS_REQUIRED(mu)) {
+  cb(); // expected-warning {{calling function 'cb' requires holding mutex 'mu' exclusively}} expected-warning {{calling function 'cb' requires holding mutex 'mu'}}
+}
+
+void test_dup_excludes(excl_cb_t cb LOCKS_EXCLUDED(mu)) {
+  mu.Lock();
+  cb(); // expected-warning {{cannot call function 'cb' while mutex 'mu' is held}}
+  mu.Unlock();
+}
+
+typedef void (*acq_cb_t)(void) EXCLUSIVE_LOCK_FUNCTION(mu);
+typedef void (*rel_cb_t)(void) UNLOCK_FUNCTION(mu);
+
+void test_dup_acquire_release(acq_cb_t acq EXCLUSIVE_LOCK_FUNCTION(mu),
+                              rel_cb_t rel UNLOCK_FUNCTION(mu)) {
+  acq();
+  x = 1;
+  rel();
+}
+
+void test_dup_trylock(trylock_cb_t t EXCLUSIVE_TRYLOCK_FUNCTION(true, mu)) {
+  if (t()) {
+    x = 1;
+    mu.Unlock();
+  }
+}
+
+// A call does not have to resolve to a declaration describing the callee for
+// the requirement to be checked: it is the type of the value being called
+// that carries it. The declaration the pointer was loaded from only supplies
+// a name for the diagnostic.
+req_cb_t cb_table[4];
+
+void test_array_element() {
+  cb_table[0](); // expected-warning {{calling function 'cb_table' requires holding mutex 'mu' exclusively}}
+}
+
+// 'cb_ptr' is a pointer *to* the function pointer, so its own type is not the
+// callee's type; the callee expression's type is.
+req_cb_t *cb_ptr;
+
+void test_dereferenced_pointer() {
+  (*cb_ptr)(); // expected-warning {{calling function 'cb_ptr' requires holding mutex 'mu' exclusively}}
+}
+
+struct CallbackTable {
+  req_cb_t entries[2];
+  req_cb_t single;
+};
+
+void test_field(CallbackTable *t) {
+  t->single();     // expected-warning {{calling function 'single' requires holding mutex 'mu' exclusively}}
+  t->entries[1](); // expected-warning {{calling function 'entries' requires holding mutex 'mu' exclusively}}
+}
+
+// The other attribute kinds are honored through the same path.
+acq_cb_t acq_table[1];
+rel_cb_t rel_table[1];
+
+void test_indirect_acquire_release() {
+  acq_table[0]();
+  x = 1;
+  rel_table[0]();
+}
+
+trylock_cb_t trylock_table[1];
+
+void test_indirect_trylock() {
+  if (trylock_table[0]()) {
+    x = 1;
+    mu.Unlock();
+  }
+}
+
+excl_cb_t excl_table[1];
+
+void test_indirect_excludes() {
+  mu.Lock();
+  excl_table[0](); // expected-warning {{cannot call function 'excl_table' while mutex 'mu' is held}}
+  mu.Unlock();
+}
+
+// FIXME: when the callee expression is not loaded from a declaration at all,
+// there is nothing to name the call after and it stays unchecked. Both of
+// these should warn.
+req_cb_t get_cb();
+
+void test_call_result_unchecked() {
+  get_cb()(); // no warning
+}
+
+void test_cast_unchecked(void *p) {
+  ((req_cb_t)p)(); // no warning
+}
+
 } // namespace FunctionPointers
