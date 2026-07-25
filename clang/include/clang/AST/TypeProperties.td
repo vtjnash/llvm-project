@@ -352,6 +352,9 @@ let Class = FunctionProtoType in {
   def : Property<"functionEffectConds", Array<EffectConditionExpr>> {
     let Read = [{ node->getFunctionEffectConditions() }];
   }
+  def : Property<"capabilityAttrs", Array<Attr>> {
+    let Read = [{ node->getCapabilityAttrs() }];
+  }
 
   def : Creator<[{
     auto extInfo = FunctionType::ExtInfo(noReturn, hasRegParm, regParm,
@@ -370,6 +373,13 @@ let Class = FunctionProtoType in {
       extParameterInfo.empty() ? nullptr : extParameterInfo.data();
     epi.AArch64SMEAttributes = AArch64SMEAttributes;
     epi.FunctionEffects = FunctionEffectsRef::create(functionEffects, functionEffectConds);
+    if (!capabilityAttrs.empty()) {
+      const Attr **CapStorage =
+          ctx.template Allocate<const Attr *>(capabilityAttrs.size());
+      llvm::copy(capabilityAttrs, CapStorage);
+      epi.ExtraAttributeInfo.CapabilityAttrs =
+          llvm::ArrayRef<const Attr *>(CapStorage, capabilityAttrs.size());
+    }
     return ctx.getFunctionType(returnType, parameters, epi);
   }]>;
 }
