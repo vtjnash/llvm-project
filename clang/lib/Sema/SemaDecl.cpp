@@ -17258,6 +17258,11 @@ void Sema::ActOnFinishDelayedAttribute(Scope *S, Decl *D,
   if (CXXMethodDecl *Method = dyn_cast_or_null<CXXMethodDecl>(D))
     if (Method->isStatic())
       checkThisInStaticMemberFunctionAttributes(Method);
+
+  // Late-parsed capability attributes (e.g. on a class member) are attached
+  // here, after ProcessDeclAttributes already ran, so fold them into the type
+  // now.
+  foldCapabilityAttrsIntoType(D);
 }
 
 NamedDecl *Sema::ImplicitlyDefineFunction(SourceLocation Loc,

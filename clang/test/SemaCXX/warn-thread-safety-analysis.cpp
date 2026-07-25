@@ -8341,4 +8341,20 @@ void test_typedef_keep(req_cb_t cb) {
   same(); // expected-warning {{calling function 'same' requires holding mutex 'mu' exclusively}}
 }
 
+// Member typedefs are late-parsed, and their requirement is folded into the
+// type once its arguments are known -- provided those arguments are
+// context-free. A requirement naming a sibling member cannot be part of the
+// type (it needs the object) and is left unfolded, which must not crash.
+struct Host {
+  Mutex hmu;
+  typedef void (*global_req_t)(void) EXCLUSIVE_LOCKS_REQUIRED(mu);
+  typedef void (*member_req_t)(void) EXCLUSIVE_LOCKS_REQUIRED(hmu);
+  void use_global(global_req_t cb) {
+    cb(); // expected-warning {{calling function 'cb' requires holding mutex 'mu' exclusively}}
+  }
+  void use_member(member_req_t cb) {
+    cb(); // no crash; the member-relative requirement is not carried by the type
+  }
+};
+
 } // namespace FunctionPointers

@@ -5222,6 +5222,11 @@ public:
   // Decl attributes - this routine is the top level dispatcher.
   void ProcessDeclAttributes(Scope *S, Decl *D, const Declarator &PD);
 
+  /// Fold any thread-safety capability attributes on \p D into its function
+  /// type, so the requirements become part of the type. Called after a
+  /// declaration's attributes have been attached (including late-parsed ones).
+  void foldCapabilityAttrsIntoType(Decl *D);
+
   void PopParsingDeclaration(ParsingDeclState state, Decl *decl);
 
   /// Given a set of delayed diagnostics, re-emit them as if they had

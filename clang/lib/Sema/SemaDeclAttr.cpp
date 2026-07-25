@@ -8910,13 +8910,41 @@ static QualType addCapabilityAttrsToFunctionType(ASTContext &Ctx, QualType T,
   llvm_unreachable("bad wrap kind");
 }
 
+/// A capability attribute argument can only become part of the type if it does
+/// not depend on a particular object or call: an argument that names a sibling
+/// member, 'this', or a parameter must be resolved relative to the declaration
+/// it is attached to, which the type does not carry. Such attributes are left
+/// on the declaration, where the analysis substitutes the object at each call.
+static bool capabilityArgIsContextFree(const Expr *E) {
+  if (!E)
+    return true;
+  if (isa<CXXThisExpr>(E) || isa<MemberExpr>(E))
+    return false;
+  if (const auto *DRE = dyn_cast<DeclRefExpr>(E))
+    if (isa<FieldDecl, ParmVarDecl>(DRE->getDecl()))
+      return false;
+  for (const Stmt *C : E->children())
+    if (const auto *CE = dyn_cast_or_null<Expr>(C))
+      if (!capabilityArgIsContextFree(CE))
+        return false;
+  return true;
+}
+
 /// Fold any thread-safety capability attributes on \p D into its function
 /// type, so the requirements become part of the type and are honored at every
-/// call through a value of that type. Currently handles typedef declarations
-/// of function (pointer) type.
-static void foldCapabilityAttrsIntoType(Sema &S, Decl *D) {
+/// call through a value of that type.
+///
+/// Only typedef declarations are handled. A value declaration that is itself
+/// the callee (a function, or a function-pointer variable or field) is read
+/// directly by the analysis -- including through paths other than the call
+/// handler, such as try-acquire -- so moving its attributes into the type
+/// would hide them from those paths; such declarations keep their attributes.
+void Sema::foldCapabilityAttrsIntoType(Decl *D) {
   auto *TND = dyn_cast<TypedefNameDecl>(D);
   if (!TND)
+    return;
+  TypeSourceInfo *OldTSI = TND->getTypeSourceInfo();
+  if (!OldTSI)
     return;
 
   llvm::SmallVector<const Attr *, 2> CapAttrs;
@@ -8926,11 +8954,15 @@ static void foldCapabilityAttrsIntoType(Sema &S, Decl *D) {
   if (CapAttrs.empty())
     return;
 
-  TypeSourceInfo *OldTSI = TND->getTypeSourceInfo();
-  if (!OldTSI)
-    return;
+  // Only fold when every requirement is context-free; otherwise leave all of
+  // them on the declaration so object-relative arguments keep resolving there.
+  for (const Attr *A : CapAttrs)
+    for (const Expr *E : getCapabilityAttrArgs(A))
+      if (!capabilityArgIsContextFree(E))
+        return;
+
   QualType NewType =
-      addCapabilityAttrsToFunctionType(S.Context, OldTSI->getType(), CapAttrs);
+      addCapabilityAttrsToFunctionType(Context, OldTSI->getType(), CapAttrs);
   if (NewType.isNull())
     return;
 
@@ -8939,7 +8971,7 @@ static void foldCapabilityAttrsIntoType(Sema &S, Decl *D) {
   // The change is invisible in the written type, so a trivial TypeSourceInfo
   // anchored at the typedef name is sufficient.
   TypeSourceInfo *NewTSI =
-      S.Context.getTrivialTypeSourceInfo(NewType, TND->getLocation());
+      Context.getTrivialTypeSourceInfo(NewType, TND->getLocation());
   TND->setTypeSourceInfo(NewTSI);
 
   // The requirements now live in the type; drop them from the declaration so
@@ -9011,7 +9043,7 @@ void Sema::ProcessDeclAttributes(Scope *S, Decl *D, const Declarator &PD) {
 
   // Reflect thread-safety capability attributes into the declaration's
   // function type so the requirements travel with the type.
-  foldCapabilityAttrsIntoType(*this, D);
+  foldCapabilityAttrsIntoType(D);
 }
 
 /// Is the given declaration allowed to use a forbidden type?
