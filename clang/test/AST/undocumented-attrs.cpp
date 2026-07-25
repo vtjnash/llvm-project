@@ -37,7 +37,6 @@ CHECK-NEXT:	IBOutletCollection
 CHECK-NEXT:	IntelOclBicc
 CHECK-NEXT:	LockReturned
 CHECK-NEXT:	Lockable
-CHECK-NEXT:	LocksExcluded
 CHECK-NEXT:	M68kInterrupt
 CHECK-NEXT:	MSP430Interrupt
 CHECK-NEXT:	MatrixType
@@ -76,7 +75,6 @@ CHECK-NEXT:	PtGuardedVar
 CHECK-NEXT:	Pure
 CHECK-NEXT:	ReentrantCapability
 CHECK-NEXT:	ReqdWorkGroupSize
-CHECK-NEXT:	RequiresCapability
 CHECK-NEXT:	ReturnsTwice
 CHECK-NEXT:	ScopedLockable
 CHECK-NEXT:	Unavailable
@@ -89,4 +87,4 @@ CHECK-NEXT:	Visibility
 CHECK-NEXT:	WeakImport
 CHECK-NEXT:	WeakRef
 CHECK-NEXT:	WorkGroupSizeHint
-CHECK-NEXT: Total: 83
+CHECK-NEXT: Total: 81

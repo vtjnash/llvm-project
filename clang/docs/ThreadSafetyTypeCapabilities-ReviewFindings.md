@@ -1,7 +1,10 @@
 # TSA type-carried capabilities: review findings and fix plan
 
-Working document for the `jn/tsa-typedef-capability` branch (commits
-`f2fc9cc59cf8..cd7e942d5879`). Consolidates three investigations (2026-07-25):
+Working document for the `jn/tsa-typedef-capability` branch. It was written
+against commits `f2fc9cc59cf8..cd7e942d5879`; the branch now extends through
+`[TSA][17/N]`, which is the last commit of the P9 docs-and-tests phase below,
+and every finding's status line reflects that state.
+Consolidates three investigations (2026-07-25):
 a root-cause of the regression recorded in
 `ThreadSafetyTypeCapabilities-ValueDeclFolding-TODO.md`, a full code review of
 the branch, and an implementation study for value-declaration folding.
@@ -654,8 +657,17 @@ attrs' arg streams are concatenated with no boundary, so
   template/dependent case (leave to P3's T4). Done in P3: the pattern prints
   its unfolded declaration attribute, the instantiation prints the folded,
   substituted one, and both round-trip.*
-- [ ] **T3.** `warn-thread-safety-parsing.cpp` has no typedef-arm coverage of
-  `warn_thread_attribute_not_on_fun_ptr` (C++ side).
+- [x] **T3.** `warn-thread-safety-parsing.cpp` has no typedef-arm coverage of
+  `warn_thread_attribute_not_on_fun_ptr` (C++ side). *Done in P9: a new
+  `TypedefSubjects` namespace covers all six attribute kinds (both spellings of
+  each) on a good function-pointer typedef and on a non-function-pointer one,
+  the shapes that are deliberately rejected (function reference,
+  reference-to-function-pointer, array of function pointers, pointer to member
+  function — mirroring the variable/field cases already there), a member
+  typedef, a dependent typedef rechecked after substitution, the alias
+  declaration arm of each (guarded on C++11, since the file also runs at
+  `-std=c++98`), and the argument-level checks that apply to a typedef the same
+  way they do to a function.*
 - [~] **T4.** No tests: typedef in a template (F3), `using` alias (F8),
   qualified fn-ptr typedef (F5), decl+type duplicate (F7), mangling/CodeGen
   (F2 — whatever the resolution), explicit Profile-collision pairs and
@@ -683,26 +695,58 @@ attrs' arg streams are concatenated with no boundary, so
 
 ### Doc gaps
 
-- [ ] **D1.** No `clang/docs/ReleaseNotes.rst` entry — needed for the typedef
-  feature AND the behavior change in `f2fc9cc59cf8` (fn-ptr parameter attrs no
-  longer seed the caller's entry lockset — a silent semantic change to
-  existing annotations).
-- [~] **D2.** `ThreadSafetyAnalysis.md` overstates coverage (F11) and omits
+- [x] **D1.** No release-notes entry — needed for the typedef feature AND the
+  behavior change in `f2fc9cc59cf8` (fn-ptr parameter attrs no longer seed the
+  caller's entry lockset — a silent semantic change to existing annotations).
+  *Done in P9, in `clang/docs/ReleaseNotes.md` (the file is Markdown now, not
+  `.rst`). Three entries: the typedef/alias feature under "Attribute Changes in
+  Clang"; the new `-Wthread-safety-attributes` ignored-attribute diagnostic
+  (F12) under "Improvements to Clang's diagnostics"; and the `f2fc9cc59cf8`
+  behavior change under "C/C++ Language Potentially Breaking Changes", spelling
+  out both halves of it — the requirement was demanded of the *argument* at
+  every call site and seeded into the enclosing function's entry lockset — and
+  saying explicitly that it changes the meaning of existing annotations
+  silently.*
+- [x] **D2.** `ThreadSafetyAnalysis.md` overstates coverage (F11) and omits
   the two limitations users hit first: `using` aliases (fixed in P4, but the
   attribute's position on an alias declaration and the F8a alias-template hole
   need saying) and object-relative args, which are ignored — with a
   diagnostic since P8 (F12), which the doc should point at.
-  *The F11 half is done in P5: "calls through any of them are
+  *The F11 half was done in P5: "calls through any of them are
   checked" no longer claims more than the analysis delivers — the doc now
   lists the callee forms that are checked, shows the unchecked
   not-loaded-from-a-declaration case as a FIXME example, and states that a
   requirement written on both a declaration and its type is reported once.
-  Still open: the `using`-alias and F12 paragraphs, in P9.*
-- [ ] **D3.** TODO doc corrections: regression section (resolved by F1),
+  The rest is done in P9: the section is retitled "Function pointer typedefs
+  and aliases" and split into subsections covering the alias form and where its
+  attribute goes (F8b), conversion transparency in **both** directions plus the
+  `?:` intersection (F15), redefinition strictness with the pointer to
+  `noexcept`/`nonblocking` (F16), templates including the pattern-internal gap
+  (F3 residual), the exclusive/shared type distinction (F1), the F12 diagnostic
+  with its example and the full list of reasons, and the
+  requirement-must-precede-the-typedef ordering rule (F4/P7). Every claim in the
+  section was re-verified against the built compiler.*
+- [x] **D3.** TODO doc corrections: regression section (resolved by F1),
   "mangling is already safe" inverted (F2), parameters rationale wrong (see
-  Part III W5).
-- [ ] **D4.** `Attr.td` now advertises `TypedefName` subjects while
-  `RequiresCapability`/`LocksExcluded` docs remain `[Undocumented]`.
+  Part III W5). *Done in P9; the TODO doc was rewritten to be only the remaining
+  value-decl work list that P10 will consume. The regression section now says it
+  is resolved and no longer a blocker; the mangling paragraph says identical
+  mangling of distinct canonical types is the hazard and points at F2 and
+  Part IV; the parameter item gives W5's rationale (a folded parameter would
+  change the enclosing function's overload identity and mangling —
+  `ProcessDeclAttributes` does run before the prototype is built); the reader
+  audit was re-verified and its line numbers refreshed; item 5's
+  pointer-identity dedup suggestion is replaced by what P5 actually did
+  (`areEquivalentCapabilityAttrs`, profile-based); and the C half of the
+  `mergeFunctionTypes` prerequisite is marked landed with only
+  `MergeVarDeclTypes` left.*
+- [x] **D4.** `Attr.td` now advertises `TypedefName` subjects while
+  `RequiresCapability`/`LocksExcluded` docs remain `[Undocumented]`. *Done in
+  P9: `RequiresCapabilityDocs` and `LocksExcludedDocs` written in `AttrDocs.td`
+  and wired up in `Attr.td`, and the four existing capability doc blocks
+  (`AssertCapability`, `AcquireCapability`, `TryAcquireCapability`,
+  `ReleaseCapability`) extended with the function-pointer and typedef/alias
+  forms plus an example each. All six link to `ThreadSafetyAnalysis.html`.*
 
 ---
 
@@ -778,8 +822,8 @@ already inert for fn-ptr params), `Sema` checks that run pre-fold, and
   *before* `GetFullTypeForDeclarator` collects param types
   (`SemaType.cpp:5265`), so a folded param *would* propagate into the
   enclosing prototype — changing the enclosing function's overload identity
-  (`SemaOverload.cpp:1373`). That, not build order, is why params must stay
-  on the decl path. Correct the TODO text (D3).
+  (`SemaOverload.cpp:1373`) and its mangling. That, not build order, is why
+  params must stay on the decl path. *TODO text corrected in P9 (D3).*
 - [~] **W6. Function declarations: no-go for now.** Override matching and
   mangling are safe (contra the TODO's worry — though mangling "safety" is
   exactly F2's hazard); redeclaration is not (`MergeFunctionDecl` →
@@ -857,7 +901,9 @@ P7 has since fixed within the current design.)
    covers F8a's alias templates, F4's declaration-specifier residual and a
    newly found unprototyped-function-type case, and drops the attribute it
    reports. F19 assessed and deliberately left alone — see its entry.)
-9. **P9**: D1–D4 docs; T3; final test sweep.
+9. **P9**: D1–D4 docs; T3; final test sweep. ✔ Docs only — no compiler
+   behavior change. Note for the record: the release notes now live in
+   `ReleaseNotes.md`, not `.rst`.
 10. **P10**: W2 field folding, then W4 variable folding (W3 landed in P6),
     with the Part III test plan. Closes out the ValueDeclFolding TODO's items
     2, 3, 5, 6; item 4 (functions) stays deferred (W6).

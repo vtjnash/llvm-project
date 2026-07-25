@@ -2,57 +2,70 @@
 
 ## Context
 
-The `[TSA][1..8/N]` commit series makes thread-safety capability requirements
+The `[TSA][1..17/N]` commit series makes thread-safety capability requirements
 (`requires_capability`, `acquire_capability`, `release_capability`,
 `try_acquire_capability`, `assert_capability`, `locks_excluded`, and their
 shared variants) part of the **function type** when they are written on a
-**function-pointer typedef**. The requirement is stored in
+**function-pointer typedef or alias declaration**. The requirement is stored in
 `FunctionType::FunctionTypeExtraAttributeInfo::CapabilityAttrs`, is part of the
 canonical type (in `FunctionProtoType::Profile`), round-trips through
-serialization, and is read back by the analysis from the callee's type. This
-lets the requirement survive `auto`, template instantiation, and same-type
-assignment.
+serialization, is hashed by `ODRHash`, compared by structural equivalence,
+imported by `ASTImporter`, merged by `ASTContext::mergeFunctionTypes`, and is
+read back by the analysis from the callee expression's type. This lets the
+requirement survive `auto`, template instantiation, and same-type assignment.
 
-The fold is deliberately **limited to typedefs** (see
+The fold is deliberately **limited to typedefs and alias declarations** (see
 `Sema::foldCapabilityAttrsIntoType` in `clang/lib/Sema/SemaDeclAttr.cpp`).
-This document records what would be needed to also fold the requirement into
-the type of **value declarations** — function-pointer *variables*, *fields*,
-*parameters*, and (separately) *function declarations* — so those too gain the
-"part of the type" behavior instead of relying on the declaration-attribute
-path introduced by llvm/llvm-project#191187.
+This document records what remains to be done to also fold the requirement into
+the type of **value declarations** — function-pointer *variables* and *fields*
+— and why *parameters* and *function declarations* stay on the
+declaration-attribute path introduced by llvm/llvm-project#191187.
 
-## Why it is not done yet
+It is a work list, not a design record. The design questions, the branch review,
+and the status of every finding live in
+`ThreadSafetyTypeCapabilities-ReviewFindings.md`; the open canonical-vs-sugar
+decision is its Part IV, and the study this list is derived from is its
+Part III.
+
+## Why it was not done with the typedef work
 
 The analysis reads capability attributes from the **callee declaration** in
-more than one place. `foldCapabilityAttrsIntoType` moves the attributes onto
-the type and then **drops them from the declaration** (so they are not printed
-or processed twice). For a *typedef* that is safe, because the callee at a call
-site is a *different* declaration (the variable/parameter/field of the typedef
-type), which never carried the attribute. For a *value declaration that is
-itself the callee*, dropping the attribute hides it from any analysis path that
-still reads the declaration directly.
+more than one place. For a *typedef* the callee at a call site is a *different*
+declaration (the variable/parameter/field of the typedef type), which never
+carried the attribute, so `foldCapabilityAttrsIntoType` can drop the attributes
+from the typedef. For a *value declaration that is itself the callee*, dropping
+would hide the attribute from any analysis path that still reads the
+declaration directly — so value-decl folding must **keep** the attributes on
+the declaration and rely on de-duplication instead (see below).
 
 ### Audit of call-site attribute reads (`clang/lib/Analysis/ThreadSafety.cpp`)
 
-- `BuildLockset::handleCall` (~line 2197): builds its attribute list from
-  `D->attrs()` **and** `getCalleeFunctionProtoType(D)->getCapabilityAttrs()`.
-  **Already reads the type.** Covers `requires`/`acquire`/`release`/`assert`/
-  `locks_excluded`.
-- Try-acquire: `getTerminatorTrylockCall`, `getEdgeLockset`,
-  `getTerminatorTrylockCaps` — go through the `getTryAcquireCapabilityAttrs`
-  helper, which reads the declaration **and** the function type.
-  **Already reads the type** (added in `[TSA][7/N]`).
-- `runAnalysis` (~lines 2822 and 2857): reads the **analyzed function's own**
-  attributes (`D->attrs()`) and its parameters' attributes (`Param->attrs()`)
-  to seed the entry lockset. This concerns the function *being analyzed*, not a
-  callee, so it only matters if we fold **function declarations** (see below).
-- Scoped-lockable / function-pointer-parameter handling in `handleCall`
-  (~lines 2281–2287): reads the *called function's* `Param->attrs()`. Relevant
-  only when folding parameters of the called function.
+Re-verified after `[TSA][13/N]`; complete.
 
-So the two callee-facing paths (`handleCall` and try-acquire) are already
-type-aware. That was not true when value-decl folding was first attempted; the
-try-acquire fix in `[TSA][7/N]` removed one of the two original blockers.
+- `BuildLockset::handleCall` (`:2239`): builds its attribute list from
+  `D->attrs()` (`:2348`) **and** `getTypeCapabilityAttrs(Exp, D)` (`:2346`),
+  which reads the *callee expression's* type and falls back to the
+  declaration's. **Already reads the type**, and already de-duplicates a
+  requirement that appears in both, via `areEquivalentCapabilityAttrs`. Covers
+  `requires`/`acquire`/`release`/`assert`/`locks_excluded`.
+- Try-acquire: `getTerminatorTrylockCall`, `getEdgeLockset`,
+  `getTerminatorTrylockCaps` — go through `getTryAcquireCapabilityAttrs`
+  (`:135`), which reads the declaration **and** the type, with the same dedup.
+  **Already reads the type** (added in `[TSA][7/N]`).
+- `runAnalysis` (`:2839`): reads the **analyzed function's own** attributes
+  (`D->attrs()`, `:2903`) and its parameters' attributes (`Param->attrs()`,
+  `:2938`) to seed the entry lockset. This concerns the function *being
+  analyzed*, not a callee, so it only matters if we fold **function
+  declarations** (see item 3 below).
+- Scoped-lockable handling in `handleCall` (`:2366`): reads the *called
+  function's* `Param->attrs()`. Since `f2fc9cc59cf8` both this loop and the
+  `runAnalysis` one skip function-pointer parameters outright
+  (`isFunctionPointerParam`, `:72`), so both are already inert for the
+  parameters this work would otherwise touch.
+
+**Nothing outside `clang/lib/Analysis` and `clang/lib/Sema` reads these
+attributes** — in particular nothing in `clang-tools-extra` does — so folding
+them into the type breaks no tooling. Verified as part of the Part III study.
 
 ### Resolved: the shared-variant regression was a folding-set collision
 
@@ -78,59 +91,111 @@ Fixed in `[TSA][9/N]` by profiling `isShared()` / `isGeneric()` / the
 try-acquire success value (semantically, not via the spelling index, so
 synonyms still unify), plus a per-attribute argument-count separator; see
 `clang/test/SemaCXX/thread-safety-type-capability-uniquing.cpp`. It fully
-explains the observed failures — no unexplained residue remains.
+explains the observed failures — no unexplained residue remains, and this is no
+longer a blocker.
 
-## Work items to complete the follow-up
+## Remaining work items
 
-1. ~~**Root-cause the shared-variant regression**~~ — **done**, see above; the
-   fix landed in `[TSA][9/N]`. Value-decl folding still needs a
-   `requires_shared_capability` **variable** test when it is re-enabled.
+1. **Fold `FieldDecl`** (lowest risk, ships first). Timing verified safe:
+   late-parsed member attrs attach (`ParseDeclCXX.cpp:3725`) after
+   `ActOnFinishCXXMemberSpecification` but *before*
+   `ParseLexedMemberInitializers` (`:3731`); triviality and layout are
+   unaffected (pointer size and alignment are unchanged, and `TypeInfo` is keyed
+   on the canonical `Type*`). In C, thread-safety field attributes are not
+   late-parsed at all — the struct-body path asks for
+   `LateAttrParseExperimentalExtOnly` (`ParseDecl.cpp:4989`) and these are
+   `LateAttrParseStandard` — and the non-late path
+   (`Sema::CheckFieldDecl`, `SemaDecl.cpp:19635`) precedes record completion.
+   A `FieldDecl` is never
+   redeclared, so it is immune to the merge problem in item 2.
 
-2. **Extend `foldCapabilityAttrsIntoType`** to accept `VarDecl` and `FieldDecl`
-   of function-pointer type. A value declaration stores its type separately
-   from its `TypeSourceInfo`, so set **both** `DeclaratorDecl::setTypeSourceInfo`
-   and `ValueDecl::setType`. Keep the existing `capabilityArgIsContextFree`
-   guard (member-relative arguments must stay on the declaration) and the
-   late-parsed hook in `ActOnFinishDelayedAttribute`.
+2. **Fold `VarDecl`**, excluding `ParmVarDecl`. `ProcessDeclAttributes` at
+   `SemaDecl.cpp:8277` precedes merge and initializer checking for namespace and
+   block scope.
+   - Prerequisite, half-done: redeclaring a folded variable without the
+     attribute. In C this is already handled — `ASTContext::mergeFunctionTypes`
+     unions the requirement sets as of `[TSA][14/N]` (see
+     `clang/test/Sema/thread-safety-type-capability-merge.c`). In C++
+     `Sema::MergeVarDeclTypes` still compares with a bare `hasSameType`
+     (`SemaDecl.cpp:4604`) and would reject the attr-free redeclaration with
+     `redeclaration with a different type`; the fix is to try
+     `mergeCapabilityAttrs` (the union helper added in `[TSA][14/N]`, declared
+     in `Attr.h`) before diagnosing. It is untestable until there is a folded
+     `VarDecl` to redeclare, which is why it lives here rather than having
+     landed with the merge work.
+   - Residual hazard: an in-class static data member with an initializer — the
+     initializer is checked at `ParseDeclCXX.cpp:3183-3192`, before late
+     attributes attach at `:3725`. Exclude static data members in the first cut,
+     or test the case explicitly.
 
-3. **Parameters** desync from the enclosing function type, which is built from
-   the parameter types *before* `ProcessDeclAttributes` runs on the
-   `ParmVarDecl`. Either rebuild the enclosing `FunctionProtoType` after folding
-   the parameter, or leave parameters on the declaration path. Simplest first
-   step: do **not** fold parameters (the analysis already reads them, and the
-   typedef path covers the common case).
+3. **Function declarations: still a no-go.** Override matching is safe, but
+   redeclaration is not (`MergeFunctionDecl` → `err_conflicting_types`), the
+   entry-lockset seeding in `runAnalysis` (`ThreadSafety.cpp:2903`/`:2938`) would
+   go blind unless it learns to read the function's *own* type, and
+   `checkThisInStaticMemberFunctionAttributes` ordering has to be preserved.
+   Revisit only after item 2 lands, with a union-merge policy and tests.
 
-4. **Function declarations** are the riskiest. Folding changes the function's
-   own type identity, which affects:
-   - redeclaration merging — `ASTContext::mergeFunctionTypes` currently ignores
-     `CapabilityAttrs` (they don't make types incompatible, but a merged type
-     silently keeps one side's set); decide union vs. keep-first and implement.
-   - virtual override checking — an override with different requirements.
-   - the entry-lockset seeding in `runAnalysis` (lines ~2822/2857) must read the
-     requirements from the function's **type** if they no longer live on the
-     decl.
-   Name **mangling is already safe**: `CapabilityAttrs` live in
-   `FunctionTypeExtraAttributeInfo`, which the Itanium mangler does not emit
-   (verified: a function taking a caps-carrying vs. plain function-pointer
-   parameter mangles identically, `...PFvvE`). So folding does not change ABI.
+   Name mangling is **not** a reason to feel safe here — it is the hazard.
+   `CapabilityAttrs` are part of the canonical type but the Itanium mangler
+   ignores `FunctionTypeExtraAttributeInfo`, so two functions whose types differ
+   only in their requirements mangle identically: two definitions are a
+   hard `error: definition with same mangled name`, and declaration-only
+   overload sets are a silent link trap. This already applies to a
+   caps-carrying *typedef* used as a parameter type, and folding function
+   declarations would extend it to the functions themselves. See finding F2 and
+   the Option A / Option B decision in Part IV of
+   `ThreadSafetyTypeCapabilities-ReviewFindings.md`; that decision should be
+   made before this item is attempted.
 
-5. **Dropping attributes from the declaration**: confirm nothing outside the
-   analysis depends on these attributes being queryable on the value decl
-   (AST matchers, clang-tidy checks, tooling). If something does, consider
-   *keeping* the attribute on the decl and instead **de-duplicating by pointer**
-   in every reader (fold reuses the same `Attr*` objects, so a `SmallPtrSet`
-   dedup across `D->attrs()` + type attrs avoids double-processing without
-   dropping).
+4. **Parameters: skip.** Not for build-order reasons —
+   `ActOnParamDeclarator` runs `ProcessDeclAttributes` (`SemaDecl.cpp:15858`)
+   *before* `GetFullTypeForDeclarator` collects the parameter types
+   (`SemaType.cpp:5265`), so a folded parameter *would* propagate into the
+   enclosing prototype. That is precisely the problem: it would change the
+   enclosing function's own type, and hence its overload identity
+   (`SemaOverload.cpp:1373`) and its mangling. The declaration path already
+   covers parameters, and the typedef path covers the common case of a
+   parameter written with an annotated type.
 
-6. **Tests**: once enabled, add `auto`/propagation coverage for variables and
-   fields (mirroring the typedef tests), a `requires_shared` variable test, and
-   re-verify the entire `FunctionPointers` namespace plus the `Sema`/`SemaCXX`/
-   `AST`/`PCH`/`Modules` sweeps show no regressions.
+5. **Do not drop the attributes from the declaration.** The typedef fold drops
+   them (a typedef is never itself the callee, and `TypePrinter` emits them from
+   the type), but a value declaration *is* the callee, and dropping would break
+   redeclaration attribute inheritance, `-ast-dump`, and any later
+   function-declaration folding. Keep them and rely on the de-duplication that
+   `[TSA][13/N]` added — note that it is **not** the pointer-identity dedup an
+   earlier draft of this document suggested: the fold and the declaration hold
+   distinct `Attr*` objects, so `clang::areEquivalentCapabilityAttrs` compares
+   them by the same profile the folding set uses. Two requirements are redundant
+   exactly when they would produce the same function type, which makes the dedup
+   spelling-insensitive but sharedness-, genericness- and
+   success-value–sensitive.
+
+6. **Set only `ValueDecl::setType`**, and leave the `TypeSourceInfo` alone.
+   Divergence between a declaration's type and its TSI is an accepted pattern
+   (cf. `ParmVarDecl` decay), whereas the typedef path's
+   `getTrivialTypeSourceInfo` replacement loses the written sugar. Read the
+   declaration's type rather than `OldTSI->getType()`; for value declarations
+   the two genuinely differ, e.g. after address-space adjustment.
+   Note that `TypedefNameDecl` is **not** a `DeclaratorDecl`, so the obvious
+   unified refactor of the two paths null-derefs — keep them separate.
+
+7. **Tests**: `requires_shared_capability` on a *variable* plus `auto`; the
+   exclusive variable auto/keep/drop trio mirroring the typedef tests; the five
+   explicit Profile-collision pairs and the try-acquire success-value pair as
+   variables; redeclaration without the attribute (C++ compiles and keeps the
+   requirement, plus the C twin); a dependent-argument class template (no crash,
+   sane capability name); the static-data-member initializer hazard; an NSDMI
+   field; a field reached through `auto` must warn; a class-template field with
+   a global argument and with a sibling-member argument; PCH and `-ast-print`
+   coverage for a folded variable and field; the `FPOps`/`BDevOps` C structs
+   must stay unfolded; the whole `FunctionPointers` namespace unchanged; and
+   `Sema`/`SemaCXX`/`AST`/`PCH`/`Modules` sweeps.
 
 ## Recommended order
 
-Do (1) first — it is diagnostic and may reveal a small bug that unblocks the
-rest. Then (2) for variables and fields only, keeping parameters and functions
-on the declaration path. Treat (4) as a separate, later effort with its own
-design review, since function-type identity changes have the widest blast
-radius.
+Item 1 (fields) first, since fields cannot be redeclared and therefore need
+none of item 2's merge work. Then item 2 (variables) together with the
+`MergeVarDeclTypes` union. Items 5 and 6 are constraints on how 1 and 2 are
+implemented, not separate steps. Item 3 stays a separate, later effort with its
+own design review — and should wait on the Part IV decision, since
+function-type identity changes have the widest blast radius.

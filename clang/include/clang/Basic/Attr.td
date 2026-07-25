@@ -4212,7 +4212,7 @@ def RequiresCapability : InheritableAttr {
   let Subjects = SubjectList<[Function, Var, Field, TypedefName]>;
   let Accessors = [Accessor<"isShared", [Clang<"requires_shared_capability", 0>,
                                          Clang<"shared_locks_required", 0>]>];
-  let Documentation = [Undocumented];
+  let Documentation = [RequiresCapabilityDocs];
 }
 
 def NoThreadSafetyAnalysis : InheritableAttr {
@@ -4288,7 +4288,7 @@ def LocksExcluded : InheritableAttr {
   let InheritEvenIfAlreadyPresent = 1;
   let ParseArgsInFunctionScope = 1;
   let Subjects = SubjectList<[Function, Var, Field, TypedefName]>;
-  let Documentation = [Undocumented];
+  let Documentation = [LocksExcludedDocs];
 }
 
 def ReentrantCapability : InheritableAttr {

@@ -1828,3 +1828,115 @@ DependentFPFields<GoodLockFn> dependent_fp_fields_ok;
 DependentFPFields<int> dependent_fp_fields_bad; // expected-note {{in instantiation of template class 'FunctionPointers::DependentFPFields<int>' requested here}}
 
 }  // namespace FunctionPointers
+
+//-----------------------------------------//
+//  Attributes on typedefs and aliases
+//-----------------------------------------//
+
+namespace TypedefSubjects {
+
+// A typedef of function pointer type is a valid subject for all six capability
+// attributes; the requirement is folded into the function type.
+typedef void (*td_lock)(void)          EXCLUSIVE_LOCK_FUNCTION(mu1);
+typedef void (*td_shared_lock)(void)   SHARED_LOCK_FUNCTION(mu1);
+typedef void (*td_unlock)(void)        UNLOCK_FUNCTION(mu1);
+typedef void (*td_requires)(void)      EXCLUSIVE_LOCKS_REQUIRED(mu1);
+typedef void (*td_shared_req)(void)    SHARED_LOCKS_REQUIRED(mu1);
+typedef void (*td_excludes)(void)      LOCKS_EXCLUDED(mu1);
+typedef void (*td_assert)(void)        ASSERT_EXCLUSIVE_LOCK(mu1);
+typedef void (*td_shared_assert)(void) ASSERT_SHARED_LOCK(mu1);
+typedef bool (*td_trylock)(void)       EXCLUSIVE_TRYLOCK_FUNCTION(true, mu1);
+typedef bool (*td_shared_try)(void)    SHARED_TRYLOCK_FUNCTION(true, mu1);
+
+// A typedef of any other type is not: there is no function type to carry the
+// requirement, so the attribute would be silently useless.
+typedef int bad_td_lock EXCLUSIVE_LOCK_FUNCTION(mu1); // \
+  // expected-warning {{'exclusive_lock_function' attribute on a typedef requires the typedef to be of function pointer type}}
+typedef int bad_td_shared_lock SHARED_LOCK_FUNCTION(mu1); // \
+  // expected-warning {{'shared_lock_function' attribute on a typedef requires the typedef to be of function pointer type}}
+typedef int bad_td_unlock UNLOCK_FUNCTION(mu1); // \
+  // expected-warning {{'unlock_function' attribute on a typedef requires the typedef to be of function pointer type}}
+typedef int bad_td_requires EXCLUSIVE_LOCKS_REQUIRED(mu1); // \
+  // expected-warning {{'exclusive_locks_required' attribute on a typedef requires the typedef to be of function pointer type}}
+typedef int bad_td_shared_req SHARED_LOCKS_REQUIRED(mu1); // \
+  // expected-warning {{'shared_locks_required' attribute on a typedef requires the typedef to be of function pointer type}}
+typedef int bad_td_excludes LOCKS_EXCLUDED(mu1); // \
+  // expected-warning {{'locks_excluded' attribute on a typedef requires the typedef to be of function pointer type}}
+typedef int bad_td_assert ASSERT_EXCLUSIVE_LOCK(mu1); // \
+  // expected-warning {{'assert_exclusive_lock' attribute on a typedef requires the typedef to be of function pointer type}}
+typedef int bad_td_shared_assert ASSERT_SHARED_LOCK(mu1); // \
+  // expected-warning {{'assert_shared_lock' attribute on a typedef requires the typedef to be of function pointer type}}
+typedef int bad_td_trylock EXCLUSIVE_TRYLOCK_FUNCTION(true, mu1); // \
+  // expected-warning {{'exclusive_trylock_function' attribute on a typedef requires the typedef to be of function pointer type}}
+typedef int bad_td_shared_try SHARED_TRYLOCK_FUNCTION(true, mu1); // \
+  // expected-warning {{'shared_trylock_function' attribute on a typedef requires the typedef to be of function pointer type}}
+
+// Types that are not a plain function pointer, mirroring the variable and
+// field cases above. Unlike the variable check, the typedef check deliberately
+// does not look through a reference: a reference to a function pointer cannot
+// carry the requirement in its type.
+typedef void (&bad_td_fn_ref)(void) EXCLUSIVE_LOCKS_REQUIRED(mu1); // \
+  // expected-warning {{'exclusive_locks_required' attribute on a typedef requires the typedef to be of function pointer type}}
+typedef void (*&bad_td_fp_ref)(void) EXCLUSIVE_LOCKS_REQUIRED(mu1); // \
+  // expected-warning {{'exclusive_locks_required' attribute on a typedef requires the typedef to be of function pointer type}}
+typedef void (*bad_td_fp_array[4])(void) EXCLUSIVE_LOCKS_REQUIRED(mu1); // \
+  // expected-warning {{'exclusive_locks_required' attribute on a typedef requires the typedef to be of function pointer type}}
+typedef void (Mutex::*bad_td_memfn)(void) EXCLUSIVE_LOCKS_REQUIRED(mu1); // \
+  // expected-warning {{'exclusive_locks_required' attribute on a typedef requires the typedef to be of function pointer type}}
+
+// A member typedef takes the same path.
+struct TDMembers {
+  typedef void (*good)(void) EXCLUSIVE_LOCKS_REQUIRED(mu1);
+  typedef int bad EXCLUSIVE_LOCKS_REQUIRED(mu1); // \
+    // expected-warning {{'exclusive_locks_required' attribute on a typedef requires the typedef to be of function pointer type}}
+};
+
+// A typedef with a dependent underlying type is accepted at parse time and
+// rechecked after substitution.
+template <typename T>
+struct DependentTD {
+  typedef T cb EXCLUSIVE_LOCKS_REQUIRED(mu1); // \
+    // expected-warning {{'exclusive_locks_required' attribute on a typedef requires the typedef to be of function pointer type}}
+};
+typedef void (*GoodLockFnTD)(void);
+DependentTD<GoodLockFnTD> dependent_td_ok;
+DependentTD<int> dependent_td_bad; // expected-note {{in instantiation of template class 'TypedefSubjects::DependentTD<int>' requested here}}
+
+#if __cplusplus >= 201103L
+// An alias declaration is a TypedefNameDecl too, and the attribute belongs
+// directly after the alias name.
+using al_lock       EXCLUSIVE_LOCK_FUNCTION(mu1)         = void (*)(void);
+using al_unlock     UNLOCK_FUNCTION(mu1)                 = void (*)(void);
+using al_requires   EXCLUSIVE_LOCKS_REQUIRED(mu1)        = void (*)(void);
+using al_excludes   LOCKS_EXCLUDED(mu1)                  = void (*)(void);
+using al_assert     ASSERT_EXCLUSIVE_LOCK(mu1)           = void (*)(void);
+using al_trylock    EXCLUSIVE_TRYLOCK_FUNCTION(true, mu1) = bool (*)(void);
+
+using bad_al_lock     EXCLUSIVE_LOCK_FUNCTION(mu1)          = int; // \
+  // expected-warning {{'exclusive_lock_function' attribute on a typedef requires the typedef to be of function pointer type}}
+using bad_al_unlock   UNLOCK_FUNCTION(mu1)                  = int; // \
+  // expected-warning {{'unlock_function' attribute on a typedef requires the typedef to be of function pointer type}}
+using bad_al_requires EXCLUSIVE_LOCKS_REQUIRED(mu1)         = int; // \
+  // expected-warning {{'exclusive_locks_required' attribute on a typedef requires the typedef to be of function pointer type}}
+using bad_al_shared   SHARED_LOCKS_REQUIRED(mu1)            = int; // \
+  // expected-warning {{'shared_locks_required' attribute on a typedef requires the typedef to be of function pointer type}}
+using bad_al_excludes LOCKS_EXCLUDED(mu1)                   = int; // \
+  // expected-warning {{'locks_excluded' attribute on a typedef requires the typedef to be of function pointer type}}
+using bad_al_assert   ASSERT_EXCLUSIVE_LOCK(mu1)            = int; // \
+  // expected-warning {{'assert_exclusive_lock' attribute on a typedef requires the typedef to be of function pointer type}}
+using bad_al_trylock  EXCLUSIVE_TRYLOCK_FUNCTION(true, mu1) = int; // \
+  // expected-warning {{'exclusive_trylock_function' attribute on a typedef requires the typedef to be of function pointer type}}
+
+using bad_al_fn_ref EXCLUSIVE_LOCKS_REQUIRED(mu1) = void (&)(void); // \
+  // expected-warning {{'exclusive_locks_required' attribute on a typedef requires the typedef to be of function pointer type}}
+#endif
+
+// The argument checks that apply to the other subjects apply here too.
+typedef void (*td_bad_arg)(void) EXCLUSIVE_LOCKS_REQUIRED(umu); // \
+  // expected-warning {{'exclusive_locks_required' attribute requires arguments whose type is annotated with 'capability' attribute; type here is 'UnlockableMu'}}
+typedef void (*td_no_arg)(void) EXCLUSIVE_LOCKS_REQUIRED(); // \
+  // expected-error {{'exclusive_locks_required' attribute takes at least 1 argument}}
+typedef bool (*td_bad_success)(void) EXCLUSIVE_TRYLOCK_FUNCTION(mu1); // \
+  // expected-error {{'exclusive_trylock_function' attribute requires parameter 1 to be int or bool}}
+
+}  // namespace TypedefSubjects

@@ -1084,6 +1084,23 @@ def AssertCapabilityDocs : Documentation {
   let Content = [{
 Marks a function that dynamically tests whether a capability is held, and halts
 the program if it is not held.
+
+The attribute may also be written on a function pointer variable, field, or
+parameter, or on a ``typedef`` or alias declaration of function pointer type, in
+which case it describes calls made *through* the pointer. On a ``typedef`` or
+alias it becomes part of the function type, so every value of that type carries
+it:
+
+.. code-block:: c++
+
+  typedef void (*assert_fn)(void) __attribute__((assert_capability(mu)));
+
+  void check(assert_fn f) {
+    f();       // 'mu' is assumed to be held from here on
+  }
+
+See `Thread Safety Analysis
+<https://clang.llvm.org/docs/ThreadSafetyAnalysis.html>`_ for details.
   }];
 }
 
@@ -1092,6 +1109,24 @@ def AcquireCapabilityDocs : Documentation {
   let Heading = "acquire_capability, acquire_shared_capability";
   let Content = [{
 Marks a function as acquiring a capability.
+
+The attribute may also be written on a function pointer variable, field, or
+parameter, or on a ``typedef`` or alias declaration of function pointer type, in
+which case it describes calls made *through* the pointer. On a ``typedef`` or
+alias it becomes part of the function type, so every value of that type carries
+it:
+
+.. code-block:: c++
+
+  typedef void (*lock_fn)(void) __attribute__((acquire_capability(mu)));
+
+  void hold(lock_fn lock, void (*unlock)(void) __attribute__((release_capability(mu)))) {
+    lock();    // 'mu' is held from here on
+    unlock();
+  }
+
+See `Thread Safety Analysis
+<https://clang.llvm.org/docs/ThreadSafetyAnalysis.html>`_ for details.
   }];
 }
 
@@ -1103,6 +1138,28 @@ Marks a function that attempts to acquire a capability. This function may fail t
 actually acquire the capability; they accept a Boolean value determining
 whether acquiring the capability means success (true), or failing to acquire
 the capability means success (false).
+
+The attribute may also be written on a function pointer variable, field, or
+parameter, or on a ``typedef`` or alias declaration of function pointer type, in
+which case it describes calls made *through* the pointer. On a ``typedef`` or
+alias it becomes part of the function type, so every value of that type carries
+it. Two such types are distinct unless they agree on the success value as well
+as on the capability:
+
+.. code-block:: c++
+
+  typedef bool (*trylock_fn)(void)
+      __attribute__((try_acquire_capability(true, mu)));
+
+  void maybe(trylock_fn trylock) {
+    if (trylock()) {
+      // 'mu' is held on this branch only
+      mu.Unlock();
+    }
+  }
+
+See `Thread Safety Analysis
+<https://clang.llvm.org/docs/ThreadSafetyAnalysis.html>`_ for details.
   }];
 }
 
@@ -1110,7 +1167,112 @@ def ReleaseCapabilityDocs : Documentation {
   let Category = DocCatFunction;
   let Heading = "release_capability, release_shared_capability";
   let Content = [{
-Marks a function as releasing a capability.
+Marks a function as releasing a capability. ``release_shared_capability``
+releases a capability held as shared, and ``release_generic_capability``
+releases one held either way.
+
+The attribute may also be written on a function pointer variable, field, or
+parameter, or on a ``typedef`` or alias declaration of function pointer type, in
+which case it describes calls made *through* the pointer. On a ``typedef`` or
+alias it becomes part of the function type, so every value of that type carries
+it:
+
+.. code-block:: c++
+
+  typedef void (*unlock_fn)(void) __attribute__((release_capability(mu)));
+
+  void done(unlock_fn unlock) {
+    mu.Lock();
+    unlock();  // 'mu' is no longer held
+  }
+
+See `Thread Safety Analysis
+<https://clang.llvm.org/docs/ThreadSafetyAnalysis.html>`_ for details.
+  }];
+}
+
+def RequiresCapabilityDocs : Documentation {
+  let Category = DocCatFunction;
+  let Heading = "requires_capability, requires_shared_capability";
+  let Content = [{
+Marks a function as requiring that the calling thread already hold the given
+capabilities. The capabilities are not acquired or released by the call; they
+must be held on entry and are still held on exit.
+``requires_capability`` (also spelled ``exclusive_locks_required``) demands
+exclusive ownership, ``requires_shared_capability`` (also spelled
+``shared_locks_required``) demands shared ownership. More than one capability
+may be named.
+
+.. code-block:: c++
+
+  Mutex mu;
+  int data __attribute__((guarded_by(mu)));
+
+  void write(int x) __attribute__((requires_capability(mu))) { data = x; }
+  int read(void) __attribute__((requires_shared_capability(mu))) { return data; }
+
+The attribute may also be written on a function pointer variable, field, or
+parameter, in which case it describes calls made *through* the pointer rather
+than the function that declares it:
+
+.. code-block:: c++
+
+  void (*callback)(void) __attribute__((requires_capability(mu)));
+
+Written on a ``typedef`` or alias declaration of function pointer type, it
+becomes part of the function type itself, so every value of that type carries
+the requirement -- through ``auto``, template instantiation, and assignment:
+
+.. code-block:: c++
+
+  typedef void (*callback_t)(void) __attribute__((requires_capability(mu)));
+  using callback_t2 __attribute__((requires_capability(mu))) = void (*)(void);
+
+  void invoke(callback_t cb) {
+    cb();      // warning: requires holding mutex 'mu' exclusively
+  }
+
+Note that on an alias declaration the attribute goes directly after the alias
+name, which is where a declaration attribute belongs.
+
+See `Thread Safety Analysis
+<https://clang.llvm.org/docs/ThreadSafetyAnalysis.html>`_ for details, including
+which requirements can be part of a type and which stay on the declaration.
+  }];
+}
+
+def LocksExcludedDocs : Documentation {
+  let Category = DocCatFunction;
+  let Heading = "locks_excluded";
+  let Content = [{
+Marks a function as requiring that the calling thread *not* hold the given
+capabilities. It is typically used on a function that acquires them itself, to
+document that calling it while they are already held would deadlock.
+
+.. code-block:: c++
+
+  Mutex mu;
+
+  void reset(void) __attribute__((locks_excluded(mu))) {
+    mu.Lock();
+    mu.Unlock();
+  }
+
+The attribute may also be written on a function pointer variable, field, or
+parameter, in which case it describes calls made *through* the pointer, and on
+a ``typedef`` or alias declaration of function pointer type, in which case it
+becomes part of the function type and every value of that type carries it:
+
+.. code-block:: c++
+
+  typedef void (*reset_fn)(void) __attribute__((locks_excluded(mu)));
+
+  void call(reset_fn f) __attribute__((requires_capability(mu))) {
+    f();       // warning: cannot call function 'f' while mutex 'mu' is held
+  }
+
+See `Thread Safety Analysis
+<https://clang.llvm.org/docs/ThreadSafetyAnalysis.html>`_ for details.
   }];
 }
 

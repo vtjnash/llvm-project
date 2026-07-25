@@ -549,13 +549,13 @@ This support is limited to plain function pointers and function references.
 Pointers-to-member functions, blocks, and wrapper types such as `std::function`
 are not supported yet.
 
-#### Function pointer typedefs
+#### Function pointer typedefs and aliases
 
-When a capability attribute is written on a `typedef` of function pointer
-type, it becomes part of the type itself rather than of a single declaration.
-Every value of that type -- variables, parameters, fields, and the results of
-`auto` deduction or template instantiation -- then carries the requirement,
-and calls through them are checked:
+When a capability attribute is written on a `typedef` or an alias declaration
+of function pointer type, it becomes part of the type itself rather than of a
+single declaration. Every value of that type -- variables, parameters, fields,
+and the results of `auto` deduction or template instantiation -- then carries
+the requirement, and calls through them are checked:
 
 ```c++
 Mutex mu;
@@ -571,23 +571,108 @@ void deduced(callback_t cb) {
 }
 ```
 
-Because the requirement is part of the type, converting such a value to a
-function pointer type *without* the requirement drops it (analogous to
-dropping `noexcept`), and the call through the bare pointer is then
-unchecked:
+An alias declaration works the same way, but the attribute has to be written
+where a *declaration* attribute goes on an alias, that is, directly after the
+alias name:
 
 ```c++
-void drop(callback_t cb) {
-  void (*raw)(void) = cb;   // allowed; the requirement is dropped
-  raw();                    // no warning
-}
+using callback2_t REQUIRES(mu) = void (*)(void);
 ```
+
+Written after the type-id instead, it does not parse; written inside the
+type-id's declarator (`using a = void (*ATTR)(void);`) it is currently ignored
+without a diagnostic.
 
 This form works for all of the capability attributes (`REQUIRES`, `ACQUIRE`,
 `RELEASE`, `TRY_ACQUIRE`, `ASSERT_CAPABILITY`, `EXCLUDES`, and their shared
-variants). It is limited to arguments that do not depend on a particular
-object: a requirement that names a member of the enclosing class or a
-parameter cannot be part of the type and stays on the declaration.
+variants), and distinguishes the exclusive and shared spellings of each: a type
+requiring `mu` exclusively and one requiring it shared are different types.
+
+##### Conversions
+
+Because the requirement is part of the type, converting such a value to a
+function pointer type *without* the requirement drops it (analogous to dropping
+`noexcept`), and the call through the bare pointer is then unchecked. The
+conversion is transparent in both directions and neither one is diagnosed:
+
+```c++
+void plain(void);
+
+void convert(callback_t cb) {
+  void (*raw)(void) = cb;   // allowed; the requirement is dropped
+  raw();                    // no warning
+
+  callback_t back = raw;    // allowed; the requirement is added back
+  callback_t direct = plain; // allowed; `plain` is not itself annotated
+}
+```
+
+So a requirement on the type is a statement about what calls through it are
+checked against, not a promise that whatever was assigned to it really needs
+the capability. A conditional expression between the two forms yields the
+*intersection* of the requirements, which is the unannotated type:
+
+```c++
+void pick(bool c, callback_t cb, void (*raw)(void)) {
+  auto f = c ? cb : raw;    // type is `void (*)(void)`
+  f();                      // no warning
+}
+```
+
+Type *identity*, unlike conversion, is strict: redeclaring an annotated typedef
+without the annotation (or with a different one) is an error, exactly as it is
+for a typedef of a `noexcept` or `[[clang::nonblocking]]` function type. To
+annotate a function pointer type declared in a header you do not control, wrap
+it in a new name rather than redefining it.
+
+##### Templates
+
+The requirement survives template argument deduction and instantiation, and a
+typedef inside a class template is folded once per instantiation, so its
+requirement can name a template parameter:
+
+```c++
+template <Mutex *M> struct Ops {
+  typedef void (*cb)(void) REQUIRES(*M);
+};
+
+void run(Ops<&mu>::cb f) {
+  f();                      // warning: requires holding mu
+}
+```
+
+There is one gap: a call written *inside* the template pattern, through a
+typedef whose requirement depends on a template parameter, is not checked --
+only uses of the instantiated name are.
+
+##### Requirements that cannot be part of a type
+
+Only requirements whose arguments make sense independently of any particular
+object can live in a type. A requirement that names a member of the enclosing
+class, a parameter, or a block-scope variable cannot, and neither can one on an
+alias *template* (which is never instantiated as a declaration) or on a
+function type with no prototype. In all of those cases the attribute is
+diagnosed under `-Wthread-safety-attributes` and ignored:
+
+```c++
+struct Cache {
+  Mutex mu;
+  typedef void (*cb_t)(void) REQUIRES(mu);
+  // warning: 'requires_capability' attribute on 'cb_t' cannot become part of
+  // the type it names because the capability is relative to an object or a
+  // parameter; attribute ignored
+};
+```
+
+Write the requirement on the individual declarations instead; the declaration
+form described above handles all of these.
+
+Because a typedef's requirement has to be known before the typedef is used, its
+arguments are looked up at the point of the typedef. Inside a class this means
+a requirement may only name members declared *before* the typedef -- unlike a
+member function's attributes, which may name members declared later.
+
+##### Which calls are checked
 
 A call is checked whenever the analysis can name the declaration the function
 pointer came from, which covers variables, parameters, fields, elements of

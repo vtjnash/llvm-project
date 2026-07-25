@@ -51,6 +51,25 @@ The previous behavior can be restored with `-Wno-error=unicode-whitespace`.
 Clang will stop accepting non-ascii whitespaces as token separators
 in a future version of Clang.
 
+- Thread safety analysis no longer reads a capability attribute written on a
+  *function pointer* parameter as if the parameter were a scope object. Such an
+  attribute now means only what it reads like: it describes the requirements of
+  calls made *through* the pointer, matching what it already meant on a function
+  pointer variable or field. Previously, given
+
+  ```c++
+  void invoke(void (*cb)(void) REQUIRES(mu));
+  ```
+
+  the requirement was both demanded of the *argument* at every call to
+  `invoke()` (reported as a missing lock named after the callback) and seeded
+  into `invoke`'s own entry lockset, so `mu` was assumed held throughout
+  `invoke`'s body and the call through `cb` went unchecked. Both are gone; the
+  call through `cb` is checked instead. This is a silent change in meaning for
+  existing annotations, so an annotation that was meant to constrain the
+  enclosing function must now be written on that function. Attributes on
+  parameters of reference-to-`scoped_lockable` type are unaffected.
+
 ### C++ Specific Potentially Breaking Changes
 
 ### ABI Changes in This Version
@@ -193,6 +212,29 @@ features cannot lower the translation-unit ABI level;
   A requirement naming a parameter of the pointee, such as
   `void (*unlock)(struct BDev *bdev) UNLOCK_FUNCTION(bdev->lock)`, keeps
   working. Without the flag both forward references remain errors.
+
+- A thread safety capability attribute (`requires_capability`,
+  `acquire_capability`, `release_capability`, `try_acquire_capability`,
+  `assert_capability`, `locks_excluded`, and their shared variants) written on a
+  `typedef` or alias declaration of function pointer type is now part of the
+  *function type* rather than of that one declaration. Every value of the type
+  carries the requirement, so it survives `auto` deduction, template
+  instantiation, and assignment between values of the type:
+
+  ```c++
+  typedef void (*callback_t)(void) REQUIRES(mu);
+
+  void invoke(callback_t cb) {
+    auto also_cb = cb;
+    also_cb();   // warning: calling function 'also_cb' requires holding
+                 //          mutex 'mu' exclusively
+  }
+  ```
+
+  Converting to a function pointer type without the requirement drops it, in the
+  same way that converting away `noexcept` does. See
+  [Thread Safety Analysis](https://clang.llvm.org/docs/ThreadSafetyAnalysis.html)
+  for the details and the limitations.
 
 ### Improvements to Clang's diagnostics
 
@@ -366,6 +408,29 @@ features cannot lower the translation-unit ABI level;
 - Clang now attempts to print enumerator names rather than C-style cast expressions
   in more diagnostics.
 
+- `-Wthread-safety-attributes` now diagnoses a capability attribute on a
+  function pointer `typedef` or alias that cannot become part of the type it
+  names, instead of accepting it and silently providing no checking. This
+  happens when the requirement names something that is not available in the
+  type, such as a member of the enclosing class, a parameter, or a block-scope
+  variable:
+
+  ```c++
+  struct S {
+    Mutex mu;
+    typedef void (*cb_t)(void) REQUIRES(mu);
+    // warning: 'requires_capability' attribute on 'cb_t' cannot become part
+    // of the type it names because the capability is relative to an object
+    // or a parameter; attribute ignored
+  };
+  ```
+
+  The other reasons reported are a capability without global storage, a typedef
+  whose type was already used before the attribute was seen, an alias template
+  (whose requirement is never substituted), and a function type with no
+  prototype. The attribute is dropped when it is diagnosed. Writing the
+  requirement on the individual declarations, rather than on the type, still
+  works in all of these cases.
 
 ### Improvements to Clang's time-trace
 
