@@ -54,32 +54,37 @@ So the two callee-facing paths (`handleCall` and try-acquire) are already
 type-aware. That was not true when value-decl folding was first attempted; the
 try-acquire fix in `[TSA][7/N]` removed one of the two original blockers.
 
-### Known-unexplained regression
+### Resolved: the shared-variant regression was a folding-set collision
 
 When value-decl folding was briefly enabled, the pre-existing function-pointer
 *variable* tests in `clang/test/SemaCXX/warn-thread-safety-analysis.cpp`
-(namespace `FunctionPointers`) regressed. Notably the **shared** variants
-behaved as if exclusive:
+(namespace `FunctionPointers`) regressed: the **shared** variants behaved as if
+exclusive (`shared_lock_fn()` stopped leaving `mu` held as shared;
+`shared_requires_fn()` warned under a reader lock).
 
-- `shared_lock_fn()` (an `acquire_shared`) stopped leaving `mu` held as shared,
-  so a following exclusive write to a `GUARDED_BY(mu)` global no longer warned.
-- `shared_requires_fn()` (a `requires_shared`) warned even while a reader lock
-  was held.
+Root cause: `FunctionType::FunctionTypeExtraAttributeInfo::Profile` hashed only
+each attribute's `attr::Kind` plus its `getCapabilityAttrArgs`. Sharedness and
+release genericness are spelling-derived, and try-acquire's success value is a
+separate argument, so `ACQUIRE(mu)` and `ACQUIRE_SHARED(mu)` produced identical
+`FoldingSetNodeID`s: `ASTContext::getFunctionTypeInternal` handed the second
+declaration the first one's uniqued `FunctionProtoType`, carrying the *first*
+declaration's `Attr*` objects. **First created wins.** In `FunctionPointers`
+every shared variant is declared immediately after its exclusive twin with an
+identical signature and the same `mu`, which is exactly why the reduced
+single-declaration repro did not reproduce it.
 
-A minimal reproduction of the `shared_lock_fn` case did **not** reproduce the
-failure, which suggests an interaction (multiple folded declarations in one TU,
-reassignment such as `lock_fn = otherLock;`, or loss of the attribute's
-spelling-list index — which is what `isShared()` keys off — somewhere in the
-fold/drop path). **This must be root-caused before re-enabling**, because it
-points at either a real `isShared()`-preservation bug or another decl-reading
-path that the audit above missed. Start by folding *only* a single global
-function-pointer variable and bisecting the `FunctionPointers` namespace.
+This was a live bug for plain typedefs too, independent of value-decl folding.
+Fixed in `[TSA][9/N]` by profiling `isShared()` / `isGeneric()` / the
+try-acquire success value (semantically, not via the spelling index, so
+synonyms still unify), plus a per-attribute argument-count separator; see
+`clang/test/SemaCXX/thread-safety-type-capability-uniquing.cpp`. It fully
+explains the observed failures — no unexplained residue remains.
 
 ## Work items to complete the follow-up
 
-1. **Root-cause the shared-variant regression** (above). Confirm `isShared()`
-   is preserved through fold + `dropAttr` + type round-trip; add a test with a
-   `requires_shared_capability` **variable** (not just typedef).
+1. ~~**Root-cause the shared-variant regression**~~ — **done**, see above; the
+   fix landed in `[TSA][9/N]`. Value-decl folding still needs a
+   `requires_shared_capability` **variable** test when it is re-enabled.
 
 2. **Extend `foldCapabilityAttrsIntoType`** to accept `VarDecl` and `FieldDecl`
    of function-pointer type. A value declaration stores its type separately
