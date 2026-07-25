@@ -1119,6 +1119,54 @@ void TypePrinter::printFunctionProtoAfter(const FunctionProtoType *T,
   if (T->hasCFIUncheckedCallee())
     OS << " __attribute__((cfi_unchecked_callee))";
 
+  for (const Attr *A : T->getCapabilityAttrs()) {
+    // Use a canonical spelling per attribute kind: the spelling index a user
+    // wrote (e.g. 'exclusive_locks_required' vs 'requires_capability') is not
+    // reliably preserved on the type, so printing it would be nondeterministic.
+    StringRef Name;
+    switch (A->getKind()) {
+    case attr::RequiresCapability:
+      Name = cast<RequiresCapabilityAttr>(A)->isShared()
+                 ? "requires_shared_capability"
+                 : "requires_capability";
+      break;
+    case attr::AcquireCapability:
+      Name = cast<AcquireCapabilityAttr>(A)->isShared()
+                 ? "acquire_shared_capability"
+                 : "acquire_capability";
+      break;
+    case attr::ReleaseCapability: {
+      const auto *RA = cast<ReleaseCapabilityAttr>(A);
+      Name = RA->isGeneric()  ? "release_generic_capability"
+             : RA->isShared() ? "release_shared_capability"
+                              : "release_capability";
+      break;
+    }
+    case attr::TryAcquireCapability:
+      Name = cast<TryAcquireCapabilityAttr>(A)->isShared()
+                 ? "try_acquire_shared_capability"
+                 : "try_acquire_capability";
+      break;
+    case attr::AssertCapability:
+      Name = cast<AssertCapabilityAttr>(A)->isShared()
+                 ? "assert_shared_capability"
+                 : "assert_capability";
+      break;
+    case attr::LocksExcluded:
+      Name = "locks_excluded";
+      break;
+    default:
+      continue;
+    }
+    OS << " __attribute__((" << Name << '(';
+    llvm::ListSeparator Sep;
+    for (const Expr *E : getCapabilityAttrArgs(A)) {
+      OS << Sep;
+      E->printPretty(OS, nullptr, Policy);
+    }
+    OS << ")))";
+  }
+
   if (T->hasTrailingReturn()) {
     OS << " -> ";
     print(T->getReturnType(), OS, StringRef());

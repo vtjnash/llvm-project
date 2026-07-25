@@ -8941,6 +8941,16 @@ static void foldCapabilityAttrsIntoType(Sema &S, Decl *D) {
   TypeSourceInfo *NewTSI =
       S.Context.getTrivialTypeSourceInfo(NewType, TND->getLocation());
   TND->setTypeSourceInfo(NewTSI);
+
+  // The requirements now live in the type; drop them from the declaration so
+  // they are not processed (or printed) twice. The attribute objects remain
+  // valid -- the rebuilt type references the same ones.
+  D->dropAttr<RequiresCapabilityAttr>();
+  D->dropAttr<AcquireCapabilityAttr>();
+  D->dropAttr<ReleaseCapabilityAttr>();
+  D->dropAttr<TryAcquireCapabilityAttr>();
+  D->dropAttr<AssertCapabilityAttr>();
+  D->dropAttr<LocksExcludedAttr>();
 }
 
 void Sema::ProcessDeclAttributes(Scope *S, Decl *D, const Declarator &PD) {

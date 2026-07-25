@@ -8329,7 +8329,7 @@ void test_typedef_auto(req_cb_t cb) {
 template <class T> void call_through(T cb) {
   cb(); // expected-warning {{calling function 'cb' requires holding mutex 'mu' exclusively}}
 }
-template void call_through<req_cb_t>(req_cb_t); // expected-note {{in instantiation of function template specialization 'FunctionPointers::call_through<void (*)()>' requested here}}
+template void call_through<req_cb_t>(req_cb_t); // expected-note {{in instantiation of function template specialization 'FunctionPointers::call_through<void (*)() __attribute__((requires_capability(mu)))>' requested here}}
 
 void test_typedef_drop(req_cb_t cb) {
   void (*raw)(void) = cb; // ok: requirement dropped by the conversion
