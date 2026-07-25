@@ -8341,6 +8341,16 @@ void test_typedef_keep(req_cb_t cb) {
   same(); // expected-warning {{calling function 'same' requires holding mutex 'mu' exclusively}}
 }
 
+// A try-acquire requirement folded into the type is honored on the branch
+// where the try-lock succeeded, just as when written on a declaration.
+typedef bool (*trylock_cb_t)(void) EXCLUSIVE_TRYLOCK_FUNCTION(true, mu);
+void test_typedef_trylock(trylock_cb_t trylock) {
+  if (trylock()) {
+    x = 1; // ok: mu acquired by the successful try-lock
+    mu.Unlock();
+  }
+}
+
 // Member typedefs are late-parsed, and their requirement is folded into the
 // type once its arguments are known -- provided those arguments are
 // context-free. A requirement naming a sibling member cannot be part of the

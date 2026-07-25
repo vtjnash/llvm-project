@@ -90,6 +90,21 @@ static const FunctionProtoType *getCalleeFunctionProtoType(const NamedDecl *D) {
   return T->getAs<FunctionProtoType>();
 }
 
+/// The try-acquire capability attributes that apply to a call through \p D,
+/// gathered both from the declaration and from the function type reached
+/// through it (e.g. a typedef that folded the attribute into the type).
+static llvm::SmallVector<const TryAcquireCapabilityAttr *, 2>
+getTryAcquireCapabilityAttrs(const NamedDecl *D) {
+  llvm::SmallVector<const TryAcquireCapabilityAttr *, 2> Attrs;
+  for (const auto *A : D->specific_attrs<TryAcquireCapabilityAttr>())
+    Attrs.push_back(A);
+  if (const FunctionProtoType *FPT = getCalleeFunctionProtoType(D))
+    for (const Attr *A : FPT->getCapabilityAttrs())
+      if (const auto *TA = dyn_cast<TryAcquireCapabilityAttr>(A))
+        Attrs.push_back(TA);
+  return Attrs;
+}
+
 /// Issue a warning about an invalid lock expression
 static void warnInvalidLock(ThreadSafetyHandler &Handler,
                             const Expr *MutexExp, const NamedDecl *D,
@@ -1745,7 +1760,7 @@ ThreadSafetyAnalyzer::getTerminatorTrylockCall(const CFGBlock *Block,
     return {};
 
   auto *FunDecl = dyn_cast_or_null<NamedDecl>(Exp->getCalleeDecl());
-  if (!FunDecl || !FunDecl->hasAttr<TryAcquireCapabilityAttr>())
+  if (!FunDecl || getTryAcquireCapabilityAttrs(FunDecl).empty())
     return {};
 
   return {Exp, FunDecl, std::move(Cleanup)};
@@ -1769,7 +1784,7 @@ void ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
   CapExprSet SharedLocksToAdd;
 
   // If the condition is a call to a Trylock function, then grab the attributes
-  for (const auto *Attr : FunDecl->specific_attrs<TryAcquireCapabilityAttr>())
+  for (const auto *Attr : getTryAcquireCapabilityAttrs(FunDecl))
     getMutexIDs(Attr->isShared() ? SharedLocksToAdd : ExclusiveLocksToAdd, Attr,
                 Exp, FunDecl, PredBlock, CurrBlock, Attr->getSuccessValue(),
                 Negate);
@@ -1794,7 +1809,7 @@ void ThreadSafetyAnalyzer::getTerminatorTrylockCaps(const CFGBlock *Block,
   if (!Exp)
     return;
 
-  for (const auto *Attr : FunDecl->specific_attrs<TryAcquireCapabilityAttr>())
+  for (const auto *Attr : getTryAcquireCapabilityAttrs(FunDecl))
     getMutexIDs(Caps, Attr, Exp, FunDecl);
 }
 
