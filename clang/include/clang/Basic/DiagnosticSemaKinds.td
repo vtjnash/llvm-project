@@ -4358,6 +4358,14 @@ def warn_thread_attribute_requires_preceded : Warning<
 def warn_thread_attribute_not_on_fun_ptr : Warning<
   "%0 attribute on a %select{variable|field|typedef}1 requires the %select{variable|field|typedef}1 to be of function pointer type">,
   InGroup<ThreadSafetyAttributes>, DefaultIgnore;
+def warn_thread_attribute_on_typedef_ignored : Warning<
+  "%0 attribute on %1 cannot become part of the type it names "
+  "%select{because the capability is relative to an object or a parameter|"
+  "because the capability does not have global storage|"
+  "because %1 was already used to declare something|"
+  "because an alias template's requirement is never substituted|"
+  "because the function type has no prototype}2; attribute ignored">,
+  InGroup<ThreadSafetyAttributes>, DefaultIgnore;
 def err_attribute_argument_out_of_bounds_extra_info : Error<
   "%0 attribute parameter %1 is out of bounds: "
   "%plural{0:no parameters to index into|"

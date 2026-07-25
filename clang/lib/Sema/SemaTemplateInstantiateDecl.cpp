@@ -1602,8 +1602,14 @@ Decl *TemplateDeclInstantiator::InstantiateTypedefNameDecl(TypedefNameDecl *D,
   // not be folded into the pattern's type, so it is still on the declaration.
   // Its arguments have just been substituted, so retry the fold here; this is
   // what makes the requirement visible to the analysis, which reads it from
-  // the type and never from the typedef declaration.
-  SemaRef.foldCapabilityAttrsIntoType(Typedef);
+  // the type and never from the typedef declaration. Instantiating the pattern
+  // of an alias template produces another alias-template pattern, whose
+  // parameters are still dependent, and whose fold is still never retried --
+  // the instantiated declaration does not know that yet either, so pass it.
+  const auto *PatternAlias = dyn_cast<TypeAliasDecl>(D);
+  SemaRef.foldCapabilityAttrsIntoType(
+      Typedef, /*IsAliasTemplatePattern=*/PatternAlias &&
+                   PatternAlias->getDescribedAliasTemplate());
 
   if (D->getUnderlyingType()->getAs<DependentNameType>())
     SemaRef.inferGslPointerAttribute(Typedef);

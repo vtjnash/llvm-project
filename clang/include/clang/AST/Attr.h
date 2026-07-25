@@ -460,6 +460,15 @@ unsigned getCapabilityAttrSemantics(const Attr *A);
 /// state different requirements.
 const Expr *getCapabilityAttrSuccessValue(const Attr *A);
 
+/// Add everything that makes \p A a distinct capability requirement -- its
+/// kind, the sharedness and genericness encoded in its spelling, try-acquire's
+/// success value, and its capability arguments -- to \p ID. Two attributes
+/// with the same profile state the same requirement. This is what makes two
+/// function types carrying capability attributes distinct, so it must agree
+/// with areEquivalentCapabilityAttrs.
+void profileCapabilityAttr(llvm::FoldingSetNodeID &ID, const Attr *A,
+                           const ASTContext &Context);
+
 /// Whether two thread-safety capability attributes state the same
 /// requirement: same kind, same sharedness/genericness, same try-acquire
 /// success value, and the same capability arguments -- but not necessarily

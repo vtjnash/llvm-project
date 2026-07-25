@@ -122,8 +122,8 @@ static bool IsAttributeArgsParsedInFunctionScope(const IdentifierInfo &II) {
 /// requirement -- one of the attributes that Sema folds into the type of a
 /// typedef it is written on (see Sema::foldCapabilityAttrsIntoType)?
 static bool IsCapabilityAttributeName(const IdentifierInfo &II) {
-  switch (ParsedAttr::getParsedKind(&II, /*Scope=*/nullptr,
-                                    ParsedAttr::AS_GNU)) {
+  switch (
+      ParsedAttr::getParsedKind(&II, /*Scope=*/nullptr, ParsedAttr::AS_GNU)) {
   case ParsedAttr::AT_RequiresCapability:
   case ParsedAttr::AT_AcquireCapability:
   case ParsedAttr::AT_ReleaseCapability:

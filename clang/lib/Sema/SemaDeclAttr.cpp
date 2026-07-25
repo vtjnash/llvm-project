@@ -8874,9 +8874,6 @@ void Sema::ProcessPragmaWeak(Scope *S, Decl *D) {
   }
 }
 
-/// ProcessDeclAttributes - Given a declarator (PD) with attributes indicated in
-/// it, apply them to D.  This is a bit tricky because PD can have attributes
-/// specified in many different places, and we need to find and apply them all.
 /// Rebuild \p T, which must be a function type or a pointer/reference/block
 /// pointer to one, so that its FunctionProtoType additionally carries the
 /// given thread-safety capability attributes in its type. Returns a null type
@@ -8901,7 +8898,7 @@ void Sema::ProcessPragmaWeak(Scope *S, Decl *D) {
 /// (it requires a NamedDecl callee), so admitting blocks would only fold the
 /// requirement into a type nothing reads.
 static QualType addCapabilityAttrsToFunctionType(ASTContext &Ctx, QualType T,
-                                                  ArrayRef<const Attr *> Attrs) {
+                                                 ArrayRef<const Attr *> Attrs) {
   // Qualifiers written on the pointer sit outside it, so peel them off,
   // rebuild what they qualify, and re-apply them; otherwise a 'const'
   // function-pointer typedef would quietly become assignable.
@@ -9002,6 +8999,29 @@ static QualType addCapabilityAttrsToFunctionType(ASTContext &Ctx, QualType T,
   return Quals.empty() ? Result : Ctx.getQualifiedType(Result, Quals);
 }
 
+namespace {
+/// Why a thread-safety capability attribute written on a typedef cannot be
+/// folded into the type the typedef names. The enumerators other than None
+/// are the %select values of warn_thread_attribute_on_typedef_ignored, in
+/// order.
+enum class CapabilityFoldObstacle {
+  /// The argument is relative to an object or a parameter.
+  ObjectRelativeArg,
+  /// The argument names a variable that does not outlive the type.
+  NonGlobalArg,
+  /// The typedef already named a type before the attribute was seen.
+  TypeAlreadyUsed,
+  /// Something is still dependent. Only diagnosed for an alias template,
+  /// which is the one shape whose fold is never retried.
+  Dependent,
+  /// The underlying function type has no prototype (a K&R-style declarator),
+  /// so there is no FunctionProtoType to carry the attribute.
+  NoPrototype,
+  /// Nothing is in the way.
+  None,
+};
+} // namespace
+
 /// A capability attribute argument can only become part of the type if it does
 /// not depend on a particular object or call: an argument that names a sibling
 /// member, 'this', or a parameter must be resolved relative to the declaration
@@ -9011,7 +9031,11 @@ static QualType addCapabilityAttrsToFunctionType(ASTContext &Ctx, QualType T,
 /// The same applies to an argument that is not yet fully resolved, either
 /// because it is still dependent or because it names a declaration whose
 /// lifetime is shorter than the type it would be interned into.
-static bool capabilityArgIsContextFree(const Expr *E) {
+///
+/// Returns true if \p E can be folded; otherwise sets \p Why to the reason it
+/// cannot, which the caller reports.
+static bool capabilityArgIsContextFree(const Expr *E,
+                                       CapabilityFoldObstacle &Why) {
   if (!E)
     return true;
   // A dependent argument must not be folded: the rebuilt type is interned in
@@ -9021,26 +9045,77 @@ static bool capabilityArgIsContextFree(const Expr *E) {
   // is retried on the instantiated declaration once the argument is known.
   // This covers dependent DeclRefExprs, CXXDependentScopeMemberExpr,
   // DependentScopeDeclRefExpr, UnresolvedLookupExpr and pack expansions.
-  if (E->isInstantiationDependent())
+  if (E->isInstantiationDependent()) {
+    Why = CapabilityFoldObstacle::Dependent;
     return false;
-  if (isa<CXXThisExpr>(E) || isa<MemberExpr>(E))
+  }
+  if (isa<CXXThisExpr>(E) || isa<MemberExpr>(E)) {
+    Why = CapabilityFoldObstacle::ObjectRelativeArg;
     return false;
+  }
   if (const auto *DRE = dyn_cast<DeclRefExpr>(E)) {
     const ValueDecl *VD = DRE->getDecl();
-    if (isa<FieldDecl, ParmVarDecl>(VD))
+    if (isa<FieldDecl, ParmVarDecl>(VD)) {
+      Why = CapabilityFoldObstacle::ObjectRelativeArg;
       return false;
+    }
     // A block-scope variable does not outlive the statement it is declared
     // in, but the rebuilt function type is uniqued in the ASTContext for the
     // whole translation unit, so it must not reference one.
     if (const auto *Var = dyn_cast<VarDecl>(VD);
-        Var && !Var->hasGlobalStorage())
+        Var && !Var->hasGlobalStorage()) {
+      Why = CapabilityFoldObstacle::NonGlobalArg;
       return false;
+    }
   }
   for (const Stmt *C : E->children())
     if (const auto *CE = dyn_cast_or_null<Expr>(C))
-      if (!capabilityArgIsContextFree(CE))
+      if (!capabilityArgIsContextFree(CE, Why))
         return false;
   return true;
+}
+
+/// Remove every thread-safety capability attribute from \p D. Used both when
+/// the requirements have moved into the type and when they have been reported
+/// as ignored; either way nothing should read them from the declaration again.
+static void dropCapabilityAttrs(Decl *D) {
+  D->dropAttr<RequiresCapabilityAttr>();
+  D->dropAttr<AcquireCapabilityAttr>();
+  D->dropAttr<ReleaseCapabilityAttr>();
+  D->dropAttr<TryAcquireCapabilityAttr>();
+  D->dropAttr<AssertCapabilityAttr>();
+  D->dropAttr<LocksExcludedAttr>();
+}
+
+/// Report the capability attributes of \p TND as ignored, and drop them.
+///
+/// A capability attribute on a typedef only ever does anything through the
+/// type: no analysis path reads it from the declaration. So when the fold
+/// declines for good, the attribute is a silent no-op -- exactly the failure
+/// mode a safety annotation must not have -- and saying so is the whole point
+/// of this function. Dropping the attribute afterwards keeps the rest of the
+/// AST honest: DeclPrinter prints a typedef's declaration attributes, so
+/// leaving them would make -ast-print show an annotation that means nothing.
+///
+/// \p IsAliasTemplatePattern says that \p TND is the pattern of an alias
+/// template. That distinction matters for a dependent obstacle: a typedef or
+/// alias in a class or function template is instantiated as a declaration, and
+/// the fold is retried there once the arguments are known, so nothing is lost
+/// and nothing is said. An alias template is never instantiated as a
+/// declaration -- naming it substitutes into the pattern's underlying type --
+/// so its deferred fold is never retried and the requirement really is gone.
+static void diagnoseIgnoredCapabilityAttrs(Sema &S, TypedefNameDecl *TND,
+                                           ArrayRef<const Attr *> CapAttrs,
+                                           CapabilityFoldObstacle Why,
+                                           bool IsAliasTemplatePattern) {
+  if (Why == CapabilityFoldObstacle::Dependent && !IsAliasTemplatePattern)
+    return;
+
+  for (const Attr *A : CapAttrs)
+    S.Diag(A->getLocation(), diag::warn_thread_attribute_on_typedef_ignored)
+        << A << TND << static_cast<unsigned>(Why);
+
+  dropCapabilityAttrs(TND);
 }
 
 /// Fold any thread-safety capability attributes on \p D into its function
@@ -9058,16 +9133,20 @@ static bool capabilityArgIsContextFree(const Expr *E) {
 /// created, and only its sugar is read back from the declaration. If the type
 /// has already been handed out, folding now would leave every type built from
 /// it -- and every type built from those -- disagreeing with the same typedef
-/// used later. The attributes are left on the declaration in that case, where
-/// they are inert, rather than splitting the typedef's identity in two.
-void Sema::foldCapabilityAttrsIntoType(Decl *D) {
+/// used later. The attributes are dropped in that case, rather than splitting
+/// the typedef's identity in two.
+///
+/// Whenever the fold declines for a reason that will not go away, the
+/// attributes are reported as ignored; see diagnoseIgnoredCapabilityAttrs for
+/// which reasons those are. \p IsAliasTemplatePattern tells the fold that \p D
+/// is the pattern of an alias template, for callers that know it before
+/// TypeAliasDecl::setDescribedAliasTemplate has run.
+void Sema::foldCapabilityAttrsIntoType(Decl *D, bool IsAliasTemplatePattern) {
   auto *TND = dyn_cast<TypedefNameDecl>(D);
   if (!TND)
     return;
   TypeSourceInfo *OldTSI = TND->getTypeSourceInfo();
   if (!OldTSI)
-    return;
-  if (Context.hasTypedefTypeBeenCreated(TND))
     return;
 
   llvm::SmallVector<const Attr *, 2> CapAttrs;
@@ -9077,17 +9156,43 @@ void Sema::foldCapabilityAttrsIntoType(Decl *D) {
   if (CapAttrs.empty())
     return;
 
-  // Only fold when every requirement is context-free; otherwise leave all of
-  // them on the declaration so object-relative arguments keep resolving there.
-  for (const Attr *A : CapAttrs)
-    for (const Expr *E : getCapabilityAttrArgs(A))
-      if (!capabilityArgIsContextFree(E))
-        return;
+  if (const auto *TA = dyn_cast<TypeAliasDecl>(TND))
+    IsAliasTemplatePattern |= TA->getDescribedAliasTemplate() != nullptr;
 
-  QualType NewType =
-      addCapabilityAttrsToFunctionType(Context, OldTSI->getType(), CapAttrs);
-  if (NewType.isNull())
+  // Fold only when every requirement is context-free; otherwise leave none of
+  // them in the type, so that an all-or-nothing type is never half true.
+  auto FindObstacle = [&]() {
+    if (Context.hasTypedefTypeBeenCreated(TND))
+      return CapabilityFoldObstacle::TypeAlreadyUsed;
+    for (const Attr *A : CapAttrs)
+      for (const Expr *E : getCapabilityAttrArgs(A)) {
+        CapabilityFoldObstacle Why = CapabilityFoldObstacle::None;
+        if (!capabilityArgIsContextFree(E, Why))
+          return Why;
+      }
+    return CapabilityFoldObstacle::None;
+  };
+  CapabilityFoldObstacle Why = FindObstacle();
+
+  QualType NewType;
+  if (Why == CapabilityFoldObstacle::None) {
+    NewType =
+        addCapabilityAttrsToFunctionType(Context, OldTSI->getType(), CapAttrs);
+    // The subject check already rejected everything but a function pointer and
+    // a dependent type, so what is left here is a dependent type -- rechecked
+    // after substitution -- or a pointer to an unprototyped function type,
+    // which has no FunctionProtoType to carry the attribute.
+    if (NewType.isNull())
+      Why = OldTSI->getType()->isDependentType()
+                ? CapabilityFoldObstacle::Dependent
+                : CapabilityFoldObstacle::NoPrototype;
+  }
+
+  if (Why != CapabilityFoldObstacle::None) {
+    diagnoseIgnoredCapabilityAttrs(*this, TND, CapAttrs, Why,
+                                   IsAliasTemplatePattern);
     return;
+  }
 
   // Folding the attributes into the type strips the source sugar around the
   // pointer level, so a matching TypeLoc cannot be copied from the original.
@@ -9100,14 +9205,12 @@ void Sema::foldCapabilityAttrsIntoType(Decl *D) {
   // The requirements now live in the type; drop them from the declaration so
   // they are not processed (or printed) twice. The attribute objects remain
   // valid -- the rebuilt type references the same ones.
-  D->dropAttr<RequiresCapabilityAttr>();
-  D->dropAttr<AcquireCapabilityAttr>();
-  D->dropAttr<ReleaseCapabilityAttr>();
-  D->dropAttr<TryAcquireCapabilityAttr>();
-  D->dropAttr<AssertCapabilityAttr>();
-  D->dropAttr<LocksExcludedAttr>();
+  dropCapabilityAttrs(D);
 }
 
+/// ProcessDeclAttributes - Given a declarator (PD) with attributes indicated in
+/// it, apply them to D.  This is a bit tricky because PD can have attributes
+/// specified in many different places, and we need to find and apply them all.
 void Sema::ProcessDeclAttributes(Scope *S, Decl *D, const Declarator &PD) {
   // Ordering of attributes can be important, so we take care to process
   // attributes in the order in which they appeared in the source code.

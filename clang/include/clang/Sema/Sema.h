@@ -5225,7 +5225,8 @@ public:
   /// Fold any thread-safety capability attributes on \p D into its function
   /// type, so the requirements become part of the type. Called after a
   /// declaration's attributes have been attached (including late-parsed ones).
-  void foldCapabilityAttrsIntoType(Decl *D);
+  void foldCapabilityAttrsIntoType(Decl *D,
+                                   bool IsAliasTemplatePattern = false);
 
   void PopParsingDeclaration(ParsingDeclState state, Decl *decl);
 

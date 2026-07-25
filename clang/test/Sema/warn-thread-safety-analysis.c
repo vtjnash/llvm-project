@@ -396,6 +396,16 @@ void test_typedef_acquire_release(cb_lock_t lock, cb_unlock_t unlock) {
 // would have no call site to constrain.
 typedef int bad_requires_t EXCLUSIVE_LOCKS_REQUIRED(mu1); // expected-warning {{'exclusive_locks_required' attribute on a typedef requires the typedef to be of function pointer type}}
 
+// An unprototyped function type is a function pointer type, so the subject
+// check accepts it, but there is no FunctionProtoType to carry the
+// requirement. Nothing reads a typedef's declaration attributes, so rather
+// than being a silent no-op it is reported as ignored.
+// expected-warning@+1 {{'exclusive_locks_required' attribute on 'noproto_requires_t' cannot become part of the type it names because the function type has no prototype; attribute ignored}}
+typedef void (*noproto_requires_t)() EXCLUSIVE_LOCKS_REQUIRED(mu1);
+void test_typedef_noproto(noproto_requires_t cb) {
+  cb(); // no warning: the attribute above was reported as ignored
+}
+
 // The requirement is part of the type, so assigning to a function pointer of
 // the same type carries it, while assigning to a bare function pointer type
 // drops it (like dropping 'noexcept'); the call through the bare pointer is

@@ -1,5 +1,6 @@
-// RUN: %clang_cc1 -fsyntax-only -verify=analysis -std=c++17 -Wthread-safety %s
-// RUN: %clang_cc1 -fsyntax-only -verify=late -std=c++17 -Wthread-safety \
+// RUN: %clang_cc1 -fsyntax-only -verify=analysis,attrs -std=c++17 \
+// RUN:   -Wthread-safety %s
+// RUN: %clang_cc1 -fsyntax-only -verify=late,attrs -std=c++17 -Wthread-safety \
 // RUN:   -Wno-thread-safety-analysis -DTEST_LATE_ARGUMENTS %s
 
 // A capability attribute on a class-member typedef is folded into the
@@ -168,9 +169,11 @@ void call_dependent(Dependent<&mu>::cb f) {
 
 struct Unfoldable {
   Mutex m;
-  // Resolving this needs an object, which a type cannot carry, so the
-  // attribute stays on the declaration, where nothing reads it. The typedef
-  // still means one thing everywhere, which is what matters here.
+  // Resolving this needs an object, which a type cannot carry. Nothing reads a
+  // typedef's declaration attributes, so the requirement would be a silent
+  // no-op; it is reported as ignored instead. The typedef still means one
+  // thing everywhere, which is what matters here.
+  // attrs-warning@+1 {{'exclusive_locks_required' attribute on 'cb' cannot become part of the type it names because the capability is relative to an object or a parameter; attribute ignored}}
   typedef void (*cb)(void) REQUIRES(m);
   cb direct;
 
@@ -189,8 +192,10 @@ static_assert(__is_same(decltype(Unfoldable::direct), Unfoldable::cb),
 // Written before the declarator there is no declarator to tell the parser that
 // this declaration is a typedef, so the attribute is still late-parsed and the
 // fold is refused rather than performed too late. The requirement is lost --
-// but the typedef, again, means one thing everywhere.
+// but the typedef, again, means one thing everywhere, and the refusal is
+// reported rather than silent.
 struct DeclSpecPosition {
+  // attrs-warning@+1 {{'exclusive_locks_required' attribute on 'cb' cannot become part of the type it names because 'cb' was already used to declare something; attribute ignored}}
   REQUIRES(mu) typedef void (*cb)(void);
   cb direct;
 

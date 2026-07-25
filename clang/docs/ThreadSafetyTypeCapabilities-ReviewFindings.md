@@ -169,9 +169,9 @@ attrs' arg streams are concatenated with no boundary, so
     point the parser sees it there is no declarator to say the declaration is
     a typedef, and it may even precede the `typedef` keyword. If the typedef
     was used inside the class the fold is refused and the requirement is
-    silently lost (F12 territory: it joins the other unfoldable typedef
-    attributes P8 will diagnose); if it was not used, the late fold is safe
-    and still happens. Either way the typedef means one thing everywhere.
+    lost — since P8 with F12's "type already used" diagnostic, rather than
+    silently; if it was not used, the late fold is safe and still happens.
+    Either way the typedef means one thing everywhere.
     This is the only spelling still affected, and it is not the one the
     thread-safety macros produce.
   - **Related, not fixed here (F3 residual):** a member declared with the
@@ -295,10 +295,16 @@ attrs' arg streams are concatenated with no boundary, so
     as a declaration — using it substitutes into the pattern's underlying type
     — so when the fold has to be deferred (dependent underlying type, or
     dependent capability argument such as an NTTP mutex) nothing retries it
-    and the requirement is lost silently. FIXME tests in
-    `thread-safety-type-capability-alias.cpp`. A fix belongs in
-    `CheckTemplateIdType`'s alias-template path and needs the pattern's
-    attributes substituted without a declaration to hang them on.
+    and the requirement is lost. A fix belongs in `CheckTemplateIdType`'s
+    alias-template path and needs the pattern's attributes substituted without
+    a declaration to hang them on. *P8 did not fix that, but it is no longer
+    silent: an alias template is the one shape whose deferred fold can never
+    be retried, so F12's diagnostic fires at the pattern (reason 4) and the
+    attribute is dropped. The FIXME tests in
+    `thread-safety-type-capability-alias.cpp` became expectations, joined by a
+    member alias template of a class template — reported once at the pattern,
+    not once per enclosing instantiation, because the drop takes the attribute
+    out of the instantiation's way.*
   - **Residual F8b (other attribute positions).** The review's "trailing
     position is dropped silently" is only partly right, and neither trailing
     form is silent: `using a = void (*)(void) __attribute__((...));` is a
@@ -392,11 +398,52 @@ attrs' arg streams are concatenated with no boundary, so
   - Doc sentence softened (see D2): `ThreadSafetyAnalysis.md` now states which
     callee forms are checked, shows the unchecked one, and notes the F7 dedup.
 
-- [ ] **F12. Non-foldable typedef attributes are accepted and silently
+- [x] **F12. Non-foldable typedef attributes are accepted and silently
   no-op.** When `capabilityArgIsContextFree` bails (object-relative args),
   the attrs stay on the `TypedefNameDecl`, which no analysis path reads —
   users get silence where they expect protection. Fix: diagnose ("attribute
   ignored") when the fold declines for a non-dependent reason.
+  Fixed in P8. `warn_thread_attribute_on_typedef_ignored`
+  (`-Wthread-safety-attributes`, so on under `-Wthread-safety`) is emitted
+  from `Sema::foldCapabilityAttrsIntoType` at the attribute's location, naming
+  the attribute, the typedef, and one of five reasons
+  (`CapabilityFoldObstacle`, whose enumerators are the diagnostic's `%select`
+  values):
+  1. *object-relative argument* — `this`, a `MemberExpr`, a `FieldDecl` or a
+     `ParmVarDecl`, i.e. the original F12 case;
+  2. *no global storage* — a block-scope mutex (P3's guard, F13);
+  3. *type already used* — P7's safety net, reachable through the
+     declaration-specifier attribute position (F4's residual);
+  4. *alias template* — a dependent obstacle on an alias-template pattern
+     (F8a), which is never retried;
+  5. *no prototype* — a pointer to a `FunctionNoProtoType`, e.g.
+     `typedef void (*cb)() REQ(mu);` before C23. The subject check accepts it
+     (it *is* a function pointer type) but there is no `FunctionProtoType` to
+     carry the attribute. Not previously known; found while enumerating the
+     `NewType.isNull()` paths.
+  - **Dependent obstacles do not warn in a class or function template.** The
+    fold is retried on the instantiated declaration (F10), so nothing is lost.
+    An alias template is the one shape that is never instantiated as a
+    declaration, so it warns — `foldCapabilityAttrsIntoType` grew an
+    `IsAliasTemplatePattern` parameter because neither `ActOnAliasDeclaration`
+    nor `InstantiateTypeAliasTemplateDecl` has called
+    `setDescribedAliasTemplate` by the time it runs.
+  - **The attributes are dropped when they are diagnosed** (and only then —
+    a deferred fold must keep them for `InstantiateAttrs` to substitute).
+    `DeclPrinter::VisitTypedefDecl`/`VisitTypeAliasDecl` *do* print a
+    typedef's declaration attributes, so leaving them would make `-ast-print`
+    show an annotation that means nothing; verified that an ignored attribute
+    no longer appears while a folded one still does. Dropping also makes the
+    diagnostic fire once for a member alias template rather than once per
+    enclosing instantiation.
+  - Tests updated to expect the warning, and their FIXMEs removed:
+    `warn-thread-safety-analysis.cpp` (`Host::member_req_t`, the
+    `[TSA][6/N]`-era "no crash" case), `.../-member.cpp` (`Unfoldable::cb`
+    and `DeclSpecPosition::cb`; its two `-verify` runs now share an `attrs`
+    prefix for the diagnostics common to both), `.../-templates.cpp`
+    (block-scope mutex), `.../-alias.cpp` (`Host::self_cb`, and the two F8a
+    alias templates plus a new member-alias-template case). New coverage for
+    the no-prototype reason in `clang/test/Sema/warn-thread-safety-analysis.c`.
 
 - [x] **F13. `capabilityArgIsContextFree` misses expression kinds.**
   (`SemaDeclAttr.cpp:8916-8929`) Doesn't reject dependent exprs
@@ -407,8 +454,8 @@ attrs' arg streams are concatenated with no boundary, so
   `isInstantiationDependent()` expr and refs to `VarDecl`s without global
   storage. (Same batch as F3.) Both guards added in P3. Note the second one
   makes a function-local `REQUIRES(local_mutex)` typedef stop folding, so it
-  is now silently ignored until F12's diagnostic lands (a `static` local
-  still folds); tested and FIXME'd.
+  is now ignored (a `static` local still folds); tested, and diagnosed since
+  P8 under F12's reason 2 rather than silent.
 
 - [x] **F14. Type-identity machinery is unaware of `CapabilityAttrs`.**
   All pre-existing code that assumes function-type identity is fully captured
@@ -495,21 +542,45 @@ attrs' arg streams are concatenated with no boundary, so
   "the same type") stays strict. Function effects draw the line in exactly the
   same place.
 
-- [ ] **F17. `IsFunctionConversion` rebuilds the type even when the attr sets
+- [x] **F17. `IsFunctionConversion` rebuilds the type even when the attr sets
   are equal.** (`SemaOverload.cpp:2059-2067`) Neighbouring effects block
   guards on inequality; this fires whenever either side is non-empty. Guard it
-  (needs a real attr-set comparison helper).
+  (needs a real attr-set comparison helper). *Done in P8: the block is now
+  guarded by `!areEquivalentCapabilityAttrSets(...)` (P6's helper), matching
+  the effects block above it. No behavior change — the rebuild was a no-op
+  whenever the sets were equal, it just set `Changed` and forced a
+  `getFunctionType` lookup; full `Sema`/`SemaCXX`/`SemaTemplate`/`AST`/`PCH`/
+  `Modules`/`Analysis`/`ASTMerge` sweep unchanged.*
 
-- [ ] **F18. Style/upstreamability.**
+- [x] **F18. Style/upstreamability.**
   (a) The new `/// Rebuild \p T ...` block landed between the
   `ProcessDeclAttributes` banner comment and its function
   (`SemaDeclAttr.cpp:8858-8867`); move the three new functions above the
   banner. (b) Mis-indented continuation at `:8867`; run `git clang-format`.
   (c) `isCapabilityAttr`/`getCapabilityAttrArgs` declared in `Attr.h` but
   defined in `Type.cpp`; move to `AttrImpl.cpp`. (d) Null-arg skipping in
-  `Profile` (folded into F1's separator fix).
+  `Profile` (folded into F1's separator fix). *All done in P8.*
+  - (a)/(b) `addCapabilityAttrsToFunctionType`, `capabilityArgIsContextFree`
+    and `Sema::foldCapabilityAttrsIntoType` (plus P8's two new helpers) now sit
+    *above* the banner comment, which is re-attached to `ProcessDeclAttributes`.
+  - (c) The whole capability-attribute helper family moved to
+    `clang/lib/AST/AttrImpl.cpp` under a section banner: `isCapabilityAttr`,
+    `getCapabilityAttrArgs`, `getCapabilityAttrSemantics`,
+    `getCapabilityAttrSuccessValue`, `profileCapabilityAttr`,
+    `areEquivalentCapabilityAttrs`, `containsEquivalentCapabilityAttr`,
+    `areEquivalentCapabilityAttrSets`, `mergeCapabilityAttrs`.
+    `profileCapabilityAttr` had to stop being `static` — it is shared between
+    `areEquivalentCapabilityAttrs` and `FunctionTypeExtraAttributeInfo::Profile`
+    — so it is declared in `Attr.h` with the rest. `Profile` itself stays in
+    `Type.cpp`, and no new includes were needed: `AttrImpl.cpp` already pulls
+    in `ASTContext.h`, `Attr.h`, `Expr.h` and `Type.h`.
+  - (d) `git clang-format f2fc9cc59cf8~1..HEAD` over the files the branch
+    touches: `ThreadSafety.cpp` (P5's `HandleAttr` lambda left the whole
+    `switch` indented one level too deep — whitespace only, confirmed with
+    `git diff -w`), `ParseDecl.cpp`, `SemaDeclAttr.cpp` (F18(b)'s
+    continuation), `SemaDeclCXX.cpp`, `SemaOverload.cpp`. Re-run: clean.
 
-- [ ] **F19. A C++11-spelled capability attribute is not accepted where the
+- [~] **F19. A C++11-spelled capability attribute is not accepted where the
   type printer has to write it.** Found while fixing F6.
   `[[clang::requires_capability(mu)]] typedef void (*cb)(void);` folds fine,
   but `typedef void (*cb)() [[clang::requires_capability(mu)]];` — the only
@@ -521,6 +592,41 @@ attrs' arg streams are concatenated with no boundary, so
   function parameter's function-pointer type. Now that the attributes really
   are part of the function type, `ProcessTypeAttributeList` arguably should
   accept them there.
+  ***Assessed in P8; deliberately not done.*** The mechanical part is small,
+  the semantic part is a separate feature. What it would take:
+  1. *Attr.td.* The six attributes are `InheritableAttr` with
+     `Subjects = [Function, Var, Field, TypedefName]`. They would become
+     `DeclOrTypeAttr` (the base `CDecl`, `LifetimeBound`, `CountedBy` … use),
+     and their `ParsedAttr::AT_*` kinds would join
+     `FUNCTION_TYPE_ATTRS_CASELIST` in `SemaType.cpp:152`.
+  2. *SemaType.cpp.* A branch in `handleFunctionTypeAttr` alongside
+     `AT_CFISalt` (`:8183`), which is the exact precedent: check the
+     arguments, require a `FunctionProtoType`, rebuild via
+     `ExtProtoInfo::ExtraAttributeInfo`, `unwrapped.wrap`. P8 already has the
+     rebuild logic in `addCapabilityAttrsToFunctionType`.
+  3. *The argument checking is where it stops being mechanical.*
+     `checkAttrArgsAreCapabilityObjs` (`SemaDeclAttr.cpp:345`) takes a
+     `Decl *D` and uses it for the no-argument `this` form (`dyn_cast<
+     CXXMethodDecl>(D)`, `warn_thread_attribute_not_on_capability_member`) and
+     for the `ParamIdxOk` form (`FD->getParamDecl(...)`). In a type position
+     there is no declaration, so both forms need a defined answer — presumably
+     "rejected in a type position", which is a new diagnostic and a new rule
+     rather than a relaxation.
+  4. *Late parsing.* These attributes are `LateParsed` with
+     `ParseArgsInFunctionScope = 1` precisely so that a member's requirement
+     may name members declared later; P7 turned that *off* for typedef
+     declarators to fix F4. A type-position spelling is parsed immediately,
+     with no declarator to hang a `LateParsedAttrList` on, so it would be a
+     third timing regime in machinery this series just finished stabilizing.
+  5. *It is a feature expansion, not a spelling fix.* A genuine type attribute
+     can be written on a parameter type, a return type, a cast, a template
+     argument — every one of which is a new place a requirement can appear and
+     a new question for the analysis to answer. F6 needs none of that: the
+     printer normalizes to the GNU spelling, which round-trips.
+  Conclusion: out of scope for this series; a good standalone patch once the
+  Part IV canonical-vs-sugar decision is made, since a sugar-based design
+  (Option B) would answer (3)–(5) differently. No code change in P8; parsing
+  untouched.
 
 ### Test gaps (fold into the fixes above; sweep at the end)
 
@@ -584,8 +690,9 @@ attrs' arg streams are concatenated with no boundary, so
 - [~] **D2.** `ThreadSafetyAnalysis.md` overstates coverage (F11) and omits
   the two limitations users hit first: `using` aliases (fixed in P4, but the
   attribute's position on an alias declaration and the F8a alias-template hole
-  need saying) and object-relative args silently ignored (F12, until
-  diagnosed). *The F11 half is done in P5: "calls through any of them are
+  need saying) and object-relative args, which are ignored — with a
+  diagnostic since P8 (F12), which the doc should point at.
+  *The F11 half is done in P5: "calls through any of them are
   checked" no longer claims more than the analysis delivers — the doc now
   lists the callee forms that are checked, shows the unchecked
   not-loaded-from-a-declaration case as a FIXME example, and states that a
@@ -746,7 +853,10 @@ P7 has since fixed within the current design.)
    declarations already did), plus a fold-time refusal to change a type that
    has already been handed out. Residuals recorded: the declaration-specifier
    attribute position, and F3's template-pattern-internal uses.
-8. **P8**: F12 ignored-attr diagnostic; F17; F18 style sweep.
+8. **P8**: F12 ignored-attr diagnostic; F17; F18 style sweep. ✔ (F12 also
+   covers F8a's alias templates, F4's declaration-specifier residual and a
+   newly found unprototyped-function-type case, and drops the attribute it
+   reports. F19 assessed and deliberately left alone — see its entry.)
 9. **P9**: D1–D4 docs; T3; final test sweep.
 10. **P10**: W2 field folding, then W4 variable folding (W3 landed in P6),
     with the Part III test plan. Closes out the ValueDeclFolding TODO's items

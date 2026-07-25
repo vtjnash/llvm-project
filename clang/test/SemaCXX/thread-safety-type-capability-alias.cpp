@@ -105,7 +105,9 @@ struct Host {
 
   Mutex m;
   // An argument naming a member has to be resolved against an object, which a
-  // type cannot carry, so this one is not folded and simply is not checked.
+  // type cannot carry, so this one cannot be folded -- and nothing reads an
+  // alias' declaration attributes, so it is reported as ignored.
+  // analysis-warning@+1 {{'exclusive_locks_required' attribute on 'self_cb' cannot become part of the type it names because the capability is relative to an object or a parameter; attribute ignored}}
   using self_cb REQUIRES(m) = void (*)(void);
 
   void use(member_cb f) {
@@ -147,21 +149,37 @@ void through_alias_template(indirect_cb<int> f) {
   f(); // analysis-warning {{calling function 'f' requires holding mutex 'mu1' exclusively}}
 }
 
-// FIXME: An alias template is not instantiated as a declaration -- using it
-// just substitutes into the pattern's underlying type -- so when the fold has
-// to be deferred (a dependent underlying type, or a dependent capability
-// argument) there is nothing that retries it and the requirement is lost.
-// Both cases below should warn.
+// An alias template is not instantiated as a declaration -- using it just
+// substitutes into the pattern's underlying type -- so when the fold has to be
+// deferred (a dependent underlying type, or a dependent capability argument)
+// there is nothing that retries it. Unlike a typedef or alias in a class or
+// function template, whose fold is retried on the instantiated declaration,
+// this can never work, so it is reported at the pattern.
+// analysis-warning@+1 {{'exclusive_locks_required' attribute on 'dependent_cb' cannot become part of the type it names because an alias template's requirement is never substituted; attribute ignored}}
 template <class T> using dependent_cb REQUIRES(mu1) = T;
 
 void dependent_underlying_type(dependent_cb<void (*)(void)> f) {
-  f(); // no warning
+  f(); // no warning: the attribute above was reported as ignored
 }
 
+// analysis-warning@+1 {{'exclusive_locks_required' attribute on 'nttp_cb' cannot become part of the type it names because an alias template's requirement is never substituted; attribute ignored}}
 template <Mutex *M> using nttp_cb REQUIRES(*M) = void (*)(void);
 
 void dependent_argument(nttp_cb<&mu1> f) {
-  f(); // no warning
+  f(); // no warning: the attribute above was reported as ignored
+}
+
+// A member alias template of a class template is still an alias template after
+// the enclosing class is instantiated, so it is reported there too -- once,
+// because the pattern's attribute is dropped when it is reported.
+template <class T> struct AliasTemplateHost {
+  // analysis-warning@+1 {{'exclusive_locks_required' attribute on 'inner' cannot become part of the type it names because an alias template's requirement is never substituted; attribute ignored}}
+  template <Mutex *M> using inner REQUIRES(*M) = void (*)(void);
+};
+template struct AliasTemplateHost<int>;
+
+void member_alias_template(AliasTemplateHost<int>::inner<&mu1> f) {
+  f(); // no warning: the attribute above was reported as ignored
 }
 
 //===----------------------------------------------------------------------===//

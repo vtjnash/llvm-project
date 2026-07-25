@@ -17266,7 +17266,7 @@ void Sema::ActOnFinishDelayedAttribute(Scope *S, Decl *D,
   // late for anything that has already named the typedef -- but it still
   // arrives here when it was written in the declaration-specifier position,
   // where there is no declarator to say so. The fold declines to change a type
-  // that has already been handed out.
+  // that has already been handed out, and reports the attribute as ignored.
   foldCapabilityAttrsIntoType(D);
 }
 

@@ -2365,75 +2365,75 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
   // Check one attribute describing the function reached through the call.
   auto HandleAttr = [&](const Attr *At) {
     switch (At->getKind()) {
-      // When we encounter a lock function, we need to add the lock to our
-      // lockset.
-      case attr::AcquireCapability: {
-        auto PostContextForThisScope =
-            LVarCtx.switchToContextForScope(DualLocalVarContext::Post);
-        const auto *A = cast<AcquireCapabilityAttr>(At);
-        Analyzer->getMutexIDs(A->isShared() ? SharedLocksToAdd
-                                            : ExclusiveLocksToAdd,
-                              A, Exp, D, Self);
-        break;
-      }
+    // When we encounter a lock function, we need to add the lock to our
+    // lockset.
+    case attr::AcquireCapability: {
+      auto PostContextForThisScope =
+          LVarCtx.switchToContextForScope(DualLocalVarContext::Post);
+      const auto *A = cast<AcquireCapabilityAttr>(At);
+      Analyzer->getMutexIDs(A->isShared() ? SharedLocksToAdd
+                                          : ExclusiveLocksToAdd,
+                            A, Exp, D, Self);
+      break;
+    }
 
-      // An assert will add a lock to the lockset, but will not generate
-      // a warning if it is already there, and will not generate a warning
-      // if it is not removed.
-      case attr::AssertCapability: {
-        auto PostContextForThisScope =
-            LVarCtx.switchToContextForScope(DualLocalVarContext::Post);
-        const auto *A = cast<AssertCapabilityAttr>(At);
-        CapExprSet AssertLocks;
-        Analyzer->getMutexIDs(AssertLocks, A, Exp, D, Self);
-        for (const auto &AssertLock : AssertLocks)
-          Analyzer->addLock(
-              FSet, Analyzer->FactMan.createFact<LockableFactEntry>(
-                        AssertLock, A->isShared() ? LK_Shared : LK_Exclusive,
-                        Loc, FactEntry::Asserted));
-        break;
-      }
+    // An assert will add a lock to the lockset, but will not generate
+    // a warning if it is already there, and will not generate a warning
+    // if it is not removed.
+    case attr::AssertCapability: {
+      auto PostContextForThisScope =
+          LVarCtx.switchToContextForScope(DualLocalVarContext::Post);
+      const auto *A = cast<AssertCapabilityAttr>(At);
+      CapExprSet AssertLocks;
+      Analyzer->getMutexIDs(AssertLocks, A, Exp, D, Self);
+      for (const auto &AssertLock : AssertLocks)
+        Analyzer->addLock(FSet, Analyzer->FactMan.createFact<LockableFactEntry>(
+                                    AssertLock,
+                                    A->isShared() ? LK_Shared : LK_Exclusive,
+                                    Loc, FactEntry::Asserted));
+      break;
+    }
 
-      // When we encounter an unlock function, we need to remove unlocked
-      // mutexes from the lockset, and flag a warning if they are not there.
-      case attr::ReleaseCapability: {
-        const auto *A = cast<ReleaseCapabilityAttr>(At);
-        if (A->isGeneric())
-          Analyzer->getMutexIDs(GenericLocksToRemove, A, Exp, D, Self);
-        else if (A->isShared())
-          Analyzer->getMutexIDs(SharedLocksToRemove, A, Exp, D, Self);
-        else
-          Analyzer->getMutexIDs(ExclusiveLocksToRemove, A, Exp, D, Self);
-        break;
-      }
+    // When we encounter an unlock function, we need to remove unlocked
+    // mutexes from the lockset, and flag a warning if they are not there.
+    case attr::ReleaseCapability: {
+      const auto *A = cast<ReleaseCapabilityAttr>(At);
+      if (A->isGeneric())
+        Analyzer->getMutexIDs(GenericLocksToRemove, A, Exp, D, Self);
+      else if (A->isShared())
+        Analyzer->getMutexIDs(SharedLocksToRemove, A, Exp, D, Self);
+      else
+        Analyzer->getMutexIDs(ExclusiveLocksToRemove, A, Exp, D, Self);
+      break;
+    }
 
-      case attr::RequiresCapability: {
-        const auto *A = cast<RequiresCapabilityAttr>(At);
-        for (auto *Arg : A->args()) {
-          Analyzer->warnIfMutexNotHeld(FSet, D, Exp,
-                                       A->isShared() ? AK_Read : AK_Written,
-                                       Arg, POK_FunctionCall, Self, Loc);
-          // use for adopting a lock
-          if (!Scp.shouldIgnore())
-            Analyzer->getMutexIDs(ScopedReqsAndExcludes, A, Exp, D, Self);
-        }
-        break;
+    case attr::RequiresCapability: {
+      const auto *A = cast<RequiresCapabilityAttr>(At);
+      for (auto *Arg : A->args()) {
+        Analyzer->warnIfMutexNotHeld(FSet, D, Exp,
+                                     A->isShared() ? AK_Read : AK_Written, Arg,
+                                     POK_FunctionCall, Self, Loc);
+        // use for adopting a lock
+        if (!Scp.shouldIgnore())
+          Analyzer->getMutexIDs(ScopedReqsAndExcludes, A, Exp, D, Self);
       }
+      break;
+    }
 
-      case attr::LocksExcluded: {
-        const auto *A = cast<LocksExcludedAttr>(At);
-        for (auto *Arg : A->args()) {
-          Analyzer->warnIfMutexHeld(FSet, D, Exp, Arg, Self, Loc);
-          // use for deferring a lock
-          if (!Scp.shouldIgnore())
-            Analyzer->getMutexIDs(ScopedReqsAndExcludes, A, Exp, D, Self);
-        }
-        break;
+    case attr::LocksExcluded: {
+      const auto *A = cast<LocksExcludedAttr>(At);
+      for (auto *Arg : A->args()) {
+        Analyzer->warnIfMutexHeld(FSet, D, Exp, Arg, Self, Loc);
+        // use for deferring a lock
+        if (!Scp.shouldIgnore())
+          Analyzer->getMutexIDs(ScopedReqsAndExcludes, A, Exp, D, Self);
       }
+      break;
+    }
 
-      // Ignore attributes unrelated to thread-safety
-      default:
-        break;
+    // Ignore attributes unrelated to thread-safety
+    default:
+      break;
     }
   };
 

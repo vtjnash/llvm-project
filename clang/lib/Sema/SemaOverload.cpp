@@ -2057,12 +2057,13 @@ bool Sema::IsFunctionConversion(QualType FromType, QualType ToType) const {
     // the function type; like function effects, adjusting these is not itself
     // an error -- the thread-safety analysis performs the real checking.
     FromFPT = cast<FunctionProtoType>(FromFn); // in case FromFn changed above
-    if (!FromFPT->getCapabilityAttrs().empty() ||
-        !ToFPT->getCapabilityAttrs().empty()) {
+    if (!areEquivalentCapabilityAttrSets(FromFPT->getCapabilityAttrs(),
+                                         ToFPT->getCapabilityAttrs(),
+                                         Context)) {
       FunctionProtoType::ExtProtoInfo ExtInfo = FromFPT->getExtProtoInfo();
       ExtInfo.ExtraAttributeInfo.CapabilityAttrs = ToFPT->getCapabilityAttrs();
-      QualType QT = Context.getFunctionType(
-          FromFPT->getReturnType(), FromFPT->getParamTypes(), ExtInfo);
+      QualType QT = Context.getFunctionType(FromFPT->getReturnType(),
+                                            FromFPT->getParamTypes(), ExtInfo);
       FromFn = QT->getAs<FunctionType>();
       Changed = true;
     }

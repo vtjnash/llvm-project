@@ -8371,18 +8371,20 @@ void test_typedef_excludes(excl_cb_t cb) {
 
 // A member typedef's requirement is folded into the type -- provided its
 // arguments are context-free. A requirement naming a sibling member cannot be
-// part of the type (it needs the object) and is left unfolded, which must not
-// crash. See thread-safety-type-capability-member.cpp for the type identity
+// part of the type (it needs the object), and since nothing reads a typedef's
+// declaration attributes it would do nothing at all, so it is diagnosed as
+// ignored. See thread-safety-type-capability-member.cpp for the type identity
 // this depends on.
 struct Host {
   Mutex hmu;
   typedef void (*global_req_t)(void) EXCLUSIVE_LOCKS_REQUIRED(mu);
+  // expected-warning-re@+1 {{'{{requires_capability|exclusive_locks_required}}' attribute on 'member_req_t' cannot become part of the type it names because the capability is relative to an object or a parameter; attribute ignored}}
   typedef void (*member_req_t)(void) EXCLUSIVE_LOCKS_REQUIRED(hmu);
   void use_global(global_req_t cb) {
     cb(); // expected-warning {{calling function 'cb' requires holding mutex 'mu' exclusively}}
   }
   void use_member(member_req_t cb) {
-    cb(); // no crash; the member-relative requirement is not carried by the type
+    cb(); // no warning: the attribute above was reported as ignored
   }
 };
 

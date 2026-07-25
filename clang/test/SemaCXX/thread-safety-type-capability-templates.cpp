@@ -178,13 +178,14 @@ void local_mutex_typedef() {
   Mutex lmu;
   // 'lmu' does not outlive this function, but a folded function type is
   // uniqued in the ASTContext for the whole translation unit, so the attribute
-  // is left on the declaration -- where nothing reads it. This must not crash.
-  // FIXME(F12): the attribute is silently ignored; diagnose it as ignored.
+  // cannot become part of the type -- and a typedef's declaration attributes
+  // are read by nothing, so it is reported as ignored.
+  // expected-warning@+1 {{'exclusive_locks_required' attribute on 'cb' cannot become part of the type it names because the capability does not have global storage; attribute ignored}}
   typedef void (*cb)(void) REQUIRES(lmu);
   static_assert(__is_same(cb, void (*)(void)),
                 "a block-scope capability must not be folded into a type");
   cb f = nullptr;
-  f(); // no warning (see FIXME above)
+  f(); // no warning: the attribute above was reported as ignored
 }
 
 // A static local, by contrast, has global storage and does fold.
