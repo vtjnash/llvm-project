@@ -8860,6 +8860,89 @@ void Sema::ProcessPragmaWeak(Scope *S, Decl *D) {
 /// ProcessDeclAttributes - Given a declarator (PD) with attributes indicated in
 /// it, apply them to D.  This is a bit tricky because PD can have attributes
 /// specified in many different places, and we need to find and apply them all.
+/// Rebuild \p T, which must be a function type or a pointer/reference/block
+/// pointer to one, so that its FunctionProtoType additionally carries the
+/// given thread-safety capability attributes in its type. Returns a null type
+/// if \p T is not a function (pointer) type. Any existing sugar around the
+/// pointer level is not preserved.
+static QualType addCapabilityAttrsToFunctionType(ASTContext &Ctx, QualType T,
+                                                  ArrayRef<const Attr *> Attrs) {
+  enum { None, Pointer, Block, LValueRef, RValueRef } Wrap = None;
+  QualType Fn = T;
+  if (const auto *PT = T->getAs<PointerType>()) {
+    Wrap = Pointer;
+    Fn = PT->getPointeeType();
+  } else if (const auto *BT = T->getAs<BlockPointerType>()) {
+    Wrap = Block;
+    Fn = BT->getPointeeType();
+  } else if (const auto *RT = T->getAs<ReferenceType>()) {
+    Wrap = RT->isSpelledAsLValue() ? LValueRef : RValueRef;
+    Fn = RT->getPointeeType();
+  }
+
+  const auto *FPT = Fn->getAs<FunctionProtoType>();
+  if (!FPT)
+    return QualType();
+
+  FunctionProtoType::ExtProtoInfo EPI = FPT->getExtProtoInfo();
+  llvm::SmallVector<const Attr *, 4> Combined(
+      EPI.ExtraAttributeInfo.CapabilityAttrs);
+  Combined.append(Attrs.begin(), Attrs.end());
+  const Attr **Storage = Ctx.Allocate<const Attr *>(Combined.size());
+  llvm::copy(Combined, Storage);
+  EPI.ExtraAttributeInfo.CapabilityAttrs =
+      ArrayRef<const Attr *>(Storage, Combined.size());
+
+  QualType NewFn =
+      Ctx.getFunctionType(FPT->getReturnType(), FPT->getParamTypes(), EPI);
+  switch (Wrap) {
+  case None:
+    return NewFn;
+  case Pointer:
+    return Ctx.getPointerType(NewFn);
+  case Block:
+    return Ctx.getBlockPointerType(NewFn);
+  case LValueRef:
+    return Ctx.getLValueReferenceType(NewFn);
+  case RValueRef:
+    return Ctx.getRValueReferenceType(NewFn);
+  }
+  llvm_unreachable("bad wrap kind");
+}
+
+/// Fold any thread-safety capability attributes on \p D into its function
+/// type, so the requirements become part of the type and are honored at every
+/// call through a value of that type. Currently handles typedef declarations
+/// of function (pointer) type.
+static void foldCapabilityAttrsIntoType(Sema &S, Decl *D) {
+  auto *TND = dyn_cast<TypedefNameDecl>(D);
+  if (!TND)
+    return;
+
+  llvm::SmallVector<const Attr *, 2> CapAttrs;
+  for (const Attr *A : D->attrs())
+    if (isCapabilityAttr(A))
+      CapAttrs.push_back(A);
+  if (CapAttrs.empty())
+    return;
+
+  TypeSourceInfo *OldTSI = TND->getTypeSourceInfo();
+  if (!OldTSI)
+    return;
+  QualType NewType =
+      addCapabilityAttrsToFunctionType(S.Context, OldTSI->getType(), CapAttrs);
+  if (NewType.isNull())
+    return;
+
+  // Folding the attributes into the type strips the source sugar around the
+  // pointer level, so a matching TypeLoc cannot be copied from the original.
+  // The change is invisible in the written type, so a trivial TypeSourceInfo
+  // anchored at the typedef name is sufficient.
+  TypeSourceInfo *NewTSI =
+      S.Context.getTrivialTypeSourceInfo(NewType, TND->getLocation());
+  TND->setTypeSourceInfo(NewTSI);
+}
+
 void Sema::ProcessDeclAttributes(Scope *S, Decl *D, const Declarator &PD) {
   // Ordering of attributes can be important, so we take care to process
   // attributes in the order in which they appeared in the source code.
@@ -8915,6 +8998,10 @@ void Sema::ProcessDeclAttributes(Scope *S, Decl *D, const Declarator &PD) {
 
   // Look for API notes that map to attributes.
   ProcessAPINotes(D);
+
+  // Reflect thread-safety capability attributes into the declaration's
+  // function type so the requirements travel with the type.
+  foldCapabilityAttrsIntoType(*this, D);
 }
 
 /// Is the given declaration allowed to use a forbidden type?

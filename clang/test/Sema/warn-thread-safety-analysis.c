@@ -396,17 +396,17 @@ void test_typedef_acquire_release(cb_lock_t lock, cb_unlock_t unlock) {
 // would have no call site to constrain.
 typedef int bad_requires_t EXCLUSIVE_LOCKS_REQUIRED(mu1); // expected-warning {{'exclusive_locks_required' attribute on a typedef requires the typedef to be of function pointer type}}
 
-// Limitations of the typedef form:
-//   1. Recognition relies on the typedef sugar surviving: a value reached
-//      through a cast or __typeof__ that strips it to the bare function
-//      pointer type carries no requirement, so this call is unchecked.
-void test_typedef_sugar_stripped(cb_requires_t cb) {
-  void (*raw)(void) = cb;
-  raw(); // no warning: the typedef sugar (and its attribute) is gone
+// The requirement is part of the type, so assigning to a function pointer of
+// the same type carries it, while assigning to a bare function pointer type
+// drops it (like dropping 'noexcept'); the call through the bare pointer is
+// then unchecked.
+void test_typedef_drop(cb_requires_t cb) {
+  void (*raw)(void) = cb; // ok: the requirement is dropped by the conversion
+  raw();                  // no warning: raw's type carries no requirement
 }
-//   2. The attribute arguments resolve in the typedef's own scope, so they can
-//      name globals (as above) but not the pointee's parameters -- there is no
-//      parameter declaration on the typedef to refer to.
+// Limitation: the attribute arguments resolve in the typedef's own scope, so
+// they can name globals (as above) but not the pointee's parameters -- there
+// is no parameter declaration on the typedef to refer to.
 
 // Function pointer attributes referring to parameters.
 struct BDev {

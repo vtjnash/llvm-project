@@ -75,19 +75,19 @@ static bool isCallbackParam(const ParmVarDecl *Param) {
   return T->isFunctionPointerType() || T->isFunctionType();
 }
 
-/// If the function pointer type of \p D is spelled through a typedef, return
-/// that typedef declaration. Capability attributes written on such a typedef
-/// describe the pointee, exactly as when written directly on \p D, and so are
-/// honored at calls made through \p D. Returns null otherwise.
-static const TypedefNameDecl *getFunctionPointerTypedef(const NamedDecl *D) {
+/// The function type reached by a call to \p D: \p D's own type if it is a
+/// function, or the pointee if \p D is a value of function pointer, block
+/// pointer, or reference-to-function type. Capability attributes carried by
+/// this type describe the function reached through the call. Returns null if
+/// \p D is not callable in one of these ways.
+static const FunctionProtoType *getCalleeFunctionProtoType(const NamedDecl *D) {
   const auto *VD = dyn_cast<ValueDecl>(D);
   if (!VD)
     return nullptr;
   QualType T = VD->getType().getNonReferenceType();
-  if (!T->isFunctionPointerType())
-    return nullptr;
-  const auto *TT = T->getAs<TypedefType>();
-  return TT ? TT->getDecl() : nullptr;
+  if (T->isFunctionPointerType() || T->isBlockPointerType())
+    T = T->getPointeeType();
+  return T->getAs<FunctionProtoType>();
 }
 
 /// Issue a warning about an invalid lock expression
@@ -2274,12 +2274,14 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
     Loc = Exp->getExprLoc();
   }
 
-  // Attributes may be written directly on the called declaration, or, when it
-  // is a value of function pointer type, on the typedef used to spell that
-  // type; both describe the function reached through the call.
+  // Capability attributes may be written directly on the called declaration,
+  // or carried by the function type reached through the call (e.g. via a
+  // typedef that folds the requirement into the type); both describe the
+  // function reached through the call.
   SmallVector<const Attr *, 4> Attrs(D->attrs().begin(), D->attrs().end());
-  if (const TypedefNameDecl *TND = getFunctionPointerTypedef(D))
-    Attrs.append(TND->attrs().begin(), TND->attrs().end());
+  if (const FunctionProtoType *FPT = getCalleeFunctionProtoType(D))
+    Attrs.append(FPT->getCapabilityAttrs().begin(),
+                 FPT->getCapabilityAttrs().end());
 
   for (const Attr *At : Attrs) {
     switch (At->getKind()) {
