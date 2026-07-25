@@ -8315,4 +8315,30 @@ void testDependent(int n) {
   callDependent<void (&)(int)>(callback, n); // expected-note {{in instantiation of function template specialization 'FunctionPointers::callDependent<void (&)(int)>' requested here}}
 }
 
+// A capability attribute on a function-pointer typedef becomes part of the
+// type, so the requirement propagates through the type system: it survives
+// 'auto' deduction and template instantiation, and is dropped only by an
+// explicit conversion to a type without it.
+typedef void (*req_cb_t)(void) EXCLUSIVE_LOCKS_REQUIRED(mu);
+
+void test_typedef_auto(req_cb_t cb) {
+  auto f = cb;
+  f(); // expected-warning {{calling function 'f' requires holding mutex 'mu' exclusively}}
+}
+
+template <class T> void call_through(T cb) {
+  cb(); // expected-warning {{calling function 'cb' requires holding mutex 'mu' exclusively}}
+}
+template void call_through<req_cb_t>(req_cb_t); // expected-note {{in instantiation of function template specialization 'FunctionPointers::call_through<void (*)()>' requested here}}
+
+void test_typedef_drop(req_cb_t cb) {
+  void (*raw)(void) = cb; // ok: requirement dropped by the conversion
+  raw();                  // no warning
+}
+
+void test_typedef_keep(req_cb_t cb) {
+  req_cb_t same = cb;
+  same(); // expected-warning {{calling function 'same' requires holding mutex 'mu' exclusively}}
+}
+
 } // namespace FunctionPointers

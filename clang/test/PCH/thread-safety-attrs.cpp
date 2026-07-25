@@ -110,6 +110,10 @@ public:
    void MyLock() __attribute__((exclusive_lock_function(mu)));
 };
 
+// A capability requirement written on a function-pointer typedef is folded
+// into the type, and must survive serialization to the PCH.
+typedef void (*req_cb_t)(void) EXCLUSIVE_LOCKS_REQUIRED(sls_mu);
+
 #else
 
 MutexWrapper sls_mw;
@@ -314,6 +318,13 @@ void sls_fun_bad_12() {
   sls_mu.Unlock(); // \
     expected-warning{{mutex 'sls_mu' is not held on every path through here}} \
     expected-warning{{releasing mutex 'sls_mu' that was not held}}
+}
+
+// The requirement folded into req_cb_t's type must still be checked when the
+// typedef is deserialized from the PCH.
+void sls_fun_cb(req_cb_t cb) {
+  cb(); // \
+    expected-warning{{calling function 'cb' requires holding mutex 'sls_mu' exclusively}}
 }
 
 #endif
