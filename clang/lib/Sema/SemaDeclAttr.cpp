@@ -456,6 +456,26 @@ static bool checkThreadSafetyValueDeclIsFunPtr(Sema &S, const ValueDecl *VD,
   return false;
 }
 
+/// Checks that a thread-safety attribute on a typedef applies only to a
+/// function pointer type: the attribute describes the requirements of calls
+/// made through values of that type.
+///
+/// Unlike \c isFunctionPointerOrDependent this does not look through a
+/// reference: a reference to a function pointer cannot carry the requirement
+/// in its type, so accepting one here would silently drop it.
+static bool checkThreadSafetyTypedefIsFunPtr(Sema &S,
+                                             const TypedefNameDecl *TND,
+                                             const AttributeCommonInfo &A) {
+  QualType T = TND->getUnderlyingType();
+  // A dependent type is rechecked after substitution, from
+  // Sema::checkInstantiatedThreadSafetyAttrs.
+  if (T->isDependentType() || T->isFunctionPointerType())
+    return true;
+  S.Diag(A.getLoc(), diag::warn_thread_attribute_not_on_fun_ptr)
+      << A << /*typedef*/ 2;
+  return false;
+}
+
 static bool checkFunParamsAreScopedLockable(Sema &S,
                                             const ParmVarDecl *ParamDecl,
                                             const AttributeCommonInfo &AL) {
@@ -473,16 +493,8 @@ static bool checkFunParamsAreScopedLockable(Sema &S,
 
 static bool checkThreadSafetyAttrSubject(Sema &S, Decl *D, const ParsedAttr &AL,
                                          bool CheckParmVar = false) {
-  // A capability attribute on a typedef describes the requirements of calls
-  // made through values of that type, so it is only meaningful when the type
-  // is a function pointer.
-  if (const auto *TND = dyn_cast<TypedefNameDecl>(D)) {
-    if (TND->getUnderlyingType()->isFunctionPointerType())
-      return true;
-    S.Diag(AL.getLoc(), diag::warn_thread_attribute_not_on_fun_ptr)
-        << AL << /*typedef*/ 2;
-    return false;
-  }
+  if (const auto *TND = dyn_cast<TypedefNameDecl>(D))
+    return checkThreadSafetyTypedefIsFunPtr(S, TND, AL);
 
   const auto *VD = dyn_cast<ValueDecl>(D);
   if (!VD || isa<FunctionDecl>(VD))
@@ -505,6 +517,11 @@ bool Sema::checkInstantiatedThreadSafetyAttrs(const Decl *D, const Attr *A) {
            TryAcquireCapabilityAttr, ReleaseCapabilityAttr,
            RequiresCapabilityAttr, LocksExcludedAttr>(A))
     return true;
+
+  // A typedef in a template may have had a dependent underlying type, which
+  // the parse-time subject check has to accept; recheck it now.
+  if (const auto *TND = dyn_cast<TypedefNameDecl>(D))
+    return checkThreadSafetyTypedefIsFunPtr(*this, TND, *A);
 
   const auto *VD = dyn_cast<ValueDecl>(D);
   if (!VD)
@@ -8865,6 +8882,14 @@ void Sema::ProcessPragmaWeak(Scope *S, Decl *D) {
 /// given thread-safety capability attributes in its type. Returns a null type
 /// if \p T is not a function (pointer) type. Any existing sugar around the
 /// pointer level is not preserved.
+///
+/// Only the plain-pointer case is reachable today: the subject check that
+/// gates the fold admits function pointers (and dependent types, which have
+/// resolved to a function pointer by the time they get here). The remaining
+/// wrappings are handled for generality; in particular a block pointer is a
+/// legitimate callee, but the analysis cannot check a call through one at all
+/// (it requires a NamedDecl callee), so admitting blocks would only fold the
+/// requirement into a type nothing reads.
 static QualType addCapabilityAttrsToFunctionType(ASTContext &Ctx, QualType T,
                                                   ArrayRef<const Attr *> Attrs) {
   enum { None, Pointer, Block, LValueRef, RValueRef } Wrap = None;
@@ -8915,14 +8940,35 @@ static QualType addCapabilityAttrsToFunctionType(ASTContext &Ctx, QualType T,
 /// member, 'this', or a parameter must be resolved relative to the declaration
 /// it is attached to, which the type does not carry. Such attributes are left
 /// on the declaration, where the analysis substitutes the object at each call.
+///
+/// The same applies to an argument that is not yet fully resolved, either
+/// because it is still dependent or because it names a declaration whose
+/// lifetime is shorter than the type it would be interned into.
 static bool capabilityArgIsContextFree(const Expr *E) {
   if (!E)
     return true;
+  // A dependent argument must not be folded: the rebuilt type is interned in
+  // the ASTContext before substitution happens, so every instantiation would
+  // share -- and the analysis would then report -- the pattern's
+  // un-substituted argument. Leave the attribute on the declaration; the fold
+  // is retried on the instantiated declaration once the argument is known.
+  // This covers dependent DeclRefExprs, CXXDependentScopeMemberExpr,
+  // DependentScopeDeclRefExpr, UnresolvedLookupExpr and pack expansions.
+  if (E->isInstantiationDependent())
+    return false;
   if (isa<CXXThisExpr>(E) || isa<MemberExpr>(E))
     return false;
-  if (const auto *DRE = dyn_cast<DeclRefExpr>(E))
-    if (isa<FieldDecl, ParmVarDecl>(DRE->getDecl()))
+  if (const auto *DRE = dyn_cast<DeclRefExpr>(E)) {
+    const ValueDecl *VD = DRE->getDecl();
+    if (isa<FieldDecl, ParmVarDecl>(VD))
       return false;
+    // A block-scope variable does not outlive the statement it is declared
+    // in, but the rebuilt function type is uniqued in the ASTContext for the
+    // whole translation unit, so it must not reference one.
+    if (const auto *Var = dyn_cast<VarDecl>(VD);
+        Var && !Var->hasGlobalStorage())
+      return false;
+  }
   for (const Stmt *C : E->children())
     if (const auto *CE = dyn_cast_or_null<Expr>(C))
       if (!capabilityArgIsContextFree(CE))

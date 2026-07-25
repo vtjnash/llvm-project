@@ -119,3 +119,18 @@ void locked_fn(void) __attribute__((exclusive_locks_required(mu)));
 
 bool trylock_fn(void) __attribute__((exclusive_trylock_function(true, mu)));
 // CHECK: bool trylock_fn() __attribute__((exclusive_trylock_function(true, mu)));
+
+// In a template, an attribute whose arguments are still dependent stays on the
+// typedef declaration and prints there; the instantiation's copy has been
+// substituted and folded into the type, so it prints as part of the type.
+template <Mutex *M> struct Tmpl {
+  typedef void (*cb)(void) __attribute__((requires_capability(*M)));
+};
+// CHECK:      template <Mutex *M> struct Tmpl {
+// CHECK-NEXT:     typedef void (*cb)() __attribute__((requires_capability(*M)));
+// CHECK-NEXT: };
+// CHECK:      template<> struct Tmpl<&mu> {
+// CHECK-NEXT:     typedef void (*cb)() __attribute__((requires_capability(*&mu)));
+// CHECK-NEXT: };
+void use_tmpl(Tmpl<&mu>::cb);
+// CHECK: void use_tmpl(Tmpl<&mu>::cb);

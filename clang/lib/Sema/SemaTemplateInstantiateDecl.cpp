@@ -1598,6 +1598,13 @@ Decl *TemplateDeclInstantiator::InstantiateTypedefNameDecl(TypedefNameDecl *D,
 
   SemaRef.InstantiateAttrs(TemplateArgs, D, Typedef);
 
+  // A thread-safety capability attribute whose arguments were dependent could
+  // not be folded into the pattern's type, so it is still on the declaration.
+  // Its arguments have just been substituted, so retry the fold here; this is
+  // what makes the requirement visible to the analysis, which reads it from
+  // the type and never from the typedef declaration.
+  SemaRef.foldCapabilityAttrsIntoType(Typedef);
+
   if (D->getUnderlyingType()->getAs<DependentNameType>())
     SemaRef.inferGslPointerAttribute(Typedef);
 

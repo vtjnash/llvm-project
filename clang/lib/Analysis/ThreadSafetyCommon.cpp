@@ -339,6 +339,13 @@ til::SExpr *SExprBuilder::translate(const Stmt *S, CallingContext *Ctx) {
     return translate(cast<CXXBindTemporaryExpr>(S)->getSubExpr(), Ctx);
   case Stmt::MaterializeTemporaryExprClass:
     return translate(cast<MaterializeTemporaryExpr>(S)->getSubExpr(), Ctx);
+  // A capability named by a non-type template parameter (directly, or through
+  // a capability attribute instantiated with one) reaches us wrapped in the
+  // substitution sugar; the argument it was replaced with is what names the
+  // capability.
+  case Stmt::SubstNonTypeTemplateParmExprClass:
+    return translate(cast<SubstNonTypeTemplateParmExpr>(S)->getReplacement(),
+                     Ctx);
 
   // Collect all literals
   case Stmt::CharacterLiteralClass:

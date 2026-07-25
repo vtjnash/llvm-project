@@ -90,17 +90,38 @@ attrs' arg streams are concatenated with no boundary, so
 
 ### Concrete bugs
 
-- [ ] **F3. Folded attrs are never substituted during template instantiation.**
+- [x] **F3. Folded attrs are never substituted during template instantiation.**
   `TreeTransform::TransformFunctionProtoType` (`TreeTransform.h:6681`) copies
   `ExtraAttributeInfo` verbatim; the fold dropped the decl attrs, so
   `instantiateTemplateAttribute` never runs. `capabilityArgIsContextFree`
   (`SemaDeclAttr.cpp:8916`) does not reject dependent exprs, so the fold
   fires inside templates and un-substituted dependent args (e.g. `*M`,
   `T::smu`) survive into every instantiation — unsatisfiable warnings or
-  `cannot resolve lock expression`. Fix: reject
-  `isInstantiationDependent()` args in the guard (leave on decl), and make
-  instantiated typedefs fold correctly (see F10); longer term, teach
-  `TreeTransform` to transform the attr array.
+  `cannot resolve lock expression`. Fixed in P3 by rejecting dependent args
+  in the guard (F13) so they stay on the decl, and folding the instantiated
+  typedef once its args have been substituted (F10). Both review repros are
+  fixed: `NTTP<&mu1>::cb` now checks against `mu1`, and the dependent-base
+  case resolves to `Base::smu`. `SExprBuilder::translate` also learned
+  `SubstNonTypeTemplateParmExpr` (`ThreadSafetyCommon.cpp`), without which a
+  substituted non-type template parameter reaches the analysis wrapped in
+  substitution sugar and yields `cannot resolve lock expression`; this also
+  fixes plain `REQUIRES(*M)` on a function template.
+  - **Partial, by design (deferred):** `TreeTransform` still copies the attr
+    array verbatim. That is correct for a *non-dependent* argument folded in
+    the pattern (nothing to substitute — tested), and unreachable for a
+    dependent one (it is never folded into the pattern's type).
+  - **Known limitation (new, tracked here):** a use of the typedef from
+    *inside* the template still names the pattern's `TypedefType`. That type
+    is not instantiation-dependent — only the attribute's arguments are — so
+    `Sema::SubstType` short-circuits and the instantiated (folded) typedef is
+    never reached; the requirement is invisible to calls written inside the
+    template, though it is honored for every use of the instantiated name.
+    Closing this needs the dependent attribute folded into the *pattern's*
+    type, the type's dependence bits to account for the attribute arguments,
+    and `TreeTransform` to substitute the attr array — and, for member
+    typedefs, it collides with F4's late-fold ordering. Documented with a
+    FIXME in
+    `clang/test/SemaCXX/thread-safety-type-capability-templates.cpp`.
 
 - [ ] **F4. Late fold retroactively mutates a member typedef's underlying
   type, leaving stale canonical `TypedefType`s.** For class-member typedefs
@@ -148,7 +169,7 @@ attrs' arg streams are concatenated with no boundary, so
   reaches the fold (`SemaDeclAttr.cpp:9044` only). C++ users will write
   `using`. Fix: invoke `foldCapabilityAttrsIntoType` on alias declarations.
 
-- [ ] **F9. Typedef subject check diverges from the established helper; dead
+- [x] **F9. Typedef subject check diverges from the established helper; dead
   code.** (`SemaDeclAttr.cpp:475-483` vs `:440-444`) Raw
   `isFunctionPointerType()` instead of `isFunctionPointerOrDependent()`:
   dependent typedefs get a spurious `warn_thread_attribute_not_on_fun_ptr`,
@@ -157,13 +178,33 @@ attrs' arg streams are concatenated with no boundary, so
   `Block/LValueRef/RValueRef/None` branches. Also
   `checkInstantiatedThreadSafetyAttrs` (`SemaDeclAttr.cpp:499`) has no
   `TypedefNameDecl` arm, so there is no post-instantiation recheck.
+  Fixed in P3: the typedef arm moved into a
+  `checkThreadSafetyTypedefIsFunPtr` helper that also accepts a dependent
+  underlying type, and `checkInstantiatedThreadSafetyAttrs` grew a
+  `TypedefNameDecl` arm that reruns it after substitution — so
+  `typedef T cb REQUIRES(mu)` is silent at parse and warns when instantiated
+  with a non-function-pointer `T`.
+  - **Deliberate divergence:** unlike `isFunctionPointerOrDependent`, the
+    typedef helper does *not* look through a reference. A reference to a
+    function pointer cannot carry the requirement in its type
+    (`addCapabilityAttrsToFunctionType` would decline), so accepting it would
+    trade an honest diagnostic for silence (F12).
+  - **Dead branches:** the gate stays pointer+dependent-only; the helper keeps
+    its general shape with a comment explaining that only the pointer path is
+    reachable. Admitting block pointers was rejected: the analysis cannot
+    check a call through a block at all (F11 — `handleCall` needs a
+    `NamedDecl` callee), so it would only fold into a type nothing reads.
 
-- [ ] **F10. Instantiated typedefs never fold.**
+- [x] **F10. Instantiated typedefs never fold.**
   `TemplateDeclInstantiator::VisitTypedefNameDecl` instantiates attrs but
   never calls the fold, so a class-template member typedef keeps its attrs on
   the decl in every instantiation — where the analysis never reads them
   (see F12). Fold after `InstantiateAttrs` when args became non-dependent.
-  (Follows from F3/F9; same fix batch.)
+  (Follows from F3/F9; same fix batch.) Fixed in P3:
+  `InstantiateTypedefNameDecl` calls `foldCapabilityAttrsIntoType` after
+  `InstantiateAttrs`. Two instantiations with different mutex arguments now
+  get distinct types, and uses of the instantiated name are checked against
+  the substituted mutex. See F3 for the residual in-template limitation.
 
 - [ ] **F11. Calls with no `NamedDecl` callee are unchecked; docs overstate.**
   (`ThreadSafety.cpp:81-88`; `handleCall` requires `getCalleeDecl()`.)
@@ -178,14 +219,17 @@ attrs' arg streams are concatenated with no boundary, so
   users get silence where they expect protection. Fix: diagnose ("attribute
   ignored") when the fold declines for a non-dependent reason.
 
-- [ ] **F13. `capabilityArgIsContextFree` misses expression kinds.**
+- [x] **F13. `capabilityArgIsContextFree` misses expression kinds.**
   (`SemaDeclAttr.cpp:8916-8929`) Doesn't reject dependent exprs
   (`CXXDependentScopeMemberExpr`, `DependentScopeDeclRefExpr`,
   `UnresolvedLookupExpr`, pack expansions, `SubstNonTypeTemplateParmExpr`) —
   feeds F3 — and accepts `DeclRefExpr` to function-local `VarDecl`s, interning
   a canonical type that references a block-scope decl. Fix: reject any
   `isInstantiationDependent()` expr and refs to `VarDecl`s without global
-  storage. (Same batch as F3.)
+  storage. (Same batch as F3.) Both guards added in P3. Note the second one
+  makes a function-local `REQUIRES(local_mutex)` typedef stop folding, so it
+  is now silently ignored until F12's diagnostic lands (a `static` local
+  still folds); tested and FIXME'd.
 
 - [ ] **F14. Type-identity machinery is unaware of `CapabilityAttrs`.**
   All pre-existing code that assumes function-type identity is fully captured
@@ -248,13 +292,23 @@ attrs' arg streams are concatenated with no boundary, so
   shared/generic variants, every GNU-legacy spelling, the C++11 spelling, and
   a parse-back + print-again round trip in
   `clang/test/AST/ast-print-thread-safety-attrs.cpp`. Still missing: a printed
-  template/dependent case (leave to P3's T4).*
+  template/dependent case (leave to P3's T4). Done in P3: the pattern prints
+  its unfolded declaration attribute, the instantiation prints the folded,
+  substituted one, and both round-trip.*
 - [ ] **T3.** `warn-thread-safety-parsing.cpp` has no typedef-arm coverage of
   `warn_thread_attribute_not_on_fun_ptr` (C++ side).
-- [ ] **T4.** No tests: typedef in a template (F3), `using` alias (F8),
+- [~] **T4.** No tests: typedef in a template (F3), `using` alias (F8),
   qualified fn-ptr typedef (F5), decl+type duplicate (F7), mangling/CodeGen
   (F2 — whatever the resolution), explicit Profile-collision pairs and
-  try-acquire success-value distinctness (F1).
+  try-acquire success-value distinctness (F1). *Profile pairs and success
+  values done in P1 (`thread-safety-type-capability-uniquing.cpp`); the
+  template part done in P3
+  (`clang/test/SemaCXX/thread-safety-type-capability-templates.cpp`: NTTP
+  mutex, dependent base / dependent qualified name, dependent underlying
+  type, non-dependent argument in a class template including a
+  dependent-return-type rebuild, block-scope vs static-local mutex, distinct
+  types for distinct template arguments) plus the ast-print case in T2. Still
+  open: F5, F7, F8 and F2's CodeGen test, in their own patches.*
 
 ### Doc gaps
 
@@ -309,7 +363,7 @@ already inert for fn-ptr params), `Sema` checks that run pre-fold, and
 
 **Ordered work items**
 
-- [ ] **W1** = F3/F13 guard hardening (prerequisite).
+- [x] **W1** = F3/F13 guard hardening (prerequisite). Landed with P3.
 - [ ] **W2. Fold `FieldDecl`** (lowest risk, ships first). Timing verified
   safe: late-parsed member attrs attach (`ParseDeclCXX.cpp:3725`) after
   `ActOnFinishCXXMemberSpecification` but *before*
@@ -382,7 +436,7 @@ var + field; `FPOps`/`BDevOps` C structs must stay unfolded; full
 1. **P1**: F1 (+ TODO doc regression note). ✔ gate for everything else.
 2. **P2**: F6 printer → `printPretty`; T2 round-trip tests.
 3. **P3**: F3 + F13 + F9 + F10 template/dependent correctness; T4 template
-   tests.
+   tests. ✔ (F3 partial: see its entry for the in-template-use limitation.)
 4. **P4**: F5 qualifier preservation; F8 using-alias support; tests.
 5. **P5**: F7 dedup + F7b perf; F11 callee-expression fallback (best-effort);
    tests.
