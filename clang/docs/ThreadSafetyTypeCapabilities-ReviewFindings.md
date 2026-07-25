@@ -132,11 +132,31 @@ attrs' arg streams are concatenated with no boundary, so
   mangled-name error. Needs either fold-before-first-use, invalidation of
   `TypeForDecl`, or the sugar design (Part IV).
 
-- [ ] **F5. `addCapabilityAttrsToFunctionType` drops qualifiers and
+- [x] **F5. `addCapabilityAttrsToFunctionType` drops qualifiers and
   pointer-level sugar.** (`SemaDeclAttr.cpp:8866-8905`) `T->getAs<PointerType>()`
   discards outer quals and sugar; rebuild loses `const` (verified: `typedef
   void (*const cfp)(void) REQ(mu)` → assignable) and `_Nonnull`. Fix: split
   off `Qualifiers` and re-apply; preserve sugar where feasible.
+  Fixed in P4: the rebuild peels the pointer level recursively and puts back
+  (a) the local qualifiers, (b) an `AttributedType` — which is how nullability
+  is spelled, and it is sugar, not a qualifier, so `getQualifiedType` would
+  not have brought it back — rebuilt around both its modified and its
+  equivalent type, and (c) the `MacroQualifiedType` that wraps the whole
+  declarator type whenever the attribute is spelled through a macro (which is
+  the normal case, and which hid the `AttributedType` from the rebuild).
+  Qualifiers contributed by sugar that cannot be rebuilt (`typedef cfp c2
+  REQ(mu)`) are recovered with `QualType::getQualifiers()`.
+  - **Residual, deliberate:** other sugar around the pointer level — a typedef
+    naming the function-pointer type, in particular — is still dropped, since
+    the requirement has to be added *underneath* it and such sugar cannot be
+    rebuilt around a different underlying type. Only `-ast-dump` can see this;
+    the written form of the type is unchanged. Documented in the function
+    comment.
+  - **Observed, not caused by the fix:** converting a plain function pointer
+    to one carrying a requirement is now a real conversion (the requirement is
+    part of the canonical type), so a `_Nullable` → `_Nonnull` conversion that
+    also adds the requirement warns *twice*, once per conversion step. Same
+    family as F7; if F7's dedup does not cover it, note it there.
 
 - [x] **F6. `-ast-print` drops try-acquire's success value and doesn't
   re-parse.** (`TypePrinter.cpp:1122-1163`) The hand-rolled printer uses
@@ -164,10 +184,47 @@ attrs' arg streams are concatenated with no boundary, so
   the type set. Also **F7b (perf)**: don't copy `D->attrs()` into a
   `SmallVector` on every call when the type carries nothing.
 
-- [ ] **F8. `using`-alias declarations accept the attribute and silently
+- [x] **F8. `using`-alias declarations accept the attribute and silently
   ignore it.** `ActOnAliasDeclaration` → `ProcessDeclAttributeList` never
   reaches the fold (`SemaDeclAttr.cpp:9044` only). C++ users will write
   `using`. Fix: invoke `foldCapabilityAttrsIntoType` on alias declarations.
+  Fixed in P4: `Sema::ActOnAliasDeclaration` calls the fold right after
+  attribute processing. `TypeAliasDecl` is a `TypedefNameDecl`, so the subject
+  check (F9) and the instantiation hook (F10 — `TypeAliasDecl` instantiation
+  shares `InstantiateTypedefNameDecl`) already applied; a member alias'
+  late-parsed attribute already reached the fold through
+  `ActOnFinishDelayedAttribute`. Verified working: requires/acquire/release
+  through an alias, `auto` propagation, both attribute spellings, aliases in a
+  class, member aliases of a class template with an NTTP mutex (folded per
+  instantiation), an alias template whose underlying type is not dependent,
+  and an alias and a typedef spelling the same requirement uniquing to the
+  same type.
+  - **Residual F8a (alias templates).** An alias template is not instantiated
+    as a declaration — using it substitutes into the pattern's underlying type
+    — so when the fold has to be deferred (dependent underlying type, or
+    dependent capability argument such as an NTTP mutex) nothing retries it
+    and the requirement is lost silently. FIXME tests in
+    `thread-safety-type-capability-alias.cpp`. A fix belongs in
+    `CheckTemplateIdType`'s alias-template path and needs the pattern's
+    attributes substituted without a declaration to hang them on.
+  - **Residual F8b (other attribute positions).** The review's "trailing
+    position is dropped silently" is only partly right, and neither trailing
+    form is silent: `using a = void (*)(void) __attribute__((...));` is a
+    parse error (`expected ';' after alias declaration`) and
+    `using a = void (*)(void) [[clang::...]];` is an error (`attribute cannot
+    be applied to types`). What *is* silent is an attribute written inside the
+    type-id's declarator (`using a = void (*__attribute__((...)))(void);`):
+    for a typedef it slides onto the declaration and works, but an alias
+    declaration's type-id is parsed without a declaration to slide onto.
+    FIXME test recorded; fixing it means routing the type-id declarator's
+    sliding attributes into `ActOnAliasDeclaration`.
+  - **Residual F8c (printing).** `-ast-print` prints an alias' folded
+    attribute after the type-id — exactly the position that does not re-parse
+    (F8b) — so alias output is not round-trippable. Fixing it means letting
+    the declaration printer print the type's capability attributes after the
+    alias name and suppressing them in the type printer (a `PrintingPolicy`
+    bit); left out of P4 and noted in
+    `clang/test/AST/ast-print-thread-safety-attrs.cpp`.
 
 - [x] **F9. Typedef subject check diverges from the established helper; dead
   code.** (`SemaDeclAttr.cpp:475-483` vs `:440-444`) Raw
@@ -307,8 +364,15 @@ attrs' arg streams are concatenated with no boundary, so
   mutex, dependent base / dependent qualified name, dependent underlying
   type, non-dependent argument in a class template including a
   dependent-return-type rebuild, block-scope vs static-local mutex, distinct
-  types for distinct template arguments) plus the ast-print case in T2. Still
-  open: F5, F7, F8 and F2's CodeGen test, in their own patches.*
+  types for distinct template arguments) plus the ast-print case in T2. F5 and
+  F8 done in P4
+  (`clang/test/SemaCXX/thread-safety-type-capability-qualifiers.cpp`:
+  const/volatile/address-space, a qualifier behind a typedef, nullability,
+  nullability plus const, and the assignment error a dropped `const` would
+  hide; `clang/test/SemaCXX/thread-safety-type-capability-alias.cpp`: the
+  alias cases listed under F8, with FIXME tests for F8a and F8b), plus
+  const/`_Nonnull` round-trip cases in the ast-print test. Still open: F7 and
+  F2's CodeGen test, in their own patches.*
 
 ### Doc gaps
 
@@ -317,8 +381,10 @@ attrs' arg streams are concatenated with no boundary, so
   longer seed the caller's entry lockset — a silent semantic change to
   existing annotations).
 - [ ] **D2.** `ThreadSafetyAnalysis.md` overstates coverage (F11) and omits
-  the two limitations users hit first: `using` aliases (F8, until fixed) and
-  object-relative args silently ignored (F12, until diagnosed).
+  the two limitations users hit first: `using` aliases (fixed in P4, but the
+  attribute's position on an alias declaration and the F8a alias-template hole
+  need saying) and object-relative args silently ignored (F12, until
+  diagnosed).
 - [ ] **D3.** TODO doc corrections: regression section (resolved by F1),
   "mangling is already safe" inverted (F2), parameters rationale wrong (see
   Part III W5).
@@ -437,7 +503,9 @@ var + field; `FPOps`/`BDevOps` C structs must stay unfolded; full
 2. **P2**: F6 printer → `printPretty`; T2 round-trip tests.
 3. **P3**: F3 + F13 + F9 + F10 template/dependent correctness; T4 template
    tests. ✔ (F3 partial: see its entry for the in-template-use limitation.)
-4. **P4**: F5 qualifier preservation; F8 using-alias support; tests.
+4. **P4**: F5 qualifier preservation; F8 using-alias support; tests. ✔
+   (Residuals recorded: F5's unrebuildable sugar, F8a alias templates, F8b
+   attribute-in-declarator, F8c alias printing.)
 5. **P5**: F7 dedup + F7b perf; F11 callee-expression fallback (best-effort);
    tests.
 6. **P6**: F14 identity consistency (ODRHash, structural equivalence,

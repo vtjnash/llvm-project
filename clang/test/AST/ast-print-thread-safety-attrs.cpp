@@ -113,6 +113,24 @@ Mutex cxx11_mu;
 [[clang::requires_capability(cxx11_mu)]] typedef void (*cxx11_req_cb_t)(void);
 // CHECK: typedef void (*cxx11_req_cb_t)() __attribute__((requires_capability(cxx11_mu)));
 
+// Qualifiers and nullability survive the fold, so they still print where they
+// were written -- in particular the 'const' stays on the pointer instead of
+// disappearing or drifting onto the pointee.
+typedef void (*const const_req_cb_t)(void)
+    __attribute__((requires_capability(mu)));
+// CHECK: typedef void (*const const_req_cb_t)() __attribute__((requires_capability(mu)));
+
+typedef void (*_Nonnull nonnull_req_cb_t)(void)
+    __attribute__((requires_capability(mu)));
+// CHECK: typedef void (* _Nonnull nonnull_req_cb_t)() __attribute__((requires_capability(mu)));
+
+// FIXME: An alias declaration is deliberately not printed here: the folded
+// attribute prints as part of the type, i.e. after the type-id, and that
+// position is a parse error in an alias declaration ('using cb = void (*)()
+// __attribute__((requires_capability(mu)));'), so the output would not
+// re-parse. It has to print after the alias name instead, which needs the
+// declaration printer to take the attributes over from the type printer.
+
 // Attributes on a function declaration print on the declaration, unchanged.
 void locked_fn(void) __attribute__((exclusive_locks_required(mu)));
 // CHECK: void locked_fn() __attribute__((exclusive_locks_required(mu)));

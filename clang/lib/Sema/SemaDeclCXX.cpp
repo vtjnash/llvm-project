@@ -13912,6 +13912,14 @@ Decl *Sema::ActOnAliasDeclaration(Scope *S, AccessSpecifier AS,
   AddPragmaAttributes(S, NewTD);
   ProcessAPINotes(NewTD);
 
+  // An alias declaration does not go through ProcessDeclAttributes(Scope,
+  // Decl, Declarator), so fold thread-safety capability attributes into the
+  // type here, as a 'typedef' would. For an alias template whose underlying
+  // type or capability argument is still dependent the fold declines and the
+  // attributes stay on the declaration; a member alias of a class template is
+  // then folded when TemplateDeclInstantiator instantiates it.
+  foldCapabilityAttrsIntoType(NewTD);
+
   CheckTypedefForVariablyModifiedType(S, NewTD);
   Invalid |= NewTD->isInvalidDecl();
 

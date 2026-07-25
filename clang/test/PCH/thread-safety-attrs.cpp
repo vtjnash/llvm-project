@@ -114,6 +114,11 @@ public:
 // into the type, and must survive serialization to the PCH.
 typedef void (*req_cb_t)(void) EXCLUSIVE_LOCKS_REQUIRED(sls_mu);
 
+// The same, with a qualifier on the pointer and through an alias declaration:
+// the fold rebuilds the type in both cases, so both have to round-trip.
+typedef void (*const req_const_cb_t)(void) EXCLUSIVE_LOCKS_REQUIRED(sls_mu);
+using req_alias_cb_t EXCLUSIVE_LOCKS_REQUIRED(sls_mu) = void (*)(void);
+
 #else
 
 MutexWrapper sls_mw;
@@ -323,6 +328,21 @@ void sls_fun_bad_12() {
 // The requirement folded into req_cb_t's type must still be checked when the
 // typedef is deserialized from the PCH.
 void sls_fun_cb(req_cb_t cb) {
+  cb(); // \
+    expected-warning{{calling function 'cb' requires holding mutex 'sls_mu' exclusively}}
+}
+
+static_assert(__is_same(req_alias_cb_t, req_cb_t),
+              "an alias and a typedef spelling the same requirement agree");
+static_assert(!__is_same(req_const_cb_t, req_cb_t),
+              "the 'const' on the pointer survives the fold and the PCH");
+
+void sls_fun_cb_const(req_const_cb_t cb) {
+  cb(); // \
+    expected-warning{{calling function 'cb' requires holding mutex 'sls_mu' exclusively}}
+}
+
+void sls_fun_cb_alias(req_alias_cb_t cb) {
   cb(); // \
     expected-warning{{calling function 'cb' requires holding mutex 'sls_mu' exclusively}}
 }

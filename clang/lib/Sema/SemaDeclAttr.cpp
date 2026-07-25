@@ -8880,8 +8880,18 @@ void Sema::ProcessPragmaWeak(Scope *S, Decl *D) {
 /// Rebuild \p T, which must be a function type or a pointer/reference/block
 /// pointer to one, so that its FunctionProtoType additionally carries the
 /// given thread-safety capability attributes in its type. Returns a null type
-/// if \p T is not a function (pointer) type. Any existing sugar around the
-/// pointer level is not preserved.
+/// if \p T is not a function (pointer) type.
+///
+/// What survives the rebuild: the qualifiers on the pointer itself (the
+/// 'const' of 'void (*const)(void)', 'volatile', an address space --
+/// including qualifiers a typedef contributed), an AttributedType written
+/// around the pointer, which is what carries a nullability specifier such as
+/// '_Nonnull', and the macro qualification recording that the type was
+/// spelled through a macro. What does not survive: any other sugar spelled
+/// around the pointer level -- notably a typedef -- because the requirement
+/// has to be added underneath it, to the function type, and such sugar cannot
+/// be rebuilt around a different underlying type. The written form of the
+/// type is unchanged, so this is invisible except through -ast-dump.
 ///
 /// Only the plain-pointer case is reachable today: the subject check that
 /// gates the fold admits function pointers (and dependent types, which have
@@ -8892,6 +8902,54 @@ void Sema::ProcessPragmaWeak(Scope *S, Decl *D) {
 /// requirement into a type nothing reads.
 static QualType addCapabilityAttrsToFunctionType(ASTContext &Ctx, QualType T,
                                                   ArrayRef<const Attr *> Attrs) {
+  // Qualifiers written on the pointer sit outside it, so peel them off,
+  // rebuild what they qualify, and re-apply them; otherwise a 'const'
+  // function-pointer typedef would quietly become assignable.
+  if (Qualifiers Quals = T.getLocalQualifiers(); !Quals.empty()) {
+    QualType Inner = addCapabilityAttrsToFunctionType(
+        Ctx, T.getLocalUnqualifiedType(), Attrs);
+    if (Inner.isNull())
+      return QualType();
+    return Ctx.getQualifiedType(Inner, Quals);
+  }
+
+  // Nullability and other qualifier-like type attributes are sugar rather
+  // than qualifiers, so getQualifiedType below would not bring them back;
+  // rebuild the AttributedType around the new pointer instead. Both the
+  // modified and the equivalent type are rebuilt: for the attributes that can
+  // appear here the modified type is the same function-pointer type, and a
+  // modified type without the requirement would make the two disagree.
+  if (const auto *AT = dyn_cast<AttributedType>(T)) {
+    QualType Equivalent =
+        addCapabilityAttrsToFunctionType(Ctx, AT->getEquivalentType(), Attrs);
+    if (Equivalent.isNull())
+      return QualType();
+    QualType Modified =
+        addCapabilityAttrsToFunctionType(Ctx, AT->getModifiedType(), Attrs);
+    if (Modified.isNull())
+      Modified = AT->getModifiedType();
+    if (const Attr *A = AT->getAttr())
+      return Ctx.getAttributedType(A, Modified, Equivalent);
+    return Ctx.getAttributedType(AT->getAttrKind(), Modified, Equivalent);
+  }
+
+  // The capability attribute is very often spelled through a macro, which
+  // wraps the whole declarator type in a MacroQualifiedType; look through it
+  // and put it back, so that the sugar it wraps (the AttributedType above, in
+  // particular) is reached at all.
+  if (const auto *MQT = dyn_cast<MacroQualifiedType>(T)) {
+    QualType Underlying =
+        addCapabilityAttrsToFunctionType(Ctx, MQT->getUnderlyingType(), Attrs);
+    if (Underlying.isNull())
+      return QualType();
+    return Ctx.getMacroQualifiedType(Underlying, MQT->getMacroIdentifier());
+  }
+
+  // Any remaining sugar is dropped by the rebuild below, which would take the
+  // qualifiers it contributes with it ('typedef cfp c2 REQUIRES(mu)', where
+  // 'cfp' is already const-qualified). Collect them through the sugar.
+  Qualifiers Quals = T.getQualifiers();
+
   enum { None, Pointer, Block, LValueRef, RValueRef } Wrap = None;
   QualType Fn = T;
   if (const auto *PT = T->getAs<PointerType>()) {
@@ -8920,19 +8978,28 @@ static QualType addCapabilityAttrsToFunctionType(ASTContext &Ctx, QualType T,
 
   QualType NewFn =
       Ctx.getFunctionType(FPT->getReturnType(), FPT->getParamTypes(), EPI);
+  QualType Result;
   switch (Wrap) {
   case None:
+    // A function type cannot be qualified with anything getQualifiers() could
+    // have returned here, so there is nothing to re-apply.
     return NewFn;
   case Pointer:
-    return Ctx.getPointerType(NewFn);
+    Result = Ctx.getPointerType(NewFn);
+    break;
   case Block:
-    return Ctx.getBlockPointerType(NewFn);
+    Result = Ctx.getBlockPointerType(NewFn);
+    break;
   case LValueRef:
-    return Ctx.getLValueReferenceType(NewFn);
+    Result = Ctx.getLValueReferenceType(NewFn);
+    break;
   case RValueRef:
-    return Ctx.getRValueReferenceType(NewFn);
+    Result = Ctx.getRValueReferenceType(NewFn);
+    break;
   }
-  llvm_unreachable("bad wrap kind");
+  // A reference cannot be qualified either, but the qualifiers of what it
+  // refers to are not the ones collected above, so this is a no-op there.
+  return Quals.empty() ? Result : Ctx.getQualifiedType(Result, Quals);
 }
 
 /// A capability attribute argument can only become part of the type if it does
