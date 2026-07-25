@@ -8351,6 +8351,22 @@ void test_typedef_trylock(trylock_cb_t trylock) {
   }
 }
 
+// The remaining capability attribute kinds are likewise honored through the
+// type: an assert establishes that the capability is held, and locks_excluded
+// forbids the call while it is held.
+typedef void (*assert_cb_t)(void) ASSERT_EXCLUSIVE_LOCK(mu);
+void test_typedef_assert(assert_cb_t a) {
+  a();
+  x = 1; // ok: the assert established that mu is held
+}
+
+typedef void (*excl_cb_t)(void) LOCKS_EXCLUDED(mu);
+void test_typedef_excludes(excl_cb_t cb) {
+  mu.Lock();
+  cb(); // expected-warning {{cannot call function 'cb' while mutex 'mu' is held}}
+  mu.Unlock();
+}
+
 // Member typedefs are late-parsed, and their requirement is folded into the
 // type once its arguments are known -- provided those arguments are
 // context-free. A requirement naming a sibling member cannot be part of the

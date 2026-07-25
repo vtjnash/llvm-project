@@ -549,6 +549,46 @@ This support is limited to plain function pointers and function references.
 Pointers-to-member functions, blocks, and wrapper types such as `std::function`
 are not supported yet.
 
+#### Function pointer typedefs
+
+When a capability attribute is written on a `typedef` of function pointer
+type, it becomes part of the type itself rather than of a single declaration.
+Every value of that type -- variables, parameters, fields, and the results of
+`auto` deduction or template instantiation -- then carries the requirement,
+and calls through any of them are checked:
+
+```c++
+Mutex mu;
+typedef void (*callback_t)(void) REQUIRES(mu);
+
+void invoke(callback_t cb) {
+  cb();          // warning: calling cb requires holding mu
+}
+
+void deduced(callback_t cb) {
+  auto also_cb = cb;
+  also_cb();     // warning: the requirement survives `auto`
+}
+```
+
+Because the requirement is part of the type, converting such a value to a
+function pointer type *without* the requirement drops it (analogous to
+dropping `noexcept`), and the call through the bare pointer is then
+unchecked:
+
+```c++
+void drop(callback_t cb) {
+  void (*raw)(void) = cb;   // allowed; the requirement is dropped
+  raw();                    // no warning
+}
+```
+
+This form works for all of the capability attributes (`REQUIRES`, `ACQUIRE`,
+`RELEASE`, `TRY_ACQUIRE`, `ASSERT_CAPABILITY`, `EXCLUDES`, and their shared
+variants). It is limited to arguments that do not depend on a particular
+object: a requirement that names a member of the enclosing class or a
+parameter cannot be part of the type and stays on the declaration.
+
 ### Warning flags
 
 - `-Wthread-safety`:  Umbrella flag which turns on the following:
