@@ -17259,9 +17259,14 @@ void Sema::ActOnFinishDelayedAttribute(Scope *S, Decl *D,
     if (Method->isStatic())
       checkThisInStaticMemberFunctionAttributes(Method);
 
-  // Late-parsed capability attributes (e.g. on a class member) are attached
-  // here, after ProcessDeclAttributes already ran, so fold them into the type
-  // now.
+  // A capability attribute attached here missed ProcessDeclAttributes, so fold
+  // it into the type now. A typedef's attribute is deliberately not
+  // late-parsed when the parser can tell that it is one (see
+  // Parser::ParseSingleGNUAttribute) -- folding it at this point would be too
+  // late for anything that has already named the typedef -- but it still
+  // arrives here when it was written in the declaration-specifier position,
+  // where there is no declarator to say so. The fold declines to change a type
+  // that has already been handed out.
   foldCapabilityAttrsIntoType(D);
 }
 

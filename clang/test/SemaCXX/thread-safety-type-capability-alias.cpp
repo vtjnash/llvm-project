@@ -96,8 +96,10 @@ void release_without_holding(release_cb rel) {
 // Aliases in a class
 //===----------------------------------------------------------------------===//
 
-// The attribute is late-parsed here, so the fold runs from
-// ActOnFinishDelayedAttribute rather than from the alias declaration itself.
+// An alias declaration's attribute is never late-parsed, so the fold runs
+// before any other member can name the alias -- which is what keeps the alias
+// naming one type everywhere; see
+// thread-safety-type-capability-member.cpp.
 struct Host {
   using member_cb REQUIRES(mu1) = void (*)(void);
 

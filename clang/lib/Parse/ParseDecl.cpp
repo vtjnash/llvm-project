@@ -118,6 +118,24 @@ static bool IsAttributeArgsParsedInFunctionScope(const IdentifierInfo &II) {
 #undef CLANG_ATTR_PARSE_ARGS_IN_FUNCTION_SCOPE_LIST
 }
 
+/// Is this the name of a thread-safety attribute that states a capability
+/// requirement -- one of the attributes that Sema folds into the type of a
+/// typedef it is written on (see Sema::foldCapabilityAttrsIntoType)?
+static bool IsCapabilityAttributeName(const IdentifierInfo &II) {
+  switch (ParsedAttr::getParsedKind(&II, /*Scope=*/nullptr,
+                                    ParsedAttr::AS_GNU)) {
+  case ParsedAttr::AT_RequiresCapability:
+  case ParsedAttr::AT_AcquireCapability:
+  case ParsedAttr::AT_ReleaseCapability:
+  case ParsedAttr::AT_TryAcquireCapability:
+  case ParsedAttr::AT_AssertCapability:
+  case ParsedAttr::AT_LocksExcluded:
+    return true;
+  default:
+    return false;
+  }
+}
+
 /// Check if the a start and end source location expand to the same macro.
 static bool FindLocsWithCommonFileID(Preprocessor &PP, SourceLocation StartLoc,
                                      SourceLocation EndLoc) {
@@ -184,6 +202,18 @@ bool Parser::ParseSingleGNUAttribute(ParsedAttributes &Attrs,
     LateParse = IsAttributeLateParsedExperimentalExt(*AttrName) ||
                 IsAttributeLateParsedStandard(*AttrName);
   }
+
+  // A thread-safety capability attribute written on a typedef becomes part of
+  // the type it declares (Sema::foldCapabilityAttrsIntoType). Inside a class,
+  // late parsing would defer that to the end of the class -- long after other
+  // members have been declared with the typedef and have interned types built
+  // from its pre-fold underlying type, which would then disagree with every
+  // later use of the same name. Parse it now instead, so the typedef's type is
+  // final before anything can name it. The cost is that its arguments see only
+  // what precedes the typedef, as they would at namespace scope.
+  if (LateParse && D && IsCapabilityAttributeName(*AttrName) &&
+      D->getDeclSpec().getStorageClassSpec() == DeclSpec::SCS_typedef)
+    LateParse = false;
 
   // Handle "parameterized" attributes
   if (!LateParse) {

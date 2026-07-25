@@ -1915,6 +1915,16 @@ public:
       const TypedefNameDecl *Decl, QualType UnderlyingType = QualType(),
       std::optional<bool> TypeMatchesDeclOrNone = std::nullopt) const;
 
+  /// Whether the type naming \p Decl has already been created, and so may
+  /// already have been used to build other types. A TypedefType records the
+  /// canonical type its declaration had when it was created, so changing that
+  /// declaration's underlying type afterwards leaves the existing type -- and
+  /// everything derived from it -- disagreeing with every later use of the
+  /// same typedef-name.
+  bool hasTypedefTypeBeenCreated(const TypedefNameDecl *Decl) const {
+    return Decl->TypeForDecl != nullptr;
+  }
+
   CanQualType getCanonicalTagType(const TagDecl *TD) const;
   QualType getTagType(ElaboratedTypeKeyword Keyword,
                       NestedNameSpecifier Qualifier, const TagDecl *TD,

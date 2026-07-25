@@ -9052,12 +9052,22 @@ static bool capabilityArgIsContextFree(const Expr *E) {
 /// directly by the analysis -- including through paths other than the call
 /// handler, such as try-acquire -- so moving its attributes into the type
 /// would hide them from those paths; such declarations keep their attributes.
+///
+/// The fold changes what the typedef names, so it must happen before anything
+/// can name it: a TypedefType records the canonical type it had when it was
+/// created, and only its sugar is read back from the declaration. If the type
+/// has already been handed out, folding now would leave every type built from
+/// it -- and every type built from those -- disagreeing with the same typedef
+/// used later. The attributes are left on the declaration in that case, where
+/// they are inert, rather than splitting the typedef's identity in two.
 void Sema::foldCapabilityAttrsIntoType(Decl *D) {
   auto *TND = dyn_cast<TypedefNameDecl>(D);
   if (!TND)
     return;
   TypeSourceInfo *OldTSI = TND->getTypeSourceInfo();
   if (!OldTSI)
+    return;
+  if (Context.hasTypedefTypeBeenCreated(TND))
     return;
 
   llvm::SmallVector<const Attr *, 2> CapAttrs;

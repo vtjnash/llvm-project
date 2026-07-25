@@ -8369,10 +8369,11 @@ void test_typedef_excludes(excl_cb_t cb) {
   mu.Unlock();
 }
 
-// Member typedefs are late-parsed, and their requirement is folded into the
-// type once its arguments are known -- provided those arguments are
-// context-free. A requirement naming a sibling member cannot be part of the
-// type (it needs the object) and is left unfolded, which must not crash.
+// A member typedef's requirement is folded into the type -- provided its
+// arguments are context-free. A requirement naming a sibling member cannot be
+// part of the type (it needs the object) and is left unfolded, which must not
+// crash. See thread-safety-type-capability-member.cpp for the type identity
+// this depends on.
 struct Host {
   Mutex hmu;
   typedef void (*global_req_t)(void) EXCLUSIVE_LOCKS_REQUIRED(mu);

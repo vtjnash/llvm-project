@@ -123,14 +123,72 @@ attrs' arg streams are concatenated with no boundary, so
     FIXME in
     `clang/test/SemaCXX/thread-safety-type-capability-templates.cpp`.
 
-- [ ] **F4. Late fold retroactively mutates a member typedef's underlying
+- [x] **F4. Late fold retroactively mutates a member typedef's underlying
   type, leaving stale canonical `TypedefType`s.** For class-member typedefs
   the attrs are late-parsed, so the fold (`SemaDecl.cpp:17252`) runs at
   end-of-class — after members declared with that typedef already interned a
   `TypedefType` whose canonical was computed pre-fold. Verified:
   `__is_same(decltype(Host::early), Host::cb)` is false; feeds the F2
-  mangled-name error. Needs either fold-before-first-use, invalidation of
-  `TypeForDecl`, or the sugar design (Part IV).
+  mangled-name error.
+  Fixed in P7 by **fold-before-first-use**: `Parser::ParseSingleGNUAttribute`
+  does not late-parse a capability attribute when the declarator it is
+  attached to is a typedef, so the attribute is attached — and folded — at the
+  declaration itself, before any other member can name the typedef. This is
+  exactly what an alias declaration already did (`ParseUsingDeclaration`
+  passes no `LateParsedAttrList`), which is why `using cb REQUIRES(mu) = …`
+  never had the bug and `typedef … cb REQUIRES(mu);` did; the two now behave
+  the same. The price is that a typedef's requirement sees only what precedes
+  it, so naming a member declared *later* in the class is now
+  `use of undeclared identifier` instead of being accepted — as it already was
+  for `using`, and as it is at namespace scope. Nothing outside this branch
+  can depend on that: capability attributes on typedefs did not exist before
+  the series (they were dropped with `-Wignored-attributes`). Member
+  *functions*' attributes are untouched and still late-parsed, which is the
+  reason late parsing exists.
+  - **Why not the alternatives.** Resetting `TypeForDecl` at fold time only
+    fixes future `getTypedefType` calls, so `cb early;` and `Host::cb` would
+    still disagree — a split brain, strictly worse than the status quo.
+    Updating the interned node's canonical in place heals only *direct* uses:
+    derived types bake their canonical at creation (`getPointerType`,
+    `getFunctionType`), so `cb *p;` and `void m(cb);` would stay stale while
+    `cb early;` healed — an inconsistency no invariant could describe.
+    Measured: pre-fix, all of `decltype(Host::early)`, `…::earlyp`,
+    `cb[2]`, `void (Host::*)(cb)` and `cb (Host::*)()` differ from the
+    corresponding `Host::cb`-spelled type, so the rot is as deep as the
+    declarations go.
+  - **Safety net (`SemaDeclAttr.cpp`).** The fold now declines outright when
+    the typedef's type has already been handed out
+    (`ASTContext::hasTypedefTypeBeenCreated`, a new accessor for the
+    `TypeDecl::TypeForDecl` cache, which `TypedefNameDecl` deliberately
+    `= delete`s). So a fold that would be too late never happens, and a
+    typedef always names one type. It also documents the invariant the parser
+    change exists to maintain.
+  - **Residual, diagnosed by that net:** an attribute written in the
+    *declaration-specifier* position of a member typedef
+    (`REQUIRES(mu) typedef void (*cb)(void);`) is still late-parsed — at the
+    point the parser sees it there is no declarator to say the declaration is
+    a typedef, and it may even precede the `typedef` keyword. If the typedef
+    was used inside the class the fold is refused and the requirement is
+    silently lost (F12 territory: it joins the other unfoldable typedef
+    attributes P8 will diagnose); if it was not used, the late fold is safe
+    and still happens. Either way the typedef means one thing everywhere.
+    This is the only spelling still affected, and it is not the one the
+    thread-safety macros produce.
+  - **Related, not fixed here (F3 residual):** a member declared with the
+    typedef *inside* a template pattern whose requirement is dependent keeps
+    the pattern's unfolded `TypedefType`, because that type is not
+    instantiation-dependent and substitution never reaches the instantiated
+    (folded) typedef. Same mismatch, different cause; closing it is the F3
+    work item. A pattern whose requirement is *not* dependent folds in the
+    pattern and was fixed by P7 along with the rest.
+  - Tests: `clang/test/SemaCXX/thread-safety-type-capability-member.cpp`
+    (identity for direct/pointer/array/method-signature/return-type/typedef-of
+    uses, inside vs. outside the class, ambiguity-free overload resolution
+    standing in for the mangling collision, the analysis still checking
+    early-declared members, alias parity, both template shapes, the
+    unfoldable-argument and declaration-specifier-position cases, and a
+    second `-verify` run for the later-member arguments that are now
+    rejected). Verified to fail 20 ways on the pre-fix compiler.
 
 - [x] **F5. `addCapabilityAttrsToFunctionType` drops qualifiers and
   pointer-level sugar.** (`SemaDeclAttr.cpp:8866-8905`) `T->getAs<PointerType>()`
@@ -222,9 +280,12 @@ attrs' arg streams are concatenated with no boundary, so
   Fixed in P4: `Sema::ActOnAliasDeclaration` calls the fold right after
   attribute processing. `TypeAliasDecl` is a `TypedefNameDecl`, so the subject
   check (F9) and the instantiation hook (F10 — `TypeAliasDecl` instantiation
-  shares `InstantiateTypedefNameDecl`) already applied; a member alias'
-  late-parsed attribute already reached the fold through
-  `ActOnFinishDelayedAttribute`. Verified working: requires/acquire/release
+  shares `InstantiateTypedefNameDecl`) already applied. (An earlier draft of
+  this entry said a member alias' attribute reached the fold through
+  `ActOnFinishDelayedAttribute`; it does not — `ParseUsingDeclaration` passes
+  no `LateParsedAttrList`, so an alias' attribute is never late-parsed. That
+  is precisely why aliases never had F4, and P7 gave typedefs the same
+  timing.) Verified working: requires/acquire/release
   through an alias, `auto` propagation, both attribute spellings, aliases in a
   class, member aliases of a class template with an NTTP mutex (folded per
   instantiation), an alias template whose underlying type is not dependent,
@@ -635,7 +696,8 @@ var + field; `FPOps`/`BDevOps` C structs must stay unfolded; full
 ## Part IV — Open design decision (user input needed before upstreaming)
 
 **Should capability attrs be part of the canonical function type?**
-(Determines F2, and colors F4, F14, F15, F16.)
+(Determines F2, and colors F14, F15, F16. It also colored F4, which
+P7 has since fixed within the current design.)
 
 - **Option A — keep canonical (current design) + make manglers emit them**
   (vendor-extension qualifier, like C++17 `noexcept`-in-type). Pros: full
@@ -645,7 +707,9 @@ var + field; `FPOps`/`BDevOps` C structs must stay unfolded; full
   annotating a typedef changes the mangling of every function that takes it —
   an ABI cliff for adopters.
 - **Option B — demote to type sugar** (AttributedType-style node; analysis
-  desugars). Pros: F2/F4(partially)/F15/F16 evaporate; no ABI impact; much
+  desugars). Pros: F2/F15/F16 evaporate, and the ordering constraint P7
+  imposes (a typedef's requirement must be known before the typedef is used)
+  goes away with them; no ABI impact; much
   smaller identity blast radius. Cons: sugar does not reliably survive
   template deduction/canonicalization — weakens the feature to roughly
   `auto`-only propagation; large rework of the series.
@@ -677,7 +741,11 @@ var + field; `FPOps`/`BDevOps` C structs must stay unfolded; full
    effects — see its entry. `MergeVarDeclTypes`, W3's C++ half, deferred to
    W4 for want of anything to test it with.)
 7. **P7**: F4 stale member-typedef canonical — investigate; fix or document
-   as known limitation tied to Part IV.
+   as known limitation tied to Part IV. ✔ Fixed by not late-parsing a
+   capability attribute on a typedef declarator (matching what alias
+   declarations already did), plus a fold-time refusal to change a type that
+   has already been handed out. Residuals recorded: the declaration-specifier
+   attribute position, and F3's template-pattern-internal uses.
 8. **P8**: F12 ignored-attr diagnostic; F17; F18 style sweep.
 9. **P9**: D1–D4 docs; T3; final test sweep.
 10. **P10**: W2 field folding, then W4 variable folding (W3 landed in P6),
