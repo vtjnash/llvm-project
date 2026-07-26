@@ -319,6 +319,34 @@ void test_fp_ops_fail(struct FPOps *ops) {
   ops->requires_mu(); // expected-warning {{calling function 'requires_mu' requires holding mutex '&FPOps::mu' exclusively}}
 }
 
+// The requirements above name a sibling member, so they cannot become part of
+// the field's type -- the type does not carry the object. They stay on the
+// declaration, which is where they have always been read from, so a copy of
+// the field does not carry them.
+void test_fp_ops_copy(struct FPOps *ops) {
+  __typeof__(ops->requires_mu) copy = ops->requires_mu;
+  copy(); // no warning: the requirement stayed on the declaration
+}
+
+// A field whose requirement names a global capability *is* folded into the
+// field's type, so it survives a copy.
+struct GlobalOps {
+  void (*lock)(void) EXCLUSIVE_LOCK_FUNCTION(mu1);
+  void (*unlock)(void) UNLOCK_FUNCTION(mu1);
+  void (*requires_mu1)(void) EXCLUSIVE_LOCKS_REQUIRED(mu1);
+};
+
+void test_global_ops_copy(struct GlobalOps *ops) {
+  __typeof__(ops->requires_mu1) copy = ops->requires_mu1;
+  copy(); // expected-warning {{calling function 'copy' requires holding mutex 'mu1' exclusively}}
+
+  __typeof__(ops->lock) lock = ops->lock;
+  __typeof__(ops->unlock) unlock = ops->unlock;
+  lock();
+  copy();
+  unlock();
+}
+
 // Function pointer parameters. The attributes constrain the function reached
 // through the pointer, so they are checked where the pointer is called, and
 // must not be mistaken for requirements of the enclosing function's callers

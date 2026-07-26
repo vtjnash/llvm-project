@@ -4660,6 +4660,16 @@ void Sema::MergeVarDeclTypes(VarDecl *New, VarDecl *Old,
       MergedT = Context.mergeObjCGCQualifiers(New->getType(),
                                               Old->getType());
     }
+
+    // The two declarations may differ only in the thread-safety capability
+    // requirements folded into their function-pointer type, which happens as
+    // soon as one of them writes a capability attribute the other omits. The
+    // variable then requires the union of what its declarations state -- the
+    // same rule ASTContext::mergeFunctionTypes applies below for C, and the
+    // reason writing the attribute on the definition only, or on the extern
+    // declaration only, is not a redeclaration conflict.
+    if (MergedT.isNull())
+      MergedT = mergeCapabilityAttrsIntoVarType(New->getType(), Old->getType());
   } else {
     // C 6.2.7p2:
     //   All declarations that refer to the same object or function shall have
@@ -17260,7 +17270,10 @@ void Sema::ActOnFinishDelayedAttribute(Scope *S, Decl *D,
       checkThisInStaticMemberFunctionAttributes(Method);
 
   // A capability attribute attached here missed ProcessDeclAttributes, so fold
-  // it into the type now. A typedef's attribute is deliberately not
+  // it into the type now. This is the normal path for a member variable or
+  // field, whose attribute is late-parsed so that it can name members declared
+  // later; it runs after the class is complete but before member initializers
+  // are parsed. A typedef's attribute, by contrast, is deliberately not
   // late-parsed when the parser can tell that it is one (see
   // Parser::ParseSingleGNUAttribute) -- folding it at this point would be too
   // late for anything that has already named the typedef -- but it still

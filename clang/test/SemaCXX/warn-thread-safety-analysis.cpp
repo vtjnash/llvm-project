@@ -8504,4 +8504,205 @@ void test_cast_unchecked(void *p) {
   ((req_cb_t)p)(); // no warning
 }
 
+
+//===----------------------------------------------------------------------===//
+// A capability attribute on a function-pointer *variable* or *field* is folded
+// into the declaration's type too, so the requirement survives 'auto', a copy
+// of the same type, and template instantiation -- exactly as for a typedef.
+// Unlike a typedef, the declaration keeps the attribute (the analysis reads it
+// from there on paths of its own), and the requirement is checked once.
+//===----------------------------------------------------------------------===//
+
+// The variables declared at the top of this namespace are all folded; the
+// tests above call them directly, which exercises the declaration path. These
+// go through 'auto', which only works if the requirement is in the type.
+void test_var_auto_requires() {
+  auto f = requires_fn;
+  f(); // expected-warning {{calling function 'f' requires holding mutex 'mu' exclusively}}
+}
+
+void test_var_auto_requires_held() {
+  mu.Lock();
+  auto f = requires_fn;
+  f();
+  mu.Unlock();
+}
+
+// The shared variants must stay shared. Each of them is declared immediately
+// after an exclusive twin with an identical signature and the same capability,
+// which is what made them collide in the type folding set before [TSA][9/N];
+// reading them back through the type is what detects that.
+void test_var_auto_shared_requires() {
+  mu.ReaderLock();
+  auto f = shared_requires_fn;
+  f();
+  mu.ReaderUnlock();
+}
+
+void test_var_auto_shared_requires_fail() {
+  auto f = shared_requires_fn;
+  f(); // expected-warning {{calling function 'f' requires holding mutex 'mu'}}
+}
+
+void test_var_auto_shared_acquire_release() {
+  auto acq = shared_lock_fn;
+  auto rel = shared_unlock_fn;
+  acq();
+  (void)x;
+  rel();
+}
+
+void test_var_auto_shared_acquire_write_fail() {
+  auto acq = shared_lock_fn;
+  auto rel = shared_unlock_fn;
+  acq();
+  x = 1; // expected-warning {{writing variable 'x' requires holding mutex 'mu' exclusively}}
+  rel();
+}
+
+void test_var_auto_shared_assert() {
+  auto a = shared_assert_fn;
+  a();
+  (void)x;
+}
+
+void test_var_auto_exclusive_assert() {
+  auto a = assert_fn;
+  a();
+  x = 1;
+}
+
+void test_var_auto_shared_trylock() {
+  auto t = shared_try_lock_fn;
+  if (t()) {
+    (void)x;
+    mu.ReaderUnlock();
+  }
+}
+
+void test_var_auto_exclusive_trylock() {
+  auto t = try_lock_fn;
+  if (t()) {
+    x = 1;
+    mu.Unlock();
+  }
+}
+
+void test_var_auto_excludes() {
+  auto e = excludes_fn;
+  mu.Lock();
+  e(); // expected-warning {{cannot call function 'e' while mutex 'mu' is held}}
+  mu.Unlock();
+}
+
+// A copy of the same type keeps the requirement; an explicit conversion to a
+// type without it drops it.
+void test_var_same_type_keeps() {
+  decltype(requires_fn) same = requires_fn;
+  same(); // expected-warning {{calling function 'same' requires holding mutex 'mu' exclusively}}
+}
+
+void test_var_conversion_drops() {
+  void (*raw)(void) = requires_fn; // ok: the requirement is dropped here
+  raw();                           // no warning
+}
+
+// Assigning a function without the requirement to the pointer is still not an
+// error, and the pointer still acquires when called.
+void testReassignToFolded() {
+  lock_fn = otherLock;
+  lock_fn();
+  x = 1;
+  mu.Unlock();
+}
+
+// A requirement whose argument is not context-free cannot be part of the type;
+// it stays on the declaration, where it works exactly as it did before. This
+// is the pre-existing behavior of 'lock_param_fn'/'req_param_fn' above, and of
+// a block-scope mutex here.
+void test_local_mutex_arg() {
+  Mutex local;
+  void (*local_req_fn)(void) EXCLUSIVE_LOCKS_REQUIRED(local);
+  local_req_fn(); // expected-warning {{calling function 'local_req_fn' requires holding mutex 'local' exclusively}}
+  auto f = local_req_fn;
+  f(); // no warning: the requirement stayed on the declaration
+}
+
+// A block-scope variable whose requirement names a global mutex does fold.
+void test_local_var_folds() {
+  void (*local_global_req)(void) EXCLUSIVE_LOCKS_REQUIRED(mu);
+  auto f = local_global_req;
+  f(); // expected-warning {{calling function 'f' requires holding mutex 'mu' exclusively}}
+}
+
+// Stating the requirement on the declaration and in its type describes one
+// requirement, so it is diagnosed once. The two are distinct Attr objects --
+// the fold keeps the declaration's -- and may be spelled differently.
+req_cb_t dup_var EXCLUSIVE_LOCKS_REQUIRED(mu);
+req_cb_t dup_var_other_spelling __attribute__((requires_capability(mu)));
+req_cb_t dup_var_distinct EXCLUSIVE_LOCKS_REQUIRED(mu2);
+
+void test_dup_var() {
+  dup_var();                // expected-warning {{calling function 'dup_var' requires holding mutex 'mu' exclusively}}
+  dup_var_other_spelling(); // expected-warning {{calling function 'dup_var_other_spelling' requires holding mutex 'mu' exclusively}}
+  dup_var_distinct();       // expected-warning {{calling function 'dup_var_distinct' requires holding mutex 'mu2' exclusively}} expected-warning {{calling function 'dup_var_distinct' requires holding mutex 'mu' exclusively}}
+}
+
+// Fields fold as well. 'Ops' above is reached through the declaration; these
+// go through the type.
+void testStructOpsAuto(Ops *ops) {
+  auto lock = ops->lock;
+  auto do_thing = ops->do_thing;
+  auto read_thing = ops->read_thing;
+  auto unlock = ops->unlock;
+  lock();
+  x = 1;
+  do_thing();
+  read_thing();
+  unlock();
+}
+
+void testStructOpsAutoFail(Ops *ops) {
+  auto do_thing = ops->do_thing;
+  auto read_thing = ops->read_thing;
+  do_thing();   // expected-warning {{calling function 'do_thing' requires holding mutex 'mu' exclusively}}
+  read_thing(); // expected-warning {{calling function 'read_thing' requires holding mutex 'mu'}}
+}
+
+// A field with a default member initializer folds too: the late-parsed member
+// attribute is attached after the class is complete but before the initializer
+// is parsed.
+void nothing();
+
+struct NsdmiOps {
+  void (*do_thing)(void) EXCLUSIVE_LOCKS_REQUIRED(mu) = &nothing;
+  static void (*static_do_thing)(void) EXCLUSIVE_LOCKS_REQUIRED(mu);
+  static constexpr void (*const_do_thing)(void) EXCLUSIVE_LOCKS_REQUIRED(mu) =
+      &nothing;
+};
+
+void test_nsdmi_field(NsdmiOps *ops) {
+  auto f = ops->do_thing;
+  f(); // expected-warning {{calling function 'f' requires holding mutex 'mu' exclusively}}
+  auto g = NsdmiOps::static_do_thing;
+  g(); // expected-warning {{calling function 'g' requires holding mutex 'mu' exclusively}}
+  auto h = NsdmiOps::const_do_thing;
+  h(); // expected-warning {{calling function 'h' requires holding mutex 'mu' exclusively}}
+}
+
+// A field whose requirement names a sibling member cannot be part of the type
+// -- the type does not carry the object -- so it stays on the declaration and
+// keeps working there, which is the original supported form. (See the C twin,
+// struct FPOps in Sema/warn-thread-safety-analysis.c.)
+struct MemberMutexOps {
+  Mutex omu;
+  void (*do_thing)(void) EXCLUSIVE_LOCKS_REQUIRED(omu);
+};
+
+void test_member_mutex_field(MemberMutexOps *ops) {
+  ops->do_thing(); // expected-warning {{calling function 'do_thing' requires holding mutex 'omu' exclusively}}
+  auto f = ops->do_thing;
+  f(); // no warning: the requirement stayed on the declaration
+}
+
 } // namespace FunctionPointers

@@ -8877,7 +8877,19 @@ void Sema::ProcessPragmaWeak(Scope *S, Decl *D) {
 /// Rebuild \p T, which must be a function type or a pointer/reference/block
 /// pointer to one, so that its FunctionProtoType additionally carries the
 /// given thread-safety capability attributes in its type. Returns a null type
-/// if \p T is not a function (pointer) type.
+/// if \p T is not a function (pointer) type, and \p T unchanged if the type
+/// already states every requirement in \p Attrs.
+///
+/// The requirements are added as a set: an attribute equivalent to one the
+/// type already carries is not added again. That keeps the fold idempotent,
+/// which matters for a value declaration, whose attributes are *not* dropped
+/// once folded -- a redeclaration inherits them and would otherwise fold the
+/// same requirement into an already-folded merged type a second time.
+///
+/// With \p Replace, \p Attrs becomes the type's requirements outright instead
+/// of being added to them. Because the order of the list is part of the type's
+/// identity, that is how two types are given the *same* requirements, as
+/// opposed to equivalent ones.
 ///
 /// What survives the rebuild: the qualifiers on the pointer itself (the
 /// 'const' of 'void (*const)(void)', 'volatile', an address space --
@@ -8898,13 +8910,14 @@ void Sema::ProcessPragmaWeak(Scope *S, Decl *D) {
 /// (it requires a NamedDecl callee), so admitting blocks would only fold the
 /// requirement into a type nothing reads.
 static QualType addCapabilityAttrsToFunctionType(ASTContext &Ctx, QualType T,
-                                                 ArrayRef<const Attr *> Attrs) {
+                                                 ArrayRef<const Attr *> Attrs,
+                                                 bool Replace = false) {
   // Qualifiers written on the pointer sit outside it, so peel them off,
   // rebuild what they qualify, and re-apply them; otherwise a 'const'
   // function-pointer typedef would quietly become assignable.
   if (Qualifiers Quals = T.getLocalQualifiers(); !Quals.empty()) {
     QualType Inner = addCapabilityAttrsToFunctionType(
-        Ctx, T.getLocalUnqualifiedType(), Attrs);
+        Ctx, T.getLocalUnqualifiedType(), Attrs, Replace);
     if (Inner.isNull())
       return QualType();
     return Ctx.getQualifiedType(Inner, Quals);
@@ -8917,12 +8930,12 @@ static QualType addCapabilityAttrsToFunctionType(ASTContext &Ctx, QualType T,
   // appear here the modified type is the same function-pointer type, and a
   // modified type without the requirement would make the two disagree.
   if (const auto *AT = dyn_cast<AttributedType>(T)) {
-    QualType Equivalent =
-        addCapabilityAttrsToFunctionType(Ctx, AT->getEquivalentType(), Attrs);
+    QualType Equivalent = addCapabilityAttrsToFunctionType(
+        Ctx, AT->getEquivalentType(), Attrs, Replace);
     if (Equivalent.isNull())
       return QualType();
-    QualType Modified =
-        addCapabilityAttrsToFunctionType(Ctx, AT->getModifiedType(), Attrs);
+    QualType Modified = addCapabilityAttrsToFunctionType(
+        Ctx, AT->getModifiedType(), Attrs, Replace);
     if (Modified.isNull())
       Modified = AT->getModifiedType();
     if (const Attr *A = AT->getAttr())
@@ -8935,8 +8948,8 @@ static QualType addCapabilityAttrsToFunctionType(ASTContext &Ctx, QualType T,
   // and put it back, so that the sugar it wraps (the AttributedType above, in
   // particular) is reached at all.
   if (const auto *MQT = dyn_cast<MacroQualifiedType>(T)) {
-    QualType Underlying =
-        addCapabilityAttrsToFunctionType(Ctx, MQT->getUnderlyingType(), Attrs);
+    QualType Underlying = addCapabilityAttrsToFunctionType(
+        Ctx, MQT->getUnderlyingType(), Attrs, Replace);
     if (Underlying.isNull())
       return QualType();
     return Ctx.getMacroQualifiedType(Underlying, MQT->getMacroIdentifier());
@@ -8965,9 +8978,20 @@ static QualType addCapabilityAttrsToFunctionType(ASTContext &Ctx, QualType T,
     return QualType();
 
   FunctionProtoType::ExtProtoInfo EPI = FPT->getExtProtoInfo();
-  llvm::SmallVector<const Attr *, 4> Combined(
-      EPI.ExtraAttributeInfo.CapabilityAttrs);
-  Combined.append(Attrs.begin(), Attrs.end());
+  ArrayRef<const Attr *> Existing = EPI.ExtraAttributeInfo.CapabilityAttrs;
+  llvm::SmallVector<const Attr *, 4> Combined;
+  if (!Replace)
+    Combined.assign(Existing.begin(), Existing.end());
+  for (const Attr *A : Attrs)
+    if (llvm::none_of(Combined, [&](const Attr *B) {
+          return areEquivalentCapabilityAttrs(A, B, Ctx);
+        }))
+      Combined.push_back(A);
+  // Nothing to change: hand back the original type rather than an equal one
+  // rebuilt without its sugar. The comparison is element-wise because the
+  // order of the list is part of the type's identity.
+  if (llvm::equal(Combined, Existing))
+    return T;
   const Attr **Storage = Ctx.Allocate<const Attr *>(Combined.size());
   llvm::copy(Combined, Storage);
   EPI.ExtraAttributeInfo.CapabilityAttrs =
@@ -9000,10 +9024,11 @@ static QualType addCapabilityAttrsToFunctionType(ASTContext &Ctx, QualType T,
 }
 
 namespace {
-/// Why a thread-safety capability attribute written on a typedef cannot be
-/// folded into the type the typedef names. The enumerators other than None
-/// are the %select values of warn_thread_attribute_on_typedef_ignored, in
-/// order.
+/// Why a thread-safety capability attribute cannot be folded into the type of
+/// the declaration it is written on. The enumerators other than None are the
+/// %select values of warn_thread_attribute_on_typedef_ignored, in order --
+/// only a typedef reports them, but a value declaration declines to fold for
+/// the same reasons.
 enum class CapabilityFoldObstacle {
   /// The argument is relative to an object or a parameter.
   ObjectRelativeArg,
@@ -9118,35 +9143,163 @@ static void diagnoseIgnoredCapabilityAttrs(Sema &S, TypedefNameDecl *TND,
   dropCapabilityAttrs(TND);
 }
 
+/// The first obstacle to folding \p CapAttrs that does not depend on which
+/// kind of declaration they were written on.
+static CapabilityFoldObstacle
+findCapabilityFoldObstacle(ArrayRef<const Attr *> CapAttrs) {
+  // Fold only when every requirement is context-free; otherwise leave none of
+  // them in the type, so that an all-or-nothing type is never half true.
+  for (const Attr *A : CapAttrs)
+    for (const Expr *E : getCapabilityAttrArgs(A)) {
+      CapabilityFoldObstacle Why = CapabilityFoldObstacle::None;
+      if (!capabilityArgIsContextFree(E, Why))
+        return Why;
+    }
+  return CapabilityFoldObstacle::None;
+}
+
+/// Fold \p CapAttrs into the type \p TND names. See
+/// Sema::foldCapabilityAttrsIntoType.
+static void foldCapabilityAttrsIntoTypedefType(Sema &S, TypedefNameDecl *TND,
+                                               ArrayRef<const Attr *> CapAttrs,
+                                               bool IsAliasTemplatePattern) {
+  TypeSourceInfo *OldTSI = TND->getTypeSourceInfo();
+  if (!OldTSI)
+    return;
+
+  if (const auto *TA = dyn_cast<TypeAliasDecl>(TND))
+    IsAliasTemplatePattern |= TA->getDescribedAliasTemplate() != nullptr;
+
+  // The fold changes what the typedef names, so it must happen before anything
+  // can name it: a TypedefType records the canonical type it had when it was
+  // created, and only its sugar is read back from the declaration. If the type
+  // has already been handed out, folding now would leave every type built from
+  // it -- and every type built from those -- disagreeing with the same typedef
+  // used later. The attributes are dropped in that case, rather than splitting
+  // the typedef's identity in two.
+  CapabilityFoldObstacle Why = S.Context.hasTypedefTypeBeenCreated(TND)
+                                   ? CapabilityFoldObstacle::TypeAlreadyUsed
+                                   : findCapabilityFoldObstacle(CapAttrs);
+
+  QualType OldType = OldTSI->getType();
+  QualType NewType;
+  if (Why == CapabilityFoldObstacle::None) {
+    NewType = addCapabilityAttrsToFunctionType(S.Context, OldType, CapAttrs);
+    // The subject check already rejected everything but a function pointer and
+    // a dependent type, so what is left here is a dependent type -- rechecked
+    // after substitution -- or a pointer to an unprototyped function type,
+    // which has no FunctionProtoType to carry the attribute.
+    if (NewType.isNull())
+      Why = OldType->isDependentType() ? CapabilityFoldObstacle::Dependent
+                                       : CapabilityFoldObstacle::NoPrototype;
+  }
+
+  if (Why != CapabilityFoldObstacle::None) {
+    diagnoseIgnoredCapabilityAttrs(S, TND, CapAttrs, Why,
+                                   IsAliasTemplatePattern);
+    return;
+  }
+
+  // Folding the attributes into the type strips the source sugar around the
+  // pointer level, so a matching TypeLoc cannot be copied from the original.
+  // The change is invisible in the written type, so a trivial TypeSourceInfo
+  // anchored at the typedef name is sufficient. When the underlying type
+  // already stated the requirement there is no change to record, so the
+  // written sugar is kept.
+  if (NewType != OldType) {
+    TypeSourceInfo *NewTSI =
+        S.Context.getTrivialTypeSourceInfo(NewType, TND->getLocation());
+    TND->setTypeSourceInfo(NewTSI);
+  }
+
+  // The requirements now live in the type; drop them from the declaration so
+  // they are not processed (or printed) twice. The attribute objects remain
+  // valid -- the rebuilt type references the same ones.
+  dropCapabilityAttrs(TND);
+}
+
+/// Fold \p CapAttrs into the type of the function-pointer variable or field
+/// \p VD. See Sema::foldCapabilityAttrsIntoType.
+static void
+foldCapabilityAttrsIntoValueDeclType(Sema &S, ValueDecl *VD,
+                                     ArrayRef<const Attr *> CapAttrs) {
+  // A value declaration is itself the callee, and the analysis reads its
+  // declaration attributes on paths of its own, so unlike a typedef it keeps
+  // them: folding only adds a second, equivalent statement of the same
+  // requirement, which handleCall and getTryAcquireCapabilityAttrs de-duplicate
+  // (areEquivalentCapabilityAttrs). Consequently an obstacle to the fold is not
+  // reported as an ignored attribute the way it is for a typedef -- the
+  // requirement still applies, it just stays scoped to this declaration
+  // instead of travelling with its type.
+  if (findCapabilityFoldObstacle(CapAttrs) != CapabilityFoldObstacle::None)
+    return;
+
+  // Read the declaration's current type rather than its TypeSourceInfo's: for
+  // a value declaration the two can already differ here (address-space
+  // adjustment, for one), and it is the declaration's type that is used.
+  QualType OldType = VD->getType();
+  QualType NewType =
+      addCapabilityAttrsToFunctionType(S.Context, OldType, CapAttrs);
+  if (NewType.isNull() || NewType == OldType)
+    return;
+
+  // Only the declaration's type is updated; the TypeSourceInfo keeps the type
+  // as written. Divergence between the two is an established pattern (a
+  // parameter of array type is another), and it is what lets the written form
+  // -- including sugar the rebuild above cannot reproduce -- survive.
+  VD->setType(NewType);
+}
+
+QualType Sema::mergeCapabilityAttrsIntoVarType(QualType NewT, QualType OldT) {
+  ArrayRef<const Attr *> NewCaps = getCapabilityAttrsOfFunctionType(NewT);
+  ArrayRef<const Attr *> OldCaps = getCapabilityAttrsOfFunctionType(OldT);
+  // Either neither declaration carries a requirement, or they carry the same
+  // ones -- so whatever makes the two types differ, it is not this.
+  if ((NewCaps.empty() && OldCaps.empty()) ||
+      areEquivalentCapabilityAttrSets(NewCaps, OldCaps, Context))
+    return QualType();
+
+  // Give both sides the same requirements -- the union, in one order, so that
+  // what is left to compare is everything else about the two types. If they
+  // then agree, the requirements were the only difference, and the result
+  // built from the new declaration's type is the one that keeps its sugar.
+  ArrayRef<const Attr *> Union =
+      mergeCapabilityAttrs(NewCaps, OldCaps, Context, /*IsIntersection=*/false);
+  QualType Merged =
+      addCapabilityAttrsToFunctionType(Context, NewT, Union, /*Replace=*/true);
+  QualType OldMerged =
+      addCapabilityAttrsToFunctionType(Context, OldT, Union, /*Replace=*/true);
+  if (Merged.isNull() || OldMerged.isNull() ||
+      !Context.hasSameType(Merged, OldMerged))
+    return QualType();
+  return Merged;
+}
+
 /// Fold any thread-safety capability attributes on \p D into its function
 /// type, so the requirements become part of the type and are honored at every
 /// call through a value of that type.
 ///
-/// Only typedef declarations are handled. A value declaration that is itself
-/// the callee (a function, or a function-pointer variable or field) is read
-/// directly by the analysis -- including through paths other than the call
-/// handler, such as try-acquire -- so moving its attributes into the type
-/// would hide them from those paths; such declarations keep their attributes.
+/// Handled subjects are typedef and alias declarations, and function-pointer
+/// variables and fields. The two differ in what happens to the declaration's
+/// own attributes: a typedef is never itself the callee and nothing reads its
+/// declaration attributes, so they move into the type, and a fold that cannot
+/// happen is reported as an ignored attribute (see
+/// diagnoseIgnoredCapabilityAttrs). A value declaration keeps its attributes,
+/// because the analysis reads them directly -- including on paths other than
+/// the call handler, such as try-acquire -- and because a redeclaration
+/// inherits them; for it, folding is an enhancement that makes the requirement
+/// travel through 'auto', templates and assignment, and declining to fold
+/// leaves the requirement working exactly as it did before this feature.
 ///
-/// The fold changes what the typedef names, so it must happen before anything
-/// can name it: a TypedefType records the canonical type it had when it was
-/// created, and only its sugar is read back from the declaration. If the type
-/// has already been handed out, folding now would leave every type built from
-/// it -- and every type built from those -- disagreeing with the same typedef
-/// used later. The attributes are dropped in that case, rather than splitting
-/// the typedef's identity in two.
+/// Parameters and function declarations are deliberately not folded: their
+/// types are part of the enclosing (or their own) function type, so a fold
+/// would change an overload's identity and its mangling.
 ///
-/// Whenever the fold declines for a reason that will not go away, the
-/// attributes are reported as ignored; see diagnoseIgnoredCapabilityAttrs for
-/// which reasons those are. \p IsAliasTemplatePattern tells the fold that \p D
-/// is the pattern of an alias template, for callers that know it before
+/// \p IsAliasTemplatePattern tells the fold that \p D is the pattern of an
+/// alias template, for callers that know it before
 /// TypeAliasDecl::setDescribedAliasTemplate has run.
 void Sema::foldCapabilityAttrsIntoType(Decl *D, bool IsAliasTemplatePattern) {
-  auto *TND = dyn_cast<TypedefNameDecl>(D);
-  if (!TND)
-    return;
-  TypeSourceInfo *OldTSI = TND->getTypeSourceInfo();
-  if (!OldTSI)
+  if (!D)
     return;
 
   llvm::SmallVector<const Attr *, 2> CapAttrs;
@@ -9156,56 +9309,22 @@ void Sema::foldCapabilityAttrsIntoType(Decl *D, bool IsAliasTemplatePattern) {
   if (CapAttrs.empty())
     return;
 
-  if (const auto *TA = dyn_cast<TypeAliasDecl>(TND))
-    IsAliasTemplatePattern |= TA->getDescribedAliasTemplate() != nullptr;
+  // A TypedefNameDecl is not a DeclaratorDecl and a ValueDecl is not a
+  // TypeDecl, so the two paths share the attribute collection above and
+  // nothing else.
+  if (auto *TND = dyn_cast<TypedefNameDecl>(D))
+    return foldCapabilityAttrsIntoTypedefType(*this, TND, CapAttrs,
+                                              IsAliasTemplatePattern);
 
-  // Fold only when every requirement is context-free; otherwise leave none of
-  // them in the type, so that an all-or-nothing type is never half true.
-  auto FindObstacle = [&]() {
-    if (Context.hasTypedefTypeBeenCreated(TND))
-      return CapabilityFoldObstacle::TypeAlreadyUsed;
-    for (const Attr *A : CapAttrs)
-      for (const Expr *E : getCapabilityAttrArgs(A)) {
-        CapabilityFoldObstacle Why = CapabilityFoldObstacle::None;
-        if (!capabilityArgIsContextFree(E, Why))
-          return Why;
-      }
-    return CapabilityFoldObstacle::None;
-  };
-  CapabilityFoldObstacle Why = FindObstacle();
-
-  QualType NewType;
-  if (Why == CapabilityFoldObstacle::None) {
-    NewType =
-        addCapabilityAttrsToFunctionType(Context, OldTSI->getType(), CapAttrs);
-    // The subject check already rejected everything but a function pointer and
-    // a dependent type, so what is left here is a dependent type -- rechecked
-    // after substitution -- or a pointer to an unprototyped function type,
-    // which has no FunctionProtoType to carry the attribute.
-    if (NewType.isNull())
-      Why = OldTSI->getType()->isDependentType()
-                ? CapabilityFoldObstacle::Dependent
-                : CapabilityFoldObstacle::NoPrototype;
-  }
-
-  if (Why != CapabilityFoldObstacle::None) {
-    diagnoseIgnoredCapabilityAttrs(*this, TND, CapAttrs, Why,
-                                   IsAliasTemplatePattern);
+  // ParmVarDecl is a VarDecl, and must not reach the fold: a parameter's type
+  // is part of the enclosing function's type, which ProcessDeclAttributes has
+  // not yet collected, so folding one would silently change the enclosing
+  // function's overload identity and mangling.
+  if (isa<ParmVarDecl>(D))
     return;
-  }
-
-  // Folding the attributes into the type strips the source sugar around the
-  // pointer level, so a matching TypeLoc cannot be copied from the original.
-  // The change is invisible in the written type, so a trivial TypeSourceInfo
-  // anchored at the typedef name is sufficient.
-  TypeSourceInfo *NewTSI =
-      Context.getTrivialTypeSourceInfo(NewType, TND->getLocation());
-  TND->setTypeSourceInfo(NewTSI);
-
-  // The requirements now live in the type; drop them from the declaration so
-  // they are not processed (or printed) twice. The attribute objects remain
-  // valid -- the rebuilt type references the same ones.
-  dropCapabilityAttrs(D);
+  if (isa<VarDecl, FieldDecl>(D))
+    return foldCapabilityAttrsIntoValueDeclType(*this, cast<ValueDecl>(D),
+                                                CapAttrs);
 }
 
 /// ProcessDeclAttributes - Given a declarator (PD) with attributes indicated in

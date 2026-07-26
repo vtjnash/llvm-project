@@ -77,6 +77,39 @@ void call_composite(int c, plain p, req1 a, req12 d) {
 }
 
 //===----------------------------------------------------------------------===//
+// A variable's redeclarations merge the same way.
+//===----------------------------------------------------------------------===//
+
+// A capability attribute written on a function-pointer variable is folded into
+// the variable's type, so an attribute written on only one of its declarations
+// makes the two declarations' types differ. mergeFunctionTypes unions them, so
+// the variable requires whatever any of its declarations states, in either
+// order.
+extern void (*var_annotated_second)(void);
+void (*var_annotated_second)(void) REQ(mu1);
+
+void (*var_annotated_first)(void) REQ(mu1);
+extern void (*var_annotated_first)(void);
+
+// Each declaration may state a different requirement; the variable requires
+// both.
+extern void (*var_both)(void) REQ(mu1);
+void (*var_both)(void) REQ(mu2);
+
+void use_merged_vars(void) {
+  var_annotated_second(); // expected-warning {{calling function 'var_annotated_second' requires holding mutex 'mu1' exclusively}}
+  var_annotated_first();  // expected-warning {{calling function 'var_annotated_first' requires holding mutex 'mu1' exclusively}}
+  var_both();             // expected-warning {{calling function 'var_both' requires holding mutex 'mu1' exclusively}} expected-warning {{calling function 'var_both' requires holding mutex 'mu2' exclusively}}
+}
+
+// The merged requirement is in the type, not merely inherited onto the second
+// declaration, so it survives a copy of the same type.
+void use_merged_var_copy(void) {
+  __typeof__(var_annotated_first) copy = var_annotated_first;
+  copy(); // expected-warning {{calling function 'copy' requires holding mutex 'mu1' exclusively}}
+}
+
+//===----------------------------------------------------------------------===//
 // Redefining a typedef with a different requirement stays an error.
 //===----------------------------------------------------------------------===//
 
@@ -93,3 +126,8 @@ typedef REQ(mu2) void (*redef)(void); // expected-error {{typedef redefinition w
 typedef REQ(mu1) void (*ok_redef)(void);
 typedef REQ(mu1) void (*ok_redef)(void);
 typedef __attribute__((exclusive_locks_required(mu1))) void (*ok_redef)(void);
+
+// A redeclaration that differs in more than its requirements is still an
+// error.
+extern void (*var_conflict)(void) REQ(mu1); // expected-note {{previous declaration is here}}
+extern int (*var_conflict)(void) REQ(mu1);  // expected-error {{redeclaration of 'var_conflict' with a different type}}

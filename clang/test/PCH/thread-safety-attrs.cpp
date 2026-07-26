@@ -119,6 +119,15 @@ typedef void (*req_cb_t)(void) EXCLUSIVE_LOCKS_REQUIRED(sls_mu);
 typedef void (*const req_const_cb_t)(void) EXCLUSIVE_LOCKS_REQUIRED(sls_mu);
 using req_alias_cb_t EXCLUSIVE_LOCKS_REQUIRED(sls_mu) = void (*)(void);
 
+// A requirement written on a function-pointer *variable* or *field* is folded
+// into the declaration's type as well, and is kept on the declaration; both
+// have to round-trip.
+void (*req_var)(void) EXCLUSIVE_LOCKS_REQUIRED(sls_mu);
+
+struct CbOps {
+  void (*req_field)(void) EXCLUSIVE_LOCKS_REQUIRED(sls_mu);
+};
+
 #else
 
 MutexWrapper sls_mw;
@@ -345,6 +354,29 @@ void sls_fun_cb_const(req_const_cb_t cb) {
 void sls_fun_cb_alias(req_alias_cb_t cb) {
   cb(); // \
     expected-warning{{calling function 'cb' requires holding mutex 'sls_mu' exclusively}}
+}
+
+// The variable and the field state the requirement twice after deserialization
+// -- once on the declaration and once in its type -- and it is still one
+// requirement, reported once. Reaching them through 'auto' can only work if
+// the type kept it.
+static_assert(__is_same(decltype(req_var), req_cb_t),
+              "a folded variable's type round-trips through the PCH");
+
+void sls_fun_var() {
+  req_var(); // \
+    expected-warning{{calling function 'req_var' requires holding mutex 'sls_mu' exclusively}}
+  auto copy = req_var;
+  copy(); // \
+    expected-warning{{calling function 'copy' requires holding mutex 'sls_mu' exclusively}}
+}
+
+void sls_fun_field(CbOps *ops) {
+  ops->req_field(); // \
+    expected-warning{{calling function 'req_field' requires holding mutex 'sls_mu' exclusively}}
+  auto copy = ops->req_field;
+  copy(); // \
+    expected-warning{{calling function 'copy' requires holding mutex 'sls_mu' exclusively}}
 }
 
 #endif

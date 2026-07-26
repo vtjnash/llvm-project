@@ -1087,9 +1087,9 @@ the program if it is not held.
 
 The attribute may also be written on a function pointer variable, field, or
 parameter, or on a ``typedef`` or alias declaration of function pointer type, in
-which case it describes calls made *through* the pointer. On a ``typedef`` or
-alias it becomes part of the function type, so every value of that type carries
-it:
+which case it describes calls made *through* the pointer. Except on a
+parameter, it also becomes part of the function type, so every value of that
+type carries it:
 
 .. code-block:: c++
 
@@ -1112,9 +1112,9 @@ Marks a function as acquiring a capability.
 
 The attribute may also be written on a function pointer variable, field, or
 parameter, or on a ``typedef`` or alias declaration of function pointer type, in
-which case it describes calls made *through* the pointer. On a ``typedef`` or
-alias it becomes part of the function type, so every value of that type carries
-it:
+which case it describes calls made *through* the pointer. Except on a
+parameter, it also becomes part of the function type, so every value of that
+type carries it:
 
 .. code-block:: c++
 
@@ -1141,10 +1141,10 @@ the capability means success (false).
 
 The attribute may also be written on a function pointer variable, field, or
 parameter, or on a ``typedef`` or alias declaration of function pointer type, in
-which case it describes calls made *through* the pointer. On a ``typedef`` or
-alias it becomes part of the function type, so every value of that type carries
-it. Two such types are distinct unless they agree on the success value as well
-as on the capability:
+which case it describes calls made *through* the pointer. Except on a
+parameter, it also becomes part of the function type, so every value of that
+type carries it. Two such types are distinct unless they agree on the success
+value as well as on the capability:
 
 .. code-block:: c++
 
@@ -1173,9 +1173,9 @@ releases one held either way.
 
 The attribute may also be written on a function pointer variable, field, or
 parameter, or on a ``typedef`` or alias declaration of function pointer type, in
-which case it describes calls made *through* the pointer. On a ``typedef`` or
-alias it becomes part of the function type, so every value of that type carries
-it:
+which case it describes calls made *through* the pointer. Except on a
+parameter, it also becomes part of the function type, so every value of that
+type carries it:
 
 .. code-block:: c++
 
@@ -1219,9 +1219,9 @@ than the function that declares it:
 
   void (*callback)(void) __attribute__((requires_capability(mu)));
 
-Written on a ``typedef`` or alias declaration of function pointer type, it
-becomes part of the function type itself, so every value of that type carries
-the requirement -- through ``auto``, template instantiation, and assignment:
+Except on a parameter, the attribute also becomes part of the function type
+itself, so every value of that type carries the requirement -- through
+``auto``, template instantiation, and assignment:
 
 .. code-block:: c++
 
@@ -1259,9 +1259,9 @@ document that calling it while they are already held would deadlock.
   }
 
 The attribute may also be written on a function pointer variable, field, or
-parameter, in which case it describes calls made *through* the pointer, and on
-a ``typedef`` or alias declaration of function pointer type, in which case it
-becomes part of the function type and every value of that type carries it:
+parameter, in which case it describes calls made *through* the pointer. Except
+on a parameter, it also becomes part of the function type, so every value of
+that type carries it:
 
 .. code-block:: c++
 

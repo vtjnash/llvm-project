@@ -236,6 +236,28 @@ features cannot lower the translation-unit ABI level;
   [Thread Safety Analysis](https://clang.llvm.org/docs/ThreadSafetyAnalysis.html)
   for the details and the limitations.
 
+- The same attributes written on a function-pointer *variable* or *field* are
+  now folded into that declaration's type as well, so a requirement stated
+  there propagates the same way:
+
+  ```c++
+  void (*lock_fn)(void) ACQUIRE(mu);
+
+  void deduced() {
+    auto f = lock_fn;
+    f();   // acquires 'mu', as calling 'lock_fn' would
+  }
+  ```
+
+  Unlike on a `typedef`, the attribute is also kept on the declaration -- it
+  still describes one requirement, and it is reported once -- so a requirement
+  that cannot be part of a type (one naming a sibling member, for instance)
+  simply stays declaration-scoped and keeps working, with no diagnostic. Two
+  declarations of the same variable need not repeat the requirement; the
+  variable requires the union of what they state. Function declarations and
+  parameters are unchanged: folding their requirements would change an
+  overload's identity and its mangling.
+
 ### Improvements to Clang's diagnostics
 
 - More consistent rendering of Unicode characters in diagnostic messages.

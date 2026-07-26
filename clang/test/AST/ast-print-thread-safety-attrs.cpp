@@ -131,6 +131,45 @@ typedef void (*_Nonnull nonnull_req_cb_t)(void)
 // re-parse. It has to print after the alias name instead, which needs the
 // declaration printer to take the attributes over from the type printer.
 
+// A requirement written on a function-pointer variable or field is folded into
+// the declaration's type and also kept on the declaration -- the analysis
+// reads it from both. It is one requirement, so it prints once.
+//
+// A variable prints its type as written (from its TypeSourceInfo), so the
+// attribute comes from the declaration; a field prints its (folded) type, so
+// the declaration does not repeat what the type already states. Either way the
+// output round-trips.
+void (*req_var)(void) __attribute__((requires_capability(mu)));
+// CHECK: void (*req_var)() __attribute__((requires_capability(mu)));
+
+void (*gnu_req_var)(void) __attribute__((shared_locks_required(gnu_mu)));
+// CHECK: void (*gnu_req_var)() __attribute__((shared_locks_required(gnu_mu)));
+
+bool (*tryacq_var)(void) __attribute__((try_acquire_capability(true, mu2)));
+// CHECK: bool (*tryacq_var)() __attribute__((try_acquire_capability(true, mu2)));
+
+struct CbOps {
+  void (*req_field)(void) __attribute__((requires_capability(mu)));
+  void (*multi_field)(void) __attribute__((acquire_capability(mu)))
+  __attribute__((locks_excluded(mu2)));
+};
+// CHECK:      struct CbOps {
+// CHECK-NEXT:     void (*req_field)() __attribute__((requires_capability(mu)));
+// CHECK-NEXT:     void (*multi_field)() __attribute__((acquire_capability(mu))) __attribute__((locks_excluded(mu2)));
+// CHECK-NEXT: };
+
+// A requirement that names a sibling member cannot become part of the type, so
+// it stays -- and prints -- on the declaration alone. (It prints with the
+// implicit 'this->' the parser built, which is what re-parses.)
+struct MemberMutexOps {
+  Mutex omu;
+  void (*req_field)(void) __attribute__((requires_capability(omu)));
+};
+// CHECK:      struct MemberMutexOps {
+// CHECK-NEXT:     Mutex omu;
+// CHECK-NEXT:     void (*req_field)() __attribute__((requires_capability(this->omu)));
+// CHECK-NEXT: };
+
 // Attributes on a function declaration print on the declaration, unchanged.
 void locked_fn(void) __attribute__((exclusive_locks_required(mu)));
 // CHECK: void locked_fn() __attribute__((exclusive_locks_required(mu)));

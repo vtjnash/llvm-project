@@ -403,6 +403,21 @@ bool clang::areEquivalentCapabilityAttrs(const Attr *A, const Attr *B,
   return IDA == IDB;
 }
 
+ArrayRef<const Attr *> clang::getCapabilityAttrsOfFunctionType(QualType T) {
+  if (T.isNull())
+    return {};
+  QualType Fn = T;
+  if (const auto *PT = T->getAs<PointerType>())
+    Fn = PT->getPointeeType();
+  else if (const auto *BT = T->getAs<BlockPointerType>())
+    Fn = BT->getPointeeType();
+  else if (const auto *RT = T->getAs<ReferenceType>())
+    Fn = RT->getPointeeType();
+  if (const auto *FPT = Fn->getAs<FunctionProtoType>())
+    return FPT->getCapabilityAttrs();
+  return {};
+}
+
 /// Whether \p Set already states the requirement \p A states. The sets are
 /// tiny (one attribute per written annotation), so a linear scan is fine.
 static bool containsEquivalentCapabilityAttr(ArrayRef<const Attr *> Set,

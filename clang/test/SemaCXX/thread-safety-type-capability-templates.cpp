@@ -199,6 +199,76 @@ void static_local_mutex_typedef() {
 }
 
 //===----------------------------------------------------------------------===//
+// Value declarations in a class template
+//===----------------------------------------------------------------------===//
+
+// A capability attribute is late-parsed, so on a member of a class template it
+// is attached after the class has been instantiated. The fold runs there,
+// which gives each specialization the requirement its own arguments name.
+template <Mutex *M> struct Holder {
+  void (*fp)(void) REQUIRES(*M);
+  static void (*sfp)(void) REQUIRES(*M);
+  static constexpr void (*cfp)(void) REQUIRES(*M) = nullptr;
+};
+
+void distinct_per_instantiation(Holder<&mu1> *h1, Holder<&mu2> *h2) {
+  auto a = h1->fp;
+  a(); // expected-warning {{calling function 'a' requires holding mutex 'mu1' exclusively}}
+  auto b = h2->fp;
+  b(); // expected-warning {{calling function 'b' requires holding mutex 'mu2' exclusively}}
+
+  auto c = Holder<&mu1>::cfp;
+  c(); // expected-warning {{calling function 'c' requires holding mutex 'mu1' exclusively}}
+
+  static_assert(!__is_same(decltype(h1->fp), decltype(h2->fp)),
+                "each instantiation has its own requirement");
+  static_assert(__is_same(decltype(Holder<&mu1>::sfp), decltype(h1->fp)),
+                "a static data member folds like a field");
+}
+
+// A requirement naming a sibling member cannot be part of the type in a
+// template either; it stays on the declaration, where it keeps working.
+template <typename T> struct SiblingHolder {
+  Mutex omu;
+  T value GUARDED_BY(omu);
+  void (*fp)(void) REQUIRES(omu);
+};
+
+void sibling_member_stays_on_decl(SiblingHolder<int> *h) {
+  h->fp(); // expected-warning {{calling function 'fp' requires holding mutex 'omu' exclusively}}
+  static_assert(__is_same(decltype(h->fp), void (*)(void)),
+                "an object-relative requirement is not part of the type");
+}
+
+// A local class and a local variable inside a *function* template reach the
+// fold through different hooks than a class template's members do: their
+// attributes are instantiated eagerly (there is no late-attribute list), so
+// TemplateDeclInstantiator::VisitFieldDecl and Sema::BuildVariableInstantiation
+// fold them.
+template <Mutex *M> void local_decls() {
+  struct Local {
+    void (*fp)(void) REQUIRES(*M);
+  };
+  Local l;
+  auto a = l.fp;
+  a(); // expected-warning {{calling function 'a' requires holding mutex 'mu1' exclusively}}
+
+  void (*local_fp)(void) REQUIRES(*M);
+  auto b = local_fp;
+  b(); // expected-warning {{calling function 'b' requires holding mutex 'mu1' exclusively}}
+}
+// expected-note@+1 {{in instantiation of function template specialization 'local_decls<&mu1>' requested here}}
+template void local_decls<&mu1>();
+
+// A function-pointer variable template.
+template <Mutex *M> void (*var_tmpl)(void) REQUIRES(*M) = nullptr;
+
+void variable_template() {
+  auto f = var_tmpl<&mu1>;
+  f(); // expected-warning {{calling function 'f' requires holding mutex 'mu1' exclusively}}
+}
+
+//===----------------------------------------------------------------------===//
 // Known limitation
 //===----------------------------------------------------------------------===//
 

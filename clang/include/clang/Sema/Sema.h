@@ -5228,6 +5228,14 @@ public:
   void foldCapabilityAttrsIntoType(Decl *D,
                                    bool IsAliasTemplatePattern = false);
 
+  /// If two declarations of the same variable have types that differ only in
+  /// the thread-safety capability requirements their function type carries,
+  /// return \p NewT extended with the requirements of \p OldT -- the union,
+  /// matching what ASTContext::mergeFunctionTypes does for a redeclaration in
+  /// C. Returns a null type if they differ in any other way, leaving the
+  /// caller to diagnose the mismatch.
+  QualType mergeCapabilityAttrsIntoVarType(QualType NewT, QualType OldT);
+
   void PopParsingDeclaration(ParsingDeclState state, Decl *decl);
 
   /// Given a set of delayed diagnostics, re-emit them as if they had

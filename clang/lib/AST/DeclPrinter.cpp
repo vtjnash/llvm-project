@@ -127,9 +127,13 @@ namespace {
     void printTemplateArguments(ArrayRef<TemplateArgumentLoc> Args,
                                 const TemplateParameterList *Params);
     enum class AttrPosAsWritten { Default = 0, Left, Right };
+    /// \p PrintedType, when non-null, is the type that has already been
+    /// printed for \p D; any thread-safety capability requirement it carries
+    /// is not printed again from the declaration.
     std::optional<std::string>
     prettyPrintAttributes(const Decl *D,
-                          AttrPosAsWritten Pos = AttrPosAsWritten::Default);
+                          AttrPosAsWritten Pos = AttrPosAsWritten::Default,
+                          QualType PrintedType = QualType());
 
     void prettyPrintPragmas(Decl *D);
     void printDeclType(QualType T, StringRef DeclName, bool Pack = false);
@@ -257,16 +261,29 @@ static DeclPrinter::AttrPosAsWritten getPosAsWritten(const Attr *A,
 }
 
 std::optional<std::string>
-DeclPrinter::prettyPrintAttributes(const Decl *D,
-                                   AttrPosAsWritten Pos /*=Default*/) {
+DeclPrinter::prettyPrintAttributes(const Decl *D, AttrPosAsWritten Pos,
+                                   QualType PrintedType) {
   if (Policy.SuppressDeclAttributes || !D->hasAttrs())
     return std::nullopt;
+
+  // A thread-safety capability attribute written on a function-pointer
+  // variable or field is folded into the declaration's type and, unlike on a
+  // typedef, also kept on the declaration -- the analysis reads it from both.
+  // Print the requirement once: if the type that was printed already states
+  // it, the declaration does not repeat it.
+  ArrayRef<const Attr *> TypeCaps =
+      getCapabilityAttrsOfFunctionType(PrintedType);
 
   std::string AttrStr;
   llvm::raw_string_ostream AOut(AttrStr);
   llvm::ListSeparator LS(" ");
   for (auto *A : D->getAttrs()) {
     if (A->isInherited() || A->isImplicit())
+      continue;
+    if (!TypeCaps.empty() && isCapabilityAttr(A) &&
+        llvm::any_of(TypeCaps, [&](const Attr *B) {
+          return areEquivalentCapabilityAttrs(A, B, Context);
+        }))
       continue;
     // Print out the keyword attributes, they aren't regular attributes.
     if (Policy.PolishForDeclaration && !A->isKeywordAttribute())
@@ -940,7 +957,8 @@ void DeclPrinter::VisitFieldDecl(FieldDecl *D) {
       Out << " = ";
     Init->printPretty(Out, nullptr, Policy, Indentation, "\n", &Context);
   }
-  if (std::optional<std::string> Attrs = prettyPrintAttributes(D))
+  if (std::optional<std::string> Attrs =
+          prettyPrintAttributes(D, AttrPosAsWritten::Default, D->getType()))
     Out << ' ' << *Attrs;
 }
 

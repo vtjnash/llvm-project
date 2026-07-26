@@ -1905,6 +1905,13 @@ Decl *TemplateDeclInstantiator::VisitFieldDecl(FieldDecl *D) {
 
   SemaRef.InstantiateAttrs(TemplateArgs, D, Field, LateAttrs, StartingScope);
 
+  // A thread-safety capability attribute whose arguments were dependent could
+  // not be folded into the pattern's type. Its arguments have just been
+  // substituted, so retry the fold here; that is what makes the requirement
+  // part of this instantiation's field type, and hence visible through 'auto'
+  // and through a copy of the field.
+  SemaRef.foldCapabilityAttrsIntoType(Field);
+
   if (Field->hasAttrs())
     SemaRef.CheckAlignasUnderalignment(Field);
 
@@ -6191,6 +6198,12 @@ void Sema::BuildVariableInstantiation(
   }
 
   InstantiateAttrs(TemplateArgs, OldVar, NewVar, LateAttrs, StartingScope);
+
+  // As in VisitFieldDecl: a capability attribute that could not be folded into
+  // the pattern's type because its arguments were dependent gets another
+  // chance now that they are substituted. This runs before the lookup and
+  // merge below, matching the order ActOnVariableDeclarator uses.
+  foldCapabilityAttrsIntoType(NewVar);
 
   LookupResult Previous(
       *this, NewVar->getDeclName(), NewVar->getLocation(),

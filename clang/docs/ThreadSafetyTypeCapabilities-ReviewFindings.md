@@ -767,10 +767,9 @@ attrs' arg streams are concatenated with no boundary, so
   of a caps-carrying typedef; see
   `clang/test/Sema/thread-safety-type-capability-merge.c`). The C++ half is
   not: `MergeVarDeclTypes` still compares with `hasSameType` and would reject
-  a folded variable's attr-free redeclaration. That is untestable until W4
-  folds `VarDecl`s at all, so it stays part of W4 — the fix there is to try
-  `mergeCapabilityAttrs`-based merging before diagnosing, using the same union
-  rule.*
+  a folded variable's attr-free redeclaration. That was untestable until W4
+  folded `VarDecl`s at all, so it stayed part of W4, and landed there: see W3
+  below.*
 - **B2 (= F3/F13). Dependent args fold unsubstituted** — must fix first.
 
 **Key design recommendations (reversing two TODO assumptions)**
@@ -789,6 +788,22 @@ attrs' arg streams are concatenated with no boundary, so
    diverge for value decls, e.g. address-space adjustment).
 3. **`TypedefNameDecl` is not a `DeclaratorDecl`** — the obvious unified
    refactor null-derefs; keep the typedef and value-decl paths separate.
+   *Confirmed in P10: `Sema::foldCapabilityAttrsIntoType` collects the
+   attributes and then dispatches to one of two functions that share nothing
+   else.*
+4. **Printing** (decided in P10; not part of the original study). Keeping the
+   attributes on the declaration makes them printable twice, because
+   `DeclPrinter` prints both a declaration's attributes and its type. It bit
+   only fields: `VisitVarDecl` prints the type from the `TypeSourceInfo`, which
+   the fold deliberately leaves as written, whereas `VisitFieldDecl` prints
+   `D->getType()`, which is the folded one. Switching the field printer to the
+   TSI is *wrong* — a field's type legitimately diverges from its TSI for
+   other reasons, and `__counted_by` depends on the folded one
+   (`PCH/bounds-safety-attributed-type.c` catches it). So
+   `prettyPrintAttributes` instead takes the type that was already printed and
+   skips a capability attribute equivalent to one that type states. Variables
+   and fields then both print the requirement exactly once, and the output
+   re-parses.
 
 **Reader audit (TODO item 5) — complete.** The only decl-attr readers are in
 `ThreadSafety.cpp` (call paths already type-aware; `runAnalysis` decl loops
@@ -799,24 +814,50 @@ already inert for fn-ptr params), `Sema` checks that run pre-fold, and
 **Ordered work items**
 
 - [x] **W1** = F3/F13 guard hardening (prerequisite). Landed with P3.
-- [ ] **W2. Fold `FieldDecl`** (lowest risk, ships first). Timing verified
+- [x] **W2. Fold `FieldDecl`** (lowest risk, ships first). Timing verified
   safe: late-parsed member attrs attach (`ParseDeclCXX.cpp:3725`) after
   `ActOnFinishCXXMemberSpecification` but *before*
   `ParseLexedMemberInitializers` (`:3731`); triviality/layout unaffected
   (pointer size/align unchanged; `TypeInfo` keyed on canonical `Type*`). In C,
   TSA field attrs are not late-parsed (`ParseDecl.cpp:4958`), and the
-  non-late path (`SemaDecl.cpp:19630`) precedes record completion.
-- [~] **W3** = F14 `mergeFunctionTypes`/`MergeVarDeclTypes` union (blocker B1).
+  non-late path (`SemaDecl.cpp:19630`) precedes record completion. *Done in
+  P10, together with W4 — the two share one `foldCapabilityAttrsIntoType`
+  value-decl path, so splitting the commit would have gained nothing. One hook
+  was missing from the study: for a member of a class **template** the
+  attribute is not attached by `TemplateDeclInstantiator::VisitFieldDecl` at
+  all — `InstantiateAttrs` defers every late-parsed attribute to
+  `InstantiateClass`'s own loop (`SemaTemplateInstantiate.cpp:3742`), which
+  runs after the class body and before
+  `ActOnFinishDelayedMemberInitializers`, exactly mirroring the parser. The
+  fold has to be driven from there too, and that is what gives each
+  specialization its own requirement.*
+- [x] **W3** = F14 `mergeFunctionTypes`/`MergeVarDeclTypes` union (blocker B1).
   *`mergeFunctionTypes` landed with P6 (F14d), which unblocks the C half of
-  B1. `MergeVarDeclTypes` is untestable until there is a folded `VarDecl` to
-  redeclare, so it moves into W4; `mergeCapabilityAttrs` is there to be
-  reused.*
-- [ ] **W4. Fold `VarDecl`** (after W3), excluding `ParmVarDecl`.
+  B1. The C++ half landed with P10: `Sema::mergeCapabilityAttrsIntoVarType`
+  (`SemaDeclAttr.cpp`) gives both types the same union of requirements and
+  compares what is left, so `MergeVarDeclTypes` (`SemaDecl.cpp:4604`) takes the
+  union of a capability-only difference instead of diagnosing it. Handing each
+  side the *other's* requirements is not enough: the order of the requirement
+  list is part of the type's identity, so both sides have to be given one and
+  the same list — hence the `Replace` mode on
+  `addCapabilityAttrsToFunctionType`.*
+- [x] **W4. Fold `VarDecl`** (after W3), excluding `ParmVarDecl`.
   `ProcessDeclAttributes` at `SemaDecl.cpp:8277` precedes merge and
   initializer checking for namespace/block scope. Residual hazard: in-class
   static data member with initializer (init checked at
   `ParseDeclCXX.cpp:3183-3192`, before late attrs at `:3725`) — exclude
-  static data members in the first cut or test explicitly.
+  static data members in the first cut or test explicitly. *Done in P10.
+  **Static data members are not excluded**: the hazard was investigated and
+  does not materialise. The initializer of a `static constexpr void (*)(void)`
+  member really is checked and constant-evaluated before the attribute
+  attaches, but nothing cached from it is keyed on the requirement — the
+  `APValue` is a pointer to a function, a `static_assert` on it still
+  evaluates, and CodeGen emits the same global — because the fold changes
+  only what the analysis reads, never the type's size, layout or
+  representation. Tested in-class (`NsdmiOps::const_do_thing` in
+  `SemaCXX/warn-thread-safety-analysis.cpp`) and out-of-line (`Holder::fp` in
+  `SemaCXX/thread-safety-type-capability-merge.cpp`, where the definition does
+  not repeat the attribute and W3's union supplies it).
 - [~] **W5. Parameters: skip — but the TODO's rationale is wrong.**
   `ActOnParamDeclarator` runs `ProcessDeclAttributes` (`SemaDecl.cpp:15858`)
   *before* `GetFullTypeForDeclarator` collects param types
@@ -832,7 +873,7 @@ already inert for fn-ptr params), `Sema` checks that run pre-fold, and
   `checkThisInStaticMemberFunctionAttributes` ordering must be preserved.
   Revisit only after W3 + a union-merge policy with tests.
 
-**Test plan** (from the study; execute with W2/W4): requires_shared VARIABLE +
+**Test plan** (from the study; executed with P10): requires_shared VARIABLE +
 `auto`; exclusive variable auto/keep/drop mirroring the typedef trio;
 explicit collision pairs (all five) as variables; try-acquire success-value
 variable pair; redecl-without-attr (C++ compiles + keeps requirement; C twin);
@@ -841,6 +882,28 @@ initializer hazard; NSDMI field; field via `auto` must warn; class-template
 field with global vs sibling-member arg; PCH/ast-print additions for folded
 var + field; `FPOps`/`BDevOps` C structs must stay unfolded; full
 `FunctionPointers` namespace unchanged; `Sema/SemaCXX/AST/PCH/Modules` sweeps.
+*All done, in `SemaCXX/warn-thread-safety-analysis.cpp` (whose
+`FunctionPointers` namespace is unchanged in all four RUN configurations),
+`Sema/warn-thread-safety-analysis.c`,
+`{Sema,SemaCXX}/thread-safety-type-capability-merge.{c,cpp}`,
+`SemaCXX/thread-safety-type-capability-templates.cpp`,
+`AST/ast-print-thread-safety-attrs.cpp` and `PCH/thread-safety-attrs.cpp`.*
+
+**Behavior matrix for a value declaration.** For each obstacle the typedef path
+reports under F12 (see `CapabilityFoldObstacle`), what a variable or field does
+instead. The governing difference is that a value declaration's attribute
+*works* whether or not it is folded, so an obstacle is never diagnosed for one;
+it only limits how far the requirement travels.
+
+| Obstacle | Typedef | Variable / field |
+|---|---|---|
+| none | folded; attrs dropped from the decl | folded; attrs **kept** on the decl, and the requirement checked once (`areEquivalentCapabilityAttrs` dedup) |
+| `ObjectRelativeArg` (sibling member, `this`, a parameter) | diagnosed + dropped | not folded; declaration-scoped and fully checked — the original supported form (`FPOps`, `BDevOps`, `lock_param_fn`) |
+| `NonGlobalArg` (block-scope capability) | diagnosed + dropped | not folded; declaration-scoped and fully checked |
+| `Dependent` | deferred, retried on the instantiated decl (diagnosed only for an alias template, which is never instantiated as one) | deferred, retried on the instantiated decl: `VisitFieldDecl`, `BuildVariableInstantiation`, and `InstantiateClass`'s late-attribute loop |
+| `NoPrototype` (K&R function type) | diagnosed + dropped | not folded; declaration-scoped and fully checked |
+| `TypeAlreadyUsed` | diagnosed + dropped | cannot arise: nothing else names a value declaration's type |
+| not a function (pointer) type at all | subject check rejects | subject check rejects (`warn_thread_attribute_wrong_decl_type_str`) |
 
 ---
 
@@ -904,6 +967,9 @@ P7 has since fixed within the current design.)
 9. **P9**: D1–D4 docs; T3; final test sweep. ✔ Docs only — no compiler
    behavior change. Note for the record: the release notes now live in
    `ReleaseNotes.md`, not `.rst`.
-10. **P10**: W2 field folding, then W4 variable folding (W3 landed in P6),
-    with the Part III test plan. Closes out the ValueDeclFolding TODO's items
-    2, 3, 5, 6; item 4 (functions) stays deferred (W6).
+10. **P10**: W2 field folding and W4 variable folding in one commit, plus
+    W3's remaining `MergeVarDeclTypes` half, with the Part III test plan.
+    ✔ Closes out the ValueDeclFolding TODO's items 1, 2, 5 and 6; parameters
+    (its item 4 / W5) stay on the declaration by design, and function
+    declarations (its item 3 / W6) stay deferred behind the Part IV
+    decision.

@@ -479,6 +479,13 @@ void profileCapabilityAttr(llvm::FoldingSetNodeID &ID, const Attr *A,
 bool areEquivalentCapabilityAttrs(const Attr *A, const Attr *B,
                                   const ASTContext &Context);
 
+/// The thread-safety capability requirements carried by the function type that
+/// \p T is, or that it is a pointer, block pointer or reference to; empty if
+/// there is no such function type or it carries none. This is where
+/// Sema::foldCapabilityAttrsIntoType puts the requirements written on a
+/// typedef or on a function-pointer variable or field.
+ArrayRef<const Attr *> getCapabilityAttrsOfFunctionType(QualType T);
+
 /// Whether two sets of capability attributes state the same requirements,
 /// ignoring their order and any duplicates within a set.
 bool areEquivalentCapabilityAttrSets(ArrayRef<const Attr *> LHS,

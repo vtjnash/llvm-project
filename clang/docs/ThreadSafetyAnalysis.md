@@ -510,10 +510,9 @@ Use of these attributes has been deprecated.
 
 ### Function Pointers
 
-Thread safety attributes may also be applied to variables, fields, and
-parameters of function pointer (or, in C++, function reference) type. The
-attributes describe the locking behavior of calling through that pointer, and
-the analysis will check calls through the pointer accordingly.
+Thread safety attributes may also be applied to function pointer variables and
+fields. The attributes describe the locking behavior of calling through that
+pointer, and the analysis will check calls through the pointer accordingly.
 
 ```c++
 Mutex mu;
@@ -532,22 +531,54 @@ void test(Ops *ops) {
   ops->read();
   unlock_fn();
 }
+```
 
-void visit_all(void (*visit)(int) REQUIRES(mu), int n) {
-  lock_fn();
-  visit(n); // OK: 'mu' is held here
-  unlock_fn();
+Assigning a function with different (or no) attributes to an annotated function
+pointer variable is not diagnosed. The analysis trusts the annotations on the
+variable at the call site.
+
+The requirement also becomes part of the variable's or field's *type*, in the
+same way as for the typedefs described below, so it survives `auto`, a copy of
+the same type, and template instantiation:
+
+```c++
+void deduced() {
+  auto f = lock_fn;
+  f();             // acquires mu, just as `lock_fn()` would
 }
 ```
 
-Note that the attributes are on the *variable* (or field, or parameter), not on
-the function pointer type. Assigning a function with different (or no)
-attributes to an annotated function pointer variable is not diagnosed. The
-analysis trusts the annotations on the variable at the call site.
+The attribute stays on the declaration as well, so the requirement is stated
+twice; it is still one requirement, and it is reported once. Requirements that
+cannot be part of a type -- see "Requirements that cannot be part of a type",
+below -- simply stay on the declaration, where they keep working exactly as
+they always have; nothing is diagnosed, and this is the supported way to write
+a requirement that names a sibling member:
 
-This support is limited to plain function pointers and function references.
-Pointers-to-member functions, blocks, and wrapper types such as `std::function`
-are not supported yet.
+```c++
+struct Cache {
+  Mutex mu;
+  void (*read)(void) REQUIRES(mu);   // relative to the object: not a type
+};                                   // requirement, but still checked
+```
+
+Two declarations of the same variable need not repeat the requirement; the
+variable requires the union of what its declarations state:
+
+```c++
+extern void (*lock_fn)(void);
+void (*lock_fn)(void) ACQUIRE(mu);   // fine, in either order
+```
+
+Function *declarations* and *parameters* are deliberately left out: their types
+are part of an enclosing (or their own) function type, so folding a requirement
+into them would change an overload's identity and its mangling. The declaration
+form covers both, and a parameter written with an annotated typedef gets the
+type-carried form anyway.
+
+This support is limited to plain function pointers. Pointers-to-member
+functions, blocks, and wrapper types such as `std::function` are not
+supported yet.
 
 #### Function pointer typedefs and aliases
 
@@ -651,8 +682,9 @@ Only requirements whose arguments make sense independently of any particular
 object can live in a type. A requirement that names a member of the enclosing
 class, a parameter, or a block-scope variable cannot, and neither can one on an
 alias *template* (which is never instantiated as a declaration) or on a
-function type with no prototype. In all of those cases the attribute is
-diagnosed under `-Wthread-safety-attributes` and ignored:
+function type with no prototype. On a *typedef* or alias, where nothing else
+would ever read the attribute, all of those are diagnosed under
+`-Wthread-safety-attributes` and ignored:
 
 ```c++
 struct Cache {
@@ -665,7 +697,9 @@ struct Cache {
 ```
 
 Write the requirement on the individual declarations instead; the declaration
-form described above handles all of these.
+form described above handles all of these. On a variable or a field there is
+nothing to diagnose: the attribute is not folded, but it stays on the
+declaration and the analysis reads it from there.
 
 Because a typedef's requirement has to be known before the typedef is used, its
 arguments are looked up at the point of the typedef. Inside a class this means

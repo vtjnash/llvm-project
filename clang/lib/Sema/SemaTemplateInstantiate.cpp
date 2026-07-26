@@ -14,6 +14,7 @@
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/ASTLambda.h"
 #include "clang/AST/ASTMutationListener.h"
+#include "clang/AST/Attr.h"
 #include "clang/AST/DeclBase.h"
 #include "clang/AST/DeclTemplate.h"
 #include "clang/AST/DynamicRecursiveASTVisitor.h"
@@ -3759,6 +3760,18 @@ bool Sema::InstantiateClassImpl(
     LocalInstantiationScope::deleteScopes(I->Scope,
                                           Instantiator.getStartingScope());
   }
+
+  // A thread-safety capability attribute is late-parsed, so for a member of a
+  // class template it is attached by the loop above -- long after the member
+  // itself was instantiated and its fold attempted. Fold it now. This mirrors
+  // the parser, where a late-parsed member attribute is likewise attached once
+  // the class is complete and before member initializers are handled, and it
+  // is what gives each specialization its own requirement.
+  llvm::SmallPtrSet<Decl *, 4> FoldedDecls;
+  for (const LateInstantiatedAttribute &LA : LateAttrs)
+    if (isCapabilityAttr(LA.TmplAttr) && FoldedDecls.insert(LA.NewDecl).second)
+      foldCapabilityAttrsIntoType(LA.NewDecl);
+
   Instantiator.disableLateAttributeInstantiation();
   LateAttrs.clear();
 
