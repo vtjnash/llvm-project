@@ -1023,3 +1023,141 @@ P7 has since fixed within the current design.)
     two new lit tests (`SemaCXX/thread-safety-type-capability-conversion.cpp`
     and its C twin), and expected warnings added to the composite-type tests
     and to the two `warn-thread-safety-analysis` files.
+
+---
+
+## Part V — Second review (2026-07-27)
+
+A fresh, post-hoc review of commits `161fdc7a4ad6..7bee8277366c` — `[TSA][9/N]`
+through `[TSA][18/N]`, i.e. everything from the P1 profile fix to the P10
+value-declaration fold. `[TSA][19/N]` (the F20 conversion diagnostic, P11)
+landed *after* that range and so was not itself reviewed, but it is present in
+the tree the fixes below apply to.
+
+Numbering continues at F21: F20 is already taken by the conversion-diagnostic
+finding above.
+
+**Confirmed correct, no change needed.** The type-identity core (what
+`FunctionTypeExtraAttributeInfo::Profile`, `getCapabilityAttrSemantics` and
+`getCapabilityAttrSuccessValue` do and do not contribute, so that synonyms
+unify and semantic variants do not); `mergeCapabilityAttrs`'s allocation
+discipline (an operand's own array is handed back unchanged when the merge adds
+nothing, and only a genuinely new list is allocated in the `ASTContext`); the
+`areEquivalentCapabilityAttrs` de-duplication that lets a value declaration
+keep its attributes *and* carry them in its type without checking the
+requirement twice; P7's parser gating (not late-parsing a capability attribute
+on a typedef declarator, which is what makes fold-before-first-use hold); and
+P10's fold timing for class-template members (`InstantiateClass`'s
+late-attribute loop, after the class body and before member initializers,
+mirroring the parser). The lit tests for all of the above were re-checked as
+non-vacuous — each new assertion was confirmed to fail without its fix.
+
+### Findings
+
+- [x] **F21. `MergeVarDeclTypes` rejects a redeclaration that reorders its
+  requirements.** `Sema::mergeCapabilityAttrsIntoVarType`
+  (`SemaDeclAttr.cpp`) early-returned a null type when
+  `areEquivalentCapabilityAttrSets(NewCaps, OldCaps)` held. But set
+  equivalence ignores order, while type identity does not
+  (`FunctionTypeExtraAttributeInfo::Profile` profiles the list element-wise),
+  so `extern void (*fp)() REQ(mu1) REQ(mu2);` redeclared as
+  `extern void (*fp)() REQ(mu2) REQ(mu1);` skipped the union machinery with two
+  *different* types in hand and fell through to
+  `err_redeclaration_different_type` — a hard error on exactly the code the
+  merge path exists to accept. Confirmed at `[TSA][18/N]`; the C twin was
+  already fine, since `ASTContext::mergeFunctionTypes` has no such fast path.
+  *Fixed in P12:* only the both-empty fast path remains. The Replace-mode
+  union below already handles the order-only case (it gives both sides one and
+  the same list), and when the sets are equal but something else differs it
+  still returns null after `hasSameType` fails. Reversed-order redeclarations,
+  written directly and through two typedefs, are now tested in
+  `{Sema,SemaCXX}/thread-safety-type-capability-merge.{c,cpp}`.
+
+- [x] **F22. Try-acquire's success value was profiled syntactically.**
+  `profileCapabilityAttr` profiled it with `E->Profile(ID, Ctx, true)`, and
+  `ODRHash` and `ASTStructuralEquivalence` mirrored that treatment. So
+  `try_acquire_capability(true, mu)` and `try_acquire_capability(1, mu)` were
+  *different canonical types*: `__is_same` false, typedef redefinition
+  rejected, cross-module ODR mismatch — for one requirement that the analysis
+  reads identically (`ThreadSafetyAnalyzer::getMutexIDs` only ever asks for
+  `getBoolValue()`). *Fixed in P12:* `getCapabilityAttrSuccessValueAsInt`
+  (`AttrImpl.cpp`) reads the value a success value denotes and normalizes it to
+  its narrowest signed form, so the type of the expression (`true` is a one-bit
+  unsigned, `1` a 32-bit signed) does not leak into it. All three sites use
+  that one helper, and each adds a leading discriminator so that an
+  evaluated profile can never collide with the syntactic fallback used for an
+  expression whose value cannot be told.
+  - **Deviation from the review's prescription, deliberate.** The helper reads
+    the *literal* forms (`CXXBoolLiteralExpr`, `IntegerLiteral`, and a
+    `ConstantExpr` with a cached integral result) rather than running
+    `Expr::EvaluateAsInt` / `getIntegerConstantExpr`. Two reasons, both about
+    the review's own requirement that the three sites never disagree about
+    type identity. First, `ODRHash` has no `ASTContext` and threading one
+    through its whole interface is out of scope here, so an evaluator-based
+    rule could only be applied in two of the three places. Second,
+    `profileCapabilityAttr` runs *inside* the `FunctionProtoType` folding
+    set's profile, including when that set rehashes, and the constant
+    evaluator is not something to invite into that position. The cost is that
+    a success value that is a constant expression but not a literal (`Yes`
+    from an enum, `sizeof(T) > 1`) still compares syntactically, keeping two
+    spellings of it distinct — conservative, never wrong. Tests:
+    `SemaCXX/thread-safety-type-capability-uniquing.cpp` (`true` == `1`,
+    `false` == `0`, `1` != `2`, `true` != `false`, and typedef redefinition
+    across the two spellings) and two new `Modules/` structs, one that must
+    merge and one that must not.
+
+- [x] **F23. Generated `printPretty` dereferenced a possibly-null variadic
+  expression argument.** `VariadicExprArgument::writeValueImpl`
+  (`ClangAttrEmitter.cpp`) emitted a bare `Val->printPretty(...)`, where the
+  base class's `OS << Val` had been null tolerant — and the rest of the series
+  treats a null capability-attribute argument as reachable
+  (`profileCapabilityAttr`'s sentinel, `TypePrinter`'s `if (E)`, `ODRHash`'s
+  guard). No lit repro was found (the template-instantiation path bails out
+  with a null *attribute* rather than a null argument), so this is a
+  consistency fix rather than a fixed crash. *Fixed in P13:* the generated code
+  prints nothing for a null element. It affects every attribute with a
+  variadic expression argument, hence the broad `Sema`/`SemaCXX`/`AST`/`Misc`
+  test sweep.
+
+- [x] **F24. `-ast-print` dropped a field's written requirement when its type
+  was a typedef.** P10's double-print suppression asked
+  `getCapabilityAttrsOfFunctionType(D->getType())`, which desugars through
+  typedefs, while the text being printed is the *sugared* spelling. So for
+  `typedef void (*cb)() REQ(mu); struct S { cb f REQ(mu); };` the output was
+  `cb f;`: the field's written attribute suppressed against a requirement the
+  printed type `cb` does not display. Presentation-only — the round trip stays
+  semantically correct because the typedef supplies the requirement — but the
+  written annotation vanished. *Fixed in P13:* `getCapabilityAttrsPrintedWith`
+  (`DeclPrinter.cpp`) peels only the sugar the printer prints *through*
+  (parens, `AttributedType`/`MacroQualifiedType` via the modified type, one
+  pointer/reference/block-pointer level) and stops at anything that prints as a
+  bare name, so a `TypedefType` or `UsingType` yields no suppression. The
+  direct case is unchanged: a variable or field that spells the function
+  pointer out still prints the requirement exactly once. Tested in
+  `AST/ast-print-thread-safety-attrs.cpp`, whose existing RUN lines re-parse
+  and re-print the output, covering the round trip.
+
+- [x] **F25. The capability-merge path skipped the exception-specification
+  check.** `Sema::MergeVarDeclTypes` calls `MergeVarDeclExceptionSpecs` only on
+  its `hasSameType` early return. An exception specification is not part of the
+  canonical type before C++17 (`ASTContext.cpp`'s `CanonicalEPI` clears it),
+  and an unresolved one never is, which is precisely why that separate check
+  exists — but two declarations that also differ in their requirements take the
+  new `mergeCapabilityAttrsIntoVarType` path instead and never reach it.
+  Confirmed: `extern void (*fp)() throw(int) REQ(mu1);` followed by
+  `extern void (*fp)() throw(float);` was accepted in C++11, while the same
+  pair without `REQ(mu1)` is diagnosed. *Fixed in P12:* the caps-merge success
+  path runs `MergeVarDeclExceptionSpecs` too. Its assertion is relaxed to
+  accept the capability-only difference, which is exactly what the caller has
+  just established, and which leaves both shapes the assertion protects (the
+  pointer/reference peel and the two prototypes) unchanged, since a requirement
+  lives *inside* the prototype. Tested by a second `-fcxx-exceptions` RUN line
+  on `SemaCXX/thread-safety-type-capability-merge.cpp`; the section is last in
+  the file because an error suppresses every analysis-based warning after it.
+
+### Fix execution plan (continued)
+
+12. **P12**: F21, F22 and F25 — the merge and type-identity fixes — with their
+    tests. ✔
+13. **P13**: F23 and F24 — the printing fixes — with their tests, plus this
+    section. ✔

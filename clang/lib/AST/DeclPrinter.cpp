@@ -260,6 +260,59 @@ static DeclPrinter::AttrPosAsWritten getPosAsWritten(const Attr *A,
   return DeclPrinter::AttrPosAsWritten::Right;
 }
 
+/// The thread-safety capability requirements that *printing* \p T displays.
+///
+/// Deliberately not getCapabilityAttrsOfFunctionType, which desugars all the
+/// way down to the function type: sugar that prints as a bare name -- a
+/// typedef, a using-alias -- hides the function type, and with it the
+/// requirement, from the printed text. A declaration whose type is spelled
+/// that way still has to print the requirement it writes, even though the type
+/// it names carries the same one. Only sugar that prints the type it wraps
+/// through is stepped over.
+static ArrayRef<const Attr *> getCapabilityAttrsPrintedWith(QualType T) {
+  bool Peeled = false;
+  while (!T.isNull()) {
+    switch (T->getTypeClass()) {
+    case Type::Paren:
+      T = cast<ParenType>(T)->getInnerType();
+      continue;
+    // TypePrinter prints an AttributedType's modified type (and a
+    // MacroQualifiedType's, which is that same node's, reached through it), so
+    // that is the branch to follow. Sema's fold puts the requirement into both
+    // the modified and the equivalent type, so it is found there.
+    case Type::Attributed:
+      T = cast<AttributedType>(T)->getModifiedType();
+      continue;
+    case Type::MacroQualified:
+      T = cast<MacroQualifiedType>(T)->getModifiedType();
+      continue;
+    case Type::Pointer:
+    case Type::BlockPointer:
+    case Type::LValueReference:
+    case Type::RValueReference:
+      // Exactly one indirection can carry a requirement, as in
+      // getCapabilityAttrsOfFunctionType.
+      if (Peeled)
+        return {};
+      Peeled = true;
+      if (const auto *PT = dyn_cast<PointerType>(T))
+        T = PT->getPointeeType();
+      else if (const auto *BT = dyn_cast<BlockPointerType>(T))
+        T = BT->getPointeeType();
+      else
+        T = cast<ReferenceType>(T)->getPointeeType();
+      continue;
+    case Type::FunctionProto:
+      return cast<FunctionProtoType>(T)->getCapabilityAttrs();
+    default:
+      // Anything else either prints as a name that hides what is underneath,
+      // or is not a shape that carries a requirement at all.
+      return {};
+    }
+  }
+  return {};
+}
+
 std::optional<std::string>
 DeclPrinter::prettyPrintAttributes(const Decl *D, AttrPosAsWritten Pos,
                                    QualType PrintedType) {
@@ -269,10 +322,9 @@ DeclPrinter::prettyPrintAttributes(const Decl *D, AttrPosAsWritten Pos,
   // A thread-safety capability attribute written on a function-pointer
   // variable or field is folded into the declaration's type and, unlike on a
   // typedef, also kept on the declaration -- the analysis reads it from both.
-  // Print the requirement once: if the type that was printed already states
-  // it, the declaration does not repeat it.
-  ArrayRef<const Attr *> TypeCaps =
-      getCapabilityAttrsOfFunctionType(PrintedType);
+  // Print the requirement once: if the type that was printed displays it, the
+  // declaration does not repeat it.
+  ArrayRef<const Attr *> TypeCaps = getCapabilityAttrsPrintedWith(PrintedType);
 
   std::string AttrStr;
   llvm::raw_string_ostream AOut(AttrStr);

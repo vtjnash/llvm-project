@@ -158,6 +158,23 @@ struct CbOps {
 // CHECK-NEXT:     void (*multi_field)() __attribute__((acquire_capability(mu))) __attribute__((locks_excluded(mu2)));
 // CHECK-NEXT: };
 
+// A field whose type is a typedef that already carries the requirement, and
+// which writes that same requirement itself. The printed type is the typedef's
+// *name*, which does not display the requirement, so the declaration is the
+// only place left to print it -- suppressing it because the type it names
+// happens to carry it would drop it from the output.
+struct TypedefCbOps {
+  req_cb_t same_req __attribute__((requires_capability(mu)));
+  // Writing a requirement the typedef does not state changes the type, and the
+  // rebuild cannot put the typedef sugar back, so this one prints both
+  // requirements as part of the type instead.
+  req_cb_t extra_req __attribute__((requires_capability(mu2)));
+};
+// CHECK:      struct TypedefCbOps {
+// CHECK-NEXT:     req_cb_t same_req __attribute__((requires_capability(mu)));
+// CHECK-NEXT:     void (*extra_req)() __attribute__((requires_capability(mu))) __attribute__((requires_capability(mu2)));
+// CHECK-NEXT: };
+
 // A requirement that names a sibling member cannot become part of the type, so
 // it stays -- and prints -- on the declaration alone. (It prints with the
 // implicit 'this->' the parser built, which is what re-parses.)

@@ -1356,8 +1356,14 @@ namespace {
         : VariadicArgument(ArgName, Attr, "Expr *") {}
 
     void writeValueImpl(raw_ostream &OS) const override {
-      // Print the expression, not the pointer value it is stored as.
-      OS << "    Val->printPretty(OS, nullptr, Policy);\n";
+      // Print the expression, not the pointer value it is stored as. An
+      // element can be null -- a thread-safety capability attribute keeps a
+      // null argument after an error, and the rest of clang handles that (see
+      // profileCapabilityAttr and TypePrinter) -- so print nothing for it
+      // rather than dereferencing it. The base class's 'OS << Val' was null
+      // tolerant, and this has to stay so.
+      OS << "    if (Val)\n";
+      OS << "      Val->printPretty(OS, nullptr, Policy);\n";
     }
 
     void writeASTVisitorTraversal(raw_ostream &OS) const override {
