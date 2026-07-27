@@ -9158,6 +9158,12 @@ findCapabilityFoldObstacle(ArrayRef<const Attr *> CapAttrs) {
   return CapabilityFoldObstacle::None;
 }
 
+/// Whether \p A states a requirement that a type could carry, i.e. one that
+/// foldCapabilityAttrsIntoType would not have declined.
+static bool capabilityAttrIsContextFree(const Attr *A) {
+  return findCapabilityFoldObstacle(A) == CapabilityFoldObstacle::None;
+}
+
 /// Fold \p CapAttrs into the type \p TND names. See
 /// Sema::foldCapabilityAttrsIntoType.
 static void foldCapabilityAttrsIntoTypedefType(Sema &S, TypedefNameDecl *TND,
@@ -9273,6 +9279,130 @@ QualType Sema::mergeCapabilityAttrsIntoVarType(QualType NewT, QualType OldT) {
       !Context.hasSameType(Merged, OldMerged))
     return QualType();
   return Merged;
+}
+
+/// Whether \p T is, or is a pointer, block pointer or reference to, a
+/// prototyped function type -- the only shape that can carry a capability
+/// requirement. Peeled exactly like getCapabilityAttrsOfFunctionType, so that
+/// an empty requirement list means "no requirements" rather than "not a
+/// function type": converting a function pointer to 'void *' or to 'bool' is
+/// not a function-pointer conversion and is left alone.
+static bool isCapabilityCarryingFunctionType(QualType T) {
+  if (T.isNull())
+    return false;
+  QualType Fn = T;
+  if (const auto *PT = T->getAs<PointerType>())
+    Fn = PT->getPointeeType();
+  else if (const auto *BT = T->getAs<BlockPointerType>())
+    Fn = BT->getPointeeType();
+  else if (const auto *RT = T->getAs<ReferenceType>())
+    Fn = RT->getPointeeType();
+  return Fn->getAs<FunctionProtoType>() != nullptr;
+}
+
+/// The function declaration that \p E names, if the value being converted came
+/// straight from one -- 'f' (which decays) or '&f'. Only implicit casts are
+/// looked through: an explicit cast is the documented way to opt out of this
+/// diagnostic, so it has to stop the search.
+static const FunctionDecl *getConvertedFunctionDecl(const Expr *E) {
+  if (!E)
+    return nullptr;
+  E = E->IgnoreParenImpCasts();
+  if (const auto *UO = dyn_cast<UnaryOperator>(E);
+      UO && UO->getOpcode() == UO_AddrOf)
+    E = UO->getSubExpr()->IgnoreParenImpCasts();
+  if (const auto *DRE = dyn_cast<DeclRefExpr>(E))
+    return dyn_cast<FunctionDecl>(DRE->getDecl());
+  return nullptr;
+}
+
+void Sema::diagnoseCapabilityAttrConversion(QualType DstType, QualType SrcType,
+                                            const Expr *SrcExpr,
+                                            SourceLocation Loc) {
+  if (!isCapabilityCarryingFunctionType(SrcType) ||
+      !isCapabilityCarryingFunctionType(DstType))
+    return;
+
+  ArrayRef<const Attr *> DstCaps = getCapabilityAttrsOfFunctionType(DstType);
+  ArrayRef<const Attr *> SrcCaps = getCapabilityAttrsOfFunctionType(SrcType);
+
+  // Neither a function declaration nor a function parameter folds its
+  // capability attributes into its type (see Sema::foldCapabilityAttrsIntoType:
+  // a fold would change the enclosing function's identity and mangling), so
+  // for those two the requirements are still on the declaration and have to be
+  // added by hand. That is what keeps the feature's intended patterns silent:
+  // 'void f() REQUIRES(mu); callback_t cb = f;' where 'callback_t' carries the
+  // same requirement, and passing 'f' to a parameter annotated REQUIRES(mu).
+  //
+  // Only a requirement that *could* have been part of a type is counted. One
+  // whose argument is relative to an object or a parameter (REQUIRES(this->mu),
+  // REQUIRES(*m)) can never be expressed by any function pointer type, so a
+  // pointer that does not state it is not losing anything it could have kept --
+  // and counting it would warn on the long-standing pattern of storing such a
+  // function in a plain function pointer, which predates this feature.
+  llvm::SmallPtrSet<const Attr *, 4> FromDecl;
+  auto AddDeclCaps = [&](const Decl *D, ArrayRef<const Attr *> &Caps,
+                         SmallVectorImpl<const Attr *> &Storage) {
+    if (!D)
+      return;
+    for (const Attr *A : D->attrs()) {
+      if (!isCapabilityAttr(A) || !capabilityAttrIsContextFree(A))
+        continue;
+      if (Storage.empty())
+        Storage.assign(Caps.begin(), Caps.end());
+      if (llvm::none_of(Storage, [&](const Attr *B) {
+            return areEquivalentCapabilityAttrs(A, B, Context);
+          })) {
+        Storage.push_back(A);
+        FromDecl.insert(A);
+      }
+    }
+    if (!Storage.empty())
+      Caps = Storage;
+  };
+
+  SmallVector<const Attr *, 4> SrcCapStorage;
+  AddDeclCaps(getConvertedFunctionDecl(SrcExpr), SrcCaps, SrcCapStorage);
+
+  SmallVector<const Attr *, 4> DstCapStorage;
+  if (CapabilityConversionParm &&
+      Context.hasSameType(CapabilityConversionParm->getType(), DstType))
+    AddDeclCaps(CapabilityConversionParm, DstCaps, DstCapStorage);
+
+  if (SrcCaps.empty() && DstCaps.empty())
+    return;
+  if (areEquivalentCapabilityAttrSets(SrcCaps, DstCaps, Context))
+    return;
+
+  auto Contains = [&](ArrayRef<const Attr *> Set, const Attr *A) {
+    return llvm::any_of(Set, [&](const Attr *B) {
+      return areEquivalentCapabilityAttrs(A, B, Context);
+    });
+  };
+  // A function designator has not decayed yet at the C++ seam, and naming the
+  // bare function type ('void ()') in a message about a pointer conversion
+  // reads as a mistake; report the type the value actually converts through.
+  QualType SrcDisplayType =
+      SrcType->isFunctionType() ? Context.getPointerType(SrcType) : SrcType;
+
+  auto Report = [&](const Attr *A, unsigned DiagID) {
+    Diag(Loc, DiagID) << SrcDisplayType << DstType << A;
+    // A requirement carried by a type is spelled out by the type printer in
+    // the message itself, so pointing at it again would only add noise. One
+    // that came from the source function's *declaration* is invisible there --
+    // neither printed type mentions it -- so say where it comes from.
+    if (FromDecl.contains(A) && A->getLocation().isValid())
+      Diag(A->getLocation(),
+           diag::note_thread_attribute_capability_declared_here)
+          << A;
+  };
+
+  for (const Attr *A : SrcCaps)
+    if (!Contains(DstCaps, A))
+      Report(A, diag::warn_thread_attribute_conversion_drops_capability);
+  for (const Attr *A : DstCaps)
+    if (!Contains(SrcCaps, A))
+      Report(A, diag::warn_thread_attribute_conversion_adds_capability);
 }
 
 /// Fold any thread-safety capability attributes on \p D into its function

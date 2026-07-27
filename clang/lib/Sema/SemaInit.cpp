@@ -38,6 +38,7 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/SaveAndRestore.h"
 #include "llvm/Support/raw_ostream.h"
 
 using namespace clang;
@@ -7940,6 +7941,17 @@ ExprResult InitializationSequence::Perform(Sema &S,
     Diagnose(S, Entity, Kind, Args);
     return ExprError();
   }
+
+  // A thread-safety capability requirement written on a function parameter of
+  // function pointer type stays on the parameter, so make it reachable from
+  // the conversion of the argument (see Sema::CapabilityConversionParm).
+  // Setting it unconditionally, rather than only for a parameter, is what
+  // keeps a nested initialization from seeing an enclosing one's parameter.
+  llvm::SaveAndRestore<const ParmVarDecl *> CapabilityParm(
+      S.CapabilityConversionParm,
+      Entity.isParameterKind() ? dyn_cast_or_null<ParmVarDecl>(Entity.getDecl())
+                               : nullptr);
+
   if (!ZeroInitializationFixit.empty()) {
     const Decl *D = Entity.getDecl();
     const auto *VD = dyn_cast_or_null<VarDecl>(D);

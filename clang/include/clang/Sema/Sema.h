@@ -5236,6 +5236,28 @@ public:
   /// caller to diagnose the mismatch.
   QualType mergeCapabilityAttrsIntoVarType(QualType NewT, QualType OldT);
 
+  /// Report an implicit conversion between two function (pointer) types whose
+  /// thread-safety capability requirements differ. The conversion itself is
+  /// allowed -- it is a function conversion in C++ and a compatible pointer
+  /// assignment in C -- but the requirement is either no longer enforced
+  /// (dropped) or newly imposed (added), and neither is likely intended.
+  ///
+  /// \p SrcExpr is the expression being converted, needed because a function
+  /// *declaration* keeps its capability attributes on the declaration rather
+  /// than in its type; it may be null when only the types are known.
+  void diagnoseCapabilityAttrConversion(QualType DstType, QualType SrcType,
+                                        const Expr *SrcExpr,
+                                        SourceLocation Loc);
+
+  /// The function parameter an argument is currently being converted to, set
+  /// by InitializationSequence::Perform. A parameter is the one destination
+  /// whose capability attributes are not in its type -- its type is part of
+  /// the enclosing function's type, so folding one would change that
+  /// function's identity -- and diagnoseCapabilityAttrConversion has to read
+  /// them from the declaration to see that passing an equally annotated
+  /// function to it requires nothing.
+  const ParmVarDecl *CapabilityConversionParm = nullptr;
+
   void PopParsingDeclaration(ParsingDeclState state, Decl *decl);
 
   /// Given a set of delayed diagnostics, re-emit them as if they had

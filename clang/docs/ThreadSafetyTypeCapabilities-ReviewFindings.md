@@ -510,6 +510,12 @@ attrs' arg streams are concatenated with no boundary, so
   `IsConditionalOperator` path — it did indeed take the LHS before, and now
   intersects. Tested in both languages, in both operand orders, including an
   empty intersection.*
+  - **Amended in P11.** "Transparent" now means *allowed*, not *silent*: the
+    conversion is still never an error, but a difference in the requirement
+    sets is reported under `-Wthread-safety-conversion` (see F20). The
+    conditional operator is included — converting an operand to the
+    intersection really does stop enforcing what that operand required — so
+    the composite-type tests carry expected warnings.
 
 - [x] **F16. Redeclaring an annotated typedef without the annotation is a
   hard error** (`MergeTypedefNameDecl`, both C and C++). Will bite
@@ -630,6 +636,45 @@ attrs' arg streams are concatenated with no boundary, so
   Part IV canonical-vs-sugar decision is made, since a sugar-based design
   (Option B) would answer (3)–(5) differently. No code change in P8; parsing
   untouched.
+
+- [x] **F20. A conversion that changes the requirement set is silent.**
+  F15/F17's transparency, and `checkPointerTypesForAssignment`'s C
+  counterpart, make `void (*)() = annotated_cb` and the reverse legal *and*
+  quiet, so a requirement can be dropped (calls through the result then go
+  unchecked) or invented with nothing said. *Fixed in P11:*
+  `Sema::diagnoseCapabilityAttrConversion` (`SemaDeclAttr.cpp`, next to the
+  fold it mirrors) compares the two sets with `areEquivalentCapabilityAttrs`
+  and reports each difference under `-Wthread-safety-conversion-drop` or
+  `-Wthread-safety-conversion-add`, both under
+  `-Wthread-safety-conversion` → `-Wthread-safety`.
+  - **Seams.** One per language, chosen so that each committed conversion is
+    reported exactly once and no speculative one is: the tail of
+    `Sema::PerformImplicitConversion(…, const StandardConversionSequence &)`
+    for C++ (beside `diagnoseNullableToNonnullConversion`, guarded by
+    `!isCast(CCK)`), and `Sema::CheckSingleAssignmentConstraints` for C —
+    which every assignment-like context funnels through, and which the C++
+    path delegates to `PerformImplicitConversion` before reaching. Per-cast
+    hooking (what function effects do in `ImpCastExprToType`) is *not* usable
+    here: a function-to-pointer decay is an intermediate step whose target is
+    always `void (*)()`, so the decl-attribute case would be reported against
+    the wrong destination. C's conditional operator does not use either seam,
+    so `checkConditionalPointerCompatibility` calls the helper directly for
+    both operands; C++ reaches it through `FindCompositePointerType`'s
+    operand initialization.
+  - **Declaration attributes.** Function declarations (W6) and parameters (W5)
+    deliberately do not fold, so their attributes are read from the
+    declaration — the source's through the `DeclRefExpr` the conversion came
+    from, the destination's through `Sema::CapabilityConversionParm`, which
+    `InitializationSequence::Perform` sets while converting an argument.
+    Without the second half, every call passing an annotated function to an
+    annotated parameter — the pre-branch idiom, and what
+    `Sema/warn-thread-safety-analysis.c` tests — would report a dropped
+    requirement.
+  - **Object-relative arguments.** Only requirements that `capabilityArg`
+    `IsContextFree` accepts are counted, in both directions. One naming
+    `this->mu` or a parameter can never be part of any function pointer type,
+    so a pointer that does not state it is not losing anything it could have
+    kept; counting it would warn on the oldest supported shape in the feature.
 
 ### Test gaps (fold into the fixes above; sweep at the end)
 
@@ -973,3 +1018,8 @@ P7 has since fixed within the current design.)
     (its item 4 / W5) stay on the declaration by design, and function
     declarations (its item 3 / W6) stay deferred behind the Part IV
     decision.
+11. **P11**: F20 conversion diagnostics, amending F15's "transparent" to
+    "allowed but reported". ✔ Two new warning groups under `-Wthread-safety`,
+    two new lit tests (`SemaCXX/thread-safety-type-capability-conversion.cpp`
+    and its C twin), and expected warnings added to the composite-type tests
+    and to the two `warn-thread-safety-analysis` files.

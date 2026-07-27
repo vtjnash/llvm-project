@@ -8210,10 +8210,11 @@ void testStructFail(Ops *ops) {
   ops->read_thing(); // expected-warning {{calling function 'read_thing' requires holding mutex 'mu'}}
 }
 
-// Incompatible reassignment not an error.
+// Incompatible reassignment not an error, but the pointer's type promises an
+// acquire the assigned function does not perform, which is worth reporting.
 void otherLock();
 void testReassignIncompatible() {
-  lock_fn = otherLock;
+  lock_fn = otherLock; // expected-warning-re {{adds a '{{acquire_capability|exclusive_lock_function}}' requirement}}
   lock_fn();
   x = 1;
   mu.Unlock();
@@ -8334,7 +8335,9 @@ template <class T> void call_through(T cb) {
 template void call_through<req_cb_t>(req_cb_t); // expected-note-re {{in instantiation of function template specialization 'FunctionPointers::call_through<void (*)() __attribute__(({{requires_capability|exclusive_locks_required}}(mu)))>' requested here}}
 
 void test_typedef_drop(req_cb_t cb) {
-  void (*raw)(void) = cb; // ok: requirement dropped by the conversion
+  // Allowed, but the requirement is dropped and calls through 'raw' are no
+  // longer checked, so the conversion is reported.
+  void (*raw)(void) = cb; // expected-warning-re {{drops the '{{requires_capability|exclusive_locks_required}}' requirement}}
   raw();                  // no warning
 }
 
@@ -8603,14 +8606,16 @@ void test_var_same_type_keeps() {
 }
 
 void test_var_conversion_drops() {
-  void (*raw)(void) = requires_fn; // ok: the requirement is dropped here
+  void (*raw)(void) = requires_fn; // expected-warning-re {{drops the '{{requires_capability|exclusive_locks_required}}' requirement}}
   raw();                           // no warning
 }
 
 // Assigning a function without the requirement to the pointer is still not an
-// error, and the pointer still acquires when called.
+// error, and the pointer still acquires when called -- but the mismatch
+// between what the pointer's type promises and what the function does is
+// reported.
 void testReassignToFolded() {
-  lock_fn = otherLock;
+  lock_fn = otherLock; // expected-warning-re {{adds a '{{acquire_capability|exclusive_lock_function}}' requirement}}
   lock_fn();
   x = 1;
   mu.Unlock();
@@ -8675,7 +8680,11 @@ void testStructOpsAutoFail(Ops *ops) {
 void nothing();
 
 struct NsdmiOps {
-  void (*do_thing)(void) EXCLUSIVE_LOCKS_REQUIRED(mu) = &nothing;
+  // The initializer is checked against the folded type, so '&nothing' -- which
+  // states no requirement -- is reported. (The static constexpr member below
+  // is initialized while the class is still incomplete, before the
+  // late-parsed attribute is folded, so nothing is reported there.)
+  void (*do_thing)(void) EXCLUSIVE_LOCKS_REQUIRED(mu) = &nothing; // expected-warning-re {{adds a '{{requires_capability|exclusive_locks_required}}' requirement}}
   static void (*static_do_thing)(void) EXCLUSIVE_LOCKS_REQUIRED(mu);
   static constexpr void (*const_do_thing)(void) EXCLUSIVE_LOCKS_REQUIRED(mu) =
       &nothing;

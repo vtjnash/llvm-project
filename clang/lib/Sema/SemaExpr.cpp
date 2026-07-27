@@ -8591,6 +8591,17 @@ static QualType checkConditionalPointerCompatibility(Sema &S, ExprResult &LHS,
   else
     ResultTy = S.Context.getPointerType(ResultTy);
 
+  // The composite type only carries the capability requirements both operands
+  // carry (ASTContext::mergeFunctionTypes intersects them for the conditional
+  // operator), so an operand that required more loses the difference here.
+  // C++ reaches the same conclusion through Sema::FindCompositePointerType,
+  // which converts the operands with Sema::PerformImplicitConversion and is
+  // diagnosed there; this function is only reached in C.
+  if (!S.getLangOpts().CPlusPlus) {
+    S.diagnoseCapabilityAttrConversion(ResultTy, LHSTy, LHS.get(), Loc);
+    S.diagnoseCapabilityAttrConversion(ResultTy, RHSTy, RHS.get(), Loc);
+  }
+
   LHS = S.ImpCastExprToType(LHS.get(), ResultTy, LHSCastKind);
   RHS = S.ImpCastExprToType(RHS.get(), ResultTy, RHSCastKind);
   return ResultTy;
@@ -10360,9 +10371,28 @@ AssignConvertType Sema::CheckSingleAssignmentConstraints(QualType LHSType,
     return AssignConvertType::Compatible;
   }
 
+  // Remember the operand before CheckAssignmentConstraints starts converting
+  // it: the capability diagnostic below needs the type it is being converted
+  // *from*, and the expression it came from.
+  Expr *RHSBeforeConversion = RHS.get();
+  QualType RHSTypeBeforeConversion = RHSBeforeConversion->getType();
+
   CastKind Kind;
   AssignConvertType result =
       CheckAssignmentConstraints(LHSType, RHS, Kind, ConvertRHS);
+
+  // The C counterpart of the check Sema::PerformImplicitConversion runs for
+  // C++ (which the C++ path above already went through): assignment-like
+  // contexts -- assignment proper, initialization, argument passing and
+  // 'return' all funnel through here -- may silently gain or lose a
+  // thread-safety capability requirement, because
+  // checkPointerTypesForAssignment treats capability-only differences as
+  // compatible. An explicit cast does not come through here at all, which is
+  // what makes it the escape hatch.
+  if (Diagnose && !getLangOpts().CPlusPlus && IsAssignConvertCompatible(result))
+    diagnoseCapabilityAttrConversion(LHSType, RHSTypeBeforeConversion,
+                                     RHSBeforeConversion,
+                                     RHSBeforeConversion->getExprLoc());
 
   // If assigning a void * created by an allocation function call to some other
   // type, check that the allocated size is sufficient for that type.

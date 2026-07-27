@@ -25,17 +25,21 @@ template <typename T> struct SameType<T, T> {};
 // The conditional operator takes the intersection.
 //===----------------------------------------------------------------------===//
 
+// Converting an operand to the composite is a real conversion, so the operand
+// that required more is reported by -Wthread-safety-conversion-drop -- the
+// requirement it stated really does stop being enforced. The intersection can
+// only ever remove requirements, so the 'add' direction never fires here.
 void composite(int c, plain p, req1 a, req2 b, req12 d) {
   // {mu1} intersect {} == {}, in either operand order.
-  SameType<decltype(c ? a : p), plain>();
-  SameType<decltype(c ? p : a), plain>();
+  SameType<decltype(c ? a : p), plain>(); // expected-warning {{drops the 'requires_capability' requirement}}
+  SameType<decltype(c ? p : a), plain>(); // expected-warning {{drops the 'requires_capability' requirement}}
 
   // {mu1} intersect {mu1, mu2} == {mu1}, in either operand order.
-  SameType<decltype(c ? a : d), req1>();
-  SameType<decltype(c ? d : a), req1>();
+  SameType<decltype(c ? a : d), req1>(); // expected-warning {{drops the 'requires_capability' requirement}}
+  SameType<decltype(c ? d : a), req1>(); // expected-warning {{drops the 'requires_capability' requirement}}
 
   // Disjoint requirements intersect to nothing.
-  SameType<decltype(c ? a : b), plain>();
+  SameType<decltype(c ? a : b), plain>(); // expected-warning 2 {{drops the 'requires_capability' requirement}}
 
   // The composite of two equal sets is that set. (The unary '+' only makes
   // the operands prvalues, so that decltype does not report a reference.)
@@ -50,8 +54,8 @@ void composite(int c, plain p, req1 a, req2 b, req12 d) {
 // required. (The analysis needs a declaration to report, so the composite is
 // bound to a variable rather than called directly.)
 void call_composite(int c, plain p, req1 a, req12 d) {
-  auto dropped = c ? a : p;
-  auto kept = c ? a : d;
+  auto dropped = c ? a : p; // expected-warning {{drops the 'requires_capability' requirement}}
+  auto kept = c ? a : d;    // expected-warning {{drops the 'requires_capability' requirement}}
   dropped();
   kept(); // expected-warning {{calling function 'kept' requires holding mutex 'mu1' exclusively}}
 }

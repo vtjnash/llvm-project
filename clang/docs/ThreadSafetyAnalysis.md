@@ -624,31 +624,71 @@ requiring `mu` exclusively and one requiring it shared are different types.
 Because the requirement is part of the type, converting such a value to a
 function pointer type *without* the requirement drops it (analogous to dropping
 `noexcept`), and the call through the bare pointer is then unchecked. The
-conversion is transparent in both directions and neither one is diagnosed:
+conversion is *allowed* in both directions -- it is never an error -- but it is
+diagnosed, because silently gaining or losing a safety annotation is exactly
+what an annotation must not do:
 
 ```c++
 void plain(void);
 
 void convert(callback_t cb) {
-  void (*raw)(void) = cb;   // allowed; the requirement is dropped
-  raw();                    // no warning
+  void (*raw)(void) = cb;   // warning: drops the 'requires_capability'
+  raw();                    //          requirement (-Wthread-safety-conversion-drop)
 
-  callback_t back = raw;    // allowed; the requirement is added back
-  callback_t direct = plain; // allowed; `plain` is not itself annotated
-}
+  callback_t back = raw;    // warning: adds a 'requires_capability' requirement
+  callback_t direct = plain; //         the source does not state
+}                            //         (-Wthread-safety-conversion-add)
+```
+
+The two directions are different mistakes and have their own subgroups of
+`-Wthread-safety-conversion`. Dropping is the dangerous one: the requirement
+stops being enforced. Adding one is usually annotation drift -- the pointer's
+type promises a precondition its target does not need -- and can be turned off
+on its own with `-Wno-thread-safety-conversion-add`.
+
+An *explicit* cast is the way to say that the conversion is intended:
+
+```c++
+void (*raw)(void) = (void (*)(void))cb;      // no warning
+callback_t back = static_cast<callback_t>(raw); // no warning
 ```
 
 So a requirement on the type is a statement about what calls through it are
 checked against, not a promise that whatever was assigned to it really needs
 the capability. A conditional expression between the two forms yields the
-*intersection* of the requirements, which is the unannotated type:
+*intersection* of the requirements, which is the unannotated type; the operand
+that required more loses it, and is reported for the same reason:
 
 ```c++
 void pick(bool c, callback_t cb, void (*raw)(void)) {
-  auto f = c ? cb : raw;    // type is `void (*)(void)`
-  f();                      // no warning
+  auto f = c ? cb : raw;    // warning: 'cb' drops the requirement here
+  f();                      // no warning; the type is `void (*)(void)`
 }
 ```
+
+Requirements written on a function *declaration* or on a *parameter* are not
+part of a type (see above), but they take part in this check anyway, so the
+feature's intended usage stays silent -- as does the pre-existing style of
+annotating the declarations rather than the type:
+
+```c++
+void annotated(void) REQUIRES(mu);
+void unannotated(void);
+void take(void (*cb)(void) REQUIRES(mu));   // requirement on the parameter
+
+void hand_off(void) {
+  callback_t ok = annotated;   // no warning: both state the same requirement
+  take(annotated);             // no warning, for the same reason
+  void (*raw)(void) = annotated; // warning: drops the requirement
+  callback_t drift = unannotated; // warning: adds a requirement
+}
+```
+
+A requirement whose argument is relative to an object or a parameter --
+`REQUIRES(this->mu)`, or `REQUIRES(*m)` naming the function's own parameter --
+could never have been part of any function pointer type, so storing such a
+function in a plain function pointer is not diagnosed: nothing that the pointer
+could have kept is being lost.
 
 Type *identity*, unlike conversion, is strict: redeclaring an annotated typedef
 without the annotation (or with a different one) is an error, exactly as it is
@@ -739,6 +779,14 @@ and is reported once.
 
   - `-Wthread-safety-reference`: Checks when guarded members are passed or
     returned by reference.
+  - `-Wthread-safety-conversion`: Implicit conversions between function
+    (pointer) types whose capability requirements differ. It turns on:
+
+    - `-Wthread-safety-conversion-drop`: The target type states fewer
+      requirements than the source, so calls through the result are no longer
+      checked.
+    - `-Wthread-safety-conversion-add`: The target type states a requirement
+      the source does not.
 
 - `-Wthread-safety-pointer`: Checks when passing or returning pointers to
   guarded variables, or pointers to guarded data, as function argument or

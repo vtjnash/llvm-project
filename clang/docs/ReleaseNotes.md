@@ -454,6 +454,33 @@ features cannot lower the translation-unit ABI level;
   requirement on the individual declarations, rather than on the type, still
   works in all of these cases.
 
+- New `-Wthread-safety-conversion` (on under `-Wthread-safety`) reports an
+  implicit conversion between function (pointer) types whose thread safety
+  capability requirements differ. The conversion itself is still allowed -- a
+  requirement is added and dropped as transparently as `noexcept` is -- but it
+  is no longer silent:
+
+  ```c++
+  typedef void (*callback_t)(void) REQUIRES(mu);
+  void plain(void);
+
+  void convert(callback_t cb) {
+    void (*raw)(void) = cb;      // warning: drops the 'requires_capability'
+    raw();                       //          requirement; calls through the
+                                 //          result are not checked
+    callback_t drift = plain;    // warning: adds a 'requires_capability'
+  }                              //          requirement the source does not state
+  ```
+
+  The two directions have their own subgroups, `-Wthread-safety-conversion-drop`
+  and `-Wthread-safety-conversion-add`, so the second can be turned off on its
+  own. Requirements written on a function declaration or on a parameter, which
+  are deliberately not part of a type, take part in the comparison, so passing
+  an annotated function to an equally annotated pointer or parameter stays
+  silent; a requirement that could never have been part of a type (one relative
+  to an object or a parameter) is never reported as dropped. An explicit cast
+  is the way to state that the conversion is intended.
+
 ### Improvements to Clang's time-trace
 
 ### Improvements to Coverage Mapping

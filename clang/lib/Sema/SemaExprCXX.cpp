@@ -5449,9 +5449,19 @@ Sema::PerformImplicitConversion(Expr *From, QualType ToType,
 
   // If this conversion sequence succeeded and involved implicitly converting a
   // _Nullable type to a _Nonnull one, complain.
-  if (!isCast(CCK))
+  if (!isCast(CCK)) {
     diagnoseNullableToNonnullConversion(ToType, InitialFromType,
                                         From->getBeginLoc());
+    // Likewise if it silently gained or lost a thread-safety capability
+    // requirement. This is the one C++ seam where a conversion is committed
+    // (overload resolution and deduction use TryImplicitConversion instead)
+    // and where both endpoints are known: a function-to-pointer decay is only
+    // an intermediate step of the sequence, so diagnosing per implicit cast
+    // would report the decayed 'void (*)()' rather than the type the value is
+    // actually being converted to.
+    diagnoseCapabilityAttrConversion(ToType, InitialFromType, From,
+                                     From->getBeginLoc());
+  }
 
   return From;
 }

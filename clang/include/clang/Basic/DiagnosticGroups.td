@@ -1495,11 +1495,21 @@ def ThreadSafetyReference  : DiagGroup<"thread-safety-reference",
                                              [ThreadSafetyReferenceReturn]>;
 def ThreadSafetyPointer    : DiagGroup<"thread-safety-pointer">;
 def ThreadSafetyNegative   : DiagGroup<"thread-safety-negative">;
+// Implicit conversions between function (pointer) types whose type-carried
+// capability requirements differ. The two directions are separately
+// controllable: dropping a requirement makes calls through the result
+// unchecked, while adding one only over-constrains it.
+def ThreadSafetyConversionDrop : DiagGroup<"thread-safety-conversion-drop">;
+def ThreadSafetyConversionAdd  : DiagGroup<"thread-safety-conversion-add">;
+def ThreadSafetyConversion : DiagGroup<"thread-safety-conversion",
+                                             [ThreadSafetyConversionDrop,
+                                              ThreadSafetyConversionAdd]>;
 def ThreadSafety : DiagGroup<"thread-safety",
                              [ThreadSafetyAttributes,
                               ThreadSafetyAnalysis,
                               ThreadSafetyPrecise,
-                              ThreadSafetyReference]>;
+                              ThreadSafetyReference,
+                              ThreadSafetyConversion]>;
 def ThreadSafetyVerbose : DiagGroup<"thread-safety-verbose">;
 def ThreadSafetyBeta : DiagGroup<"thread-safety-beta">;
 

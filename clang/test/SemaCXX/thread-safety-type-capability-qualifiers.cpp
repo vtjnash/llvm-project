@@ -109,5 +109,8 @@ void assign_nonnull_const(nonnull_const_cb p) { // expected-note {{variable 'p' 
 }
 
 void assign_plain(plain p) {
-  p = &some_function; // no error: nothing here is const
+  // No error: nothing here is const. ('plain' does carry a requirement that
+  // 'some_function' does not state, which -Wthread-safety-conversion-add
+  // reports.)
+  p = &some_function; // expected-warning {{adds a 'exclusive_locks_required' requirement}}
 }
