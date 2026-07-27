@@ -331,10 +331,22 @@ ArrayRef<const Expr *> clang::getCapabilityAttrArgs(const Attr *A) {
   }
 }
 
-bool clang::capabilityAttrIsPrecondition(const Attr *A) {
+bool clang::capabilityAttrLossIsUnsound(const Attr *A) {
   switch (A->getKind()) {
   case attr::RequiresCapability:
   case attr::LocksExcluded:
+  case attr::ReleaseCapability:
+    return true;
+  default:
+    return false;
+  }
+}
+
+bool clang::capabilityAttrGainIsUnsound(const Attr *A) {
+  switch (A->getKind()) {
+  case attr::AcquireCapability:
+  case attr::AssertCapability:
+  case attr::TryAcquireCapability:
     return true;
   default:
     return false;

@@ -502,20 +502,30 @@ void profileCapabilityAttr(llvm::FoldingSetNodeID &ID, const Attr *A,
 bool areEquivalentCapabilityAttrs(const Attr *A, const Attr *B,
                                   const ASTContext &Context);
 
-/// Whether \p A constrains the *caller* of the annotated function rather than
-/// describing what that function does to the capability.
+/// Whether *losing* \p A in a conversion could make the thread-safety analysis
+/// believe more than the truth.
 ///
-/// requires_capability and locks_excluded are preconditions: they say what must
-/// (or must not) be held at the call, and every call through the annotated type
-/// is checked against them. The rest -- acquire, release, assert and
-/// try_acquire -- are postconditions: they tell the analysis what the callee
-/// did, and are believed rather than checked.
+/// Two shapes are unsound. A precondition (requires_capability,
+/// locks_excluded) that the destination does not state simply stops being
+/// checked at calls through it. And release_capability, uniquely among the
+/// postconditions, *removes* from the lockset: if the destination does not
+/// state it, the analysis goes on believing the capability is held after a
+/// call that in fact released it, and will then permit accesses that are
+/// really unprotected.
 ///
-/// The distinction matters when a conversion changes the requirements: gaining
-/// a precondition only over-constrains the caller, while gaining a
-/// postcondition makes the analysis believe a capability was acquired,
-/// released, or is held when the function does no such thing.
-bool capabilityAttrIsPrecondition(const Attr *A);
+/// The remaining postconditions -- acquire, assert, try_acquire -- only *add*
+/// to the lockset, so losing one leaves the analysis believing the capability
+/// is not held when it may be. That is the conservative direction: it costs
+/// false positives, never a missed race.
+bool capabilityAttrLossIsUnsound(const Attr *A);
+
+/// Whether *gaining* \p A in a conversion could make the analysis believe more
+/// than the truth. This is the mirror image of capabilityAttrLossIsUnsound:
+/// acquire, assert and try_acquire start the analysis believing a capability
+/// is held that the function never took, while gaining a precondition only
+/// asks the caller for more than the function needs, and gaining a release
+/// only makes the analysis believe less.
+bool capabilityAttrGainIsUnsound(const Attr *A);
 
 /// Write the requirement \p A states -- its spelling, and the capability
 /// arguments (and try-acquire success value) it was written with -- to \p OS,

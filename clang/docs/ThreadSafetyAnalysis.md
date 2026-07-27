@@ -643,22 +643,25 @@ void convert(callback_t cb) {
 The two directions are not symmetric, and each has its own subgroup of
 `-Wthread-safety-conversion`.
 
-The split is between **preconditions** (`REQUIRES`, `EXCLUDES`), which
-constrain the caller and are *checked* at every call, and **postconditions**
-(`ACQUIRE`, `RELEASE`, `ASSERT_CAPABILITY`, `TRY_ACQUIRE`), which tell the
-analysis what the callee did and are *believed*. Each direction reports
-exactly the case where the conversion would make the analysis believe
-something the function does not promise.
+Each direction reports exactly the case where the conversion could make the
+analysis believe *more* than the truth -- that a capability is held when it may
+not be, or that a precondition was checked when it was not. The other cases
+leave the analysis believing less, which costs false positives but never a
+missed race.
 
-*Dropping* a **precondition** is reported: nothing checks it at calls through
-the result any more, which is the whole point of stating it. Dropping a
-postcondition is not: the analysis simply stops being told that the callee
-acquires, releases or asserts the capability and assumes it does not, which is
-the conservative direction.
+*Dropping* is reported for `REQUIRES` and `EXCLUDES`, which simply stop being
+checked at calls through the result, and for `RELEASE`. `RELEASE` is the one
+postcondition that *removes* from the lockset: lose it and the analysis goes on
+believing the capability is held after a call that in fact released it, and
+will then permit accesses that are really unprotected. Dropping `ACQUIRE`,
+`ASSERT_CAPABILITY` or `TRY_ACQUIRE` is not reported -- those only *add* to the
+lockset, so losing one leaves the analysis believing the capability is not held
+when it may be.
 
-*Gaining* a **postcondition** is reported: a type that claims one its target
-does not perform makes the analysis believe a capability was acquired,
-released, or is held when nothing touched it. Gaining a precondition is not: a precondition constrains the caller, so a
+*Gaining* is the mirror image: reported for `ACQUIRE`, `ASSERT_CAPABILITY` and
+`TRY_ACQUIRE`, which would start the analysis believing a capability is held
+that the function never took. Gaining `RELEASE` only makes it believe less, and
+gaining a precondition is not reported either: a precondition constrains the caller, so a
 function that does not state it is simply happy to be called with more held
 than it needs, and every call through the pointer is still checked against what
 the type says. This is what keeps passing an ordinary function to an annotated

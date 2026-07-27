@@ -5474,9 +5474,44 @@ bool CodeGenModule::shouldDropDLLAttribute(const Decl *D,
 /// function effects, or a thread-safety capability requirement. Returns false
 /// when the conflict is being ignored, in which case the first definition is
 /// kept and the second is discarded.
+/// Whether two conflicting definitions are the same entity expanded two ways --
+/// the same template, instantiated with arguments that differ only in a
+/// property that is part of the canonical type but is not mangled.
+///
+/// -fduplicate-mangled-name only relaxes *this* shape. A collision between two
+/// unrelated entities (an asm label or an alias that happens to name an
+/// existing symbol, say) is a different bug and stays an error, so the option
+/// cannot be used to wave one through.
+static bool isSameTemplateExpandedTwoWays(const Decl *D, GlobalDecl OtherGD) {
+  const auto *FD = dyn_cast<FunctionDecl>(D);
+  const auto *OtherFD = dyn_cast_or_null<FunctionDecl>(OtherGD.getDecl());
+  if (!FD || !OtherFD)
+    return false;
+
+  const FunctionDecl *Pattern = FD->getPrimaryTemplate()
+                                    ? FD->getPrimaryTemplate()->getTemplatedDecl()
+                                    : nullptr;
+  const FunctionDecl *OtherPattern =
+      OtherFD->getPrimaryTemplate()
+          ? OtherFD->getPrimaryTemplate()->getTemplatedDecl()
+          : nullptr;
+  return Pattern && Pattern == OtherPattern;
+}
+
 bool CodeGenModule::diagnoseDuplicateMangledName(StringRef MangledName,
                                                  const Decl *D,
                                                  GlobalDecl OtherGD) {
+  // Relaxing the collision only makes sense for two expansions of one
+  // template; anything else is an unrelated symbol clash.
+  if (getCodeGenOpts().getDuplicateMangledName() != CodeGenOptions::DMN_Error &&
+      !isSameTemplateExpandedTwoWays(D, OtherGD)) {
+    getDiags().Report(D->getLocation(), diag::err_duplicate_mangled_name)
+        << MangledName;
+    getDiags().Report(OtherGD.getDecl()->getLocation(),
+                      diag::note_previous_definition);
+    return true;
+  }
+
   switch (getCodeGenOpts().getDuplicateMangledName()) {
   case CodeGenOptions::DMN_Ignore:
     return false;

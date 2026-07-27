@@ -474,13 +474,11 @@ features cannot lower the translation-unit ABI level;
 
   The two directions have their own subgroups, `-Wthread-safety-conversion-drop`
   and `-Wthread-safety-conversion-add`, so the second can be turned off on its
-  own. The two directions are mirror images: dropping is reported only for a
-  *precondition* (`requires`, `excludes`), where nothing checks it any more,
-  and gaining only for a *postcondition* (`acquire`, `release`, `assert`,
-  `try_acquire`), where the analysis would believe the callee touches a
-  capability it does not. Dropping a postcondition leaves the analysis assuming
-  less, and gaining a precondition only asks the caller for more than the
-  function needs, so neither is reported, which is what keeps passing an ordinary
+  own. Each direction reports the case where the conversion could make the
+  analysis believe a capability is held when it may not be: dropping
+  `requires`, `excludes` or `release`, and gaining `acquire`, `assert` or
+  `try_acquire`. The opposite cases leave the analysis believing less, which
+  costs false positives but never a missed race, so they are not reported, which is what keeps passing an ordinary
   function to an annotated callback parameter quiet. The requirement is named in
   full, with its capability arguments, and when it comes from a declaration --
   so that both types print the same -- the message names the function instead of
@@ -514,9 +512,11 @@ features cannot lower the translation-unit ABI level;
   mangled name because their types differ only in a property that is part of
   the canonical type but is not mangled -- `noreturn`, function effects, or a
   thread safety capability requirement. `warn` and `ignore` keep the first
-  definition; note that a template body can observe such a type difference, so
-  discarding the second is only safe when the two bodies really are the same
-  code.
+  definition, and apply only when the two definitions are the same template
+  expanded two ways -- an unrelated symbol clash (an `asm` label or an alias
+  naming an existing symbol) stays an error. Note that a template body can
+  still observe such a type difference, so discarding the second is only safe
+  when the two bodies really are the same code.
 
 - New `-fmangle-capability-requirements` (off by default) includes thread
   safety capability requirements in mangled names, so that two function types

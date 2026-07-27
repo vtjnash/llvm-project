@@ -9450,7 +9450,7 @@ void Sema::diagnoseCapabilityAttrConversion(QualType DstType, QualType SrcType,
   // function must repeat its preconditions to call it at all, while a
   // postcondition it does not restate merely goes unrecorded.
   for (const Attr *A : SrcCaps)
-    if (!Contains(DstCaps, A) && capabilityAttrIsPrecondition(A))
+    if (!Contains(DstCaps, A) && capabilityAttrLossIsUnsound(A))
       Report(A, diag::warn_thread_attribute_conversion_drops_capability,
              diag::warn_thread_attribute_conversion_drops_capability_same_type);
 
@@ -9461,7 +9461,7 @@ void Sema::diagnoseCapabilityAttrConversion(QualType DstType, QualType SrcType,
   // postcondition is different -- the analysis would believe the function
   // acquires, releases or asserts a capability that it does not touch.
   for (const Attr *A : DstCaps)
-    if (!Contains(SrcCaps, A) && !capabilityAttrIsPrecondition(A))
+    if (!Contains(SrcCaps, A) && capabilityAttrGainIsUnsound(A))
       Report(A, diag::warn_thread_attribute_conversion_adds_capability,
              diag::warn_thread_attribute_conversion_adds_capability_same_type);
 }

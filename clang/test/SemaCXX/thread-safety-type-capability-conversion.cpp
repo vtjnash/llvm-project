@@ -224,13 +224,13 @@ typedef RELEASE(mu1) void (*rel1)();
 typedef RELEASE_GENERIC(mu1) void (*relgen1)();
 
 void genericness(rel1 r) {
-  relgen1 x = r; // add-warning {{adds the 'release_generic_capability(mu1)' requirement}}
+  relgen1 x = r; // expected-warning {{drops the 'release_capability(mu1)' requirement}}
   (void)x;
 }
 
-// Dropping a postcondition is not reported -- the analysis simply stops being
-// told that the callee touches the capability, and assumes it does not, which
-// is the conservative direction. Only preconditions are.
+// Losing 'acquire' only makes the analysis believe the capability is not held
+// when it may be -- conservative, so not reported. Losing 'locks_excluded' is a
+// precondition that stops being checked, so it is.
 typedef ACQUIRE(mu1) void (*acq1)();
 typedef EXCLUDES(mu1) void (*exc1)();
 

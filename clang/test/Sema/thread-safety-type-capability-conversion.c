@@ -211,12 +211,15 @@ typedef ACQUIRE(mu1) void (*acq1)(void);
 typedef RELEASE(mu1) void (*rel1)(void);
 typedef EXCLUDES(mu1) void (*exc1)(void);
 
-// Dropping a postcondition is not reported -- the analysis simply stops being
-// told that the callee touches the capability, and assumes it does not.
-// 'locks_excluded' is a precondition, so losing it is.
+// Losing 'acquire' only makes the analysis believe the capability is *not*
+// held when it may be, which costs false positives but never a missed race, so
+// it is not reported. Losing 'release' is the opposite: the analysis goes on
+// believing the capability is held after a call that released it, and would
+// then permit accesses that are really unprotected. 'locks_excluded' is a
+// precondition, so losing it stops being checked at all.
 void other_kinds(acq1 q, rel1 r, exc1 e) {
   plain x = q;
-  plain y = r;
+  plain y = r; // expected-warning {{drops the 'release_capability(mu1)' requirement}}
   plain z = e; // expected-warning {{drops the 'locks_excluded(mu1)' requirement}}
   (void)x; (void)y; (void)z;
 }
