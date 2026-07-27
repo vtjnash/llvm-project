@@ -1,4 +1,6 @@
-// RUN: %clang_cc1 -fsyntax-only -verify -Wthread-safety %s
+// RUN: %clang_cc1 -fsyntax-only -verify=expected -Wthread-safety %s
+// RUN: %clang_cc1 -fsyntax-only -verify=expected,merge -Wthread-safety \
+// RUN:            -Wthread-safety-typedef-merge %s
 
 // Capability attributes are part of the canonical function type, so every
 // place that merges two function types has to have a rule for them.
@@ -133,22 +135,46 @@ void use_reordered_vars(void) {
 }
 
 //===----------------------------------------------------------------------===//
-// Redefining a typedef with a different requirement stays an error.
+// Redefining a typedef with a different requirement takes the union.
 //===----------------------------------------------------------------------===//
 
-// The two underlying types really are different types, and clang rejects the
-// same mismatch for every other property carried by a canonical function type
-// (noexcept, calling convention, cfi_salt, function effects such as
-// [[clang::nonblocking]]). Type-carried capabilities are treated no
-// differently: see ThreadSafetyTypeCapabilities-ReviewFindings.md, F16.
-typedef REQ(mu1) void (*redef)(void); // expected-note 2 {{previous definition is here}}
-typedef void (*redef)(void);          // expected-error {{typedef redefinition with different types}}
-typedef REQ(mu2) void (*redef)(void); // expected-error {{typedef redefinition with different types}}
+// Unlike every other property carried by a canonical function type (noexcept,
+// calling convention, cfi_salt, function effects), a differing requirement is
+// not a redefinition conflict: the typedef requires all of what its
+// definitions state, the same union rule redeclarations of a variable or a
+// function follow. This is what lets a callback type declared by an external
+// header be annotated -- by repeating its typedef with the attribute -- without
+// modifying that header, in either order. -Wthread-safety-typedef-merge reports
+// the difference for code that wants its typedefs to agree; it is deliberately
+// not part of -Wthread-safety.
+typedef REQ(mu1) void (*redef)(void); // merge-note {{previous definition is here}}
+typedef void (*redef)(void);          // merge-warning {{does not state the same capability requirements}} \
+                                      // merge-note {{previous definition is here}}
+typedef REQ(mu2) void (*redef)(void); // merge-warning {{does not state the same capability requirements}}
 
-// Repeating the identical requirement, including through a synonym, is fine.
+void use_redef(redef p) {
+  // The union of every definition applies, whichever one wrote it.
+  p(); // expected-warning {{calling function 'p' requires holding mutex 'mu1' exclusively}} expected-warning {{calling function 'p' requires holding mutex 'mu2' exclusively}}
+}
+
+// The annotated definition may come last, which is the shape of a forced
+// include that annotates a type the external header defines plainly.
+typedef void (*annot_last)(void);          // merge-note {{previous definition is here}}
+typedef REQ(mu1) void (*annot_last)(void); // merge-warning {{does not state the same capability requirements}}
+
+void use_annot_last(annot_last p) {
+  p(); // expected-warning {{calling function 'p' requires holding mutex 'mu1' exclusively}}
+}
+
+// Repeating the identical requirement, including through a synonym, is fine
+// and is not reported even with -Wthread-safety-typedef-merge.
 typedef REQ(mu1) void (*ok_redef)(void);
 typedef REQ(mu1) void (*ok_redef)(void);
 typedef __attribute__((exclusive_locks_required(mu1))) void (*ok_redef)(void);
+
+// A redefinition that differs in more than its requirements is still an error.
+typedef REQ(mu1) void (*bad_redef)(int); // expected-note {{previous definition is here}}
+typedef REQ(mu1) void (*bad_redef)(long); // expected-error {{typedef redefinition with different types}}
 
 // A redeclaration that differs in more than its requirements is still an
 // error.

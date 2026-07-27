@@ -481,6 +481,24 @@ features cannot lower the translation-unit ABI level;
   to an object or a parameter) is never reported as dropped. An explicit cast
   is the way to state that the conversion is intended.
 
+- Repeating a typedef of a function pointer type with a thread safety
+  capability requirement the earlier definition did not state is no longer a
+  redefinition error. The typedef takes the union of what its definitions
+  state, in either order, which is how a callback type declared by a header you
+  do not control gets annotated without modifying that header:
+
+  ```c++
+  typedef void (*alloc_cb)(handle_t *, size_t);              // external header
+  typedef void (*alloc_cb)(handle_t *, size_t) REQUIRES(mu); // your header
+  ```
+
+  Only the requirements may differ; a redefinition disagreeing about anything
+  else is the same error as before. Since the union can only add requirements,
+  this cannot weaken an annotation. The new `-Wthread-safety-typedef-merge`
+  reports redefinitions whose requirements differ, for projects that want their
+  typedefs to agree; it is off by default and is deliberately not part of
+  `-Wthread-safety`.
+
 ### Improvements to Clang's time-trace
 
 ### Improvements to Coverage Mapping

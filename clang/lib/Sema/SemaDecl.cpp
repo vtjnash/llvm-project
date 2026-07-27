@@ -2586,6 +2586,32 @@ bool Sema::isIncompatibleTypedef(const TypeDecl *Old, TypedefNameDecl *New) {
       !OldType->isDependentType() &&
       !NewType->isDependentType() &&
       !Context.hasSameType(OldType, NewType)) {
+    // Two definitions of the same typedef that differ only in the thread-safety
+    // capability requirements their function type carries are not a conflict:
+    // the typedef takes the union of what its definitions state. This is the
+    // rule redeclarations of a variable or a function already follow, and it is
+    // what lets a requirement be added to a callback type declared by an
+    // external header -- by repeating its typedef with the attribute, in either
+    // order -- without having to modify that header.
+    if (QualType Merged = mergeCapabilityAttrsIntoType(NewType, OldType);
+        !Merged.isNull()) {
+      if (!areEquivalentCapabilityAttrSets(
+              getCapabilityAttrsOfFunctionType(NewType),
+              getCapabilityAttrsOfFunctionType(OldType), Context)) {
+        Diag(New->getLocation(),
+             diag::warn_thread_attribute_typedef_capability_mismatch)
+            << New << NewType << OldType;
+        if (Old->getLocation().isValid())
+          notePreviousDefinition(Old, New->getLocation());
+      }
+      // Record the union as the type this typedef denotes, keeping the written
+      // form in the TypeSourceInfo -- the same split a typedef already uses
+      // whenever its underlying type is not the type as written.
+      if (Merged != NewType)
+        New->setModedTypeSourceInfo(New->getTypeSourceInfo(), Merged);
+      return false;
+    }
+
     int Kind = isa<TypeAliasDecl>(Old) ? 1 : 0;
     Diag(New->getLocation(), diag::err_redefinition_different_typedef)
       << Kind << NewType << OldType;
@@ -4669,7 +4695,7 @@ void Sema::MergeVarDeclTypes(VarDecl *New, VarDecl *Old,
     // reason writing the attribute on the definition only, or on the extern
     // declaration only, is not a redeclaration conflict.
     if (MergedT.isNull()) {
-      MergedT = mergeCapabilityAttrsIntoVarType(New->getType(), Old->getType());
+      MergedT = mergeCapabilityAttrsIntoType(New->getType(), Old->getType());
       // An exception specification is not part of the canonical type before
       // C++17, and an unresolved one never is, so the hasSameType path above
       // has to check it separately. Two declarations that reach here are the

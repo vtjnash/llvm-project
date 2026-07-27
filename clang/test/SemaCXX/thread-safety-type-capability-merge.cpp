@@ -1,4 +1,6 @@
 // RUN: %clang_cc1 -fsyntax-only -verify=expected -std=c++11 -Wthread-safety %s
+// RUN: %clang_cc1 -fsyntax-only -verify=expected,merge -std=c++11 \
+// RUN:            -Wthread-safety -Wthread-safety-typedef-merge %s
 //
 // Merging two variable declarations also has to check their exception
 // specifications, which are not part of the type here; that check is only run
@@ -138,25 +140,46 @@ void use_static_member() {
 }
 
 //===----------------------------------------------------------------------===//
-// Redefining a typedef with a different requirement stays an error.
+// Redefining a typedef with a different requirement takes the union.
 //===----------------------------------------------------------------------===//
 
-// See ThreadSafetyTypeCapabilities-ReviewFindings.md, F16: the underlying types
-// really are different types, and clang rejects the same mismatch for every
-// other property carried by a canonical function type (noexcept, calling
-// convention, cfi_salt, function effects such as [[clang::nonblocking]]).
-typedef REQ(mu1) void (*redef)(); // expected-note 2 {{previous definition is here}}
-typedef void (*redef)();          // expected-error {{typedef redefinition with different types}}
-typedef REQ(mu2) void (*redef)(); // expected-error {{typedef redefinition with different types}}
+// Unlike every other property carried by a canonical function type (noexcept,
+// calling convention, cfi_salt, function effects), a differing requirement is
+// not a redefinition conflict: the typedef requires all of what its
+// definitions state. This is what lets a callback type declared by an external
+// header be annotated -- by repeating its typedef with the attribute -- without
+// modifying that header. -Wthread-safety-typedef-merge reports the difference,
+// and is deliberately not part of -Wthread-safety.
+typedef REQ(mu1) void (*redef)(); // merge-note {{previous definition is here}}
+typedef void (*redef)();          // merge-warning {{does not state the same capability requirements}} \
+                                  // merge-note {{previous definition is here}}
+typedef REQ(mu2) void (*redef)(); // merge-warning {{does not state the same capability requirements}}
 
-// Repeating the identical requirement, including through a synonym, is fine.
+void use_redef(redef p) {
+  p(); // expected-warning {{calling function 'p' requires holding mutex 'mu1' exclusively}} expected-warning {{calling function 'p' requires holding mutex 'mu2' exclusively}}
+}
+
+// Repeating the identical requirement, including through a synonym, is fine
+// and is not reported even with -Wthread-safety-typedef-merge.
 typedef REQ(mu1) void (*ok_redef)();
 typedef REQ(mu1) void (*ok_redef)();
 typedef __attribute__((exclusive_locks_required(mu1))) void (*ok_redef)();
 
-// The same holds for a 'using' alias.
-using ualias REQ(mu1) = void (*)(); // expected-note {{previous definition is here}}
-using ualias = void (*)();          // expected-error {{type alias redefinition with different types}}
+// The same holds for a 'using' alias, in either order.
+using ualias REQ(mu1) = void (*)(); // merge-note {{previous definition is here}}
+using ualias = void (*)();          // merge-warning {{does not state the same capability requirements}}
+
+using ualias2 = void (*)();          // merge-note {{previous definition is here}}
+using ualias2 REQ(mu1) = void (*)(); // merge-warning {{does not state the same capability requirements}}
+
+void use_ualias(ualias p, ualias2 q) {
+  p(); // expected-warning {{calling function 'p' requires holding mutex 'mu1' exclusively}}
+  q(); // expected-warning {{calling function 'q' requires holding mutex 'mu1' exclusively}}
+}
+
+// A redefinition that differs in more than its requirements is still an error.
+typedef REQ(mu1) void (*bad_redef)(int);  // expected-note {{previous definition is here}}
+typedef REQ(mu1) void (*bad_redef)(long); // expected-error {{typedef redefinition with different types}}
 
 //===----------------------------------------------------------------------===//
 // Negative guard: distinct requirements stay distinct types.

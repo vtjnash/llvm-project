@@ -521,8 +521,38 @@ attrs' arg streams are concatenated with no boundary, so
   hard error** (`MergeTypedefNameDecl`, both C and C++). Will bite
   annotate-the-system-header patterns. Decide transparency vs. strictness
   (consistent with F15/IsFunctionConversion → transparency) + test either way.
-  ***Decision (P6): keep it strict; no code change, behavior documented by
-  test.*** Rationale:
+
+  ***Decision (revised): take the union, and report the difference only under
+  the opt-in `-Wthread-safety-typedef-merge`.*** `Sema::isIncompatibleTypedef`
+  now routes a capability-only difference through
+  `Sema::mergeCapabilityAttrsIntoType` (the helper P10 added for variables,
+  renamed from `...IntoVarType` since typedefs use it too) and records the
+  union on the typedef via `setModedTypeSourceInfo`, keeping the written form
+  in the `TypeSourceInfo`. A difference in anything else is still the same hard
+  error. The new warning is deliberately **not** in the `-Wthread-safety`
+  umbrella, because the pattern it would flag is the intended one.
+
+  Why the original decision was reversed: rationale 4 below was simply wrong
+  about the practical case. Annotating an external header by repeating one of
+  its callback typedefs *is* the route in C — the header is not editable, and
+  wrapping it does not help when the annotated name has to be the same name the
+  header uses (`uv_alloc_cb` and friends in libuv, reported from Julia's build).
+  C11 6.7p3 permits the repetition; making the requirement part of the type is
+  what turned it into an error, so it is a regression this feature introduced
+  rather than a pre-existing rule being relaxed. Rationale 3 (annotation drift)
+  is answered by the union being monotonic — a redefinition can only add
+  requirements, never remove them, so the strongest statement always wins
+  regardless of declaration order — and by the opt-in warning for projects that
+  do want their typedefs to agree (Julia has a separate clang-tidy pass for
+  exactly that). Rationale 1 (consistency with `nonblocking`/`noexcept`) is the
+  real cost of the reversal and is now a deliberate, documented divergence:
+  those properties do not have the "annotate someone else's declaration" use
+  case, because they are written by whoever owns the API. Rationale 2 stands as
+  a description of type identity but does not by itself settle policy —
+  `mergeTypes` already unions requirements for the redeclaration case, and this
+  extends the same treatment to the redefinition case.
+
+  The original rationale, kept for the record:
   1. *The closest in-tree analogue behaves this way.* Function effects
      (`[[clang::nonblocking]]`) are also carried in the canonical function
      type, are also an analysis-only property rather than an ABI contract, are
@@ -545,11 +575,9 @@ attrs' arg streams are concatenated with no boundary, so
      scope and `-Wtypedef-redefinition` in pre-C11 C. Annotating the header
      itself, or wrapping it, is the supported route.
 
-  Note that this is *not* in tension with F14d: C type *compatibility*
-  (`mergeTypes`, used for redeclarations of functions and variables) unions
-  the requirements, while typedef *redefinition* (`hasSameType`, C11 6.7p3
-  "the same type") stays strict. Function effects draw the line in exactly the
-  same place.
+  With the reversal, typedef redefinition and C type compatibility (F14d) now
+  agree: both union the requirements. Function effects still draw the line
+  between the two cases; capabilities no longer do.
 
 - [x] **F17. `IsFunctionConversion` rebuilds the type even when the attr sets
   are equal.** (`SemaOverload.cpp:2059-2067`) Neighbouring effects block
@@ -996,8 +1024,9 @@ P7 has since fixed within the current design.)
    and reattributed to a pre-existing Sema duplicate.)
 6. **P6**: F14 identity consistency (ODRHash, structural equivalence,
    ASTImporter, mergeFunctionTypes union) + F15 + F16 transparency; T1
-   Modules test. ✔ (F16 decided the other way: strictness, matching function
-   effects — see its entry. `MergeVarDeclTypes`, W3's C++ half, deferred to
+   Modules test. ✔ (F16 was first decided the other way — strictness, matching
+   function effects — and has since been reversed to the union plus an opt-in
+   warning; see its entry. `MergeVarDeclTypes`, W3's C++ half, deferred to
    W4 for want of anything to test it with.)
 7. **P7**: F4 stale member-typedef canonical — investigate; fix or document
    as known limitation tied to Part IV. ✔ Fixed by not late-parsing a

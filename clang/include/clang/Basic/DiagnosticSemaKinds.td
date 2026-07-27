@@ -4374,6 +4374,10 @@ def warn_thread_attribute_conversion_adds_capability : Warning<
   "implicit conversion from %0 to %1 adds a %2 requirement that the source "
   "does not state">,
   InGroup<ThreadSafetyConversionAdd>, DefaultIgnore;
+def warn_thread_attribute_typedef_capability_mismatch : Warning<
+  "redefinition of %0 as %1 does not state the same capability requirements "
+  "as the previous definition as %2; the typedef requires all of them">,
+  InGroup<ThreadSafetyTypedefMerge>, DefaultIgnore;
 def note_thread_attribute_capability_declared_here : Note<
   "%0 requirement declared here">;
 def err_attribute_argument_out_of_bounds_extra_info : Error<

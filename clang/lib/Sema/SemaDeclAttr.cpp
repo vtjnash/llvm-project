@@ -9256,7 +9256,7 @@ foldCapabilityAttrsIntoValueDeclType(Sema &S, ValueDecl *VD,
   VD->setType(NewType);
 }
 
-QualType Sema::mergeCapabilityAttrsIntoVarType(QualType NewT, QualType OldT) {
+QualType Sema::mergeCapabilityAttrsIntoType(QualType NewT, QualType OldT) {
   ArrayRef<const Attr *> NewCaps = getCapabilityAttrsOfFunctionType(NewT);
   ArrayRef<const Attr *> OldCaps = getCapabilityAttrsOfFunctionType(OldT);
   // Neither declaration carries a requirement, so whatever makes the two types

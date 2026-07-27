@@ -1759,12 +1759,12 @@ void Sema::MergeVarDeclExceptionSpecs(VarDecl *New, VarDecl *Old) {
     return;
 
   // The two types are either the same, or -- when MergeVarDeclTypes routes a
-  // capability-only difference through mergeCapabilityAttrsIntoVarType -- the
+  // capability-only difference through mergeCapabilityAttrsIntoType -- the
   // same once their thread-safety requirements are unified. Both shapes below
   // (the pointer/reference peel, and the two prototypes) are the same either
   // way, since a requirement lives inside the prototype.
   assert((Context.hasSameType(New->getType(), Old->getType()) ||
-          !mergeCapabilityAttrsIntoVarType(New->getType(), Old->getType())
+          !mergeCapabilityAttrsIntoType(New->getType(), Old->getType())
                .isNull()) &&
          "Should only be called if types are otherwise the same.");
 

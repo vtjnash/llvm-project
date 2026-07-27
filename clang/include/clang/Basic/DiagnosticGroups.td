@@ -1504,6 +1504,13 @@ def ThreadSafetyConversionAdd  : DiagGroup<"thread-safety-conversion-add">;
 def ThreadSafetyConversion : DiagGroup<"thread-safety-conversion",
                                              [ThreadSafetyConversionDrop,
                                               ThreadSafetyConversionAdd]>;
+// Redefinitions of a typedef that state different capability requirements.
+// The typedef takes the union, so nothing is lost and the redefinition is
+// accepted; this reports the difference for code that wants its typedefs to
+// agree. Deliberately not part of -Wthread-safety: repeating a callback
+// typedef with an added requirement is how an external header's type gets
+// annotated without modifying that header.
+def ThreadSafetyTypedefMerge : DiagGroup<"thread-safety-typedef-merge">;
 def ThreadSafety : DiagGroup<"thread-safety",
                              [ThreadSafetyAttributes,
                               ThreadSafetyAnalysis,

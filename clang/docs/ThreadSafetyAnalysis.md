@@ -690,11 +690,38 @@ could never have been part of any function pointer type, so storing such a
 function in a plain function pointer is not diagnosed: nothing that the pointer
 could have kept is being lost.
 
-Type *identity*, unlike conversion, is strict: redeclaring an annotated typedef
-without the annotation (or with a different one) is an error, exactly as it is
-for a typedef of a `noexcept` or `[[clang::nonblocking]]` function type. To
-annotate a function pointer type declared in a header you do not control, wrap
-it in a new name rather than redefining it.
+##### Annotating a type from a header you do not control
+
+Repeating a typedef with a requirement the earlier definition did not state is
+allowed, and the typedef then requires the union of what all of its definitions
+state. This is how a callback type declared by an external header gets
+annotated without modifying that header -- in either order, so it works whether
+your declaration is seen before or after the header's:
+
+```c++
+// from the external header, unannotated:
+typedef void (*alloc_cb)(handle_t *, size_t);
+
+// in your own header, repeating it with the requirement:
+typedef void (*alloc_cb)(handle_t *, size_t) REQUIRES(mu);
+
+void invoke(alloc_cb cb, handle_t *h) {
+  cb(h, 0);                 // warning: requires holding mu
+}
+```
+
+Only the requirements may differ. A redefinition that disagrees about anything
+else -- a parameter type, the return type, the calling convention -- is the
+same error it has always been.
+
+Because the union can only add requirements, never drop them, this cannot
+weaken an annotation. `-Wthread-safety-typedef-merge` reports redefinitions
+whose requirements differ, for projects that want their typedefs to agree; it
+is off by default and is not part of `-Wthread-safety`.
+
+Note that this differs from `noexcept` and `[[clang::nonblocking]]`, where a
+disagreeing typedef redefinition remains an error. Those properties are written
+by whoever owns the API, so they have no equivalent of this case.
 
 ##### Templates
 
@@ -791,6 +818,13 @@ and is reported once.
 - `-Wthread-safety-pointer`: Checks when passing or returning pointers to
   guarded variables, or pointers to guarded data, as function argument or
   return value respectively.
+
+- `-Wthread-safety-typedef-merge`: Redefinitions of a typedef that state
+  different capability requirements. The typedef takes the union, so the
+  redefinition is accepted and nothing is lost; this reports the difference for
+  code that wants its typedefs to agree. Off by default, and deliberately not
+  part of `-Wthread-safety`: repeating a typedef with an added requirement is
+  how a type from a header you do not control gets annotated.
 
 {ref}`negative` are an experimental feature, which are enabled with:
 
