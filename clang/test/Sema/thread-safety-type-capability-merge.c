@@ -56,15 +56,16 @@ void use_merged(req1 p, plain q) {
 // only ever remove requirements, so the 'add' direction never fires here.
 void composite(int c, plain p, req1 a, req2 b, req12 d) {
   // {mu1} intersect {} == {}, in either operand order.
-  __typeof__(c ? a : p) drops1 = p; // expected-warning {{drops the 'requires_capability' requirement}}
-  __typeof__(c ? p : a) drops2 = p; // expected-warning {{drops the 'requires_capability' requirement}}
+  __typeof__(c ? a : p) drops1 = p; // expected-warning {{drops the 'requires_capability(mu1)' requirement}}
+  __typeof__(c ? p : a) drops2 = p; // expected-warning {{drops the 'requires_capability(mu1)' requirement}}
 
   // {mu1} intersect {mu1, mu2} == {mu1}, in either operand order.
-  req1 keeps1 = c ? a : d; // expected-warning {{drops the 'requires_capability' requirement}}
-  req1 keeps2 = c ? d : a; // expected-warning {{drops the 'requires_capability' requirement}}
+  req1 keeps1 = c ? a : d; // expected-warning {{drops the 'requires_capability(mu2)' requirement}}
+  req1 keeps2 = c ? d : a; // expected-warning {{drops the 'requires_capability(mu2)' requirement}}
 
   // Disjoint requirements intersect to nothing.
-  __typeof__(c ? a : b) empty = p; // expected-warning 2 {{drops the 'requires_capability' requirement}}
+  __typeof__(c ? a : b) empty = p; // expected-warning {{drops the 'requires_capability(mu1)' requirement}} \
+                                   // expected-warning {{drops the 'requires_capability(mu2)' requirement}}
 
   // The composite of two equal sets is that set.
   req1 same = c ? a : a;
@@ -79,8 +80,8 @@ void composite(int c, plain p, req1 a, req2 b, req12 d) {
 void call_composite(int c, plain p, req1 a, req12 d) {
   // Two conditional expressions are written on each line -- one inside
   // __typeof__ and one as the initializer -- so each is reported twice.
-  __typeof__(c ? a : p) dropped = c ? a : p; // expected-warning 2 {{drops the 'requires_capability' requirement}}
-  __typeof__(c ? a : d) kept = c ? a : d;    // expected-warning 2 {{drops the 'requires_capability' requirement}}
+  __typeof__(c ? a : p) dropped = c ? a : p; // expected-warning 2 {{drops the 'requires_capability(mu1)' requirement}}
+  __typeof__(c ? a : d) kept = c ? a : d;    // expected-warning 2 {{drops the 'requires_capability(mu2)' requirement}}
   dropped();
   kept(); // expected-warning {{calling function 'kept' requires holding mutex 'mu1' exclusively}}
 }

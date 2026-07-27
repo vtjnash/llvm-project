@@ -109,8 +109,8 @@ void assign_nonnull_const(nonnull_const_cb p) { // expected-note {{variable 'p' 
 }
 
 void assign_plain(plain p) {
-  // No error: nothing here is const. ('plain' does carry a requirement that
-  // 'some_function' does not state, which -Wthread-safety-conversion-add
-  // reports.)
-  p = &some_function; // expected-warning {{adds a 'exclusive_locks_required' requirement}}
+  // No error: nothing here is const. 'plain' carries a requirement that
+  // 'some_function' does not state, but gaining a precondition only asks the
+  // caller for more than the function needs, so it is not reported.
+  p = &some_function;
 }

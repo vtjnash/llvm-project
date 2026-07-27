@@ -468,13 +468,21 @@ features cannot lower the translation-unit ABI level;
     void (*raw)(void) = cb;      // warning: drops the 'requires_capability'
     raw();                       //          requirement; calls through the
                                  //          result are not checked
-    callback_t drift = plain;    // warning: adds a 'requires_capability'
-  }                              //          requirement the source does not state
+    callback_t drift = plain;    // no warning: gaining a precondition only
+  }                              // over-constrains the caller
   ```
 
   The two directions have their own subgroups, `-Wthread-safety-conversion-drop`
   and `-Wthread-safety-conversion-add`, so the second can be turned off on its
-  own. Requirements written on a function declaration or on a parameter, which
+  own. Dropping is always reported. Gaining is reported only for a
+  *postcondition* (`acquire`, `release`, `assert`, `try_acquire`), where the
+  analysis would believe the callee touches a capability it does not; gaining a
+  *precondition* (`requires`, `excludes`) only asks the caller for more than the
+  function needs and is not reported, which is what keeps passing an ordinary
+  function to an annotated callback parameter quiet. The requirement is named in
+  full, with its capability arguments, and when it comes from a declaration --
+  so that both types print the same -- the message names the function instead of
+  the two identical types. Requirements written on a function declaration or on a parameter, which
   are deliberately not part of a type, take part in the comparison, so passing
   an annotated function to an equally annotated pointer or parameter stays
   silent; a requirement that could never have been part of a type (one relative

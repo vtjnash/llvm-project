@@ -331,6 +331,49 @@ ArrayRef<const Expr *> clang::getCapabilityAttrArgs(const Attr *A) {
   }
 }
 
+bool clang::capabilityAttrIsPrecondition(const Attr *A) {
+  switch (A->getKind()) {
+  case attr::RequiresCapability:
+  case attr::LocksExcluded:
+    return true;
+  default:
+    return false;
+  }
+}
+
+void clang::printCapabilityAttrRequirement(raw_ostream &OS, const Attr *A,
+                                           const PrintingPolicy &Policy) {
+  const auto *TA = dyn_cast<TryAcquireCapabilityAttr>(A);
+  // The success value is a separate argument, not part of args().
+  const Expr *SuccessValue = TA ? TA->getSuccessValue() : nullptr;
+  ArrayRef<const Expr *> Args = getCapabilityAttrArgs(A);
+  OS << A->getSpelling();
+  if (!SuccessValue && Args.empty())
+    return;
+  OS << '(';
+  llvm::ListSeparator Sep;
+  if (SuccessValue) {
+    OS << Sep;
+    SuccessValue->printPretty(OS, nullptr, Policy);
+  }
+  for (const Expr *E : Args) {
+    OS << Sep;
+    // An argument can be null after an error.
+    if (E)
+      E->printPretty(OS, nullptr, Policy);
+  }
+  OS << ')';
+}
+
+std::string
+clang::getCapabilityAttrRequirementAsString(const Attr *A,
+                                            const PrintingPolicy &Policy) {
+  std::string Buf;
+  llvm::raw_string_ostream OS(Buf);
+  printCapabilityAttrRequirement(OS, A, Policy);
+  return Buf;
+}
+
 /// Sharedness and genericness are encoded in the attribute's spelling rather
 /// than in its arguments, so every consumer that distinguishes capability
 /// requirements has to account for them separately. Do not use the spelling

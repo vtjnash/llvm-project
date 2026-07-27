@@ -33,12 +33,21 @@ typedef REQUIRES(mu1) REQUIRES(mu2) void (*req12)(void);
 // Pointer to pointer, in every assignment-like context.
 //===----------------------------------------------------------------------===//
 
+// Only the 'drop' direction is reported for a precondition. requires_capability
+// and locks_excluded constrain the *caller*: giving a pointer a requirement the
+// function itself does not state only asks callers for more than the function
+// needs, and every call through the pointer is still checked against what the
+// type says. Losing one, on the other hand, stops the checking. The
+// postcondition attributes -- acquire, release, assert, try_acquire -- are
+// reported in both directions, because gaining one makes the analysis believe
+// the callee touches a capability it does not (see the sections below).
+
 void take_plain(plain);
 void take_req1(req1);
 
 void init(req1 a, plain p) {
-  plain lost = a;  // expected-warning {{implicit conversion from 'req1' (aka 'void (*)(void) __attribute__((requires_capability(mu1)))') to 'plain' (aka 'void (*)(void)') drops the 'requires_capability' requirement; calls through the result are not checked}}
-  req1 gained = p; // add-warning {{implicit conversion from 'plain' (aka 'void (*)(void)') to 'req1' (aka 'void (*)(void) __attribute__((requires_capability(mu1)))') adds a 'requires_capability' requirement that the source does not state}}
+  plain lost = a;  // expected-warning {{implicit conversion from 'req1' (aka 'void (*)(void) __attribute__((requires_capability(mu1)))') to 'plain' (aka 'void (*)(void)') drops the 'requires_capability(mu1)' requirement; calls through the result are not checked}}
+  req1 gained = p;
   (void)lost;
   (void)gained;
 }
@@ -46,27 +55,27 @@ void init(req1 a, plain p) {
 void assign(req1 a, plain p) {
   plain lost;
   req1 gained;
-  lost = a;   // expected-warning {{drops the 'requires_capability' requirement}}
-  gained = p; // add-warning {{adds a 'requires_capability' requirement}}
+  lost = a;   // expected-warning {{drops the 'requires_capability(mu1)' requirement}}
+  gained = p;
 }
 
 void argument(req1 a, plain p) {
-  take_plain(a); // expected-warning {{drops the 'requires_capability' requirement}}
-  take_req1(p);  // add-warning {{adds a 'requires_capability' requirement}}
+  take_plain(a); // expected-warning {{drops the 'requires_capability(mu1)' requirement}}
+  take_req1(p);
 }
 
 plain return_drops(req1 a) {
-  return a; // expected-warning {{drops the 'requires_capability' requirement}}
+  return a; // expected-warning {{drops the 'requires_capability(mu1)' requirement}}
 }
 
 req1 return_adds(plain p) {
-  return p; // add-warning {{adds a 'requires_capability' requirement}}
+  return p;
 }
 
 // Only the requirement that actually differs is reported.
 void partial(req12 d, req1 a) {
-  req1 narrowed = d; // expected-warning {{drops the 'requires_capability' requirement}}
-  req12 widened = a; // add-warning {{adds a 'requires_capability' requirement}}
+  req1 narrowed = d; // expected-warning {{drops the 'requires_capability(mu2)' requirement}}
+  req12 widened = a;
   (void)narrowed;
   (void)widened;
 }
@@ -78,8 +87,7 @@ struct Ops {
 };
 
 void aggregate(req1 a, plain p) {
-  struct Ops o = {a, p}; // expected-warning {{drops the 'requires_capability' requirement}} \
-                         // add-warning {{adds a 'requires_capability' requirement}}
+  struct Ops o = {a, p}; // expected-warning {{drops the 'requires_capability(mu1)' requirement}}
   (void)o;
 }
 
@@ -91,7 +99,7 @@ req1 from_null = 0;
 // *declaration*.
 //===----------------------------------------------------------------------===//
 
-void annotated(void) REQUIRES(mu1); // expected-note 3 {{'requires_capability' requirement declared here}}
+void annotated(void) REQUIRES(mu1); // expected-note 3 {{'requires_capability(mu1)' requirement declared here}}
 void unannotated(void);
 
 void decay_matching(void) {
@@ -103,24 +111,24 @@ void decay_matching(void) {
 }
 
 void decay_dropping(void) {
-  plain by_decay = annotated;  // expected-warning {{drops the 'requires_capability' requirement}}
-  plain by_addr = &annotated;  // expected-warning {{drops the 'requires_capability' requirement}}
-  void (*raw)(void) = annotated; // expected-warning {{drops the 'requires_capability' requirement}}
+  plain by_decay = annotated;  // expected-warning {{'annotated' drops the 'requires_capability(mu1)' requirement when converted to 'plain' (aka 'void (*)(void)')}}
+  plain by_addr = &annotated;  // expected-warning {{'annotated' drops the 'requires_capability(mu1)' requirement when converted to 'plain' (aka 'void (*)(void)')}}
+  void (*raw)(void) = annotated; // expected-warning {{'annotated' drops the 'requires_capability(mu1)' requirement when converted to 'void (*)(void)'}}
   (void)by_decay;
   (void)by_addr;
   (void)raw;
 }
 
 void decay_adding(void) {
-  req1 gained = unannotated;   // add-warning {{adds a 'requires_capability' requirement}}
-  req1 gained2 = &unannotated; // add-warning {{adds a 'requires_capability' requirement}}
+  req1 gained = unannotated;
+  req1 gained2 = &unannotated;
   (void)gained;
   (void)gained2;
 }
 
 // A parameter's attributes are not folded into its type either, so passing an
 // equally annotated function to it is silent whichever side spells it.
-void takes_annotated_param(void (*cb)(void) REQUIRES(mu1)); // add-note {{'requires_capability' requirement declared here}}
+void takes_annotated_param(void (*cb)(void) REQUIRES(mu1));
 void takes_annotated_type(req1 cb);
 
 void call_annotated_param(void) {
@@ -129,7 +137,7 @@ void call_annotated_param(void) {
   takes_annotated_type(annotated);
   // The parameter's requirement is not in its type, so the two types print
   // the same here; the note says where the difference comes from.
-  takes_annotated_param(unannotated); // add-warning {{adds a 'requires_capability' requirement}}
+  takes_annotated_param(unannotated);
 }
 
 //===----------------------------------------------------------------------===//
@@ -183,10 +191,8 @@ void synonyms(req1 a, elr1 e) {
 typedef REQUIRES_SHARED(mu1) void (*shared1)(void);
 
 void sharedness(req1 a, shared1 s) {
-  shared1 x = a; // expected-warning {{drops the 'requires_capability' requirement}} \
-                 // add-warning {{adds a 'requires_shared_capability' requirement}}
-  req1 y = s;    // expected-warning {{drops the 'requires_shared_capability' requirement}} \
-                 // add-warning {{adds a 'requires_capability' requirement}}
+  shared1 x = a; // expected-warning {{drops the 'requires_capability(mu1)' requirement}}
+  req1 y = s;    // expected-warning {{drops the 'requires_shared_capability(mu1)' requirement}}
   (void)x;
   (void)y;
 }
@@ -195,8 +201,8 @@ typedef TRY_ACQUIRE(1, mu1) int (*try_true)(void);
 typedef TRY_ACQUIRE(0, mu1) int (*try_false)(void);
 
 void try_success_value(try_true t) {
-  try_false x = t; // expected-warning {{drops the 'try_acquire_capability' requirement}} \
-                   // add-warning {{adds a 'try_acquire_capability' requirement}}
+  try_false x = t; // expected-warning {{drops the 'try_acquire_capability(1, mu1)' requirement}} \
+                   // add-warning {{adds the 'try_acquire_capability(0, mu1)' requirement}}
   (void)x;
 }
 
@@ -205,9 +211,9 @@ typedef RELEASE(mu1) void (*rel1)(void);
 typedef EXCLUDES(mu1) void (*exc1)(void);
 
 void other_kinds(acq1 q, rel1 r, exc1 e) {
-  plain x = q; // expected-warning {{drops the 'acquire_capability' requirement}}
-  plain y = r; // expected-warning {{drops the 'release_capability' requirement}}
-  plain z = e; // expected-warning {{drops the 'locks_excluded' requirement}}
+  plain x = q; // expected-warning {{drops the 'acquire_capability(mu1)' requirement}}
+  plain y = r; // expected-warning {{drops the 'release_capability(mu1)' requirement}}
+  plain z = e; // expected-warning {{drops the 'locks_excluded(mu1)' requirement}}
   (void)x; (void)y; (void)z;
 }
 
@@ -218,9 +224,36 @@ void other_kinds(acq1 q, rel1 r, exc1 e) {
 // The composite type is the intersection, so the operand that required more
 // loses the difference. The intersection never adds anything.
 void conditional(int c, plain p, req1 a, req2 b, req12 d) {
-  __typeof__(c ? a : p) x = p; // expected-warning {{drops the 'requires_capability' requirement}}
-  req1 y = c ? a : d;          // expected-warning {{drops the 'requires_capability' requirement}}
-  __typeof__(c ? a : b) z = p; // expected-warning 2 {{drops the 'requires_capability' requirement}}
+  __typeof__(c ? a : p) x = p; // expected-warning {{drops the 'requires_capability(mu1)' requirement}}
+  req1 y = c ? a : d;          // expected-warning {{drops the 'requires_capability(mu2)' requirement}}
+  __typeof__(c ? a : b) z = p; // expected-warning {{drops the 'requires_capability(mu1)' requirement}} \
+                               // expected-warning {{drops the 'requires_capability(mu2)' requirement}}
   req1 w = c ? a : a;          // equal sets: nothing changes
   (void)x; (void)y; (void)z; (void)w;
+}
+
+//===----------------------------------------------------------------------===//
+// A requirement stated by a declaration, when both types are the same.
+//===----------------------------------------------------------------------===//
+
+// When the requirement lives on a declaration rather than in either type, the
+// source and destination can be the very same type. Naming both would read as
+// a mistake ("conversion from 'T' to 'T'"), so the message leads with the
+// function whose requirement is at stake and names the type once. The note
+// says where the requirement was written, since neither printed type shows it.
+void visit_all(void (*visit)(int), int n);
+void visit_cb(int x) REQUIRES(mu1); // expected-note {{'requires_capability(mu1)' requirement declared here}}
+
+void same_type_drop(int n) {
+  visit_all(visit_cb, n); // expected-warning {{'visit_cb' drops the 'requires_capability(mu1)' requirement when converted to 'void (*)(int)'; calls through the result are not checked}}
+}
+
+// The mirror image -- a parameter that states a precondition the argument does
+// not -- is not reported: the callee is simply happy to be called with more
+// held than it needs.
+void visit_all_req(void (*visit)(int) REQUIRES(mu1), int n);
+void visit_plain(int x);
+
+void same_type_add(int n) {
+  visit_all_req(visit_plain, n);
 }

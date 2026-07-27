@@ -441,7 +441,7 @@ void test_typedef_noproto(noproto_requires_t cb) {
 void test_typedef_drop(cb_requires_t cb) {
   // Allowed, but reported: the requirement is dropped by the conversion and
   // the call through 'raw' is then unchecked.
-  void (*raw)(void) = cb; // expected-warning {{drops the 'exclusive_locks_required' requirement}}
+  void (*raw)(void) = cb; // expected-warning {{drops the 'exclusive_locks_required(mu1)' requirement}}
   raw();                  // no warning: raw's type carries no requirement
 }
 // Limitation: the attribute arguments resolve in the typedef's own scope, so

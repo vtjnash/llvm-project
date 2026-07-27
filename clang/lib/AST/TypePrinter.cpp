@@ -1130,26 +1130,8 @@ void TypePrinter::printFunctionProtoAfter(const FunctionProtoType *T,
   // declaration attributes (only the GNU spelling slides onto the declaration
   // from here). The GNU spelling is accepted for every one of them.
   for (const Attr *A : T->getCapabilityAttrs()) {
-    const auto *TA = dyn_cast<TryAcquireCapabilityAttr>(A);
-    // The success value is a separate argument, not part of args().
-    const Expr *SuccessValue = TA ? TA->getSuccessValue() : nullptr;
-    ArrayRef<const Expr *> Args = getCapabilityAttrArgs(A);
-    OS << " __attribute__((" << A->getSpelling();
-    if (SuccessValue || !Args.empty()) {
-      OS << '(';
-      llvm::ListSeparator Sep;
-      if (SuccessValue) {
-        OS << Sep;
-        SuccessValue->printPretty(OS, nullptr, Policy);
-      }
-      for (const Expr *E : Args) {
-        OS << Sep;
-        // An argument can be null after an error.
-        if (E)
-          E->printPretty(OS, nullptr, Policy);
-      }
-      OS << ')';
-    }
+    OS << " __attribute__((";
+    printCapabilityAttrRequirement(OS, A, Policy);
     OS << "))";
   }
 

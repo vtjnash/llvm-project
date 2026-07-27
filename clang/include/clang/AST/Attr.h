@@ -502,6 +502,33 @@ void profileCapabilityAttr(llvm::FoldingSetNodeID &ID, const Attr *A,
 bool areEquivalentCapabilityAttrs(const Attr *A, const Attr *B,
                                   const ASTContext &Context);
 
+/// Whether \p A constrains the *caller* of the annotated function rather than
+/// describing what that function does to the capability.
+///
+/// requires_capability and locks_excluded are preconditions: they say what must
+/// (or must not) be held at the call, and every call through the annotated type
+/// is checked against them. The rest -- acquire, release, assert and
+/// try_acquire -- are postconditions: they tell the analysis what the callee
+/// did, and are believed rather than checked.
+///
+/// The distinction matters when a conversion changes the requirements: gaining
+/// a precondition only over-constrains the caller, while gaining a
+/// postcondition makes the analysis believe a capability was acquired,
+/// released, or is held when the function does no such thing.
+bool capabilityAttrIsPrecondition(const Attr *A);
+
+/// Write the requirement \p A states -- its spelling, and the capability
+/// arguments (and try-acquire success value) it was written with -- to \p OS,
+/// in the form it would be written in source, without the enclosing
+/// `__attribute__((...))`. This is what identifies a requirement to a reader,
+/// and is the form both the type printer and the diagnostics use.
+void printCapabilityAttrRequirement(raw_ostream &OS, const Attr *A,
+                                    const PrintingPolicy &Policy);
+
+/// printCapabilityAttrRequirement, as a string.
+std::string getCapabilityAttrRequirementAsString(const Attr *A,
+                                                 const PrintingPolicy &Policy);
+
 /// The thread-safety capability requirements carried by the function type that
 /// \p T is, or that it is a pointer, block pointer or reference to; empty if
 /// there is no such function type or it carries none. This is where

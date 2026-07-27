@@ -632,19 +632,48 @@ what an annotation must not do:
 void plain(void);
 
 void convert(callback_t cb) {
-  void (*raw)(void) = cb;   // warning: drops the 'requires_capability'
+  void (*raw)(void) = cb;   // warning: drops the 'requires_capability(mu)'
   raw();                    //          requirement (-Wthread-safety-conversion-drop)
 
-  callback_t back = raw;    // warning: adds a 'requires_capability' requirement
-  callback_t direct = plain; //         the source does not state
-}                            //         (-Wthread-safety-conversion-add)
+  callback_t back = raw;    // no warning: see below
+  callback_t direct = plain;
+}
 ```
 
-The two directions are different mistakes and have their own subgroups of
-`-Wthread-safety-conversion`. Dropping is the dangerous one: the requirement
-stops being enforced. Adding one is usually annotation drift -- the pointer's
-type promises a precondition its target does not need -- and can be turned off
-on its own with `-Wno-thread-safety-conversion-add`.
+The two directions are not symmetric, and each has its own subgroup of
+`-Wthread-safety-conversion`.
+
+*Dropping* a requirement is always reported: whatever the requirement was, the
+result no longer states it, so calls through it are no longer checked for it.
+
+*Gaining* one is reported only when the requirement is a **postcondition** --
+`ACQUIRE`, `RELEASE`, `ASSERT_CAPABILITY`, `TRY_ACQUIRE`. Those tell the
+analysis what the callee did, so a type that claims one its target does not
+perform makes the analysis believe a capability was acquired, released, or is
+held when nothing touched it. Gaining a **precondition** (`REQUIRES`,
+`EXCLUDES`) is not reported: a precondition constrains the caller, so a
+function that does not state it is simply happy to be called with more held
+than it needs, and every call through the pointer is still checked against what
+the type says. This is what keeps passing an ordinary function to an annotated
+callback parameter quiet:
+
+```c++
+void visit_all(void (*visit)(int) REQUIRES(mu), int n);
+void visit(int);
+
+visit_all(visit, n);        // no warning: 'visit' does not need mu, and
+                            // callers of visit_all still must hold it
+```
+
+When the requirement is stated by a *declaration* rather than by either type,
+the two types can be the same type. The message then leads with the function
+whose requirement is at stake, and a note points at where it was written:
+
+```
+warning: 'visit_cb' drops the 'requires_capability(mu)' requirement when
+         converted to 'void (*)(int)'; calls through the result are not checked
+note: 'requires_capability(mu)' requirement declared here
+```
 
 An *explicit* cast is the way to say that the conversion is intended:
 
@@ -812,8 +841,10 @@ and is reported once.
     - `-Wthread-safety-conversion-drop`: The target type states fewer
       requirements than the source, so calls through the result are no longer
       checked.
-    - `-Wthread-safety-conversion-add`: The target type states a requirement
-      the source does not.
+    - `-Wthread-safety-conversion-add`: The target type states a
+      *postcondition* (acquire, release, assert, try-acquire) the source does
+      not, so the analysis would believe the callee touches a capability it
+      does not. Gaining a precondition (requires, excludes) is not reported.
 
 - `-Wthread-safety-pointer`: Checks when passing or returning pointers to
   guarded variables, or pointers to guarded data, as function argument or

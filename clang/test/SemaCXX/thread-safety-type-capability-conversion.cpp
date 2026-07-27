@@ -35,12 +35,21 @@ typedef REQUIRES(mu1) REQUIRES(mu2) void (*req12)();
 // Pointer to pointer, in every assignment-like context.
 //===----------------------------------------------------------------------===//
 
+// Only the 'drop' direction is reported for a precondition. requires_capability
+// and locks_excluded constrain the *caller*: giving a pointer a requirement the
+// function itself does not state only asks callers for more than the function
+// needs, and every call through the pointer is still checked against what the
+// type says. Losing one, on the other hand, stops the checking. The
+// postcondition attributes -- acquire, release, assert, try_acquire -- are
+// reported in both directions, because gaining one makes the analysis believe
+// the callee touches a capability it does not (see the sections below).
+
 void take_plain(plain);
 void take_req1(req1);
 
 void init(req1 a, plain p) {
-  plain lost = a;  // expected-warning {{implicit conversion from 'req1' (aka 'void (*)() __attribute__((requires_capability(mu1)))') to 'plain' (aka 'void (*)()') drops the 'requires_capability' requirement; calls through the result are not checked}}
-  req1 gained = p; // add-warning {{implicit conversion from 'plain' (aka 'void (*)()') to 'req1' (aka 'void (*)() __attribute__((requires_capability(mu1)))') adds a 'requires_capability' requirement that the source does not state}}
+  plain lost = a;  // expected-warning {{implicit conversion from 'req1' (aka 'void (*)() __attribute__((requires_capability(mu1)))') to 'plain' (aka 'void (*)()') drops the 'requires_capability(mu1)' requirement; calls through the result are not checked}}
+  req1 gained = p;
   (void)lost;
   (void)gained;
 }
@@ -48,27 +57,27 @@ void init(req1 a, plain p) {
 void assign(req1 a, plain p) {
   plain lost;
   req1 gained;
-  lost = a;   // expected-warning {{drops the 'requires_capability' requirement}}
-  gained = p; // add-warning {{adds a 'requires_capability' requirement}}
+  lost = a;   // expected-warning {{drops the 'requires_capability(mu1)' requirement}}
+  gained = p;
 }
 
 void argument(req1 a, plain p) {
-  take_plain(a); // expected-warning {{drops the 'requires_capability' requirement}}
-  take_req1(p);  // add-warning {{adds a 'requires_capability' requirement}}
+  take_plain(a); // expected-warning {{drops the 'requires_capability(mu1)' requirement}}
+  take_req1(p);
 }
 
 plain return_drops(req1 a) {
-  return a; // expected-warning {{drops the 'requires_capability' requirement}}
+  return a; // expected-warning {{drops the 'requires_capability(mu1)' requirement}}
 }
 
 req1 return_adds(plain p) {
-  return p; // add-warning {{adds a 'requires_capability' requirement}}
+  return p;
 }
 
 // Only the requirement that actually differs is reported.
 void partial(req12 d, req1 a) {
-  req1 narrowed = d;  // expected-warning {{drops the 'requires_capability' requirement}}
-  req12 widened = a;  // add-warning {{adds a 'requires_capability' requirement}}
+  req1 narrowed = d;  // expected-warning {{drops the 'requires_capability(mu2)' requirement}}
+  req12 widened = a;
   (void)narrowed;
   (void)widened;
 }
@@ -84,7 +93,7 @@ req1 from_zero = 0;
 // folded into its type, so they are read from the declaration here.
 //===----------------------------------------------------------------------===//
 
-void annotated() REQUIRES(mu1);   // expected-note 3 {{'requires_capability' requirement declared here}}
+void annotated() REQUIRES(mu1);   // expected-note 3 {{'requires_capability(mu1)' requirement declared here}}
 void unannotated();
 
 void decay_matching() {
@@ -97,9 +106,9 @@ void decay_matching() {
 }
 
 void decay_dropping() {
-  plain by_decay = annotated;      // expected-warning {{drops the 'requires_capability' requirement}}
-  plain by_addr = &annotated;      // expected-warning {{drops the 'requires_capability' requirement}}
-  void (*raw)() = annotated;       // expected-warning {{drops the 'requires_capability' requirement}}
+  plain by_decay = annotated;      // expected-warning {{'annotated' drops the 'requires_capability(mu1)' requirement when converted to 'plain' (aka 'void (*)()')}}
+  plain by_addr = &annotated;      // expected-warning {{'annotated' drops the 'requires_capability(mu1)' requirement when converted to 'plain' (aka 'void (*)()')}}
+  void (*raw)() = annotated;       // expected-warning {{'annotated' drops the 'requires_capability(mu1)' requirement when converted to 'void (*)()'}}
   (void)by_decay;
   (void)by_addr;
   (void)raw;
@@ -108,8 +117,8 @@ void decay_dropping() {
 void decay_adding() {
   // The pointer type promises a precondition the function does not need --
   // usually annotation drift on one side or the other.
-  req1 gained = unannotated;        // add-warning {{adds a 'requires_capability' requirement}}
-  req1 gained2 = &unannotated;      // add-warning {{adds a 'requires_capability' requirement}}
+  req1 gained = unannotated;
+  req1 gained2 = &unannotated;
   (void)gained;
   (void)gained2;
 }
@@ -118,7 +127,7 @@ void decay_adding() {
 // too, whichever side spells the requirement: a parameter's attributes are not
 // folded either (its type is part of the enclosing function's type), so they
 // are read from the parameter declaration.
-void takes_annotated_param(void (*cb)() REQUIRES(mu1)); // add-note {{'requires_capability' requirement declared here}}
+void takes_annotated_param(void (*cb)() REQUIRES(mu1));
 void takes_annotated_type(req1 cb);
 
 void call_annotated_param() {
@@ -127,7 +136,7 @@ void call_annotated_param() {
   takes_annotated_type(annotated);
   // The parameter's requirement is not in its type, so the two types print
   // the same here; the note says where the difference comes from.
-  takes_annotated_param(unannotated); // add-warning {{adds a 'requires_capability' requirement}}
+  takes_annotated_param(unannotated);
 }
 
 //===----------------------------------------------------------------------===//
@@ -195,10 +204,8 @@ void synonyms(req1 a, elr1 e) {
 typedef REQUIRES_SHARED(mu1) void (*shared1)();
 
 void sharedness(req1 a, shared1 s) {
-  shared1 x = a; // expected-warning {{drops the 'requires_capability' requirement}} \
-                 // add-warning {{adds a 'requires_shared_capability' requirement}}
-  req1 y = s;    // expected-warning {{drops the 'requires_shared_capability' requirement}} \
-                 // add-warning {{adds a 'requires_capability' requirement}}
+  shared1 x = a; // expected-warning {{drops the 'requires_capability(mu1)' requirement}}
+  req1 y = s;    // expected-warning {{drops the 'requires_shared_capability(mu1)' requirement}}
   (void)x;
   (void)y;
 }
@@ -208,8 +215,8 @@ typedef TRY_ACQUIRE(1, mu1) bool (*try_true)();
 typedef TRY_ACQUIRE(0, mu1) bool (*try_false)();
 
 void try_success_value(try_true t) {
-  try_false x = t; // expected-warning {{drops the 'try_acquire_capability' requirement}} \
-                   // add-warning {{adds a 'try_acquire_capability' requirement}}
+  try_false x = t; // expected-warning {{drops the 'try_acquire_capability(1, mu1)' requirement}} \
+                   // add-warning {{adds the 'try_acquire_capability(0, mu1)' requirement}}
   (void)x;
 }
 
@@ -218,8 +225,8 @@ typedef RELEASE(mu1) void (*rel1)();
 typedef RELEASE_GENERIC(mu1) void (*relgen1)();
 
 void genericness(rel1 r) {
-  relgen1 x = r; // expected-warning {{drops the 'release_capability' requirement}} \
-                 // add-warning {{adds a 'release_generic_capability' requirement}}
+  relgen1 x = r; // expected-warning {{drops the 'release_capability(mu1)' requirement}} \
+                 // add-warning {{adds the 'release_generic_capability(mu1)' requirement}}
   (void)x;
 }
 
@@ -228,8 +235,8 @@ typedef ACQUIRE(mu1) void (*acq1)();
 typedef EXCLUDES(mu1) void (*exc1)();
 
 void other_kinds(acq1 q, exc1 e) {
-  plain x = q; // expected-warning {{drops the 'acquire_capability' requirement}}
-  plain y = e; // expected-warning {{drops the 'locks_excluded' requirement}}
+  plain x = q; // expected-warning {{drops the 'acquire_capability(mu1)' requirement}}
+  plain y = e; // expected-warning {{drops the 'locks_excluded(mu1)' requirement}}
   (void)x;
   (void)y;
 }
@@ -242,9 +249,10 @@ void other_kinds(acq1 q, exc1 e) {
 // loses the difference -- a real loss, reported like any other. The
 // intersection never adds anything, so the 'add' direction cannot fire.
 void conditional(int c, plain p, req1 a, req2 b, req12 d) {
-  auto x = c ? a : p; // expected-warning {{drops the 'requires_capability' requirement}}
-  auto y = c ? a : d; // expected-warning {{drops the 'requires_capability' requirement}}
-  auto z = c ? a : b; // expected-warning 2 {{drops the 'requires_capability' requirement}}
+  auto x = c ? a : p; // expected-warning {{drops the 'requires_capability(mu1)' requirement}}
+  auto y = c ? a : d; // expected-warning {{drops the 'requires_capability(mu2)' requirement}}
+  auto z = c ? a : b; // expected-warning {{drops the 'requires_capability(mu1)' requirement}} \
+                      // expected-warning {{drops the 'requires_capability(mu2)' requirement}}
   auto w = c ? a : a; // equal sets: nothing changes
   (void)x; (void)y; (void)z; (void)w;
 }
@@ -259,7 +267,7 @@ void overloaded(plain);
 void overloaded(int);
 
 void pick_overload(req1 a) {
-  overloaded(a); // expected-warning {{drops the 'requires_capability' requirement}}
+  overloaded(a); // expected-warning {{drops the 'requires_capability(mu1)' requirement}}
 }
 
 // Deduction produces the argument's own type, so there is no conversion.
@@ -275,7 +283,7 @@ void deduction(req1 a) {
 // A template instantiated with an annotated type converts inside the
 // instantiation, once.
 template <class T> plain to_plain(T cb) {
-  return cb; // expected-warning {{drops the 'requires_capability' requirement}}
+  return cb; // expected-warning {{drops the 'requires_capability(mu1)' requirement}}
 }
 
 void instantiate(req1 a) {

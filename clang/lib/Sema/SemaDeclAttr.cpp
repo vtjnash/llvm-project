@@ -9388,24 +9388,50 @@ void Sema::diagnoseCapabilityAttrConversion(QualType DstType, QualType SrcType,
   QualType SrcDisplayType =
       SrcType->isFunctionType() ? Context.getPointerType(SrcType) : SrcType;
 
-  auto Report = [&](const Attr *A, unsigned DiagID) {
-    Diag(Loc, DiagID) << SrcDisplayType << DstType << A;
+  // When the requirement is stated by a declaration rather than by either type,
+  // the two types can be the same type. Naming both then reads as a mistake
+  // ("conversion from 'T' to 'T'"), so a separate wording leads with the
+  // function whose requirement is at stake and names the type once.
+  const FunctionDecl *SrcDecl = getConvertedFunctionDecl(SrcExpr);
+  bool SameType = Context.hasSameType(SrcDisplayType, DstType);
+
+  auto Report = [&](const Attr *A, unsigned DiagID, unsigned SameTypeDiagID) {
+    // Spell the requirement out in full -- 'requires_capability(!mu)', not just
+    // 'requires_capability'. Which capability is at stake is the whole content
+    // of the message, and a function commonly states more than one.
+    std::string Req =
+        getCapabilityAttrRequirementAsString(A, getPrintingPolicy());
+    if (SameType && SrcDecl)
+      Diag(Loc, SameTypeDiagID) << SrcDecl << Req << DstType;
+    else
+      Diag(Loc, DiagID) << SrcDisplayType << DstType << Req;
     // A requirement carried by a type is spelled out by the type printer in
     // the message itself, so pointing at it again would only add noise. One
-    // that came from the source function's *declaration* is invisible there --
-    // neither printed type mentions it -- so say where it comes from.
+    // that came from a *declaration* is invisible there -- neither printed type
+    // mentions it -- so say where it comes from.
     if (FromDecl.contains(A) && A->getLocation().isValid())
       Diag(A->getLocation(),
            diag::note_thread_attribute_capability_declared_here)
-          << A;
+          << Req;
   };
 
+  // Losing a requirement means calls through the result are no longer checked
+  // against it, in either direction of the precondition/postcondition split.
   for (const Attr *A : SrcCaps)
     if (!Contains(DstCaps, A))
-      Report(A, diag::warn_thread_attribute_conversion_drops_capability);
+      Report(A, diag::warn_thread_attribute_conversion_drops_capability,
+             diag::warn_thread_attribute_conversion_drops_capability_same_type);
+
+  // Gaining one is only worth reporting when it is a postcondition. A gained
+  // precondition just asks the caller for more than the function needs: calls
+  // through the result are still checked against what the type states, and the
+  // function is happy to be called with the capability held. A gained
+  // postcondition is different -- the analysis would believe the function
+  // acquires, releases or asserts a capability that it does not touch.
   for (const Attr *A : DstCaps)
-    if (!Contains(SrcCaps, A))
-      Report(A, diag::warn_thread_attribute_conversion_adds_capability);
+    if (!Contains(SrcCaps, A) && !capabilityAttrIsPrecondition(A))
+      Report(A, diag::warn_thread_attribute_conversion_adds_capability,
+             diag::warn_thread_attribute_conversion_adds_capability_same_type);
 }
 
 /// Fold any thread-safety capability attributes on \p D into its function

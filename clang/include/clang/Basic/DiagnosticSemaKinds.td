@@ -4367,19 +4367,29 @@ def warn_thread_attribute_on_typedef_ignored : Warning<
   "because the function type has no prototype}2; attribute ignored">,
   InGroup<ThreadSafetyAttributes>, DefaultIgnore;
 def warn_thread_attribute_conversion_drops_capability : Warning<
-  "implicit conversion from %0 to %1 drops the %2 requirement; calls through "
+  "implicit conversion from %0 to %1 drops the '%2' requirement; calls through "
   "the result are not checked">,
   InGroup<ThreadSafetyConversionDrop>, DefaultIgnore;
 def warn_thread_attribute_conversion_adds_capability : Warning<
-  "implicit conversion from %0 to %1 adds a %2 requirement that the source "
-  "does not state">,
+  "implicit conversion from %0 to %1 adds the '%2' requirement, which the "
+  "source does not state">,
+  InGroup<ThreadSafetyConversionAdd>, DefaultIgnore;
+// Used when the two types are the same, so naming both would read as a
+// mistake: the requirement is stated by a declaration rather than by either
+// type. The accompanying note points at that declaration.
+def warn_thread_attribute_conversion_drops_capability_same_type : Warning<
+  "%0 drops the '%1' requirement when converted to %2; calls through the "
+  "result are not checked">,
+  InGroup<ThreadSafetyConversionDrop>, DefaultIgnore;
+def warn_thread_attribute_conversion_adds_capability_same_type : Warning<
+  "%0 does not state the '%1' requirement expected when converted to %2">,
   InGroup<ThreadSafetyConversionAdd>, DefaultIgnore;
 def warn_thread_attribute_typedef_capability_mismatch : Warning<
   "redefinition of %0 as %1 does not state the same capability requirements "
   "as the previous definition as %2; the typedef requires all of them">,
   InGroup<ThreadSafetyTypedefMerge>, DefaultIgnore;
 def note_thread_attribute_capability_declared_here : Note<
-  "%0 requirement declared here">;
+  "'%0' requirement declared here">;
 def err_attribute_argument_out_of_bounds_extra_info : Error<
   "%0 attribute parameter %1 is out of bounds: "
   "%plural{0:no parameters to index into|"
