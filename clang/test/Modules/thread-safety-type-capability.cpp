@@ -27,6 +27,16 @@ DiffPresence diff_presence;
 // expected-error@b.h:* {{'DiffPresence::m' from module 'b' is not present in definition of 'DiffPresence' in module 'a'}}
 // expected-note@a.h:* {{declaration of 'm' does not match}}
 
+// The success value is compared by the value it denotes, so 'true' and '1' are
+// one requirement and merge; '1' and '2' are not and do not.
+TryValue try_value;
+
+DiffTryValue diff_try_value;
+// expected-error@b.h:* {{'DiffTryValue::cb' from module 'b' is not present in definition of 'DiffTryValue' in module 'a'}}
+// expected-note@a.h:* {{declaration of 'cb' does not match}}
+// expected-error@b.h:* {{'DiffTryValue::m' from module 'b' is not present in definition of 'DiffTryValue' in module 'a'}}
+// expected-note@a.h:* {{declaration of 'm' does not match}}
+
 DiffSharedness diff_sharedness;
 // expected-error@b.h:* {{'DiffSharedness::cb' from module 'b' is not present in definition of 'DiffSharedness' in module 'a'}}
 // expected-note@a.h:* {{declaration of 'cb' does not match}}

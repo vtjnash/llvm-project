@@ -14,6 +14,7 @@
 #include "clang/AST/ASTStructuralEquivalence.h"
 #include "clang/AST/Attr.h"
 #include "clang/AST/Expr.h"
+#include "clang/AST/ExprCXX.h"
 #include "clang/AST/Type.h"
 #include <optional>
 #include <type_traits>
@@ -361,6 +362,52 @@ const Expr *clang::getCapabilityAttrSuccessValue(const Attr *A) {
   return nullptr;
 }
 
+/// The narrowest signed representation of \p V. Normalizing this way is what
+/// lets two success values that denote the same value compare equal even
+/// though their expressions have different types and widths: 'true' evaluates
+/// to a one-bit unsigned 1, '1' to a 32-bit signed 1, and both come out of
+/// here as a two-bit signed 1.
+static llvm::APSInt normalizeSuccessValue(const llvm::APSInt &V) {
+  llvm::APSInt Signed =
+      V.isSigned() ? V
+                   : llvm::APSInt(V.zext(V.getBitWidth() + 1),
+                                  /*isUnsigned=*/false);
+  return Signed.trunc(std::max(Signed.getSignificantBits(), 1u));
+}
+
+std::optional<llvm::APSInt>
+clang::getCapabilityAttrSuccessValueAsInt(const Expr *E) {
+  if (!E)
+    return std::nullopt;
+  E = E->IgnoreParenImpCasts();
+  if (const auto *CE = dyn_cast<ConstantExpr>(E);
+      CE && CE->hasAPValueResult() && CE->getAPValueResult().isInt())
+    return normalizeSuccessValue(CE->getAPValueResult().getInt());
+  if (const auto *BL = dyn_cast<CXXBoolLiteralExpr>(E))
+    return normalizeSuccessValue(llvm::APSInt::get(BL->getValue()));
+  if (const auto *IL = dyn_cast<IntegerLiteral>(E))
+    return normalizeSuccessValue(llvm::APSInt(
+        IL->getValue(), IL->getType()->isUnsignedIntegerOrEnumerationType()));
+  return std::nullopt;
+}
+
+/// Add the try-acquire success value \p E to \p ID by the value it denotes,
+/// so that two spellings of one value profile the same. An expression whose
+/// value cannot be told (see getCapabilityAttrSuccessValueAsInt) falls back to
+/// its syntactic form; \p ProfileExpr contributes a leading 0 or 1 for that
+/// case, and the 2 here keeps an evaluated profile from ever colliding with a
+/// syntactic one.
+static void profileCapabilityAttrSuccessValue(
+    llvm::FoldingSetNodeID &ID, const Expr *E,
+    llvm::function_ref<void(const Expr *)> ProfileExpr) {
+  if (std::optional<llvm::APSInt> Val = getCapabilityAttrSuccessValueAsInt(E)) {
+    ID.AddInteger(2);
+    Val->Profile(ID);
+    return;
+  }
+  ProfileExpr(E);
+}
+
 /// Add everything that makes \p A a distinct capability requirement -- its
 /// kind, the sharedness and genericness encoded in its spelling, try-acquire's
 /// success value, and its capability arguments -- to \p ID. Two attributes
@@ -381,7 +428,8 @@ void clang::profileCapabilityAttr(llvm::FoldingSetNodeID &ID, const Attr *A,
   // reported by getCapabilityAttrArgs, so they have to be profiled here or
   // semantically different function types collide in the folding set.
   ID.AddInteger(getCapabilityAttrSemantics(A));
-  ProfileExpr(getCapabilityAttrSuccessValue(A));
+  profileCapabilityAttrSuccessValue(ID, getCapabilityAttrSuccessValue(A),
+                                    ProfileExpr);
 
   // The argument count separates one attribute's argument stream from the
   // next one's.

@@ -18,6 +18,7 @@ typedef void (*plain)(void);
 typedef REQ(mu1) void (*req1)(void);
 typedef REQ(mu2) void (*req2)(void);
 typedef REQ(mu1) REQ(mu2) void (*req12)(void);
+typedef REQ(mu2) REQ(mu1) void (*req21)(void);
 
 //===----------------------------------------------------------------------===//
 // Redeclaration merging takes the union.
@@ -113,6 +114,22 @@ void use_merged_vars(void) {
 void use_merged_var_copy(void) {
   __typeof__(var_annotated_first) copy = var_annotated_first;
   copy(); // expected-warning {{calling function 'copy' requires holding mutex 'mu1' exclusively}}
+}
+
+// Two declarations that state the same two requirements in opposite orders.
+// Requirement order is part of a type's identity, so these two types are not
+// identical; mergeFunctionTypes still unions them. (The C++ twin pins this
+// down for Sema::MergeVarDeclTypes, which had to stop treating "same set" as
+// "same type".)
+extern void (*var_order)(void) REQ(mu1) REQ(mu2);
+void (*var_order)(void) REQ(mu2) REQ(mu1);
+
+extern req12 var_typedef_order;
+extern req21 var_typedef_order;
+
+void use_reordered_vars(void) {
+  var_order();         // expected-warning {{calling function 'var_order' requires holding mutex 'mu1' exclusively}} expected-warning {{calling function 'var_order' requires holding mutex 'mu2' exclusively}}
+  var_typedef_order(); // expected-warning {{calling function 'var_typedef_order' requires holding mutex 'mu1' exclusively}} expected-warning {{calling function 'var_typedef_order' requires holding mutex 'mu2' exclusively}}
 }
 
 //===----------------------------------------------------------------------===//

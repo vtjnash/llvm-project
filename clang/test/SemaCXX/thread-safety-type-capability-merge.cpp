@@ -1,4 +1,10 @@
-// RUN: %clang_cc1 -fsyntax-only -verify -std=c++11 -Wthread-safety %s
+// RUN: %clang_cc1 -fsyntax-only -verify=expected -std=c++11 -Wthread-safety %s
+//
+// Merging two variable declarations also has to check their exception
+// specifications, which are not part of the type here; that check is only run
+// when exceptions are enabled, hence the second configuration.
+// RUN: %clang_cc1 -fsyntax-only -verify=expected,exc -std=c++11 \
+// RUN:     -fcxx-exceptions -fexceptions -Wthread-safety %s
 
 // The C++ counterpart of Sema/thread-safety-type-capability-merge.c: forming a
 // composite pointer type for the conditional operator has to be transparent to
@@ -87,6 +93,29 @@ void (*var_both)() REQ(mu2);
 SameType<decltype(var_annotated_first), req1> merged_is_req1;
 SameType<decltype(var_annotated_second), req1> merged_is_req1_too;
 
+// Two declarations that state the same two requirements in opposite orders.
+// Requirement order is part of a type's identity, so these are two different
+// types and must go through the union -- which gives both of them the new
+// declaration's order -- rather than being waved through as "the same set".
+typedef REQ(mu2) REQ(mu1) void (*req21)();
+SameType<req12, req12> req12_is_itself;
+static_assert(!__is_same(req12, req21),
+              "requirement order is part of the type");
+
+extern void (*var_order)() REQ(mu1) REQ(mu2);
+void (*var_order)() REQ(mu2) REQ(mu1);
+SameType<decltype(var_order), req21> reordered_takes_new_order;
+
+// The same, stated through the two typedefs rather than directly.
+extern req12 var_typedef_order;
+extern req21 var_typedef_order;
+SameType<decltype(var_typedef_order), req21> reordered_typedef_takes_new_order;
+
+void use_reordered_vars() {
+  var_order();         // expected-warning {{calling function 'var_order' requires holding mutex 'mu1' exclusively}} expected-warning {{calling function 'var_order' requires holding mutex 'mu2' exclusively}}
+  var_typedef_order(); // expected-warning {{calling function 'var_typedef_order' requires holding mutex 'mu1' exclusively}} expected-warning {{calling function 'var_typedef_order' requires holding mutex 'mu2' exclusively}}
+}
+
 void use_merged_vars() {
   var_annotated_second(); // expected-warning {{calling function 'var_annotated_second' requires holding mutex 'mu1' exclusively}}
   var_annotated_first();  // expected-warning {{calling function 'var_annotated_first' requires holding mutex 'mu1' exclusively}}
@@ -151,3 +180,29 @@ void g(req1 a, req2 b, plain p, req12 d) {
 // error.
 extern void (*var_conflict)() REQ(mu1); // expected-note {{previous declaration is here}}
 extern int (*var_conflict)() REQ(mu1);  // expected-error {{redeclaration of 'var_conflict' with a different type}}
+
+//===----------------------------------------------------------------------===//
+// The capability merge does not skip the exception-specification check.
+//
+// This section comes last on purpose: it is the only one that reports an
+// error before the file's last analysis-based warning, and an error anywhere
+// earlier would suppress every warning after it.
+//===----------------------------------------------------------------------===//
+
+// The exception specification of a variable's type is not part of that type
+// before C++17 (and an unresolved one never is), so Sema::MergeVarDeclTypes
+// checks it separately instead of leaving it to hasSameType. Two declarations
+// that differ in their requirements as well take the capability-merge path,
+// which has to run the same check: writing a capability attribute on one of
+// them must not excuse a mismatch that is diagnosed without one.
+extern void (*espec_base)() throw(int);   // exc-note {{previous declaration is here}}
+extern void (*espec_base)() throw(float); // exc-error {{exception specification in declaration does not match previous declaration}}
+
+extern void (*espec_caps)() throw(int) REQ(mu1); // exc-note {{previous declaration is here}}
+extern void (*espec_caps)() throw(float);        // exc-error {{exception specification in declaration does not match previous declaration}}
+
+// Matching exception specifications are no obstacle: the requirements still
+// merge to their union.
+extern void (*espec_ok)() throw(int) REQ(mu1);
+extern void (*espec_ok)() throw(int) REQ(mu2);
+SameType<decltype(espec_ok), req21> espec_ok_is_both;

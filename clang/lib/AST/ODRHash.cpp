@@ -874,6 +874,24 @@ public:
     }
   }
 
+  /// A try-acquire success value is hashed by the value it denotes, so that
+  /// 'try_acquire_capability(true, mu)' and 'try_acquire_capability(1, mu)'
+  /// -- which are one type, see getCapabilityAttrSuccessValueAsInt -- do not
+  /// look like an ODR mismatch across modules. An expression whose value
+  /// cannot be told falls back to being hashed syntactically; the leading
+  /// integer keeps the two cases apart, as it does in profileCapabilityAttr.
+  void AddCapabilityAttrSuccessValue(const Expr *E) {
+    if (std::optional<llvm::APSInt> Val =
+            getCapabilityAttrSuccessValueAsInt(E)) {
+      ID.AddInteger(2);
+      Val->Profile(ID);
+      return;
+    }
+    ID.AddInteger(E != nullptr);
+    if (E)
+      Hash.AddStmt(E);
+  }
+
   void AddDecl(const Decl *D) {
     Hash.AddBoolean(D);
     if (D) {
@@ -1076,7 +1094,7 @@ public:
     for (const Attr *A : CapAttrs) {
       ID.AddInteger(A->getKind());
       ID.AddInteger(getCapabilityAttrSemantics(A));
-      AddCapabilityAttrExpr(getCapabilityAttrSuccessValue(A));
+      AddCapabilityAttrSuccessValue(getCapabilityAttrSuccessValue(A));
       ArrayRef<const Expr *> Args = getCapabilityAttrArgs(A);
       ID.AddInteger(Args.size());
       for (const Expr *E : Args)

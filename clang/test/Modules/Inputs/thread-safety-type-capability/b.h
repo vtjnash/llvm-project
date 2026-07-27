@@ -24,3 +24,13 @@ struct Synonym {
   typedef void (*cb)() __attribute__((exclusive_locks_required(mu1)));
   cb m;
 };
+
+struct TryValue {
+  typedef bool (*cb)() __attribute__((try_acquire_capability(1, mu1)));
+  cb m;
+};
+
+struct DiffTryValue {
+  typedef bool (*cb)() __attribute__((try_acquire_capability(2, mu1)));
+  cb m;
+};

@@ -95,6 +95,27 @@ static_assert(!__is_same(try_t, try_false_t),
 static_assert(!__is_same(try_t, try_sh_t),
               "try_acquire and try_acquire_shared must stay distinct");
 
+// The success value is profiled by the value it denotes, not by the way it is
+// written: 'true' and '1' are one requirement, so they must be one type, or
+// two headers that spell the same trylock differently would give it two
+// incompatible types (and a spurious ODR mismatch across modules).
+typedef bool (*try_one_t)(void) __attribute__((try_acquire_capability(1, mu)));
+typedef bool (*try_zero_t)(void)
+    __attribute__((try_acquire_capability(0, mu)));
+typedef bool (*try_two_t)(void) __attribute__((try_acquire_capability(2, mu)));
+static_assert(__is_same(try_t, try_one_t),
+              "'true' and '1' are the same success value");
+static_assert(__is_same(try_false_t, try_zero_t),
+              "'false' and '0' are the same success value");
+static_assert(!__is_same(try_one_t, try_two_t),
+              "different success values must stay distinct");
+
+// Being one type, the two spellings redefine the same typedef rather than
+// conflicting.
+typedef bool (*try_t)(void) __attribute__((try_acquire_capability(1, mu)));
+typedef bool (*try_false_t)(void)
+    __attribute__((try_acquire_capability(0, mu)));
+
 // locks_excluded carries no extra semantic state, but must still not collide
 // with an unrelated kind over the same argument.
 typedef void (*excl_t)(void) __attribute__((locks_excluded(mu)));

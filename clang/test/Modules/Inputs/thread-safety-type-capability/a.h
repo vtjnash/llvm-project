@@ -29,3 +29,16 @@ struct Synonym {
   typedef void (*cb)() __attribute__((requires_capability(mu1)));
   cb m;
 };
+
+// The try-acquire success value is spelled 'true' here and '1' on the other
+// side: one value, so one type, so these must merge.
+struct TryValue {
+  typedef bool (*cb)() __attribute__((try_acquire_capability(true, mu1)));
+  cb m;
+};
+
+// Genuinely different success values: these must not merge.
+struct DiffTryValue {
+  typedef bool (*cb)() __attribute__((try_acquire_capability(1, mu1)));
+  cb m;
+};

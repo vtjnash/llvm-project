@@ -4668,8 +4668,17 @@ void Sema::MergeVarDeclTypes(VarDecl *New, VarDecl *Old,
     // same rule ASTContext::mergeFunctionTypes applies below for C, and the
     // reason writing the attribute on the definition only, or on the extern
     // declaration only, is not a redeclaration conflict.
-    if (MergedT.isNull())
+    if (MergedT.isNull()) {
       MergedT = mergeCapabilityAttrsIntoVarType(New->getType(), Old->getType());
+      // An exception specification is not part of the canonical type before
+      // C++17, and an unresolved one never is, so the hasSameType path above
+      // has to check it separately. Two declarations that reach here are the
+      // same type once their requirements are unified, and so need exactly the
+      // same check -- without this, adding a capability attribute to one of
+      // them would silently excuse a mismatch that is diagnosed otherwise.
+      if (!MergedT.isNull())
+        MergeVarDeclExceptionSpecs(New, Old);
+    }
   } else {
     // C 6.2.7p2:
     //   All declarations that refer to the same object or function shall have

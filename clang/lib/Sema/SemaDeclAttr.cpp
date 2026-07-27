@@ -9259,10 +9259,13 @@ foldCapabilityAttrsIntoValueDeclType(Sema &S, ValueDecl *VD,
 QualType Sema::mergeCapabilityAttrsIntoVarType(QualType NewT, QualType OldT) {
   ArrayRef<const Attr *> NewCaps = getCapabilityAttrsOfFunctionType(NewT);
   ArrayRef<const Attr *> OldCaps = getCapabilityAttrsOfFunctionType(OldT);
-  // Either neither declaration carries a requirement, or they carry the same
-  // ones -- so whatever makes the two types differ, it is not this.
-  if ((NewCaps.empty() && OldCaps.empty()) ||
-      areEquivalentCapabilityAttrSets(NewCaps, OldCaps, Context))
+  // Neither declaration carries a requirement, so whatever makes the two types
+  // differ, it is not this. (Carrying *equivalent* requirements is not a fast
+  // path: equivalence of two sets ignores their order, while the order of a
+  // type's requirement list is part of its identity, so two declarations whose
+  // requirements differ only in order do still have different types and do
+  // still need the union below -- which puts both of them in one order.)
+  if (NewCaps.empty() && OldCaps.empty())
     return QualType();
 
   // Give both sides the same requirements -- the union, in one order, so that

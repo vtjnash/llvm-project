@@ -906,9 +906,22 @@ static bool IsEquivalentCapabilityAttrs(StructuralEquivalenceContext &Context,
       return false;
     if (getCapabilityAttrSemantics(A1) != getCapabilityAttrSemantics(A2))
       return false;
-    if (!IsStructurallyEquivalent(Context, getCapabilityAttrSuccessValue(A1),
-                                  getCapabilityAttrSuccessValue(A2)))
+    // The try-acquire success value is compared by the value it denotes, so
+    // that 'true' and '1' are equivalent -- the same rule
+    // profileCapabilityAttr applies to type identity within one context. Only
+    // when neither value can be told does the expression itself get compared.
+    const Expr *SV1 = getCapabilityAttrSuccessValue(A1);
+    const Expr *SV2 = getCapabilityAttrSuccessValue(A2);
+    std::optional<llvm::APSInt> V1 = getCapabilityAttrSuccessValueAsInt(SV1);
+    std::optional<llvm::APSInt> V2 = getCapabilityAttrSuccessValueAsInt(SV2);
+    if (V1.has_value() != V2.has_value())
       return false;
+    if (V1) {
+      if (!llvm::APSInt::isSameValue(*V1, *V2))
+        return false;
+    } else if (!IsStructurallyEquivalent(Context, SV1, SV2)) {
+      return false;
+    }
     ArrayRef<const Expr *> Args1 = getCapabilityAttrArgs(A1);
     ArrayRef<const Expr *> Args2 = getCapabilityAttrArgs(A2);
     if (Args1.size() != Args2.size())

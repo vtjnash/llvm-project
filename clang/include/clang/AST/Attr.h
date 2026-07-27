@@ -26,6 +26,7 @@
 #include "clang/Basic/Sanitizers.h"
 #include "clang/Basic/SourceLocation.h"
 #include "clang/Support/Compiler.h"
+#include "llvm/ADT/APSInt.h"
 #include "llvm/Frontend/HLSL/HLSLResource.h"
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -33,6 +34,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include <algorithm>
 #include <cassert>
+#include <optional>
 
 namespace clang {
 class ASTContext;
@@ -459,6 +461,27 @@ unsigned getCapabilityAttrSemantics(const Attr *A);
 /// getCapabilityAttrArgs, but two try-acquires with different success values
 /// state different requirements.
 const Expr *getCapabilityAttrSuccessValue(const Attr *A);
+
+/// The value a try-acquire success value (see getCapabilityAttrSuccessValue)
+/// denotes, or nothing if that cannot be told from the expression alone.
+///
+/// Two success values that denote the same value state the same requirement,
+/// however they are spelled: 'try_acquire_capability(true, mu)' and
+/// 'try_acquire_capability(1, mu)' must be one type, not two. The result is
+/// therefore normalized -- narrowest signed representation -- so that the
+/// type of the expression ('true' is a one-bit unsigned, '1' a 32-bit signed)
+/// does not leak into it.
+///
+/// Only the literal forms are recognized, deliberately: this has to give the
+/// same answer in profileCapabilityAttr (which runs inside the function-type
+/// folding set's profile), in ODRHash (which has no ASTContext to evaluate an
+/// expression with) and in ASTStructuralEquivalence, and those three must
+/// never disagree about type identity. A success value that is a constant
+/// expression but not a literal falls back to being compared syntactically,
+/// which keeps two spellings of it distinct -- conservative, never wrong.
+/// They are also the only forms the analysis itself reads
+/// (ThreadSafetyAnalyzer::getMutexIDs).
+std::optional<llvm::APSInt> getCapabilityAttrSuccessValueAsInt(const Expr *E);
 
 /// Add everything that makes \p A a distinct capability requirement -- its
 /// kind, the sharedness and genericness encoded in its spelling, try-acquire's
