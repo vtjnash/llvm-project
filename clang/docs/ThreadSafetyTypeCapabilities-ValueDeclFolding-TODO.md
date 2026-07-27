@@ -105,25 +105,25 @@ its Part III (items W1–W6). The user-facing description of the feature is in
 
 ## Two further items, from the aotcompile.cpp report
 
-### Lambda-to-function-pointer conversions are only half covered
+### Lambda-to-function-pointer conversions (done)
 
 A captureless lambda whose `operator()` states a requirement loses it when the
 closure converts to a plain function pointer, exactly as a named function does.
-`getConvertedFunctionDecl` now recognizes that shape -- the conversion is a
+`getConvertedFunctionDecl` recognizes that shape -- the conversion is a
 `CXXMemberCallExpr` to the closure's implicit `CXXConversionDecl`, and the
 declaration the resulting pointer reaches is `getLambdaCallOperator()` -- and
 the message names the lambda rather than `operator()`.
 
-**Only the assignment seam is covered.** Initialization, argument passing and
-`return` reach the conversion through `InitializationSequence::Perform`, which
-does not route a user-defined conversion past
-`Sema::PerformImplicitConversion`, the seam this check hangs off
-(`SemaExprCXX.cpp`). Covering them needs either a hook in the
-`SK_UserConversion` step or a check at the point the conversion operator call
-is built (which would also see explicit casts, so the opt-out would have to be
-re-established there).
+A user-defined conversion never reaches `Sema::PerformImplicitConversion`,
+where the other conversion seams hang, so the check is additionally performed
+in `InitializationSequence::Perform`'s `SK_UserConversion` step, which every
+initialization form funnels through. Two details matter there: the comparison
+is against `Entity.getType()` -- what is ultimately being initialized -- rather
+than the conversion operator's own return type, because a later step may
+convert on to a type that does state the requirement; and `Kind.isExplicitCast()`
+preserves the explicit-cast opt-out.
 
-Note this does not affect the common type-erasure case. Passing a lambda to a
+Note this never applied to the common type-erasure case. Passing a lambda to a
 by-value template parameter (`std::function`, `llvm::unique_function`) deduces
 the *closure* type, so no function pointer conversion happens at all and there
 is nothing to report; the call inside the lambda body is still checked against

@@ -308,16 +308,49 @@ void by_reference(req1 &r, const req1 &cr) {
 // The requirement is written on the closure's operator(), and the pointer the
 // conversion yields cannot carry it, so it is dropped just as it is for a
 // named function. The message names the lambda rather than 'operator()'.
-//
-// Only the assignment seam is covered today: initialization, argument passing
-// and 'return' reach the conversion through InitializationSequence, which does
-// not route user-defined conversions past this check. See
-// ThreadSafetyTypeCapabilities-ValueDeclFolding-TODO.md.
+// Every initialization form is covered: a user-defined conversion is reported
+// where it is performed (SemaInit), not at the PerformImplicitConversion seam
+// it never reaches.
+void take_plain_fp(plain);
+plain return_lambda() {
+  return [](void) REQUIRES(mu1) {}; // expected-warning {{lambda drops the 'requires_capability(mu1)' requirement when converted to 'plain' (aka 'void (*)()'); calls through the result are not checked}} \
+                                    // expected-note {{'requires_capability(mu1)' requirement declared here}}
+}
+
 void lambda_to_fnptr() {
-  plain p;
-  p = [](void) REQUIRES(mu1) {}; // expected-note {{'requires_capability(mu1)' requirement declared here}} \
-                                 // expected-warning {{lambda drops the 'requires_capability(mu1)' requirement when converted to 'plain' (aka 'void (*)()'); calls through the result are not checked}}
-  (void)p;
+  plain a = [](void) REQUIRES(mu1) {}; // expected-warning {{lambda drops the 'requires_capability(mu1)' requirement}} \
+                                       // expected-note {{'requires_capability(mu1)' requirement declared here}}
+  plain b;
+  b = [](void) REQUIRES(mu1) {};       // expected-warning {{lambda drops the 'requires_capability(mu1)' requirement}} \
+                                       // expected-note {{'requires_capability(mu1)' requirement declared here}}
+  take_plain_fp([](void) REQUIRES(mu1) {}); // expected-warning {{lambda drops the 'requires_capability(mu1)' requirement}} \
+                                            // expected-note {{'requires_capability(mu1)' requirement declared here}}
+  (void)a; (void)b;
+}
+
+// Nothing is lost when the destination states the requirement too, even though
+// the closure's conversion operator itself returns a plain pointer: the
+// comparison is against what is ultimately being initialized.
+void take_req1_fp(req1);
+void lambda_to_annotated_fnptr() {
+  req1 a = [](void) REQUIRES(mu1) {};
+  take_req1_fp([](void) REQUIRES(mu1) {});
+  (void)a;
+}
+
+// An explicit cast opts out here as it does at the other seams, and an
+// unannotated lambda has nothing to lose.
+void lambda_optouts() {
+  plain a = (plain)[](void) REQUIRES(mu1) {};
+  plain b = [](void) {};
+  (void)a; (void)b;
+}
+
+// A user-defined conversion that is not a lambda is unaffected.
+struct ConvToFp { operator plain(); };
+void non_lambda_conversion() {
+  plain a = ConvToFp();
+  (void)a;
 }
 
 // A lambda passed to a by-value template parameter (std::function and
@@ -330,4 +363,3 @@ void annotated_cb(void) REQUIRES(mu1);
 void via_lambda() REQUIRES(mu1) {
   take_erased([](void) REQUIRES(mu1) { annotated_cb(); });
 }
-

@@ -8320,6 +8320,21 @@ ExprResult InitializationSequence::Perform(Sema &S,
         if (CurInit.isInvalid())
           return ExprError();
 
+        // A closure converting to a function pointer loses any thread-safety
+        // requirement written on its operator(): the pointer type cannot carry
+        // it. Report it here rather than at the PerformImplicitConversion seam,
+        // which a user-defined conversion never reaches -- this is the one
+        // place every initialization form (initialization, argument passing,
+        // 'return') funnels through. An explicit cast opts out, as it does at
+        // the other seams.
+        // Compare against what is ultimately being initialized, not against
+        // the conversion's own return type: a later step may convert on to a
+        // type that does state the requirement, in which case nothing is lost.
+        if (!Kind.isExplicitCast() && !Entity.getType().isNull())
+          S.diagnoseCapabilityAttrConversion(
+              Entity.getType(), CurInit.get()->getType(), CurInit.get(),
+              CurInit.get()->getBeginLoc());
+
         CastKind = CK_UserDefinedConversion;
         CreatedObject = Conversion->getReturnType()->isRecordType();
       }
