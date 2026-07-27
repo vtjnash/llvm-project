@@ -300,3 +300,34 @@ void by_reference(req1 &r, const req1 &cr) {
   (void)copy;
   (void)copy2;
 }
+
+//===----------------------------------------------------------------------===//
+// A captureless lambda converted to a function pointer.
+//===----------------------------------------------------------------------===//
+
+// The requirement is written on the closure's operator(), and the pointer the
+// conversion yields cannot carry it, so it is dropped just as it is for a
+// named function. The message names the lambda rather than 'operator()'.
+//
+// Only the assignment seam is covered today: initialization, argument passing
+// and 'return' reach the conversion through InitializationSequence, which does
+// not route user-defined conversions past this check. See
+// ThreadSafetyTypeCapabilities-ValueDeclFolding-TODO.md.
+void lambda_to_fnptr() {
+  plain p;
+  p = [](void) REQUIRES(mu1) {}; // expected-note {{'requires_capability(mu1)' requirement declared here}} \
+                                 // expected-warning {{lambda drops the 'requires_capability(mu1)' requirement when converted to 'plain' (aka 'void (*)()'); calls through the result are not checked}}
+  (void)p;
+}
+
+// A lambda passed to a by-value template parameter (std::function and
+// llvm::unique_function shaped) deduces the closure type, so no function
+// pointer conversion happens at all and there is nothing to report. The call
+// inside the lambda body is still checked against the lambda's own annotation.
+template <class Sig> struct erased { template <class G> erased(G g) {} };
+void take_erased(erased<void (*)()>);
+void annotated_cb(void) REQUIRES(mu1);
+void via_lambda() REQUIRES(mu1) {
+  take_erased([](void) REQUIRES(mu1) { annotated_cb(); });
+}
+

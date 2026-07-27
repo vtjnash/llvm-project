@@ -102,3 +102,62 @@ live in `ThreadSafetyTypeCapabilities-ReviewFindings.md`: the open
 canonical-vs-sugar decision is its Part IV, and the value-declaration study is
 its Part III (items W1–W6). The user-facing description of the feature is in
 `ThreadSafetyAnalysis.md`.
+
+## Two further items, from the aotcompile.cpp report
+
+### Lambda-to-function-pointer conversions are only half covered
+
+A captureless lambda whose `operator()` states a requirement loses it when the
+closure converts to a plain function pointer, exactly as a named function does.
+`getConvertedFunctionDecl` now recognizes that shape -- the conversion is a
+`CXXMemberCallExpr` to the closure's implicit `CXXConversionDecl`, and the
+declaration the resulting pointer reaches is `getLambdaCallOperator()` -- and
+the message names the lambda rather than `operator()`.
+
+**Only the assignment seam is covered.** Initialization, argument passing and
+`return` reach the conversion through `InitializationSequence::Perform`, which
+does not route a user-defined conversion past
+`Sema::PerformImplicitConversion`, the seam this check hangs off
+(`SemaExprCXX.cpp`). Covering them needs either a hook in the
+`SK_UserConversion` step or a check at the point the conversion operator call
+is built (which would also see explicit casts, so the opt-out would have to be
+re-established there).
+
+Note this does not affect the common type-erasure case. Passing a lambda to a
+by-value template parameter (`std::function`, `llvm::unique_function`) deduces
+the *closure* type, so no function pointer conversion happens at all and there
+is nothing to report; the call inside the lambda body is still checked against
+the lambda's own annotation.
+
+### Injecting a declaration's requirements into the decayed pointer type
+
+Tempting, and it would unify a lot: `auto p = annotated_fn;` would give `p` a
+type that carries the requirement, so calls through `p` would be checked, and
+the lambda gap above would collapse into an ordinary type-level mismatch that
+the existing machinery already reports at every seam.
+
+**It cannot be done under the current mangling design.** Capability
+requirements are part of the canonical type but the Itanium mangler does not
+emit them, so two types differing only in a requirement mangle identically.
+That is already a hard error when both are instantiated:
+
+```c++
+template <class T> void g(T) {}
+template void g<void (*)(void)>(void (*)(void));
+template void g<void (*)(void) REQUIRES(mu)>(void (*)(void) REQUIRES(mu));
+// error: definition with same mangled name '_Z1gIPFvvEEvT_' as another definition
+```
+
+Today that requires deliberately writing both types. If decay injected the
+declaration's requirements, `g(annotated_fn)` and `g(plain_fn)` in one
+translation unit would produce it from ordinary code -- passing an annotated
+and an unannotated function to the same template would stop compiling.
+
+So this item is gated on Part IV of
+`ThreadSafetyTypeCapabilities-ReviewFindings.md`: it is only available under
+**Option A** (make the manglers emit the requirements), and it is one more
+argument for Option A, since the propagation it would buy is exactly what the
+series is for. Under Option B (demote to sugar) it is unavailable by
+construction. Prototype the expression mangling first, as that entry already
+recommends.
+

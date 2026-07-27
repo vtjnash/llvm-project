@@ -9303,10 +9303,11 @@ static bool isCapabilityCarryingFunctionType(QualType T) {
   return Fn->getAs<FunctionProtoType>() != nullptr;
 }
 
-/// The function declaration that \p E names, if the value being converted came
-/// straight from one -- 'f' (which decays) or '&f'. Only implicit casts are
-/// looked through: an explicit cast is the documented way to opt out of this
-/// diagnostic, so it has to stop the search.
+/// The function declaration whose body the converted value would reach, if the
+/// value came straight from one -- 'f' (which decays), '&f', or a closure that
+/// converts to a function pointer, in which case it is the lambda's
+/// operator(). Only implicit casts are looked through: an explicit cast is the
+/// documented way to opt out of this diagnostic, so it has to stop the search.
 static const FunctionDecl *getConvertedFunctionDecl(const Expr *E) {
   if (!E)
     return nullptr;
@@ -9316,14 +9317,30 @@ static const FunctionDecl *getConvertedFunctionDecl(const Expr *E) {
     E = UO->getSubExpr()->IgnoreParenImpCasts();
   if (const auto *DRE = dyn_cast<DeclRefExpr>(E))
     return dyn_cast<FunctionDecl>(DRE->getDecl());
+  // A captureless lambda converted to a function pointer calls its own
+  // conversion operator; what the resulting pointer reaches is the closure's
+  // operator(), and that is where the requirement was written.
+  if (const auto *MCE = dyn_cast<CXXMemberCallExpr>(E)) {
+    if (const auto *Conv =
+            dyn_cast_or_null<CXXConversionDecl>(MCE->getMethodDecl())) {
+      const CXXRecordDecl *RD = Conv->getParent();
+      if (RD->isLambda())
+        return RD->getLambdaCallOperator();
+    }
+  }
   return nullptr;
 }
 
 void Sema::diagnoseCapabilityAttrConversion(QualType DstType, QualType SrcType,
                                             const Expr *SrcExpr,
                                             SourceLocation Loc) {
-  if (!isCapabilityCarryingFunctionType(SrcType) ||
-      !isCapabilityCarryingFunctionType(DstType))
+  if (!isCapabilityCarryingFunctionType(DstType))
+    return;
+  // The source is normally a function (pointer) too, but it can also be a
+  // closure being converted to a function pointer, whose type is a record.
+  // What matters then is the declaration the pointer would reach.
+  const FunctionDecl *SrcDecl = getConvertedFunctionDecl(SrcExpr);
+  if (!isCapabilityCarryingFunctionType(SrcType) && !SrcDecl)
     return;
 
   ArrayRef<const Attr *> DstCaps = getCapabilityAttrsOfFunctionType(DstType);
@@ -9365,7 +9382,7 @@ void Sema::diagnoseCapabilityAttrConversion(QualType DstType, QualType SrcType,
   };
 
   SmallVector<const Attr *, 4> SrcCapStorage;
-  AddDeclCaps(getConvertedFunctionDecl(SrcExpr), SrcCaps, SrcCapStorage);
+  AddDeclCaps(SrcDecl, SrcCaps, SrcCapStorage);
 
   SmallVector<const Attr *, 4> DstCapStorage;
   if (CapabilityConversionParm &&
@@ -9392,7 +9409,6 @@ void Sema::diagnoseCapabilityAttrConversion(QualType DstType, QualType SrcType,
   // the two types can be the same type. Naming both then reads as a mistake
   // ("conversion from 'T' to 'T'"), so a separate wording leads with the
   // function whose requirement is at stake and names the type once.
-  const FunctionDecl *SrcDecl = getConvertedFunctionDecl(SrcExpr);
   bool SameType = Context.hasSameType(SrcDisplayType, DstType);
 
   auto Report = [&](const Attr *A, unsigned DiagID, unsigned SameTypeDiagID) {
@@ -9401,8 +9417,14 @@ void Sema::diagnoseCapabilityAttrConversion(QualType DstType, QualType SrcType,
     // of the message, and a function commonly states more than one.
     std::string Req =
         getCapabilityAttrRequirementAsString(A, getPrintingPolicy());
-    if (SameType && SrcDecl)
-      Diag(Loc, SameTypeDiagID) << SrcDecl << Req << DstType;
+    if (SameType && SrcDecl) {
+      // A lambda's requirement is written on its call operator, whose name
+      // ('operator()') says nothing about which lambda; name the lambda.
+      std::string Who = isLambdaCallOperator(SrcDecl)
+                            ? std::string("lambda")
+                            : "'" + SrcDecl->getNameAsString() + "'";
+      Diag(Loc, SameTypeDiagID) << Who << Req << DstType;
+    }
     else
       Diag(Loc, DiagID) << SrcDisplayType << DstType << Req;
     // A requirement carried by a type is spelled out by the type printer in
