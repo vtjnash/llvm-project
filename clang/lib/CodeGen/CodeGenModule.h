@@ -862,6 +862,11 @@ public:
   Address createUnnamedGlobalFrom(const VarDecl &D, llvm::Constant *Constant,
                                   CharUnits Align);
 
+  /// Report two definitions sharing a mangled name per
+  /// -fduplicate-mangled-name; false when it is being ignored.
+  bool diagnoseDuplicateMangledName(StringRef MangledName, const Decl *D,
+                                    GlobalDecl OtherGD);
+
   bool lookupRepresentativeDecl(StringRef MangledName,
                                 GlobalDecl &Result) const;
 

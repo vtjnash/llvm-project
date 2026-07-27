@@ -407,6 +407,8 @@ LANGOPT(APINotes, 1, 0, NotCompatible, "use external API notes")
 LANGOPT(APINotesModules, 1, 0, NotCompatible, "use module-based external API notes")
 LANGOPT(SwiftVersionIndependentAPINotes, 1, 0, NotCompatible, "use external API notes capturing all versions")
 
+LANGOPT(MangleCapabilityRequirements, 1, 0, NotCompatible,
+        "include thread-safety capability requirements in mangled names")
 LANGOPT(SanitizeAddressFieldPadding, 2, 0, NotCompatible, "controls how aggressive is ASan "
                                                       "field padding (0: none, 1:least "
                                                       "aggressive, 2: more aggressive)")

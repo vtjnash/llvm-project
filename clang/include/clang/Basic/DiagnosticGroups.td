@@ -1510,6 +1510,7 @@ def ThreadSafetyConversion : DiagGroup<"thread-safety-conversion",
 // agree. Deliberately not part of -Wthread-safety: repeating a callback
 // typedef with an added requirement is how an external header's type gets
 // annotated without modifying that header.
+def DuplicateMangledName : DiagGroup<"duplicate-mangled-name">;
 def ThreadSafetyTypedefMerge : DiagGroup<"thread-safety-typedef-merge">;
 def ThreadSafety : DiagGroup<"thread-safety",
                              [ThreadSafetyAttributes,

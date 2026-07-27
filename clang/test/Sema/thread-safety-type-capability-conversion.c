@@ -201,8 +201,9 @@ typedef TRY_ACQUIRE(1, mu1) int (*try_true)(void);
 typedef TRY_ACQUIRE(0, mu1) int (*try_false)(void);
 
 void try_success_value(try_true t) {
-  try_false x = t; // expected-warning {{drops the 'try_acquire_capability(1, mu1)' requirement}} \
-                   // add-warning {{adds the 'try_acquire_capability(0, mu1)' requirement}}
+  // Only the gained postcondition is reported: the lost one leaves the
+  // analysis assuming less, which is safe.
+  try_false x = t; // add-warning {{adds the 'try_acquire_capability(0, mu1)' requirement}}
   (void)x;
 }
 
@@ -210,9 +211,12 @@ typedef ACQUIRE(mu1) void (*acq1)(void);
 typedef RELEASE(mu1) void (*rel1)(void);
 typedef EXCLUDES(mu1) void (*exc1)(void);
 
+// Dropping a postcondition is not reported -- the analysis simply stops being
+// told that the callee touches the capability, and assumes it does not.
+// 'locks_excluded' is a precondition, so losing it is.
 void other_kinds(acq1 q, rel1 r, exc1 e) {
-  plain x = q; // expected-warning {{drops the 'acquire_capability(mu1)' requirement}}
-  plain y = r; // expected-warning {{drops the 'release_capability(mu1)' requirement}}
+  plain x = q;
+  plain y = r;
   plain z = e; // expected-warning {{drops the 'locks_excluded(mu1)' requirement}}
   (void)x; (void)y; (void)z;
 }

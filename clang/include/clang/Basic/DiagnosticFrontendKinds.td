@@ -351,6 +351,10 @@ def warn_alias_to_weak_alias : Warning<
   InGroup<IgnoredAttributes>;
 def err_duplicate_mangled_name : Error<
   "definition with same mangled name '%0' as another definition">;
+def warn_duplicate_mangled_name : Warning<
+  "definition with same mangled name '%0' as another definition; keeping the "
+  "first">,
+  InGroup<DuplicateMangledName>;
 def err_cyclic_alias : Error<
   "%select{alias|ifunc}0 definition is part of a cycle">;
 def err_hidden_visibility_dllexport : Error<

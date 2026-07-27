@@ -474,11 +474,13 @@ features cannot lower the translation-unit ABI level;
 
   The two directions have their own subgroups, `-Wthread-safety-conversion-drop`
   and `-Wthread-safety-conversion-add`, so the second can be turned off on its
-  own. Dropping is always reported. Gaining is reported only for a
-  *postcondition* (`acquire`, `release`, `assert`, `try_acquire`), where the
-  analysis would believe the callee touches a capability it does not; gaining a
-  *precondition* (`requires`, `excludes`) only asks the caller for more than the
-  function needs and is not reported, which is what keeps passing an ordinary
+  own. The two directions are mirror images: dropping is reported only for a
+  *precondition* (`requires`, `excludes`), where nothing checks it any more,
+  and gaining only for a *postcondition* (`acquire`, `release`, `assert`,
+  `try_acquire`), where the analysis would believe the callee touches a
+  capability it does not. Dropping a postcondition leaves the analysis assuming
+  less, and gaining a precondition only asks the caller for more than the
+  function needs, so neither is reported, which is what keeps passing an ordinary
   function to an annotated callback parameter quiet. The requirement is named in
   full, with its capability arguments, and when it comes from a declaration --
   so that both types print the same -- the message names the function instead of
@@ -506,6 +508,23 @@ features cannot lower the translation-unit ABI level;
   reports redefinitions whose requirements differ, for projects that want their
   typedefs to agree; it is off by default and is deliberately not part of
   `-Wthread-safety`.
+
+- New `-fduplicate-mangled-name=error|warn|ignore` (default `error`, today's
+  behavior) controls what happens when two definitions end up with the same
+  mangled name because their types differ only in a property that is part of
+  the canonical type but is not mangled -- `noreturn`, function effects, or a
+  thread safety capability requirement. `warn` and `ignore` keep the first
+  definition; note that a template body can observe such a type difference, so
+  discarding the second is only safe when the two bodies really are the same
+  code.
+
+- New `-fmangle-capability-requirements` (off by default) includes thread
+  safety capability requirements in mangled names, so that two function types
+  differing only in their requirements become distinct symbols instead of
+  colliding. This changes the ABI of every function whose signature mentions
+  such a type and must be set consistently across a program. The encoding does
+  not depend on which spelling was written, so `requires_capability(mu)` and
+  `exclusive_locks_required(mu)` agree.
 
 ### Improvements to Clang's time-trace
 

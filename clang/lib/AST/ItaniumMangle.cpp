@@ -453,6 +453,7 @@ public:
   void mangleLambdaSig(const CXXRecordDecl *Lambda);
   void mangleModuleNamePrefix(StringRef Name, bool IsPartition = false);
   void mangleVendorQualifier(StringRef Name);
+  void mangleCapabilityRequirements(const FunctionProtoType *T);
   void mangleVendorType(StringRef Name);
 
 private:
@@ -3707,11 +3708,61 @@ CXXNameMangler::mangleExtParameterInfo(FunctionProtoType::ExtParameterInfo PI) {
 // <type>          ::= <function-type>
 // <function-type> ::= [<CV-qualifiers>] F [Y]
 //                      <bare-function-type> [<ref-qualifier>] E
+/// A stable, spelling-independent rendering of one capability requirement, for
+/// use in a mangled name. printCapabilityAttrRequirement cannot be reused: it
+/// prints the spelling the user wrote, and two synonyms
+/// ('requires_capability' and 'exclusive_locks_required') state the same
+/// requirement and so have to mangle the same.
+static void encodeCapabilityRequirement(llvm::raw_ostream &OS, const Attr *A,
+                                        const ASTContext &Context) {
+  StringRef Kind;
+  switch (A->getKind()) {
+  case attr::RequiresCapability:   Kind = "req"; break;
+  case attr::AcquireCapability:    Kind = "acq"; break;
+  case attr::ReleaseCapability:    Kind = "rel"; break;
+  case attr::TryAcquireCapability: Kind = "try"; break;
+  case attr::AssertCapability:     Kind = "ast"; break;
+  case attr::LocksExcluded:        Kind = "exc"; break;
+  default:                         return;
+  }
+  // getCapabilityAttrSemantics folds in sharedness and genericness, which are
+  // carried by the spelling rather than by the arguments.
+  OS << '_' << Kind << getCapabilityAttrSemantics(A);
+  PrintingPolicy Policy(Context.getLangOpts());
+  Policy.SuppressTagKeyword = true;
+  Policy.FullyQualifiedName = true;
+  for (const Expr *E : getCapabilityAttrArgs(A)) {
+    OS << '_';
+    if (E)
+      E->printPretty(OS, nullptr, Policy);
+  }
+}
+
+void CXXNameMangler::mangleCapabilityRequirements(const FunctionProtoType *T) {
+  ArrayRef<const Attr *> Caps = T->getCapabilityAttrs();
+  if (Caps.empty())
+    return;
+  // The order of the requirement list is part of the type's identity, so it is
+  // part of the encoding too.
+  SmallString<64> Buf;
+  llvm::raw_svector_ostream OS(Buf);
+  OS << "__tsa";
+  for (const Attr *A : Caps)
+    encodeCapabilityRequirement(OS, A, getASTContext());
+  mangleVendorQualifier(Buf);
+}
+
 void CXXNameMangler::mangleType(const FunctionProtoType *T) {
   unsigned SMEAttrs = T->getAArch64SMEAttributes();
 
   if (SMEAttrs)
     Out << "11__SME_ATTRSI";
+
+  // Opt-in: give two function types that differ only in their thread-safety
+  // requirements distinct symbols, instead of letting them collide the way
+  // 'noreturn' and function effects do.
+  if (getASTContext().getLangOpts().MangleCapabilityRequirements)
+    mangleCapabilityRequirements(T);
 
   mangleExtFunctionInfo(T);
 

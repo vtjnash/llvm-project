@@ -9437,10 +9437,20 @@ void Sema::diagnoseCapabilityAttrConversion(QualType DstType, QualType SrcType,
           << Req;
   };
 
-  // Losing a requirement means calls through the result are no longer checked
-  // against it, in either direction of the precondition/postcondition split.
+  // The two directions are mirror images, and each reports exactly the case
+  // where the conversion would make the analysis believe something the
+  // function does not promise.
+  //
+  // Losing a *precondition* is unsound: nothing checks it at calls through the
+  // result any more, which is the whole point of stating it. Losing a
+  // postcondition is not -- the analysis simply stops being told that the
+  // callee acquires, releases or asserts the capability, and carries on
+  // assuming it does not. That is conservative, and it is the same set a
+  // wrapper could legitimately leave unstated: a wrapper that forwards to the
+  // function must repeat its preconditions to call it at all, while a
+  // postcondition it does not restate merely goes unrecorded.
   for (const Attr *A : SrcCaps)
-    if (!Contains(DstCaps, A))
+    if (!Contains(DstCaps, A) && capabilityAttrIsPrecondition(A))
       Report(A, diag::warn_thread_attribute_conversion_drops_capability,
              diag::warn_thread_attribute_conversion_drops_capability_same_type);
 

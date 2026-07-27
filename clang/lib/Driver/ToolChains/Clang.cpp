@@ -5987,6 +5987,10 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
     }
   }
 
+  Args.AddLastArg(CmdArgs, options::OPT_fduplicate_mangled_name_EQ);
+  Args.addOptInFlag(CmdArgs, options::OPT_fmangle_capability_requirements,
+                    options::OPT_fno_mangle_capability_requirements);
+
   if (Arg *A = Args.getLastArg(options::OPT_fveclib)) {
     StringRef Name = A->getValue();
     if (Name == "SVML") {

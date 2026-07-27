@@ -3952,6 +3952,28 @@ def fno_global_isel : Flag<["-"], "fno-global-isel">, Group<f_clang_Group>,
 def fno_experimental_isel : Flag<["-"], "fno-experimental-isel">, Group<f_clang_Group>,
   Visibility<[ClangOption, FlangOption]>,
   Alias<fno_global_isel>;
+def fduplicate_mangled_name_EQ : Joined<["-"], "fduplicate-mangled-name=">,
+  Group<f_Group>, Visibility<[ClangOption, CC1Option]>,
+  HelpText<"What to do when two definitions end up with the same mangled name, "
+           "because their types differ only in a property that is not mangled "
+           "('noreturn', function effects, thread-safety capability "
+           "requirements). One of 'error' (the default), 'warn' or 'ignore'. "
+           "'warn' and 'ignore' keep the first definition; if the two bodies "
+           "are not in fact identical, that silently discards one of them.">,
+  Values<"error,warn,ignore">,
+  NormalizedValuesScope<"CodeGenOptions">,
+  NormalizedValues<["DMN_Error", "DMN_Warn", "DMN_Ignore"]>,
+  MarshallingInfoEnum<CodeGenOpts<"DuplicateMangledName">, "DMN_Error">;
+
+defm mangle_capability_requirements : BoolFOption<"mangle-capability-requirements",
+  LangOpts<"MangleCapabilityRequirements">, DefaultFalse,
+  PosFlag<SetTrue, [], [ClangOption, CC1Option],
+          "Include thread-safety capability requirements in mangled names, so "
+          "that two function types differing only in their requirements are "
+          "distinct symbols. This changes the ABI of every function whose "
+          "signature mentions such a type">,
+  NegFlag<SetFalse>>;
+
 def fveclib : Joined<["-"], "fveclib=">, Group<f_Group>,
   Visibility<[ClangOption, CC1Option, FlangOption, FC1Option]>,
     HelpText<"Use the given vector functions library.\n"

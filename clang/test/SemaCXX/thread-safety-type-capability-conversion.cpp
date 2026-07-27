@@ -215,8 +215,7 @@ typedef TRY_ACQUIRE(1, mu1) bool (*try_true)();
 typedef TRY_ACQUIRE(0, mu1) bool (*try_false)();
 
 void try_success_value(try_true t) {
-  try_false x = t; // expected-warning {{drops the 'try_acquire_capability(1, mu1)' requirement}} \
-                   // add-warning {{adds the 'try_acquire_capability(0, mu1)' requirement}}
+  try_false x = t; // add-warning {{adds the 'try_acquire_capability(0, mu1)' requirement}}
   (void)x;
 }
 
@@ -225,17 +224,18 @@ typedef RELEASE(mu1) void (*rel1)();
 typedef RELEASE_GENERIC(mu1) void (*relgen1)();
 
 void genericness(rel1 r) {
-  relgen1 x = r; // expected-warning {{drops the 'release_capability(mu1)' requirement}} \
-                 // add-warning {{adds the 'release_generic_capability(mu1)' requirement}}
+  relgen1 x = r; // add-warning {{adds the 'release_generic_capability(mu1)' requirement}}
   (void)x;
 }
 
-// Every kind of capability attribute participates.
+// Dropping a postcondition is not reported -- the analysis simply stops being
+// told that the callee touches the capability, and assumes it does not, which
+// is the conservative direction. Only preconditions are.
 typedef ACQUIRE(mu1) void (*acq1)();
 typedef EXCLUDES(mu1) void (*exc1)();
 
 void other_kinds(acq1 q, exc1 e) {
-  plain x = q; // expected-warning {{drops the 'acquire_capability(mu1)' requirement}}
+  plain x = q;
   plain y = e; // expected-warning {{drops the 'locks_excluded(mu1)' requirement}}
   (void)x;
   (void)y;

@@ -5468,6 +5468,32 @@ bool CodeGenModule::shouldDropDLLAttribute(const Decl *D,
 ///
 /// If D is non-null, it specifies a decl that correspond to this.  This is used
 /// to set the attributes on the function when it is first created.
+/// Report two definitions that ended up with the same mangled name, according
+/// to -fduplicate-mangled-name. This happens when their types differ only in a
+/// property that is part of the canonical type but is not mangled: 'noreturn',
+/// function effects, or a thread-safety capability requirement. Returns false
+/// when the conflict is being ignored, in which case the first definition is
+/// kept and the second is discarded.
+bool CodeGenModule::diagnoseDuplicateMangledName(StringRef MangledName,
+                                                 const Decl *D,
+                                                 GlobalDecl OtherGD) {
+  switch (getCodeGenOpts().getDuplicateMangledName()) {
+  case CodeGenOptions::DMN_Ignore:
+    return false;
+  case CodeGenOptions::DMN_Warn:
+    getDiags().Report(D->getLocation(), diag::warn_duplicate_mangled_name)
+        << MangledName;
+    break;
+  case CodeGenOptions::DMN_Error:
+    getDiags().Report(D->getLocation(), diag::err_duplicate_mangled_name)
+        << MangledName;
+    break;
+  }
+  getDiags().Report(OtherGD.getDecl()->getLocation(),
+                    diag::note_previous_definition);
+  return true;
+}
+
 llvm::Constant *CodeGenModule::GetOrCreateLLVMFunction(
     StringRef MangledName, llvm::Type *Ty, GlobalDecl GD, bool ForVTable,
     bool DontDefer, bool IsThunk, llvm::AttributeList ExtraAttrs,
@@ -5548,10 +5574,7 @@ llvm::Constant *CodeGenModule::GetOrCreateLLVMFunction(
           (GD.getCanonicalDecl().getDecl() !=
            OtherGD.getCanonicalDecl().getDecl()) &&
           DiagnosedConflictingDefinitions.insert(GD).second) {
-        getDiags().Report(D->getLocation(), diag::err_duplicate_mangled_name)
-            << MangledName;
-        getDiags().Report(OtherGD.getDecl()->getLocation(),
-                          diag::note_previous_definition);
+        diagnoseDuplicateMangledName(MangledName, D, OtherGD);
       }
     }
 
@@ -5888,10 +5911,7 @@ CodeGenModule::GetOrCreateLLVMGlobal(StringRef MangledName, llvm::Type *Ty,
           (OtherD = dyn_cast<VarDecl>(OtherGD.getDecl())) &&
           OtherD->hasInit() &&
           DiagnosedConflictingDefinitions.insert(D).second) {
-        getDiags().Report(D->getLocation(), diag::err_duplicate_mangled_name)
-            << MangledName;
-        getDiags().Report(OtherGD.getDecl()->getLocation(),
-                          diag::note_previous_definition);
+        diagnoseDuplicateMangledName(MangledName, D, OtherGD);
       }
     }
 

@@ -643,15 +643,22 @@ void convert(callback_t cb) {
 The two directions are not symmetric, and each has its own subgroup of
 `-Wthread-safety-conversion`.
 
-*Dropping* a requirement is always reported: whatever the requirement was, the
-result no longer states it, so calls through it are no longer checked for it.
+The split is between **preconditions** (`REQUIRES`, `EXCLUDES`), which
+constrain the caller and are *checked* at every call, and **postconditions**
+(`ACQUIRE`, `RELEASE`, `ASSERT_CAPABILITY`, `TRY_ACQUIRE`), which tell the
+analysis what the callee did and are *believed*. Each direction reports
+exactly the case where the conversion would make the analysis believe
+something the function does not promise.
 
-*Gaining* one is reported only when the requirement is a **postcondition** --
-`ACQUIRE`, `RELEASE`, `ASSERT_CAPABILITY`, `TRY_ACQUIRE`. Those tell the
-analysis what the callee did, so a type that claims one its target does not
-perform makes the analysis believe a capability was acquired, released, or is
-held when nothing touched it. Gaining a **precondition** (`REQUIRES`,
-`EXCLUDES`) is not reported: a precondition constrains the caller, so a
+*Dropping* a **precondition** is reported: nothing checks it at calls through
+the result any more, which is the whole point of stating it. Dropping a
+postcondition is not: the analysis simply stops being told that the callee
+acquires, releases or asserts the capability and assumes it does not, which is
+the conservative direction.
+
+*Gaining* a **postcondition** is reported: a type that claims one its target
+does not perform makes the analysis believe a capability was acquired,
+released, or is held when nothing touched it. Gaining a precondition is not: a precondition constrains the caller, so a
 function that does not state it is simply happy to be called with more held
 than it needs, and every call through the pointer is still checked against what
 the type says. This is what keeps passing an ordinary function to an annotated
@@ -751,6 +758,37 @@ is off by default and is not part of `-Wthread-safety`.
 Note that this differs from `noexcept` and `[[clang::nonblocking]]`, where a
 disagreeing typedef redefinition remains an error. Those properties are written
 by whoever owns the API, so they have no equivalent of this case.
+
+##### Symbol collisions, and mangling
+
+A requirement is part of the function type but is *not* part of the mangled
+name, so two function types that differ only in their requirements are
+distinct types that mangle identically. Defining both in one translation unit
+is an error:
+
+```c++
+template <class T> void g(T) {}
+template void g<void (*)(void)>(void (*)(void));
+template void g<void (*)(void) REQUIRES(mu)>(void (*)(void) REQUIRES(mu));
+// error: definition with same mangled name '_Z1gIPFvvEEvT_' as another definition
+```
+
+This is not specific to capabilities: `noreturn` and `[[clang::nonblocking]]`
+are also part of the canonical function type and also unmangled, and produce
+the same error. Two options control it:
+
+- `-fduplicate-mangled-name=error|warn|ignore` (default `error`) applies to
+  *all* of these causes. `warn` and `ignore` keep the first definition and
+  discard the second. Use them only when the two bodies really are the same
+  code -- a template body can observe the difference (the two types form a
+  legal overload set, and `__is_same` distinguishes them), in which case
+  discarding one silently changes behavior.
+- `-fmangle-capability-requirements` (off by default) includes the
+  requirements in the mangled name, so the two are distinct symbols and the
+  collision cannot arise. **This changes the ABI** of every function whose
+  signature mentions such a type, so it has to be set consistently across a
+  whole program. The encoding is independent of which synonym was written, so
+  `REQUIRES(mu)` and `EXCLUSIVE_LOCKS_REQUIRED(mu)` agree.
 
 ##### Templates
 
