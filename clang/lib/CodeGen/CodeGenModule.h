@@ -863,7 +863,7 @@ public:
                                   CharUnits Align);
 
   /// Report two definitions sharing a mangled name per
-  /// -fduplicate-mangled-name; false when it is being ignored.
+  /// -fthread-safety-capability-mangling; false when it is being ignored.
   bool diagnoseDuplicateMangledName(StringRef MangledName, const Decl *D,
                                     GlobalDecl OtherGD);
 

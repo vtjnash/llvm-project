@@ -660,11 +660,11 @@ when it may be.
 
 *Gaining* is the mirror image: reported for `ACQUIRE`, `ASSERT_CAPABILITY` and
 `TRY_ACQUIRE`, which would start the analysis believing a capability is held
-that the function never took. Gaining `RELEASE` only makes it believe less, and
-gaining a precondition is not reported either: a precondition constrains the caller, so a
-function that does not state it is simply happy to be called with more held
-than it needs, and every call through the pointer is still checked against what
-the type says. This is what keeps passing an ordinary function to an annotated
+that the function never took. Gaining `RELEASE` only makes it believe less.
+Gaining a precondition is not reported either: a precondition constrains the
+caller, so a function that does not state it is simply happy to be called with
+more held than it needs, and every call through the pointer is still checked
+against what the type says. This is what keeps passing an ordinary function to an annotated
 callback parameter quiet:
 
 ```c++
@@ -879,13 +879,16 @@ and is reported once.
   - `-Wthread-safety-conversion`: Implicit conversions between function
     (pointer) types whose capability requirements differ. It turns on:
 
-    - `-Wthread-safety-conversion-drop`: The target type states fewer
-      requirements than the source, so calls through the result are no longer
-      checked.
-    - `-Wthread-safety-conversion-add`: The target type states a
-      *postcondition* (acquire, release, assert, try-acquire) the source does
-      not, so the analysis would believe the callee touches a capability it
-      does not. Gaining a precondition (requires, excludes) is not reported.
+    - `-Wthread-safety-conversion-drop`: The target type does not state a
+      `requires`, `excludes` or `release` that the source did, so either it
+      stops being checked or the analysis goes on believing a capability is
+      held after a call that released it.
+    - `-Wthread-safety-conversion-add`: The target type states an `acquire`,
+      `assert` or `try_acquire` the source does not, so the analysis would
+      believe a capability was taken that the function never touches.
+
+    The other combinations leave the analysis believing *less* than the truth,
+    which costs false positives but never a missed race, and are not reported.
 
 - `-Wthread-safety-pointer`: Checks when passing or returning pointers to
   guarded variables, or pointers to guarded data, as function argument or

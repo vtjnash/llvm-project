@@ -9437,29 +9437,15 @@ void Sema::diagnoseCapabilityAttrConversion(QualType DstType, QualType SrcType,
           << Req;
   };
 
-  // The two directions are mirror images, and each reports exactly the case
-  // where the conversion would make the analysis believe something the
-  // function does not promise.
-  //
-  // Losing a *precondition* is unsound: nothing checks it at calls through the
-  // result any more, which is the whole point of stating it. Losing a
-  // postcondition is not -- the analysis simply stops being told that the
-  // callee acquires, releases or asserts the capability, and carries on
-  // assuming it does not. That is conservative, and it is the same set a
-  // wrapper could legitimately leave unstated: a wrapper that forwards to the
-  // function must repeat its preconditions to call it at all, while a
-  // postcondition it does not restate merely goes unrecorded.
+  // Each direction reports exactly the case where the conversion could leave
+  // the analysis believing a capability is held when it may not be; see
+  // capabilityAttrLossIsUnsound and capabilityAttrGainIsUnsound. The two sets
+  // are mirror images, with release and acquire on opposite sides.
   for (const Attr *A : SrcCaps)
     if (!Contains(DstCaps, A) && capabilityAttrLossIsUnsound(A))
       Report(A, diag::warn_thread_attribute_conversion_drops_capability,
              diag::warn_thread_attribute_conversion_drops_capability_same_type);
 
-  // Gaining one is only worth reporting when it is a postcondition. A gained
-  // precondition just asks the caller for more than the function needs: calls
-  // through the result are still checked against what the type states, and the
-  // function is happy to be called with the capability held. A gained
-  // postcondition is different -- the analysis would believe the function
-  // acquires, releases or asserts a capability that it does not touch.
   for (const Attr *A : DstCaps)
     if (!Contains(SrcCaps, A) && capabilityAttrGainIsUnsound(A))
       Report(A, diag::warn_thread_attribute_conversion_adds_capability,

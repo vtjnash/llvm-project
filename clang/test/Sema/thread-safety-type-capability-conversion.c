@@ -33,14 +33,13 @@ typedef REQUIRES(mu1) REQUIRES(mu2) void (*req12)(void);
 // Pointer to pointer, in every assignment-like context.
 //===----------------------------------------------------------------------===//
 
-// Only the 'drop' direction is reported for a precondition. requires_capability
-// and locks_excluded constrain the *caller*: giving a pointer a requirement the
-// function itself does not state only asks callers for more than the function
-// needs, and every call through the pointer is still checked against what the
-// type says. Losing one, on the other hand, stops the checking. The
-// postcondition attributes -- acquire, release, assert, try_acquire -- are
-// reported in both directions, because gaining one makes the analysis believe
-// the callee touches a capability it does not (see the sections below).
+// A conversion is reported only where it could leave the analysis believing a
+// capability is held when it may not be. Losing requires_capability or
+// locks_excluded stops them being checked; losing release_capability leaves
+// the analysis believing the capability is still held after a call that
+// released it; and gaining acquire, assert or try_acquire makes it believe one
+// was taken that the function never touches. The opposite combinations leave
+// the analysis believing less, which is conservative, and are not reported.
 
 void take_plain(plain);
 void take_req1(req1);

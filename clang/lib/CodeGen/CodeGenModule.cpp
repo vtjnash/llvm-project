@@ -5469,19 +5469,18 @@ bool CodeGenModule::shouldDropDLLAttribute(const Decl *D,
 /// If D is non-null, it specifies a decl that correspond to this.  This is used
 /// to set the attributes on the function when it is first created.
 /// Report two definitions that ended up with the same mangled name, according
-/// to -fduplicate-mangled-name. This happens when their types differ only in a
-/// property that is part of the canonical type but is not mangled: 'noreturn',
-/// function effects, or a thread-safety capability requirement. Returns false
+/// to -fthread-safety-capability-mangling. Their types differ only in a
+/// property that is part of the canonical type but is not mangled: a
+/// capability requirement, 'noreturn', or a function effect. Returns false
 /// when the conflict is being ignored, in which case the first definition is
 /// kept and the second is discarded.
 /// Whether two conflicting definitions are the same entity expanded two ways --
 /// the same template, instantiated with arguments that differ only in a
 /// property that is part of the canonical type but is not mangled.
 ///
-/// -fduplicate-mangled-name only relaxes *this* shape. A collision between two
-/// unrelated entities (an asm label or an alias that happens to name an
-/// existing symbol, say) is a different bug and stays an error, so the option
-/// cannot be used to wave one through.
+/// Only this shape is relaxed. A collision between two unrelated entities (an
+/// asm label or an alias that happens to name an existing symbol) is a
+/// different bug and stays an error, so the option cannot wave one through.
 static bool isSameTemplateExpandedTwoWays(const Decl *D, GlobalDecl OtherGD) {
   const auto *FD = dyn_cast<FunctionDecl>(D);
   const auto *OtherFD = dyn_cast_or_null<FunctionDecl>(OtherGD.getDecl());
