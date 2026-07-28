@@ -507,7 +507,7 @@ features cannot lower the translation-unit ABI level;
   typedefs to agree; it is off by default and is deliberately not part of
   `-Wthread-safety`.
 
-- New `-fduplicate-mangled-name=error|warn|ignore` (default `error`, today's
+- New `-fthread-safety-capability-mangling=` (default `error`, today's
   behavior) controls what happens when two definitions end up with the same
   mangled name because their types differ only in a property that is part of
   the canonical type but is not mangled -- `noreturn`, function effects, or a
@@ -518,7 +518,7 @@ features cannot lower the translation-unit ABI level;
   still observe such a type difference, so discarding the second is only safe
   when the two bodies really are the same code.
 
-- New `-fmangle-capability-requirements` (off by default) includes thread
+- New `-fthread-safety-capability-mangling=mangle` (off by default) includes thread
   safety capability requirements in mangled names, so that two function types
   differing only in their requirements become distinct symbols instead of
   colliding. This changes the ABI of every function whose signature mentions

@@ -1,16 +1,17 @@
 // Two function types that differ only in their thread-safety capability
 // requirements are distinct types, but the Itanium mangler does not emit the
 // requirements, so they collide. That is exactly what 'noreturn' and function
-// effects do today; -fduplicate-mangled-name says what to do about it, and
-// -fmangle-capability-requirements opts into making them distinct symbols.
+// effects do today. -fthread-safety-capability-mangling says what to do about
+// it: reject the collision (the default), keep the first definition with or
+// without a warning, or mangle the requirements so it cannot arise.
 
 // RUN: not %clang_cc1 -emit-llvm -std=c++20 -o /dev/null %s 2>&1 \
 // RUN:   | FileCheck %s --check-prefix=ERROR
-// RUN: %clang_cc1 -emit-llvm -std=c++20 -fduplicate-mangled-name=warn \
+// RUN: %clang_cc1 -emit-llvm -std=c++20 -fthread-safety-capability-mangling=warn \
 // RUN:     -o /dev/null %s 2>&1 | FileCheck %s --check-prefix=WARN
-// RUN: %clang_cc1 -emit-llvm -std=c++20 -fduplicate-mangled-name=ignore \
+// RUN: %clang_cc1 -emit-llvm -std=c++20 -fthread-safety-capability-mangling=ignore \
 // RUN:     -o - %s 2>&1 | FileCheck %s --check-prefix=IGNORE
-// RUN: %clang_cc1 -emit-llvm -std=c++20 -fmangle-capability-requirements \
+// RUN: %clang_cc1 -emit-llvm -std=c++20 -fthread-safety-capability-mangling=mangle \
 // RUN:     -o - %s | FileCheck %s --check-prefix=MANGLE
 
 struct __attribute__((capability("mutex"))) M;

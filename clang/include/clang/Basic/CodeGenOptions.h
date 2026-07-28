@@ -110,16 +110,6 @@ public:
     OnlyAlwaysInlining  // Only run the always inlining pass.
   };
 
-  /// What to do when two definitions end up with the same mangled name.
-  /// This happens when their types differ only in a property that is part of
-  /// the canonical type but is not mangled -- 'noreturn', function effects,
-  /// and thread-safety capability requirements.
-  enum DuplicateMangledNameKind {
-    DMN_Error = 0,  ///< Reject the translation unit (the default).
-    DMN_Warn = 1,   ///< Report it, keep the first definition, carry on.
-    DMN_Ignore = 2, ///< Say nothing, keep the first definition.
-  };
-
   enum ObjCDispatchMethodKind {
     Legacy = 0,
     NonLegacy = 1,

@@ -3761,7 +3761,8 @@ void CXXNameMangler::mangleType(const FunctionProtoType *T) {
   // Opt-in: give two function types that differ only in their thread-safety
   // requirements distinct symbols, instead of letting them collide the way
   // 'noreturn' and function effects do.
-  if (getASTContext().getLangOpts().MangleCapabilityRequirements)
+  if (getASTContext().getLangOpts().getCapabilityMangling() ==
+      LangOptions::CapabilityManglingKind::Mangle)
     mangleCapabilityRequirements(T);
 
   mangleExtFunctionInfo(T);

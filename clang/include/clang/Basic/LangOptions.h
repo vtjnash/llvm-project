@@ -303,6 +303,21 @@ public:
     Default = Mixed,
   };
 
+  /// What to do about the fact that a thread-safety capability requirement is
+  /// part of the canonical function type but is not mangled, so two function
+  /// types differing only in their requirements share a symbol.
+  enum class CapabilityManglingKind {
+    /// Do not mangle requirements; a resulting collision is an error. This is
+    /// also what 'noreturn' and function effects do.
+    Error,
+    /// Do not mangle; report a collision and keep the first definition.
+    Warn,
+    /// Do not mangle; silently keep the first definition.
+    Ignore,
+    /// Mangle requirements, so the collision cannot arise. Changes the ABI.
+    Mangle,
+  };
+
   enum class SignReturnAddressScopeKind {
     /// No signing for any function.
     None,

@@ -780,13 +780,13 @@ This is not specific to capabilities: `noreturn` and `[[clang::nonblocking]]`
 are also part of the canonical function type and also unmangled, and produce
 the same error. Two options control it:
 
-- `-fduplicate-mangled-name=error|warn|ignore` (default `error`) applies to
+- `-fthread-safety-capability-mangling=error|warn|ignore|mangle` (default `error`) applies to
   *all* of these causes. `warn` and `ignore` keep the first definition and
   discard the second. Use them only when the two bodies really are the same
   code -- a template body can observe the difference (the two types form a
   legal overload set, and `__is_same` distinguishes them), in which case
   discarding one silently changes behavior.
-- `-fmangle-capability-requirements` (off by default) includes the
+- `-fthread-safety-capability-mangling=mangle` (off by default) includes the
   requirements in the mangled name, so the two are distinct symbols and the
   collision cannot arise. **This changes the ABI** of every function whose
   signature mentions such a type, so it has to be set consistently across a

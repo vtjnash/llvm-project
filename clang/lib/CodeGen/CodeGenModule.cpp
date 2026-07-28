@@ -5503,7 +5503,9 @@ bool CodeGenModule::diagnoseDuplicateMangledName(StringRef MangledName,
                                                  GlobalDecl OtherGD) {
   // Relaxing the collision only makes sense for two expansions of one
   // template; anything else is an unrelated symbol clash.
-  if (getCodeGenOpts().getDuplicateMangledName() != CodeGenOptions::DMN_Error &&
+  using CMK = LangOptions::CapabilityManglingKind;
+  CMK Policy = getLangOpts().getCapabilityMangling();
+  if (Policy != CMK::Error && Policy != CMK::Mangle &&
       !isSameTemplateExpandedTwoWays(D, OtherGD)) {
     getDiags().Report(D->getLocation(), diag::err_duplicate_mangled_name)
         << MangledName;
@@ -5512,14 +5514,15 @@ bool CodeGenModule::diagnoseDuplicateMangledName(StringRef MangledName,
     return true;
   }
 
-  switch (getCodeGenOpts().getDuplicateMangledName()) {
-  case CodeGenOptions::DMN_Ignore:
+  switch (Policy) {
+  case CMK::Ignore:
     return false;
-  case CodeGenOptions::DMN_Warn:
+  case CMK::Warn:
     getDiags().Report(D->getLocation(), diag::warn_duplicate_mangled_name)
         << MangledName;
     break;
-  case CodeGenOptions::DMN_Error:
+  case CMK::Error:
+  case CMK::Mangle:
     getDiags().Report(D->getLocation(), diag::err_duplicate_mangled_name)
         << MangledName;
     break;

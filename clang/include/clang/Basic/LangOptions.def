@@ -378,6 +378,9 @@ ENUM_LANGOPT(SignedOverflowBehavior, SignedOverflowBehaviorTy, 2, SOB_Undefined,
              "signed integer overflow handling")
 LANGOPT(PointerOverflowDefined, 1, 0, NotCompatible, "make pointer overflow defined")
 ENUM_LANGOPT(ThreadModel  , ThreadModelKind, 2, ThreadModelKind::POSIX, NotCompatible, "Thread Model")
+ENUM_LANGOPT(CapabilityMangling, CapabilityManglingKind, 2,
+             CapabilityManglingKind::Error, NotCompatible,
+             "how thread-safety capability requirements affect mangled names")
 
 LANGOPT(ArrowDepth, 32, 256, Benign,
         "maximum number of operator->s to follow")
@@ -407,8 +410,6 @@ LANGOPT(APINotes, 1, 0, NotCompatible, "use external API notes")
 LANGOPT(APINotesModules, 1, 0, NotCompatible, "use module-based external API notes")
 LANGOPT(SwiftVersionIndependentAPINotes, 1, 0, NotCompatible, "use external API notes capturing all versions")
 
-LANGOPT(MangleCapabilityRequirements, 1, 0, NotCompatible,
-        "include thread-safety capability requirements in mangled names")
 LANGOPT(SanitizeAddressFieldPadding, 2, 0, NotCompatible, "controls how aggressive is ASan "
                                                       "field padding (0: none, 1:least "
                                                       "aggressive, 2: more aggressive)")
