@@ -9399,6 +9399,76 @@ void Sema::diagnoseCapabilityAttrConversion(QualType DstType, QualType SrcType,
       return areEquivalentCapabilityAttrs(A, B, Context);
     });
   };
+
+  // A requirement on the destination parameter may name another parameter of
+  // the same prototype -- 'RELEASE(lock)', where 'lock' is a sibling parameter.
+  // Such a requirement can never be part of a type, so it is not in DstCaps and
+  // the argument's own requirement would read as dropped. But the parameter
+  // stands for whatever is passed for it, so substitute the argument and
+  // compare: passing a function that releases '&my_lock' to a parameter that
+  // releases 'lock', with '&my_lock' passed for 'lock', states the same thing.
+  //
+  // Only a requirement whose capability is exactly a reference to a parameter
+  // is substituted. Anything built on top of one ('RELEASE(&p->mu)') would
+  // require rewriting the expression, which this does not attempt.
+  auto DstParmStatesViaArgument = [&](const Attr *A) {
+    if (!CapabilityConversionParm || !CapabilityConversionCallee)
+      return false;
+    if (!Context.hasSameType(CapabilityConversionParm->getType(), DstType))
+      return false;
+
+    // Index of the callee parameter \p E refers to, if any.
+    auto ParmIndex = [&](const Expr *E) -> std::optional<unsigned> {
+      if (!E)
+        return std::nullopt;
+      const auto *DRE = dyn_cast<DeclRefExpr>(E->IgnoreParenImpCasts());
+      if (!DRE)
+        return std::nullopt;
+      const auto *PVD = dyn_cast<ParmVarDecl>(DRE->getDecl());
+      if (!PVD || PVD->getDeclContext() != CapabilityConversionCallee)
+        return std::nullopt;
+      for (unsigned I = 0, E = CapabilityConversionCallee->getNumParams();
+           I != E; ++I)
+        if (CapabilityConversionCallee->getParamDecl(I) == PVD)
+          return I;
+      return std::nullopt;
+    };
+
+    auto SameExpr = [&](const Expr *X, const Expr *Y) {
+      if (!X || !Y)
+        return X == Y;
+      llvm::FoldingSetNodeID IDX, IDY;
+      X->IgnoreParenImpCasts()->Profile(IDX, Context, /*Canonical=*/true);
+      Y->IgnoreParenImpCasts()->Profile(IDY, Context, /*Canonical=*/true);
+      return IDX == IDY;
+    };
+
+    ArrayRef<const Expr *> ACaps = getCapabilityAttrArgs(A);
+    for (const Attr *B : CapabilityConversionParm->attrs()) {
+      if (!isCapabilityAttr(B) || B->getKind() != A->getKind())
+        continue;
+      if (getCapabilityAttrSemantics(B) != getCapabilityAttrSemantics(A))
+        continue;
+      if (!SameExpr(getCapabilityAttrSuccessValue(B),
+                    getCapabilityAttrSuccessValue(A)))
+        continue;
+      ArrayRef<const Expr *> BCaps = getCapabilityAttrArgs(B);
+      if (BCaps.size() != ACaps.size())
+        continue;
+      bool AllMatch = true;
+      for (auto [BArg, AArg] : llvm::zip(BCaps, ACaps)) {
+        std::optional<unsigned> Idx = ParmIndex(BArg);
+        if (!Idx || *Idx >= CapabilityConversionArgs.size() ||
+            !SameExpr(CapabilityConversionArgs[*Idx], AArg)) {
+          AllMatch = false;
+          break;
+        }
+      }
+      if (AllMatch)
+        return true;
+    }
+    return false;
+  };
   // A function designator has not decayed yet at the C++ seam, and naming the
   // bare function type ('void ()') in a message about a pointer conversion
   // reads as a mistake; report the type the value actually converts through.
@@ -9442,7 +9512,8 @@ void Sema::diagnoseCapabilityAttrConversion(QualType DstType, QualType SrcType,
   // capabilityAttrLossIsUnsound and capabilityAttrGainIsUnsound. The two sets
   // are mirror images, with release and acquire on opposite sides.
   for (const Attr *A : SrcCaps)
-    if (!Contains(DstCaps, A) && capabilityAttrLossIsUnsound(A))
+    if (!Contains(DstCaps, A) && capabilityAttrLossIsUnsound(A) &&
+        !DstParmStatesViaArgument(A))
       Report(A, diag::warn_thread_attribute_conversion_drops_capability,
              diag::warn_thread_attribute_conversion_drops_capability_same_type);
 

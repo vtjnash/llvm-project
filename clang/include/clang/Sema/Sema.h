@@ -5259,6 +5259,20 @@ public:
   /// function to it requires nothing.
   const ParmVarDecl *CapabilityConversionParm = nullptr;
 
+  /// The callee and argument expressions of the call whose arguments are being
+  /// converted, set by Sema::GatherArgumentsForCall. A requirement on a
+  /// parameter may name another parameter of the same prototype, which stands
+  /// for whatever is passed for it at each call:
+  ///
+  ///   int kref_put_lock(struct kref *kref,
+  ///                     void (*release)(struct kref *) RELEASE(lock),
+  ///                     spinlock_t *lock);
+  ///
+  /// so diagnoseCapabilityAttrConversion substitutes the argument before
+  /// deciding that the requirement is dropped.
+  const FunctionDecl *CapabilityConversionCallee = nullptr;
+  ArrayRef<Expr *> CapabilityConversionArgs;
+
   void PopParsingDeclaration(ParsingDeclState state, Decl *decl);
 
   /// Given a set of delayed diagnostics, re-emit them as if they had

@@ -6259,6 +6259,17 @@ bool Sema::GatherArgumentsForCall(SourceLocation CallLoc, FunctionDecl *FDecl,
   unsigned NumParams = Proto->getNumParams();
   bool Invalid = false;
   size_t ArgIx = 0;
+
+  // Make the call reachable from the conversion of each argument, so that a
+  // capability requirement on a parameter that names another parameter can be
+  // matched against the argument passed for it. The arguments are the ones as
+  // written; conversion of a later argument has not happened yet, which does
+  // not matter because only the capability expression is compared.
+  llvm::SaveAndRestore<const FunctionDecl *> SavedCallee(
+      CapabilityConversionCallee, FDecl);
+  llvm::SaveAndRestore<ArrayRef<Expr *>> SavedArgs(CapabilityConversionArgs,
+                                                   Args);
+
   // Continue to check argument types (even if we have too few/many args).
   for (unsigned i = FirstParam; i < NumParams; i++) {
     QualType ProtoArgType = Proto->getParamType(i);

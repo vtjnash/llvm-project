@@ -263,3 +263,35 @@ void visit_plain(int x);
 void same_type_add(int n) {
   visit_all_req(visit_plain, n);
 }
+
+// A requirement on a parameter may name another parameter of the same
+// prototype, which stands for whatever is passed for it at each call. Such a
+// requirement can never be part of a type, so matching it against the
+// argument's own requirement takes substituting the argument -- the
+// kref_put_lock() shape. ('lock' precedes the callback here so that this stays
+// independent of -fexperimental-late-parse-attributes; Sema/thread-safety-
+// late-parse.c covers naming a parameter declared later.)
+struct Mutex mu_a;
+struct Mutex mu_b;
+
+void put_lock(int *obj, struct Mutex *lock, void (*release)(int *) RELEASE(lock));
+void release_a(int *obj) RELEASE(&mu_a); // expected-note {{'release_capability(&mu_a)' requirement declared here}}
+
+void substituted_match(int *obj) {
+  // '&mu_a' is passed for 'lock', which is what release_a releases: silent.
+  put_lock(obj, &mu_a, release_a);
+}
+
+void substituted_mismatch(int *obj) {
+  // '&mu_b' is passed for 'lock', but release_a releases '&mu_a', so the
+  // requirement really is dropped.
+  put_lock(obj, &mu_b, release_a); // expected-warning {{'release_a' drops the 'release_capability(&mu_a)' requirement when converted to 'void (*)(int *)'; calls through the result are not checked}}
+}
+
+// Substitution picks the parameter the requirement names, not the neighbour.
+void put_two(int *obj, struct Mutex *other, struct Mutex *lock,
+             void (*release)(int *) RELEASE(lock));
+
+void substituted_second(int *obj) {
+  put_two(obj, &mu_b, &mu_a, release_a);
+}
