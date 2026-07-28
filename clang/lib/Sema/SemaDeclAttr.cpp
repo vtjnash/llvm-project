@@ -25,6 +25,7 @@
 #include "clang/AST/ExprCXX.h"
 #include "clang/AST/Mangle.h"
 #include "clang/AST/Type.h"
+#include "clang/Analysis/Analyses/ThreadSafetyCommon.h"
 #include "clang/Basic/CharInfo.h"
 #include "clang/Basic/Cuda.h"
 #include "clang/Basic/DarwinSDKInfo.h"
@@ -9408,39 +9409,38 @@ void Sema::diagnoseCapabilityAttrConversion(QualType DstType, QualType SrcType,
   // compare: passing a function that releases '&my_lock' to a parameter that
   // releases 'lock', with '&my_lock' passed for 'lock', states the same thing.
   //
-  // Only a requirement whose capability is exactly a reference to a parameter
-  // is substituted. Anything built on top of one ('RELEASE(&p->mu)') would
-  // require rewriting the expression, which this does not attempt.
+  // The substitution is the one the analysis itself performs for a requirement
+  // that names a parameter (SExprBuilder::translateDeclRefExpr): translate both
+  // capability expressions to the analysis's own representation, with the call's
+  // arguments supplied for the destination, and compare those. Reusing that code
+  // rather than matching the expressions here is what gives it full depth --
+  // 'RELEASE(&p->mu)' substitutes as readily as 'RELEASE(p)' -- and keeps Sema
+  // from developing its own idea of when two requirements are the same one.
+  //
+  // Note that this comparison is deliberately *semantic*, unlike
+  // areEquivalentCapabilityAttrs above, which is syntactic because it decides
+  // type identity and so must agree with ODRHash and ASTStructuralEquivalence
+  // (neither of which can translate expressions). The asymmetry is safe in one
+  // direction only, which is the direction used here: this can suppress a report
+  // that the syntactic comparison would have made, never add one.
   auto DstParmStatesViaArgument = [&](const Attr *A) {
     if (!CapabilityConversionParm || !CapabilityConversionCallee)
       return false;
     if (!Context.hasSameType(CapabilityConversionParm->getType(), DstType))
       return false;
 
-    // Index of the callee parameter \p E refers to, if any.
-    auto ParmIndex = [&](const Expr *E) -> std::optional<unsigned> {
-      if (!E)
-        return std::nullopt;
-      const auto *DRE = dyn_cast<DeclRefExpr>(E->IgnoreParenImpCasts());
-      if (!DRE)
-        return std::nullopt;
-      const auto *PVD = dyn_cast<ParmVarDecl>(DRE->getDecl());
-      if (!PVD || PVD->getDeclContext() != CapabilityConversionCallee)
-        return std::nullopt;
-      for (unsigned I = 0, E = CapabilityConversionCallee->getNumParams();
-           I != E; ++I)
-        if (CapabilityConversionCallee->getParamDecl(I) == PVD)
-          return I;
-      return std::nullopt;
-    };
+    llvm::BumpPtrAllocator Bump;
+    threadSafety::til::MemRegionRef Arena(&Bump);
+    threadSafety::SExprBuilder Builder(Arena);
 
-    auto SameExpr = [&](const Expr *X, const Expr *Y) {
-      if (!X || !Y)
-        return X == Y;
-      llvm::FoldingSetNodeID IDX, IDY;
-      X->IgnoreParenImpCasts()->Profile(IDX, Context, /*Canonical=*/true);
-      Y->IgnoreParenImpCasts()->Profile(IDY, Context, /*Canonical=*/true);
-      return IDX == IDY;
+    threadSafety::SExprBuilder::CallingContext Ctx(
+        /*Prev=*/nullptr, CapabilityConversionCallee);
+    Ctx.NumArgs = CapabilityConversionArgs.size();
+    Ctx.FunArgs = CapabilityConversionArgs.data();
+
+    auto Translate = [&](const Expr *E,
+                         threadSafety::SExprBuilder::CallingContext *C) {
+      return Builder.translateAttrExpr(E, C);
     };
 
     ArrayRef<const Expr *> ACaps = getCapabilityAttrArgs(A);
@@ -9449,22 +9449,25 @@ void Sema::diagnoseCapabilityAttrConversion(QualType DstType, QualType SrcType,
         continue;
       if (getCapabilityAttrSemantics(B) != getCapabilityAttrSemantics(A))
         continue;
-      if (!SameExpr(getCapabilityAttrSuccessValue(B),
-                    getCapabilityAttrSuccessValue(A)))
-        continue;
       ArrayRef<const Expr *> BCaps = getCapabilityAttrArgs(B);
       if (BCaps.size() != ACaps.size())
         continue;
-      bool AllMatch = true;
-      for (auto [BArg, AArg] : llvm::zip(BCaps, ACaps)) {
-        std::optional<unsigned> Idx = ParmIndex(BArg);
-        if (!Idx || *Idx >= CapabilityConversionArgs.size() ||
-            !SameExpr(CapabilityConversionArgs[*Idx], AArg)) {
-          AllMatch = false;
-          break;
-        }
-      }
-      if (AllMatch)
+      // try_acquire's success value is part of the requirement but is not a
+      // capability expression, so it is compared as one of the attribute's
+      // other properties.
+      const Expr *ASucc = getCapabilityAttrSuccessValue(A);
+      const Expr *BSucc = getCapabilityAttrSuccessValue(B);
+      if (!!ASucc != !!BSucc)
+        continue;
+      if (ASucc && getCapabilityAttrSuccessValueAsInt(ASucc) !=
+                       getCapabilityAttrSuccessValueAsInt(BSucc))
+        continue;
+      if (llvm::all_of(llvm::zip(BCaps, ACaps), [&](const auto &Pair) {
+            const auto &[BArg, AArg] = Pair;
+            threadSafety::CapabilityExpr BCap = Translate(BArg, &Ctx);
+            threadSafety::CapabilityExpr ACap = Translate(AArg, nullptr);
+            return BCap.sexpr() && ACap.sexpr() && BCap.equals(ACap);
+          }))
         return true;
     }
     return false;

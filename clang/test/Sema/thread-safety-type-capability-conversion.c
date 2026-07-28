@@ -295,3 +295,12 @@ void put_two(int *obj, struct Mutex *other, struct Mutex *lock,
 void substituted_second(int *obj) {
   put_two(obj, &mu_b, &mu_a, release_a);
 }
+
+// The comparison is the analysis's own, so it is spelling-independent the same
+// way the analysis is: 'mu_a' and '&mu_a' name one capability. Matching these
+// syntactically would report a requirement that is in fact stated.
+void release_bare(int *obj) RELEASE(mu_a);
+
+void substituted_spelling(int *obj) {
+  put_lock(obj, &mu_a, release_bare);
+}
