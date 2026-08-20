@@ -2266,6 +2266,78 @@ struct TestTryLock {
       mu.Unlock();
   }
 
+  // One try-acquire branched on multiple times (assert-then-branch): later
+  // branches on the same result re-resolve the promoted fact instead of
+  // counting as additional acquisitions. This is the common
+  // `assert(havelock); ...; if (havelock) unlock();` shape.
+  void tryheld_assert_then_branch() {
+    bool b = mu.TryLock();
+    if (!b)
+      fail();
+    a = 1;
+    if (b)
+      mu.Unlock();
+  }
+
+  // Same, with the assert spelled as a void conditional operator (glibc
+  // before 2.32) and as a statement expression (glibc 2.32 and later).
+  void tryheld_assert_ternary_then_branch() {
+    bool b = mu.TryLock();
+    b ? static_cast<void>(0) : fail();
+    a = 1;
+    if (b)
+      mu.Unlock();
+  }
+
+  void tryheld_assert_stmtexpr_then_branch() {
+    bool b = mu.TryLock();
+    ({ if (!b) fail(); });
+    a = 1;
+    if (b)
+      mu.Unlock();
+  }
+
+  void tryheld_assert_then_unconditional_release() {
+    bool b = mu.TryLock();
+    if (!b)
+      fail();
+    a = 1;
+    mu.Unlock();
+  }
+
+  void tryheld_branch_three_times() {
+    bool b = mu.TryLock();
+    if (b) a = 1;
+    if (b) a = 2;
+    if (b) mu.Unlock();
+  }
+
+  // A capability independently acquired on the try-failure path must survive
+  // later joins and branches: the merged fact's origin is cleared at the
+  // join, so it is no longer resolved against the try-acquire's result.
+  void tryheld_failure_path_lock() {
+    bool b = mu.TryLock();
+    if (!b)
+      mu.Lock();
+    a = 1;
+    mu.Unlock();
+  }
+
+  // As above with a re-branch on the result: the success edge still re-adds
+  // the try-acquire's capability over the merged fact (pre-existing
+  // double-acquire noise), but the capability must not be lost -- no
+  // release-not-held or held-on-some-paths warnings.
+  void tryheld_failure_path_lock_rebranch() {
+    bool b = mu.TryLock(); // expected-warning {{acquiring mutex 'mu' that is already held}}
+    if (!b)
+      mu.Lock();           // expected-note {{mutex acquired here}}
+    a = 1;
+    if (b) {
+      a = 2;
+    }
+    mu.Unlock();
+  }
+
   static void fail() __attribute__((noreturn));
 };  // end TestTrylock
 

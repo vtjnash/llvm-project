@@ -237,9 +237,12 @@ features cannot lower the translation-unit ABI level;
   at branches on the call's result. A try-held capability does not satisfy
   capability requirements, releasing it warns that the capability may not be
   held, and joins are reconciled with the specific try-acquire call whose
-  result the branch tests. Under `-Wthread-safety-beta`, a try-acquire whose
-  result is never checked now warns that the capability may still be held at
-  the end of the function.
+  result the branch tests. Branching repeatedly on one try-acquire result no
+  longer counts as multiple acquisitions, so asserting a stored try-lock
+  result and later releasing under the same condition
+  (`assert(ok); ... if (ok) unlock();`) is now warning-free. Under
+  `-Wthread-safety-beta`, a try-acquire whose result is never checked now
+  warns that the capability may still be held at the end of the function.
 
 - Fixed bug in `-Wdocumentation` so that it correctly handles explicit
   function template instantiations (#64087).

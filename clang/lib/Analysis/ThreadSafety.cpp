@@ -1824,13 +1824,15 @@ void ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
                 Exp, FunDecl, PredBlock, CurrBlock, Attr->getSuccessValue(),
                 Negate);
 
-  // This edge resolves every try-held fact created by this call: promoted to
-  // held on the branch that acquired the capability (re-added below), removed
-  // on the other branch (TryHeld -> Held / NotHeld).
+  // This edge resolves every fact originating from this call, whether still
+  // try-held or already promoted to held by an earlier branch on the same
+  // result (e.g. an assert): the capability cannot be held on the failure
+  // edge, and the success edge re-adds it below, so branching repeatedly on
+  // one try-acquire result never counts as multiple acquisitions.
   SmallVector<const FactEntry *, 4> ResolvedTryFacts;
   for (const auto &Fact : Result) {
     const FactEntry &FE = FactMan[Fact];
-    if (FE.tryHeld() && FE.tryLockCall() == Exp)
+    if (FE.tryLockCall() == Exp)
       ResolvedTryFacts.push_back(&FE);
   }
   for (const FactEntry *FE : ResolvedTryFacts)
@@ -2899,8 +2901,22 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
 
     FactSet::iterator EntryIt = EntrySet.findLockIter(FactMan, ExitFact);
     if (EntryIt != EntrySet.end()) {
+      const Expr *EntryOrigin = FactMan[*EntryIt].tryLockCall();
       if (join(FactMan[*EntryIt], ExitFact, JoinLoc, EntryLEK))
         *EntryIt = Fact;
+      // If the two paths hold the capability via different origins, the
+      // merged fact is not determined by either try-acquire's result: clear
+      // the origin so that a later branch on one of the results does not
+      // spuriously resolve (remove) a capability the other path acquired
+      // independently.
+      if (const FactEntry &Merged = FactMan[*EntryIt];
+          Merged.tryLockCall() && !Merged.tryHeld() &&
+          EntryOrigin != ExitFact.tryLockCall()) {
+        auto *Cleared = FactMan.createFact<LockableFactEntry>(
+            cast<LockableFactEntry>(Merged));
+        Cleared->setTryLock(nullptr, /*Conditional=*/false);
+        *EntryIt = FactMan.newFact(Cleared);
+      }
     } else if (IsTrylockRebranched(ExitFact)) {
       // Held on this predecessor only, but the terminator re-branches on the
       // try-acquire that created the fact: demote it to try-held
