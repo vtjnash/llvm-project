@@ -474,9 +474,9 @@ The first argument must be `true` or `false`, to specify which return value
 indicates success, and the remaining arguments are interpreted in the same way
 as `ACQUIRE`. See {ref}`mutexheader`, below, for example uses.
 
-Because the analysis doesn't support conditional locking, a capability is
-treated as acquired after the first branch on the return value of a try-acquire
-function.
+The capability is tracked as conditionally ("try") held from the call until a recognized branch on its return value: on the success path the capability is held, on the failure path it is not. A conditionally held capability does not satisfy requirements such as `GUARDED_BY` or `REQUIRES` and it also violates `LOCKS_EXCLUDED` and negative requirements (`REQUIRES(!mu)`). Acquiring it again before branching on the return value warns that it may already be held, and releasing it warns that it may not be held. Asserting the capability (`ASSERT_CAPABILITY`) upgrades it to held without a warning. Under `-Wthread-safety-beta`, a try-acquire whose result is never used to determine success additionally warns where the analysis loses track of it -- at a merge with a path that does not hold the capability, or at the end of the function -- since the capability may then be leaked.
+
+A declaration may carry several `TRY_ACQUIRE` attributes, and they may specify different success values: each capability is acquired on the branches where its own attribute's success value matches the return value. Different capabilities under opposite success values describe a function that acquires one capability or the other depending on its result (`TRY_ACQUIRE(true, mu1) TRY_ACQUIRE(false, mu2)`), and listing the same capability under both success values describes a function that acquires it whichever way the call returns while still returning a meaningful status to branch on.
 
 ```c++
 Mutex mu;

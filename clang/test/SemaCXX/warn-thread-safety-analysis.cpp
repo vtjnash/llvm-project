@@ -1979,6 +1979,7 @@ struct TestTryLock {
   Mutex mu;
   Mutex mu2;
   int a GUARDED_BY(mu);
+  int a2 GUARDED_BY(mu2);
   bool cond;
 
   void foo1() {
@@ -2145,7 +2146,7 @@ struct TestTryLock {
 
   // Test use-def chains: back edges
   void foo10() {
-    bool b = mu.TryLock();
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
 
     while (cond) {
       if (b) {   // b should be unknown at this point b/c of the loop
@@ -2153,7 +2154,7 @@ struct TestTryLock {
       }
       b = !b;
     }
-  }
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
 
   // Test merge of exclusive trylock
   void foo11() {
@@ -2220,8 +2221,318 @@ struct TestTryLock {
     mu.Unlock(); // expected-warning{{releasing mutex 'mu' that was not held}}
   }
 
+  // Between the try-acquire call and a branch on its result the capability
+  // is "try-held": it never satisfies a requirement, and losing it without
+  // a branch on the call's result is diagnosed.
+
+  // An unconditional acquire upgrades a try-held capability to held
+  // (try-held -> held), but is diagnosed: the capability may already be
+  // held, since the try-acquire result was never checked. An assert upgrades
+  // without a diagnostic -- it claims exactly that knowledge.
+  void tryheld_upgrade() {
+    mu.TryLock(); // expected-note {{mutex acquired here}}
+    mu.Lock();    // expected-warning {{acquiring mutex 'mu' that may already be held}}
+    a = 1;
+    mu.Unlock();
+  }
+
+  void tryheld_assert_upgrade() {
+    mu.TryLock();
+    mu.AssertHeld();
+    a = 1;
+    mu.Unlock();
+  }
+
+  // Releasing a capability whose try-acquire result was never checked may
+  // release a capability that is not held.
+  void tryheld_unlock_unchecked() {
+    mu.TryLock();
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+  }
+
+  // A try-held capability does not satisfy a requirement, and leaks out of
+  // the function if the result is never checked.
+  void tryheld_never_checked() {
+    mu.TryLock(); // expected-note {{mutex acquired here}}
+    a = 1;        // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+  }               // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
+
+  // A spin-acquire resolves the state on both loop edges; no diagnostics.
+  void tryheld_spin() {
+    while (!mu.TryLock());
+    a = 1;
+    mu.Unlock();
+  }
+
+  // The join suppression is keyed to the specific try-acquire call whose
+  // result the terminator re-branches on, not to the capability it names:
+  // leaking the lock from an earlier try-acquire of the same mutex must
+  // still warn at a join whose terminator tests a later call's result.
+  void tryheld_rebranch_identity() {
+    if (mu.TryLock()) // expected-note {{mutex acquired here}}
+      cond = true;    // leaks the successfully acquired lock
+    bool b = mu.TryLock(); // expected-warning {{mutex 'mu' is not held on every path through here}}
+    if (b)            // re-branches on the second call, not the first
+      mu.Unlock();
+  }
+
+  // A try-held capability may be held: uses that require it to be free are
+  // rejected in the try region, with "may be held" wording.
+  void needsNotMu() EXCLUSIVE_LOCKS_REQUIRED(!mu);
+  void excludesMu() LOCKS_EXCLUDED(mu);
+
+  void tryheld_negative_requires() {
+    bool b = mu.TryLock();
+    needsNotMu(); // expected-warning {{cannot call function 'needsNotMu' while mutex 'mu' may be held}}
+    if (b)
+      mu.Unlock();
+  }
+
+  void tryheld_excludes() {
+    bool b = mu.TryLock();
+    excludesMu(); // expected-warning {{cannot call function 'excludesMu' while mutex 'mu' may be held}}
+    if (b)
+      mu.Unlock();
+  }
+
+  // On the resolved branches the state is definite again.
+  void tryheld_excludes_on_failure_path() {
+    bool b = mu.TryLock();
+    if (b) {
+      a = 1;
+      mu.Unlock();
+    } else {
+      excludesMu();
+    }
+  }
+
+  // A second try-acquire of the same capability while it is try-held cannot
+  // be tracked separately (one fact per capability; the first wins): the
+  // second call itself does not change the state, and branching on its
+  // result acquires over the first try-acquire, which may have succeeded.
+  void tryheld_nested_try() {
+    bool b1 = mu.TryLock(); // expected-note {{mutex acquired here}}
+    bool b2 = mu.TryLock(); // expected-warning {{acquiring mutex 'mu' that may already be held}}
+    if (b2) {
+      a = 1;
+      mu.Unlock();
+    }
+    if (b1) {
+      a = 2;
+      mu.Unlock();
+    }
+  }
+
+  // Held on one path but only try-held on the other: without a branch on
+  // the try-acquire result the definite state is lost at the join, which is
+  // diagnosed like a path that does not hold the capability at all. The
+  // weaker try-held fact survives the join, so the release is also
+  // diagnosed.
+  void tryheld_join_with_held() {
+    if (cond)
+      mu.Lock(); // expected-note {{mutex acquired here}}
+    else
+      mu.TryLock();
+    a = 1;       // expected-warning {{mutex 'mu' is not held on every path through here}} \
+                 // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+  }
+
+  // A try-acquire on the loop back edge does not restore the held state the
+  // loop was entered with.
+  void tryheld_loop_back_edge() {
+    mu.Lock();     // expected-note {{mutex acquired here}}
+    while (cond) { // expected-warning {{expecting mutex 'mu' to be held at start of each loop}}
+      mu.Unlock();
+      mu.TryLock();
+    }
+    mu.Unlock();
+  }
+
+  // A try-held capability does not fulfill an acquire-capability promise.
+  void tryheld_exit_expected() EXCLUSIVE_LOCK_FUNCTION(mu) { // expected-note {{mutex acquired here}}
+    mu.TryLock();
+  } // expected-warning {{expecting mutex 'mu' to be held at the end of function}}
+
+  // An assert (or acquire) upgrade does not keep the try-acquire origin on
+  // the promoted fact: the upgraded hold is not proved by the call's
+  // success, so a branch on the (now stale) result must not resolve it.
+  // Branching on it afterwards re-acquires the mutex on the success edge,
+  // which is diagnosed -- matching the pre-existing behavior of asserting a
+  // mutex and then branching on an unrelated condition that happens to hold
+  // when it is held.
+  void tryheld_assert_then_branch() {
+    bool b = mu.TryLock(); // expected-warning {{acquiring mutex 'mu' that is already held}}
+    mu.AssertHeld();       // expected-note {{mutex acquired here}}
+    a = 1;
+    if (b)
+      mu.Unlock();
+  }
+
+  // The demote-and-re-resolve join suppression applies only when both facts
+  // originate from the re-branched call. Here the held side comes from an
+  // assert on one path: branching on the try-acquire result says nothing
+  // about it, so the definite hold must not be silently discarded on the
+  // failure edge -- the acquire over the merged (unresolvable) state and the
+  // leak out of the function are diagnosed instead.
+  void tryheld_assert_one_path_join(bool c) {
+    bool b = mu.TryLock(); // expected-warning {{acquiring mutex 'mu' that may already be held}} \
+                           // expected-note 2 {{mutex acquired here}}
+    if (c)
+      mu.AssertHeld();
+    if (b)
+      mu.Unlock();
+    mu.Lock(); // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
+    a = 1;
+    mu.Unlock();
+  }
+
+  // Two different try-acquires of the same capability merging at a join:
+  // neither call's result determines the merged state, so it can never be
+  // resolved -- diagnose both discarded origins immediately at the join.
+  void tryheld_merge_two_origins(bool c) {
+    bool b = false;
+    if (c)
+      mu.TryLock();      // expected-note {{mutex acquired here}}
+    else
+      b = mu.TryLock();  // expected-note 2 {{mutex acquired here}}
+    if (b)               // expected-warning 2 {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
+      mu.Unlock();       // expected-warning {{releasing mutex 'mu' that may not be held}}
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
+
+  // Re-branching on the result of a promoted fact is consistent with it; no
+  // duplicate-acquire diagnostic.
+  void tryheld_nested_rebranch() {
+    bool b = mu.TryLock();
+    if (b) {
+      if (b) {
+        a = 1;
+      }
+      mu.Unlock();
+    }
+  }
+
+  // A try-acquire attempts the acquisition, so acquired_before/after
+  // ordering is checked at the call like an unconditional acquire.
+  Mutex mu_after ACQUIRED_AFTER(mu2);
+  void tryheld_acquired_after() {
+    mu_after.Lock();
+    if (mu2.TryLock()) { // expected-warning {{mutex 'mu2' must be acquired before 'mu_after'}}
+      mu2.Unlock();
+    }
+    mu_after.Unlock();
+  }
+
+  // A function may carry several try-acquire attributes with different
+  // success values; each capability resolves with its own attribute's
+  // polarity: mu is held only on the true branch, mu2 only on the false
+  // branch.
+  bool TryLockSplit() EXCLUSIVE_TRYLOCK_FUNCTION(true, mu)
+      EXCLUSIVE_TRYLOCK_FUNCTION(false, mu2);
+  void tryheld_mixed_success_values() {
+    if (TryLockSplit()) {
+      a = 1;
+      a2 = 1; // expected-warning {{writing variable 'a2' requires holding mutex 'mu2' exclusively}}
+      mu.Unlock();
+    } else {
+      a2 = 1;
+      a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu2.Unlock();
+    }
+  }
+
+  // The same capability listed under both success values: acquired
+  // whichever way the call returns, while the result remains meaningful to
+  // branch on.
+  bool TryLockEitherWay() EXCLUSIVE_TRYLOCK_FUNCTION(true, mu)
+      EXCLUSIVE_TRYLOCK_FUNCTION(false, mu);
+  void tryheld_both_success_values() {
+    if (TryLockEitherWay()) {
+      a = 1;
+      mu.Unlock();
+    } else {
+      a = 2;
+      mu.Unlock();
+    }
+  }
+
+  // The same capability under two different truthy success values (e.g.
+  // two nonzero status codes): one success polarity, so a plain branch
+  // resolves it like a single attribute.
+  int TryLockTwoCodes() EXCLUSIVE_TRYLOCK_FUNCTION(1, mu)
+      EXCLUSIVE_TRYLOCK_FUNCTION(2, mu);
+  void tryheld_two_success_codes() {
+    if (TryLockTwoCodes()) {
+      a = 1;
+      mu.Unlock();
+    } else {
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    }
+  }
+
+  // A try-held fact reaching a loop join is not a leak: the result was or
+  // will be checked on the paths around the loop (here: at the top of every
+  // iteration and after the loop) -- no "unchecked result of try-acquire"
+  // beta warning at the join. The releases still warn conservatively: the
+  // branches on 'b' are not yet resolved through the loop-merged variable.
+  void tryheld_loop_join_not_a_leak() {
+    bool b = false;
+    while (cond) {
+      if (b)
+        mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      b = mu.TryLock();
+    }
+    if (b)
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+  }
+
+  // A re-check behind short-circuit evaluation still re-resolves the fact:
+  // the branch on the try-acquire result sits in a successor block of the
+  // join's compound condition.
+  void tryheld_rebranch_short_circuit(bool c) {
+    bool b = mu.TryLock();
+    if (b)
+      a = 1;
+    if (c && b) {
+      mu.Unlock();
+    } else if (b) {
+      mu.Unlock();
+    }
+  }
+
   static void fail() __attribute__((noreturn));
 };  // end TestTrylock
+
+// A try-acquire's facts record the capabilities as translated at the call;
+// re-translating the attribute arguments at the branch on its result can
+// name a different capability (here: through a reassigned pointer) and must
+// not promote or destroy what the call actually acquired.
+namespace TryLockPointerRetranslation {
+
+Mutex pmu1, pmu2;
+int pdata GUARDED_BY(pmu1);
+bool try_lock_ptr(Mutex *m) EXCLUSIVE_TRYLOCK_FUNCTION(true, m);
+
+void ok() {
+  Mutex *p = &pmu1;
+  bool b = try_lock_ptr(p);
+  p = &pmu2;
+  if (b) {
+    pdata = 1;
+    pmu1.Unlock();
+  }
+}
+
+// The success path releases the wrong mutex and leaks the acquired one.
+void leak() {
+  Mutex *p = &pmu1;
+  bool b = try_lock_ptr(p); // expected-note {{mutex acquired here}}
+  p = &pmu2;
+  if (b)
+    p->Unlock(); // expected-warning {{releasing mutex 'pmu2' that was not held}}
+} // expected-warning {{mutex 'pmu1' is not held on every path through here}}
+
+} // end namespace TryLockPointerRetranslation
 
 } // end namespace TrylockTest
 
@@ -5636,13 +5947,15 @@ public:
     }
   }
 
+  // The try-lock is taken unconditionally, but the unlock is guarded by
+  // 'c' as well: when 'c' is false a successful try-lock leaks.
   void test2() {
-    bool b = mu.TryLock();
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
     if (c && b) {
       a = 0;
       mu.Unlock();
     }
-  }
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
 
   void test3() {
     if (c || !mu.TryLock())
@@ -5676,12 +5989,13 @@ public:
     } while (newc() && mu.TryLock());
   }
 
+  // As test2: when 'c' is false a successful try-lock leaks.
   void test7() {
-    for (bool b = mu.TryLock(); c && b;) {
+    for (bool b = mu.TryLock(); c && b;) { // expected-note {{mutex acquired here}}
       a = 0;
       mu.Unlock();
     }
-  }
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
 
   void test8() {
     if (c && newc() && mu.TryLock()) {
@@ -7344,6 +7658,23 @@ void testReentrantTryLock2() {
   guardby_var = 1;
   rmu.Unlock();
   guardby_var = 1; // expected-warning{{writing variable 'guardby_var' requires holding mutex 'rmu' exclusively}}
+}
+
+// Unlike an exclusive capability (see tryheld_nested_try), a second
+// try-acquire of a reentrant capability while it is try-held may
+// legitimately succeed, so no may-already-be-held diagnostic is issued when
+// branching on the second result.
+void testReentrantTryLockSequential() {
+  bool b1 = rmu.TryLock();
+  bool b2 = rmu.TryLock();
+  if (b2) {
+    guardby_var = 1;
+    rmu.Unlock();
+  }
+  if (b1) {
+    guardby_var = 1;
+    rmu.Unlock();
+  }
 }
 
 void testReentrantNotHeld() {

@@ -125,9 +125,12 @@ public:
   /// in the error message.
   /// \param Loc -- The SourceLocation of the Unlock
   /// \param LocPreviousUnlock -- If valid, the location of a previous Unlock.
+  /// \param MaybeHeld -- The capability is try-held: acquired by a
+  /// try-acquire whose result was not checked, so it is only possibly held.
   virtual void handleUnmatchedUnlock(StringRef Kind, Name LockName,
                                      SourceLocation Loc,
-                                     SourceLocation LocPreviousUnlock) {}
+                                     SourceLocation LocPreviousUnlock,
+                                     bool MaybeHeld = false) {}
 
   /// Warn about an unlock function call that attempts to unlock a lock with
   /// the incorrect lock kind. For instance, a shared lock being unlocked
@@ -150,9 +153,12 @@ public:
   /// in the error message.
   /// \param LocLocked -- The location of the first lock expression.
   /// \param LocDoubleLock -- The location of the second lock expression.
+  /// \param MaybeHeld -- The first acquisition was a try-acquire whose result
+  /// was not checked, so the capability is only possibly held.
   virtual void handleDoubleLock(StringRef Kind, Name LockName,
                                 SourceLocation LocLocked,
-                                SourceLocation LocDoubleLock) {}
+                                SourceLocation LocDoubleLock,
+                                bool MaybeHeld = false) {}
 
   /// Warn about situations where a mutex is sometimes held and sometimes not.
   /// The three situations are:
@@ -173,6 +179,21 @@ public:
                                          SourceLocation LocEndOfScope,
                                          LockErrorKind LEK,
                                          bool ReentrancyMismatch = false) {}
+
+  /// Warn when the result of a try-acquire was not used to determine whether
+  /// the capability was acquired before the analysis loses track of it -- at
+  /// a join with a path that does not hold the capability, or at the end of
+  /// the function -- so the capability may be leaked.
+  /// \param Kind -- the capability's name parameter (role, mutex, etc).
+  /// \param LockName -- A StringRef name for the lock expression, to be
+  /// printed in the error message.
+  /// \param LocAcquired -- The location of the try-acquire call.
+  /// \param Loc -- The location of the join or the end of the function.
+  /// \param AtEndOfFunction -- Whether \p Loc is the end of the function.
+  virtual void handleTryAcquireNeverChecked(StringRef Kind, Name LockName,
+                                            SourceLocation LocAcquired,
+                                            SourceLocation Loc,
+                                            bool AtEndOfFunction) {}
 
   /// Warn when a mutex is held exclusively and shared at the same point. For
   /// example, if a mutex is locked exclusively during an if branch and shared
@@ -244,8 +265,11 @@ public:
   /// \param LockName -- A StringRef name for the lock expression, to be printed
   /// in the error message.
   /// \param Loc -- The location of the function call.
+  /// \param MaybeHeld -- The capability is try-held: acquired by a
+  /// try-acquire whose result was not checked, so it is only possibly held.
   virtual void handleFunExcludesLock(StringRef Kind, Name FunName,
-                                     Name LockName, SourceLocation Loc) {}
+                                     Name LockName, SourceLocation Loc,
+                                     bool MaybeHeld = false) {}
 
   /// Warn when an actual underlying mutex of a scoped lockable does not match
   /// the expected.
