@@ -110,6 +110,28 @@ class FactSet;
 /// particular point in program execution.  Currently, a fact is a capability,
 /// along with additional information, such as where it was acquired, whether
 /// it is exclusive or shared, etc.
+///
+/// Per capability the analysis tracks a ternary state -- not-held (no fact in
+/// the FactSet), try-held, or held -- with the following permitted
+/// transitions:
+///
+///   not-held --acquire----------------------------------------> held
+///   not-held --try-acquire (BuildLockset::handleCall)----------> try-held
+///   try-held --branch on the try-acquire result: success edge--> held
+///   try-held --branch on the try-acquire result: failure edge--> not-held
+///   held -----join with a failed path of the same try-acquire,
+///             when the join re-branches on its result
+///             (intersectAndWarn)-------------------------------> try-held
+///   held -----release------------------------------------------> not-held
+///
+/// Edge resolution happens in getEdgeLockset(); a promoted fact keeps its
+/// originating call so the join demotion above can identify it. Any other
+/// attempt to leave the try-held state is diagnosed or handled
+/// conservatively: releasing a try-held capability warns (it may not be
+/// held), a try-held fact never satisfies a capability requirement, it is
+/// silently dropped when joining paths that do not hold it, and a try-held
+/// fact surviving to the end of the function means the try-acquire result
+/// was never checked (diagnosed in beta mode).
 class FactEntry : public CapabilityExpr {
 public:
   enum FactEntryKind { Lockable, ScopedLockable };
@@ -131,6 +153,17 @@ private:
   /// How it was acquired.
   SourceKind Source : 8;
 
+  /// Whether the capability is only conditionally ("try") held: it was
+  /// acquired by a try-acquire call whose result has not been branched on
+  /// yet, so it is held only on the paths where that call succeeded.
+  bool TryHeld : 8;
+
+  /// The try-acquire call this fact originates from, or null. Facts promoted
+  /// from try-held to held keep their origin, so that a later join with a
+  /// path where the try-acquire failed can be recognized (see
+  /// intersectAndWarn()).
+  const Expr *TryLockCall = nullptr;
+
   /// Where it was acquired.
   SourceLocation AcquireLoc;
 
@@ -140,7 +173,8 @@ protected:
 public:
   FactEntry(FactEntryKind FK, const CapabilityExpr &CE, LockKind LK,
             SourceLocation Loc, SourceKind Src)
-      : CapabilityExpr(CE), Kind(FK), LKind(LK), Source(Src), AcquireLoc(Loc) {}
+      : CapabilityExpr(CE), Kind(FK), LKind(LK), Source(Src), TryHeld(false),
+        AcquireLoc(Loc) {}
 
   LockKind kind() const { return LKind;      }
   SourceLocation loc() const { return AcquireLoc; }
@@ -149,6 +183,17 @@ public:
   bool asserted() const { return Source == Asserted; }
   bool declared() const { return Source == Declared; }
   bool managed() const { return Source == Managed; }
+
+  bool tryHeld() const { return TryHeld; }
+  const Expr *tryLockCall() const { return TryLockCall; }
+
+  /// Record that this fact originates from the try-acquire call \p Call.
+  /// While \p Conditional is true the fact is try-held and must be resolved
+  /// (promoted to held or removed) at a branch on the call's result.
+  void setTryLock(const Expr *Call, bool Conditional) {
+    TryLockCall = Call;
+    TryHeld = Conditional;
+  }
 
   virtual void
   handleRemovalFromIntersection(const FactSet &FSet, FactManager &FactMan,
@@ -221,10 +266,10 @@ public:
 
   bool isEmpty() const { return FactIDs.size() == 0; }
 
-  // Return true if the set contains only negative facts
+  // Return true if the set contains only negative or try-held facts
   bool isEmpty(FactManager &FactMan) const {
     for (const auto FID : *this) {
-      if (!FactMan[FID].negative())
+      if (!FactMan[FID].negative() && !FactMan[FID].tryHeld())
         return false;
     }
     return true;
@@ -1282,15 +1327,13 @@ public:
                       const CFGBlock* PredBlock,
                       const CFGBlock *CurrBlock);
 
-  void getTerminatorTrylockCaps(const CFGBlock *Block, CapExprSet &Caps);
-
   bool join(const FactEntry &A, const FactEntry &B, SourceLocation JoinLoc,
             LockErrorKind EntryLEK);
 
   void intersectAndWarn(FactSet &EntrySet, const FactSet &ExitSet,
                         SourceLocation JoinLoc, LockErrorKind EntryLEK,
                         LockErrorKind ExitLEK,
-                        const CapExprSet *TrylockRebranchCaps = nullptr);
+                        const Expr *RebranchTryLock = nullptr);
 
   void intersectAndWarn(FactSet &EntrySet, const FactSet &ExitSet,
                         SourceLocation JoinLoc, LockErrorKind LEK) {
@@ -1486,7 +1529,7 @@ void ThreadSafetyAnalyzer::addLock(FactSet &FSet, const FactEntry *Entry,
   if (Entry->shouldIgnore())
     return;
 
-  if (!ReqAttr && !Entry->negative()) {
+  if (!ReqAttr && !Entry->negative() && !Entry->tryHeld()) {
     // look for the negative capability, and remove it from the fact set.
     CapabilityExpr NegC = !*Entry;
     const FactEntry *Nen = FSet.findLock(FactMan, NegC);
@@ -1501,12 +1544,23 @@ void ThreadSafetyAnalyzer::addLock(FactSet &FSet, const FactEntry *Entry,
   }
 
   // Check before/after constraints
-  if (!Entry->asserted() && !Entry->declared()) {
+  if (!Entry->asserted() && !Entry->declared() && !Entry->tryHeld()) {
     GlobalBeforeSet->checkBeforeAfter(Entry->valueDecl(), FSet, *this,
                                       Entry->loc(), Entry->getKind());
   }
 
   if (const FactEntry *Cp = FSet.findLock(FactMan, *Entry)) {
+    if (Entry->tryHeld()) {
+      // Try-acquiring a capability that is already tracked (whether held or
+      // try-held) does not change its state; keep the existing fact.
+      return;
+    }
+    if (Cp->tryHeld()) {
+      // TryHeld -> Held: an unconditional acquire or assert upgrades a
+      // try-held capability to held without a double-lock diagnostic.
+      FSet.replaceLock(FactMan, *Entry, Entry);
+      return;
+    }
     if (!Entry->asserted())
       Cp->handleLock(FSet, FactMan, *Entry, Handler);
   } else {
@@ -1529,6 +1583,17 @@ void ThreadSafetyAnalyzer::removeLock(FactSet &FSet, const CapabilityExpr &Cp,
       PrevLoc = Neg->loc();
     Handler.handleUnmatchedUnlock(Cp.getKind(), Cp.toString(), UnlockLoc,
                                   PrevLoc);
+    return;
+  }
+
+  if (LDat->tryHeld()) {
+    // TryHeld -> NotHeld is only permitted when a branch tests the
+    // try-acquire result (getEdgeLockset()). Releasing a capability whose
+    // try-acquire result was never checked may release a capability that is
+    // not held; diagnose like an unmatched unlock and drop the fact.
+    Handler.handleUnmatchedUnlock(Cp.getKind(), Cp.toString(), UnlockLoc,
+                                  SourceLocation());
+    FSet.removeLock(FactMan, Cp);
     return;
   }
 
@@ -1759,28 +1824,30 @@ void ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
                 Exp, FunDecl, PredBlock, CurrBlock, Attr->getSuccessValue(),
                 Negate);
 
-  // Add and remove locks.
+  // This edge resolves every try-held fact created by this call: promoted to
+  // held on the branch that acquired the capability (re-added below), removed
+  // on the other branch (TryHeld -> Held / NotHeld).
+  SmallVector<const FactEntry *, 4> ResolvedTryFacts;
+  for (const auto &Fact : Result) {
+    const FactEntry &FE = FactMan[Fact];
+    if (FE.tryHeld() && FE.tryLockCall() == Exp)
+      ResolvedTryFacts.push_back(&FE);
+  }
+  for (const FactEntry *FE : ResolvedTryFacts)
+    Result.removeLock(FactMan, *FE);
+
+  // Add the locks. The facts keep their originating call so that joins that
+  // re-branch on its result can be recognized (see intersectAndWarn()).
   SourceLocation Loc = Exp->getExprLoc();
+  auto AddResolvedLock = [&](const CapabilityExpr &CE, LockKind LK) {
+    auto *Fact = FactMan.createFact<LockableFactEntry>(CE, LK, Loc);
+    Fact->setTryLock(Exp, /*Conditional=*/false);
+    addLock(Result, Fact);
+  };
   for (const auto &ExclusiveLockToAdd : ExclusiveLocksToAdd)
-    addLock(Result, FactMan.createFact<LockableFactEntry>(ExclusiveLockToAdd,
-                                                          LK_Exclusive, Loc));
+    AddResolvedLock(ExclusiveLockToAdd, LK_Exclusive);
   for (const auto &SharedLockToAdd : SharedLocksToAdd)
-    addLock(Result, FactMan.createFact<LockableFactEntry>(SharedLockToAdd,
-                                                          LK_Shared, Loc));
-}
-
-/// If the terminator of \p Block branches on the result of a try-lock call
-/// (possibly stored in a local variable), add the capabilities acquired by
-/// that call to \p Caps.
-void ThreadSafetyAnalyzer::getTerminatorTrylockCaps(const CFGBlock *Block,
-                                                    CapExprSet &Caps) {
-  bool Negate = false;
-  auto [Exp, FunDecl, Cleanup] = getTerminatorTrylockCall(Block, Negate);
-  if (!Exp)
-    return;
-
-  for (const auto *Attr : FunDecl->specific_attrs<TryAcquireCapabilityAttr>())
-    getMutexIDs(Caps, Attr, Exp, FunDecl);
+    AddResolvedLock(SharedLockToAdd, LK_Shared);
 }
 
 namespace {
@@ -1955,6 +2022,9 @@ void ThreadSafetyAnalyzer::warnIfMutexNotHeld(
   if (Cp.negative()) {
     // Negative capabilities act like locks excluded
     const FactEntry *LDat = FSet.findLock(FactMan, !Cp);
+    // A try-held capability may not actually be held.
+    if (LDat && LDat->tryHeld())
+      LDat = nullptr;
     if (LDat) {
       Handler.handleFunExcludesLock(Cp.getKind(), D->getNameAsString(),
                                     (!Cp).toString(), Loc);
@@ -1975,10 +2045,16 @@ void ThreadSafetyAnalyzer::warnIfMutexNotHeld(
   }
 
   const FactEntry *LDat = FSet.findLockUniv(FactMan, Cp);
+  // A try-held capability does not satisfy a requirement: it is only held on
+  // the paths where the try-acquire succeeded.
+  if (LDat && LDat->tryHeld())
+    LDat = nullptr;
   bool NoError = true;
   if (!LDat) {
     // No exact match found.  Look for a partial match.
     LDat = FSet.findPartialMatch(FactMan, Cp);
+    if (LDat && LDat->tryHeld())
+      LDat = nullptr;
     if (LDat) {
       // Warn that there's no precise match.
       std::string PartMatchStr = LDat->toString();
@@ -2011,7 +2087,7 @@ void ThreadSafetyAnalyzer::warnIfAnyMutexNotHeldForRead(
     if (Cp.shouldIgnore())
       continue;
     const FactEntry *LDat = FSet.findLockUniv(FactMan, Cp);
-    if (LDat && LDat->isAtLeast(LK_Shared))
+    if (LDat && !LDat->tryHeld() && LDat->isAtLeast(LK_Shared))
       return; // At least one held — read access is safe.
     // FIXME: try findPartialMatch as a fallback to support
     //        -Wno-thread-safety-precise, as warnIfMutexNotHeld does.
@@ -2043,7 +2119,8 @@ void ThreadSafetyAnalyzer::warnIfMutexHeld(const FactSet &FSet,
   }
 
   const FactEntry *LDat = FSet.findLock(FactMan, Cp);
-  if (LDat) {
+  // A try-held capability may not actually be held.
+  if (LDat && !LDat->tryHeld()) {
     Handler.handleFunExcludesLock(Cp.getKind(), D->getNameAsString(),
                                   Cp.toString(), Loc);
   }
@@ -2235,6 +2312,7 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
   auto PreContextForThisScope =
       LVarCtx.switchToContextForScope(DualLocalVarContext::Pre);
   CapExprSet ExclusiveLocksToAdd, SharedLocksToAdd;
+  CapExprSet ExclusiveTryLocksToAdd, SharedTryLocksToAdd;
   CapExprSet ExclusiveLocksToRemove, SharedLocksToRemove, GenericLocksToRemove;
   CapExprSet ScopedReqsAndExcludes;
 
@@ -2269,6 +2347,19 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
         const auto *A = cast<AcquireCapabilityAttr>(At);
         Analyzer->getMutexIDs(A->isShared() ? SharedLocksToAdd
                                             : ExclusiveLocksToAdd,
+                              A, Exp, D, Self);
+        break;
+      }
+
+      // A try-acquire leaves its capabilities conditionally ("try") held;
+      // the facts are resolved when a branch tests the call's result
+      // (getEdgeLockset()).
+      case attr::TryAcquireCapability: {
+        auto PostContextForThisScope =
+            LVarCtx.switchToContextForScope(DualLocalVarContext::Post);
+        const auto *A = cast<TryAcquireCapabilityAttr>(At);
+        Analyzer->getMutexIDs(A->isShared() ? SharedTryLocksToAdd
+                                            : ExclusiveTryLocksToAdd,
                               A, Exp, D, Self);
         break;
       }
@@ -2450,6 +2541,26 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
   for (const auto &M : SharedLocksToAdd)
     Analyzer->addLock(FSet, Analyzer->FactMan.createFact<LockableFactEntry>(
                                 M, LK_Shared, Loc, Source));
+
+  // NotHeld -> TryHeld: capabilities named by try_acquire_capability are
+  // conditionally held after the call; the facts are resolved when a branch
+  // tests the call's result (getEdgeLockset()). If the capability is already
+  // tracked, addLock() keeps the existing fact. Scoped lockables manage their
+  // underlying mutexes themselves and are not tracked conditionally.
+  if (Exp && Scp.shouldIgnore()) {
+    for (const auto &M : ExclusiveTryLocksToAdd) {
+      auto *Fact = Analyzer->FactMan.createFact<LockableFactEntry>(
+          M, LK_Exclusive, Loc);
+      Fact->setTryLock(Exp, /*Conditional=*/true);
+      Analyzer->addLock(FSet, Fact);
+    }
+    for (const auto &M : SharedTryLocksToAdd) {
+      auto *Fact =
+          Analyzer->FactMan.createFact<LockableFactEntry>(M, LK_Shared, Loc);
+      Fact->setTryLock(Exp, /*Conditional=*/true);
+      Analyzer->addLock(FSet, Fact);
+    }
+  }
 
   if (!Scp.shouldIgnore()) {
     // Add the managing object as a dummy mutex, mapped to the underlying mutex.
@@ -2705,6 +2816,14 @@ bool ThreadSafetyAnalyzer::join(const FactEntry &A, const FactEntry &B,
                                 LockErrorKind EntryLEK) {
   // Whether we can replace \p A by \p B.
   const bool CanModify = EntryLEK != LEK_LockedSomeLoopIterations;
+
+  if (A.tryHeld() != B.tryHeld()) {
+    // Held joined with try-held: the difference is conditional on a
+    // try-acquire result, so keep the weaker try-held fact (Held -> TryHeld)
+    // without a diagnostic.
+    return CanModify && B.tryHeld();
+  }
+
   unsigned int ReentrancyDepthA = 0;
   unsigned int ReentrancyDepthB = 0;
 
@@ -2753,22 +2872,25 @@ bool ThreadSafetyAnalyzer::join(const FactEntry &A, const FactEntry &B,
 /// \param JoinLoc The location of the join point for error reporting
 /// \param EntryLEK The warning if a mutex is missing from \p EntrySet.
 /// \param ExitLEK The warning if a mutex is missing from \p ExitSet.
-/// \param TrylockRebranchCaps Capabilities acquired by a try-lock whose result
-/// the joining block's terminator branches on; differences in these are not
-/// diagnosed because the paths re-diverge at the terminator (but they are
-/// still removed from the intersection, and conditionally re-added on the
-/// outgoing edges by getEdgeLockset()).
+/// \param RebranchTryLock The try-acquire call whose result the joining
+/// block's terminator branches on, if any. Differences in facts originating
+/// from that call are not diagnosed: the paths re-diverge at the terminator,
+/// so such facts are demoted to try-held (Held -> TryHeld) and re-resolved on
+/// the outgoing edges by getEdgeLockset().
 void ThreadSafetyAnalyzer::intersectAndWarn(
     FactSet &EntrySet, const FactSet &ExitSet, SourceLocation JoinLoc,
     LockErrorKind EntryLEK, LockErrorKind ExitLEK,
-    const CapExprSet *TrylockRebranchCaps) {
+    const Expr *RebranchTryLock) {
   FactSet EntrySetOrig = EntrySet;
 
-  auto IsTrylockRebranched = [TrylockRebranchCaps](const FactEntry &FE) {
-    return TrylockRebranchCaps &&
-           llvm::any_of(*TrylockRebranchCaps, [&FE](const CapabilityExpr &CE) {
-             return !CE.shouldIgnore() && FE.matches(CE);
-           });
+  auto IsTrylockRebranched = [RebranchTryLock](const FactEntry &FE) {
+    return RebranchTryLock && FE.tryLockCall() == RebranchTryLock;
+  };
+  auto DemoteToTryHeld = [this](const FactEntry &FE) {
+    auto *NewFact =
+        FactMan.createFact<LockableFactEntry>(cast<LockableFactEntry>(FE));
+    NewFact->setTryLock(FE.tryLockCall(), /*Conditional=*/true);
+    return NewFact;
   };
 
   // Find locks in ExitSet that conflict or are not in EntrySet, and warn.
@@ -2779,8 +2901,20 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
     if (EntryIt != EntrySet.end()) {
       if (join(FactMan[*EntryIt], ExitFact, JoinLoc, EntryLEK))
         *EntryIt = Fact;
-    } else if ((!ExitFact.managed() || EntryLEK == LEK_LockedAtEndOfFunction) &&
-               !IsTrylockRebranched(ExitFact)) {
+    } else if (IsTrylockRebranched(ExitFact)) {
+      // Held on this predecessor only, but the terminator re-branches on the
+      // try-acquire that created the fact: demote it to try-held
+      // (Held -> TryHeld) instead of diagnosing; getEdgeLockset() re-resolves
+      // it on the outgoing edges.
+      EntrySet.addLock(FactMan, DemoteToTryHeld(ExitFact));
+    } else if (ExitFact.tryHeld()) {
+      // Losing a try-held fact at a join is not an inconsistency (the
+      // capability was only conditionally held). At the end of the function,
+      // however, it means the result of the try-acquire was never checked.
+      if (EntryLEK == LEK_LockedAtEndOfFunction && Handler.issueBetaWarnings())
+        Handler.handleTryAcquireNeverChecked(
+            ExitFact.getKind(), ExitFact.toString(), ExitFact.loc(), JoinLoc);
+    } else if (!ExitFact.managed() || EntryLEK == LEK_LockedAtEndOfFunction) {
       ExitFact.handleRemovalFromIntersection(ExitSet, FactMan, JoinLoc,
                                              EntryLEK, Handler);
     }
@@ -2792,9 +2926,17 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
     const FactEntry *ExitFact = ExitSet.findLock(FactMan, *EntryFact);
 
     if (!ExitFact) {
+      if (IsTrylockRebranched(*EntryFact)) {
+        // As above, but here the fact is kept in the intersection in its
+        // demoted try-held form.
+        if (!EntryFact->tryHeld())
+          EntrySet.replaceLock(FactMan, *EntryFact,
+                               DemoteToTryHeld(*EntryFact));
+        continue;
+      }
       if ((!EntryFact->managed() || ExitLEK == LEK_LockedSomeLoopIterations ||
            ExitLEK == LEK_NotLockedAtEndOfFunction) &&
-          !IsTrylockRebranched(*EntryFact))
+          !EntryFact->tryHeld())
         EntryFact->handleRemovalFromIntersection(EntrySetOrig, FactMan, JoinLoc,
                                                  ExitLEK, Handler);
       if (ExitLEK == LEK_LockedSomePredecessors)
@@ -3032,10 +3174,10 @@ void ThreadSafetyAnalyzer::runAnalysis(AnalysisDeclContext &AC) {
     // union because the real error is probably that we forgot to unlock M on
     // all code paths.
     bool LocksetInitialized = false;
-    // Capabilities acquired by a try-lock whose result this block's
-    // terminator branches on. Computed lazily on the first join.
-    CapExprSet TerminatorTrylockCaps;
-    bool TerminatorTrylockCapsComputed = false;
+    // The try-acquire call whose result this block's terminator branches
+    // on, if any. Computed lazily on the first join.
+    const CallExpr *RebranchTryLock = nullptr;
+    bool RebranchTryLockComputed = false;
     for (CFGBlock::const_pred_iterator PI = CurrBlock->pred_begin(),
          PE  = CurrBlock->pred_end(); PI != PE; ++PI) {
       // if *PI -> CurrBlock is a back edge
@@ -3069,16 +3211,19 @@ void ThreadSafetyAnalyzer::runAnalysis(AnalysisDeclContext &AC) {
                            LEK_LockedSomeLoopIterations,
                            LEK_LockedSomeLoopIterations, nullptr);
         } else {
-          // Branch join: a lockset difference is harmless if the terminator
-          // re-branches on the try-lock result.
-          if (!TerminatorTrylockCapsComputed) {
+          // Branch join: a difference in the facts created by a try-acquire
+          // is demoted to try-held and re-resolved on the outgoing edges if
+          // the terminator branches on that call's result.
+          if (!RebranchTryLockComputed) {
             // Compute once; the result depends only on CurrBlock, not on *PI.
-            getTerminatorTrylockCaps(CurrBlock, TerminatorTrylockCaps);
-            TerminatorTrylockCapsComputed = true;
+            bool Negate = false;
+            RebranchTryLock =
+                std::get<0>(getTerminatorTrylockCall(CurrBlock, Negate));
+            RebranchTryLockComputed = true;
           }
           intersectAndWarn(CurrBlockInfo->EntrySet, PrevLockset,
                            CurrBlockInfo->EntryLoc, LEK_LockedSomePredecessors,
-                           LEK_LockedSomePredecessors, &TerminatorTrylockCaps);
+                           LEK_LockedSomePredecessors, RebranchTryLock);
         }
       }
     }

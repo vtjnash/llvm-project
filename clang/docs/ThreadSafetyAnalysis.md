@@ -474,9 +474,14 @@ The first argument must be `true` or `false`, to specify which return value
 indicates success, and the remaining arguments are interpreted in the same way
 as `ACQUIRE`. See {ref}`mutexheader`, below, for example uses.
 
-Because the analysis doesn't support conditional locking, a capability is
-treated as acquired after the first branch on the return value of a try-acquire
-function.
+The capability is tracked as conditionally ("try") held from the call until a
+branch on its return value resolves it: on the success path the capability is
+held, on the failure path it is not. A conditionally held capability does not
+satisfy requirements such as `GUARDED_BY` or `REQUIRES`, and releasing it
+without having tested the return value warns that the capability may not be
+held. Under `-Wthread-safety-beta`, a try-acquire whose result is never used
+to determine success additionally warns that the capability may still be held
+at the end of the function.
 
 ```c++
 Mutex mu;

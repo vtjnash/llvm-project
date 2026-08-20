@@ -4373,6 +4373,10 @@ def warn_double_lock : Warning<"acquiring %0 '%1' that is already held">,
 def warn_no_unlock : Warning<
   "%0 '%1' is still held at the end of function">,
   InGroup<ThreadSafetyAnalysis>, DefaultIgnore;
+def warn_try_acquire_never_checked : Warning<
+  "unchecked result of try-acquire; %0 '%1' may still be held at the end "
+  "of function">,
+  InGroup<ThreadSafetyBeta>, DefaultIgnore;
 def warn_expecting_locked : Warning<
   "expecting %0 '%1' to be held at the end of function">,
   InGroup<ThreadSafetyAnalysis>, DefaultIgnore;

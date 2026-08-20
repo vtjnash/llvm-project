@@ -2145,7 +2145,7 @@ struct TestTryLock {
 
   // Test use-def chains: back edges
   void foo10() {
-    bool b = mu.TryLock();
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
 
     while (cond) {
       if (b) {   // b should be unknown at this point b/c of the loop
@@ -2153,7 +2153,7 @@ struct TestTryLock {
       }
       b = !b;
     }
-  }
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
 
   // Test merge of exclusive trylock
   void foo11() {
@@ -2218,6 +2218,52 @@ struct TestTryLock {
     mu.TryLock() ? static_cast<void>(0) : static_cast<void>(0); // expected-note{{mutex acquired here}} \
                                                                    expected-warning{{mutex 'mu' is not held on every path through here}}
     mu.Unlock(); // expected-warning{{releasing mutex 'mu' that was not held}}
+  }
+
+  // Between the try-acquire call and a branch on its result the capability
+  // is "try-held": it never satisfies a requirement, and losing it without
+  // a branch on the call's result is diagnosed.
+
+  // An unconditional acquire upgrades a try-held capability to held without
+  // a double-acquire diagnostic (try-held -> held).
+  void tryheld_upgrade() {
+    mu.TryLock();
+    mu.Lock();
+    a = 1;
+    mu.Unlock();
+  }
+
+  // Releasing a capability whose try-acquire result was never checked may
+  // release a capability that is not held.
+  void tryheld_unlock_unchecked() {
+    mu.TryLock();
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+  }
+
+  // A try-held capability does not satisfy a requirement, and leaks out of
+  // the function if the result is never checked.
+  void tryheld_never_checked() {
+    mu.TryLock(); // expected-note {{mutex acquired here}}
+    a = 1;        // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+  }               // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
+
+  // A spin-acquire resolves the state on both loop edges; no diagnostics.
+  void tryheld_spin() {
+    while (!mu.TryLock());
+    a = 1;
+    mu.Unlock();
+  }
+
+  // The join suppression is keyed to the specific try-acquire call whose
+  // result the terminator re-branches on, not to the capability it names:
+  // leaking the lock from an earlier try-acquire of the same mutex must
+  // still warn at a join whose terminator tests a later call's result.
+  void tryheld_rebranch_identity() {
+    if (mu.TryLock()) // expected-note {{mutex acquired here}}
+      cond = true;    // leaks the successfully acquired lock
+    bool b = mu.TryLock(); // expected-warning {{mutex 'mu' is not held on every path through here}}
+    if (b)            // re-branches on the second call, not the first
+      mu.Unlock();
   }
 
   static void fail() __attribute__((noreturn));

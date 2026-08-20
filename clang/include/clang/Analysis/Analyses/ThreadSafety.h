@@ -174,6 +174,18 @@ public:
                                          LockErrorKind LEK,
                                          bool ReentrancyMismatch = false) {}
 
+  /// Warn when the result of a try-acquire is never used to determine whether
+  /// the capability was acquired, so the capability may still be held when
+  /// the function returns. Only called when beta warnings are enabled.
+  /// \param Kind -- the capability's name parameter (role, mutex, etc).
+  /// \param LockName -- A StringRef name for the lock expression, to be
+  /// printed in the error message.
+  /// \param LocAcquired -- The location of the try-acquire call.
+  /// \param LocEndOfFunction -- The location of the end of the function.
+  virtual void handleTryAcquireNeverChecked(StringRef Kind, Name LockName,
+                                            SourceLocation LocAcquired,
+                                            SourceLocation LocEndOfFunction) {}
+
   /// Warn when a mutex is held exclusively and shared at the same point. For
   /// example, if a mutex is locked exclusively during an if branch and shared
   /// during the else branch.

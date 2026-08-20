@@ -231,6 +231,16 @@ features cannot lower the translation-unit ABI level;
 
 - More consistent rendering of Unicode characters in diagnostic messages.
 
+- Thread safety analysis now tracks capabilities acquired by functions
+  annotated with `try_acquire_capability` as a distinct conditionally-held
+  ("try-held") state from the call onward, instead of materializing them only
+  at branches on the call's result. A try-held capability does not satisfy
+  capability requirements, releasing it warns that the capability may not be
+  held, and joins are reconciled with the specific try-acquire call whose
+  result the branch tests. Under `-Wthread-safety-beta`, a try-acquire whose
+  result is never checked now warns that the capability may still be held at
+  the end of the function.
+
 - Fixed bug in `-Wdocumentation` so that it correctly handles explicit
   function template instantiations (#64087).
 
