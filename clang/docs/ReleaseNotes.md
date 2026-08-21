@@ -244,9 +244,12 @@ features cannot lower the translation-unit ABI level;
   is held only on the success path. A try-held capability does not satisfy
   capability requirements, positive or negative, and acquiring or releasing
   it before branching on the result warns that it "may" (not) be held, so
-  some diagnostics under `-Wthread-safety` change accordingly. Additionally,
-  under `-Wthread-safety-beta`, a try-acquire whose result is never checked
-  warns that the capability may be leaked.
+  some diagnostics under `-Wthread-safety` change accordingly. Branching
+  repeatedly on one try-acquire result no longer counts as multiple
+  acquisitions, so asserting a stored try-lock result and later releasing
+  under the same condition (`assert(ok); ... if (ok) unlock();`) is now
+  warning-free. Additionally, under `-Wthread-safety-beta`, a try-acquire
+  whose result is never checked warns that the capability may be leaked.
 
 - Fixed bug in `-Wdocumentation` so that it correctly handles explicit
   function template instantiations (#64087).
