@@ -247,8 +247,11 @@ features cannot lower the translation-unit ABI level;
   some diagnostics under `-Wthread-safety` change accordingly. A try-acquire
   of a capability that is already held warns at the call (the attempted
   acquisition cannot be tracked), except for a reentrant capability, which
-  re-enters. Additionally, under `-Wthread-safety-beta`, a try-acquire whose
-  result is never checked warns that the capability may be leaked.
+  re-enters. Branching repeatedly on one try-acquire result no longer counts
+  as multiple acquisitions, so asserting a stored try-lock result and later
+  releasing under the same condition (`assert(ok); ... if (ok) unlock();`) is
+  now warning-free. Additionally, under `-Wthread-safety-beta`, a try-acquire
+  whose result is never checked warns that the capability may be leaked.
 
 - Fixed bug in `-Wdocumentation` so that it correctly handles explicit
   function template instantiations (#64087).
