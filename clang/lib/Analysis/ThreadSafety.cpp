@@ -2123,31 +2123,59 @@ void ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
   // success; if that branch flows to this edge, the attribute's capabilities
   // are acquired here (and otherwise released here). Attributes may carry
   // different success values; each is decoded on its own. Translating the
-  // attribute arguments (getMutexIDs()) is deferred until the re-add path
-  // below actually consumes the result: on most edges the facts recorded at
-  // the call are resolved directly and a translation would be discarded --
-  // and any translation failure was already diagnosed at the call.
+  // attribute arguments (getMutexIDs()) is deferred until a consumer needs
+  // them (TranslateAttrs() below): on most edges the facts recorded at the
+  // call are resolved directly and a translation would be discarded -- and
+  // any translation failure was already diagnosed at the call.
   ASTContext &Ctx = FunDecl->getASTContext();
   SmallVector<const TryAcquireCapabilityAttr *, 1> SucceedsHereAttrs;
-  bool AnySucceedsHere = false, AnyFailsHere = false;
+  SmallVector<const TryAcquireCapabilityAttr *, 1> FailsHereAttrs;
   for (const auto *Attr : FunDecl->specific_attrs<TryAcquireCapabilityAttr>()) {
-    if (EdgeHasResult(getTrySuccessValue(Ctx, Attr->getSuccessValue()))) {
-      AnySucceedsHere = true;
+    if (EdgeHasResult(getTrySuccessValue(Ctx, Attr->getSuccessValue())))
       SucceedsHereAttrs.push_back(Attr);
-    } else {
-      AnyFailsHere = true;
-    }
+    else
+      FailsHereAttrs.push_back(Attr);
   }
+  const bool AnySucceedsHere = !SucceedsHereAttrs.empty();
+  const bool AnyFailsHere = !FailsHereAttrs.empty();
 
-  // Whether the fact's capability is acquired on this edge. Every attribute
-  // agreeing on the edge's polarity -- in particular the single attribute of
-  // almost every try-acquire function -- settles it without identifying the
-  // fact's own attribute. When attributes disagree the fact stays unresolved
-  // (conservatively try-held).
-  auto FactSucceedsHere = [&](const FactEntry &) -> std::optional<bool> {
+  CapExprSet ExclusiveLocksToAdd;
+  CapExprSet SharedLocksToAdd;
+  CapExprSet FailedLocks;
+  bool Translated = false;
+  auto TranslateAttrs = [&] {
+    if (Translated)
+      return;
+    Translated = true;
+    for (const auto *Attr : SucceedsHereAttrs)
+      getMutexIDs(Attr->isShared() ? SharedLocksToAdd : ExclusiveLocksToAdd,
+                  Attr, Exp, FunDecl);
+    for (const auto *Attr : FailsHereAttrs)
+      getMutexIDs(FailedLocks, Attr, Exp, FunDecl);
+  };
+
+  // Whether the fact's capability is acquired on this edge. When every
+  // attribute agrees on the edge's polarity (in particular for the single
+  // attribute of almost every try-acquire function) the fact's own
+  // attribute need not be identified. When attributes disagree, it is
+  // re-identified by matching the capability against each attribute's
+  // edge-time translation; the translation can drift from the call's (e.g.
+  // through a pointer argument reassigned since the call), in which case
+  // the fact stays unresolved (conservatively try-held).
+  auto FactSucceedsHere = [&](const FactEntry &FE) -> std::optional<bool> {
     if (!AnyFailsHere)
       return true;
     if (!AnySucceedsHere)
+      return false;
+    TranslateAttrs();
+    auto MatchesAny = [&](const CapExprSet &Caps) {
+      return llvm::any_of(Caps, [&](const CapabilityExpr &CE) {
+        return !CE.shouldIgnore() && FE.matches(CE);
+      });
+    };
+    if (MatchesAny(ExclusiveLocksToAdd) || MatchesAny(SharedLocksToAdd))
+      return true;
+    if (MatchesAny(FailedLocks))
       return false;
     return std::nullopt;
   };
@@ -2208,11 +2236,7 @@ void ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
   // dropped at an earlier join), skipping those whose fact an earlier branch
   // on this call already promoted. The facts keep their originating call and
   // their attribute's success value, as above.
-  CapExprSet ExclusiveLocksToAdd;
-  CapExprSet SharedLocksToAdd;
-  for (const auto *Attr : SucceedsHereAttrs)
-    getMutexIDs(Attr->isShared() ? SharedLocksToAdd : ExclusiveLocksToAdd,
-                Attr, Exp, FunDecl);
+  TranslateAttrs();
   SourceLocation Loc = Exp->getExprLoc();
   auto AddIfNotPromoted = [&](const CapabilityExpr &CE, LockKind LK) {
     if (const FactEntry *Cp = Result.findLock(FactMan, CE)) {

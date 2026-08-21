@@ -1979,6 +1979,7 @@ struct TestTryLock {
   Mutex mu;
   Mutex mu2;
   int a GUARDED_BY(mu);
+  int a2 GUARDED_BY(mu2);
   bool cond;
 
   void foo1() {
@@ -2483,6 +2484,53 @@ struct TestTryLock {
       mu2.Unlock();
     }
     mu_after.Unlock();
+  }
+
+  // A function may carry several try-acquire attributes with different
+  // success values; each capability resolves with its own attribute's
+  // polarity: mu is held only on the true branch, mu2 only on the false
+  // branch.
+  bool TryLockSplit() EXCLUSIVE_TRYLOCK_FUNCTION(true, mu)
+      EXCLUSIVE_TRYLOCK_FUNCTION(false, mu2);
+  void tryheld_mixed_success_values() {
+    if (TryLockSplit()) {
+      a = 1;
+      a2 = 1; // expected-warning {{writing variable 'a2' requires holding mutex 'mu2' exclusively}}
+      mu.Unlock();
+    } else {
+      a2 = 1;
+      a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu2.Unlock();
+    }
+  }
+
+  // The same capability listed under both success values: acquired
+  // whichever way the call returns, while the result remains meaningful to
+  // branch on.
+  bool TryLockEitherWay() EXCLUSIVE_TRYLOCK_FUNCTION(true, mu)
+      EXCLUSIVE_TRYLOCK_FUNCTION(false, mu);
+  void tryheld_both_success_values() {
+    if (TryLockEitherWay()) {
+      a = 1;
+      mu.Unlock();
+    } else {
+      a = 2;
+      mu.Unlock();
+    }
+  }
+
+  // The same capability under two different truthy success values (e.g.
+  // two nonzero status codes): one success polarity, so a plain branch
+  // resolves it like a single attribute.
+  int TryLockTwoCodes() EXCLUSIVE_TRYLOCK_FUNCTION(1, mu)
+      EXCLUSIVE_TRYLOCK_FUNCTION(2, mu);
+  void tryheld_two_success_codes() {
+    if (TryLockTwoCodes()) {
+      a = 1;
+      mu.Unlock();
+    } else {
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    }
   }
 
   // A try-held fact reaching a loop join is not a leak: the result was or
