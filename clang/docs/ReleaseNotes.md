@@ -247,7 +247,8 @@ features cannot lower the translation-unit ABI level;
   some diagnostics under `-Wthread-safety` change accordingly. A try-acquire
   of a capability that is already held warns at the call (the attempted
   acquisition cannot be tracked), except for a reentrant capability, which
-  re-enters.
+  re-enters. Additionally, under `-Wthread-safety-beta`, a try-acquire whose
+  result is never checked warns that the capability may be leaked.
 
 - Fixed bug in `-Wdocumentation` so that it correctly handles explicit
   function template instantiations (#64087).

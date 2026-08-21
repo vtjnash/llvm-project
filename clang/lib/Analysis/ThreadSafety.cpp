@@ -3314,6 +3314,14 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
       ExitFact.handleRemovalFromIntersection(ExitSet, FactMan, JoinLoc,
                                              EntryLEK, Handler);
   };
+  // Likewise for the beta diagnostic that a try-acquire's possible success
+  // is carried into the join (or out of the function) unchecked.
+  auto WarnNeverChecked = [&](const FactEntry &FE, SourceLocation Loc,
+                              bool AtEndOfFunction) {
+    if (Handler.issueBetaWarnings())
+      Handler.handleTryAcquireNeverChecked(FE.getKind(), FE.toString(), Loc,
+                                           JoinLoc, AtEndOfFunction);
+  };
 
   // Find locks in ExitSet that conflict or are not in EntrySet, and warn.
   for (const auto &Fact : ExitSet) {
@@ -3340,6 +3348,7 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
           WarnRemovedExitFact(ExitFact);
       }
       const Expr *EntryOrigin = EntryFact.tryLockCall();
+      const bool EntryTryHeld = EntryFact.tryHeld();
       if (join(EntryFact, ExitFact, JoinLoc, EntryLEK))
         *EntryIt = Fact;
       // If the two paths hold the capability via different origins, the
@@ -3348,13 +3357,25 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
       // resolve (promote or remove) what the other path acquired
       // independently. When both sides were try-held this makes the state
       // permanently unresolvable -- neither call's result can be checked any
-      // more.
+      // more -- so diagnose each discarded origin immediately (the mixed
+      // held/try-held case was already diagnosed above).
       if (const FactEntry &Merged = FactMan[*EntryIt];
           EntryLEK == LEK_LockedSomePredecessors && Merged.tryLockCall() &&
-          EntryOrigin != ExitFact.tryLockCall())
+          EntryOrigin != ExitFact.tryLockCall()) {
+        if (EntryTryHeld && ExitFact.tryHeld() && Handler.issueBetaWarnings()) {
+          if (EntryOrigin)
+            Handler.handleTryAcquireNeverChecked(
+                Merged.getKind(), Merged.toString(), EntryFact.loc(), JoinLoc,
+                /*AtEndOfFunction=*/false);
+          if (ExitFact.tryLockCall())
+            Handler.handleTryAcquireNeverChecked(
+                Merged.getKind(), Merged.toString(), ExitFact.loc(), JoinLoc,
+                /*AtEndOfFunction=*/false);
+        }
         EntrySet.replaceLock(
             FactMan, EntryIt,
             cloneWithTryLock(Merged, nullptr, Merged.tryHeld()));
+      }
     } else if (IsTrylockRebranched(ExitFact)) {
       // Held on this predecessor only, but the terminator re-branches on the
       // try-acquire that created the fact: demote it to try-held
@@ -3372,10 +3393,16 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
         EntrySet.addLock(FactMan, DemoteToTryHeld(ExitFact, EntryLEK));
       }
     } else if (ExitFact.tryHeld()) {
-      // The analysis loses track of the try-held fact here: this predecessor
-      // carries a try-acquire result into the join unchecked (or to the end
-      // of the function). Drop it silently -- the capability was never
-      // proved held, so the held-capability diagnostics do not apply.
+      // The analysis loses track of the try-held fact here -- this
+      // predecessor carries a try-acquire result into the join unchecked (or
+      // to the end of the function): the capability may be leaked. Only at
+      // branch joins and the end of the function: a try-held fact entering
+      // a loop join was or will be checked on the paths around the loop,
+      // which is not a leak (mirroring the EntryFact case below).
+      if (EntryLEK != LEK_LockedSomeLoopIterations)
+        WarnNeverChecked(ExitFact, ExitFact.loc(),
+                         /*AtEndOfFunction=*/EntryLEK ==
+                             LEK_LockedAtEndOfFunction);
     } else {
       WarnRemovedExitFact(ExitFact);
     }
@@ -3403,8 +3430,12 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
         continue;
       }
       if (EntryFact->tryHeld()) {
-        // As above, with the unchecked try-acquire on an earlier
-        // predecessor: drop it silently.
+        // As above, with the unchecked try-acquire on an earlier predecessor.
+        // Only at branch joins: a try-held fact missing from a loop's back
+        // edge was checked inside the loop, which is not a leak.
+        if (ExitLEK == LEK_LockedSomePredecessors)
+          WarnNeverChecked(*EntryFact, EntryFact->loc(),
+                           /*AtEndOfFunction=*/false);
       } else {
         WarnRemovedEntryFact(*EntryFact);
       }
