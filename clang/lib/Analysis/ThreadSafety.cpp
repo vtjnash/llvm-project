@@ -36,6 +36,7 @@
 #include "clang/Basic/OperatorKinds.h"
 #include "clang/Basic/SourceLocation.h"
 #include "clang/Basic/Specifiers.h"
+#include "llvm/ADT/APSInt.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/ImmutableMap.h"
 #include "llvm/ADT/PointerIntPair.h"
@@ -2142,6 +2143,73 @@ static bool getTrySuccessValue(ASTContext &Ctx, const Expr *BrE) {
          BrE->EvaluateAsBooleanCondition(Result, Ctx) && Result;
 }
 
+/// What an edge out of a terminator implies about the branched-on value.
+enum class EdgeValue {
+  False,      ///< The value is zero on this edge.
+  True,       ///< The value is nonzero on this edge.
+  Unknown,    ///< The edge does not determine the value.
+  Infeasible, ///< The edge cannot be taken (e.g. the implicit default of a
+              ///< switch that lists every value of a boolean condition).
+};
+
+/// Determine the truthiness of a switch condition along the edge to
+/// \p CaseBlock.
+static EdgeValue getSwitchEdgeValue(ASTContext &Ctx, const SwitchStmt *SW,
+                                    const CFGBlock *CaseBlock) {
+  // A case label pins the value -- but only a label belonging to this
+  // switch: the implicit fall-out successor can itself be a labeled
+  // statement, e.g. a case of an enclosing switch that the fall-out edge
+  // falls through into, which says nothing about this switch's condition
+  // beyond matching none of its cases (the derivation below).
+  auto IsOwnCase = [SW](const CaseStmt *CS) {
+    for (const SwitchCase *SC = SW->getSwitchCaseList(); SC;
+         SC = SC->getNextSwitchCase())
+      if (SC == CS)
+        return true;
+    return false;
+  };
+  // The value range [Lo, Hi] a case label covers (a single value unless it
+  // is a GNU case range).
+  auto GetCaseRange = [&Ctx](const CaseStmt *CS) {
+    llvm::APSInt Lo = CS->getLHS()->EvaluateKnownConstInt(Ctx);
+    llvm::APSInt Hi =
+        CS->getRHS() ? CS->getRHS()->EvaluateKnownConstInt(Ctx) : Lo;
+    return std::make_pair(Lo, Hi);
+  };
+  if (const auto *CS = dyn_cast_if_present<CaseStmt>(CaseBlock->getLabel());
+      CS && IsOwnCase(CS)) {
+    auto [Lo, Hi] = GetCaseRange(CS);
+    if (Lo == 0 && Hi == 0)
+      return EdgeValue::False;
+    if (Lo <= 0 && Hi >= 0)
+      return EdgeValue::Unknown; // A GNU case range spanning zero and nonzero.
+    return EdgeValue::True;
+  }
+
+  // The default edge (explicit, or the implicit fall-out successor): the
+  // value matches none of the case labels. If zero is listed the value must
+  // be nonzero; for a boolean condition with one listed it must be zero --
+  // and with both listed this edge cannot be taken at all.
+  bool ZeroListed = false, OneListed = false;
+  for (const SwitchCase *SC = SW->getSwitchCaseList(); SC;
+       SC = SC->getNextSwitchCase()) {
+    const auto *CS = dyn_cast<CaseStmt>(SC);
+    if (!CS)
+      continue;
+    auto [Lo, Hi] = GetCaseRange(CS);
+    ZeroListed |= Lo <= 0 && Hi >= 0;
+    OneListed |= Lo <= 1 && Hi >= 1;
+  }
+  // Not just bool-typed conditions: an int-typed condition provably 0/1
+  // (e.g. a comparison in C) derives the same way.
+  const bool IsBool = SW->getCond()->isKnownToHaveBooleanValue();
+  if (ZeroListed)
+    return IsBool && OneListed ? EdgeValue::Infeasible : EdgeValue::True;
+  if (IsBool && OneListed)
+    return EdgeValue::False;
+  return EdgeValue::Unknown;
+}
+
 /// Find the lockset that holds on the edge between PredBlock
 /// and CurrBlock.  The edge set is the exit set of PredBlock (passed
 /// as the ExitSet parameter) plus any trylocks, which are conditionally held.
@@ -2163,24 +2231,34 @@ bool ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
   const NamedDecl *FunDecl = Trylock.Callee;
   const bool Negate = Trylock.Negate;
 
-  // Which positions among PredBlock's first two successors this edge
-  // occupies.
-  bool IsSucc[2] = {false, false};
-  {
+  // Determine the truthiness of the branched-on value along this edge. An
+  // if/loop terminator has a true and a false successor; each case label of
+  // a switch pins the value. An edge that does not determine the value
+  // leaves the facts untouched: the capability simply remains try-held.
+  EdgeValue CondVal = EdgeValue::Unknown;
+  if (const auto *SW =
+          dyn_cast_if_present<SwitchStmt>(PredBlock->getTerminatorStmt())) {
+    CondVal = getSwitchEdgeValue(FunDecl->getASTContext(), SW, CurrBlock);
+  } else {
+    bool TrueEdge = false, FalseEdge = false;
     int i = 0;
     for (CFGBlock::const_succ_iterator SI = PredBlock->succ_begin(),
                                        SE = PredBlock->succ_end();
          SI != SE && i < 2; ++SI, ++i)
       if (*SI == CurrBlock)
-        IsSucc[i] = true;
+        (i == 0 ? TrueEdge : FalseEdge) = true;
+    if (TrueEdge != FalseEdge)
+      CondVal = TrueEdge ? EdgeValue::True : EdgeValue::False;
   }
-
-  // Whether the branch on this edge implies the call result was \p Result;
-  // an attribute with success value S acquires its capabilities on the edge
-  // taken when the condition's truthiness is S adjusted by any negations.
-  auto EdgeHasResult = [&](bool Result) {
-    return IsSucc[(Result != Negate) ? 0 : 1];
-  };
+  if (CondVal == EdgeValue::Infeasible)
+    return true;
+  if (CondVal == EdgeValue::Unknown)
+    return false;
+  // The try-acquire call's result along this edge, and whether the branch
+  // here implies the call result was \p Result; an attribute with success
+  // value S acquires its capabilities on the edges where the result is S.
+  const bool CallResult =
+      Negate ? CondVal == EdgeValue::False : CondVal == EdgeValue::True;
 
   // For each try-acquire attribute, decode on which branch the call reports
   // success; if that branch flows to this edge, the attribute's capabilities
@@ -2197,7 +2275,7 @@ bool ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
   SmallVector<const TryAcquireCapabilityAttr *, 1> SucceedsHereAttrs;
   SmallVector<const TryAcquireCapabilityAttr *, 1> FailsHereAttrs;
   for (const auto *Attr : FunDecl->specific_attrs<TryAcquireCapabilityAttr>()) {
-    if (EdgeHasResult(getTrySuccessValue(Ctx, Attr->getSuccessValue())))
+    if (CallResult == getTrySuccessValue(Ctx, Attr->getSuccessValue()))
       SucceedsHereAttrs.push_back(Attr);
     else
       FailsHereAttrs.push_back(Attr);

@@ -2875,6 +2875,107 @@ void failure_edge() {
 
 } // end namespace TrySuccessValueConstant
 
+// Switching on a try-acquire result: each case label pins the result. A
+// default edge is resolved when derivable -- zero listed means the value is
+// nonzero; for a boolean condition with both values listed the implicit
+// fall-out edge is infeasible -- and otherwise leaves the capability
+// conditionally held.
+struct TestTrylockSwitch {
+  Mutex mu;
+  int a GUARDED_BY(mu);
+
+  int TryLockInt() EXCLUSIVE_TRYLOCK_FUNCTION(true, mu);
+
+  void switchSuccessFirst() {
+    switch (mu.TryLock()) { // expected-warning {{switch condition has boolean value}}
+    case 1:
+      a = 1;
+      mu.Unlock();
+      break;
+    case 0:
+      break;
+    }
+  }
+
+  // Unlike an if/else, resolution must not depend on the case order.
+  void switchFailureFirst() {
+    switch (mu.TryLock()) { // expected-warning {{switch condition has boolean value}}
+    case 0:
+      break;
+    case 1:
+      a = 1;
+      mu.Unlock();
+      break;
+    }
+  }
+
+  void switchDefaultIsFailure() {
+    switch (mu.TryLock()) { // expected-warning {{switch condition has boolean value}}
+    case 1:
+      a = 1;
+      mu.Unlock();
+      break;
+    default:
+      break;
+    }
+  }
+
+  void switchLeak() {
+    switch (mu.TryLock()) { // expected-warning {{switch condition has boolean value}} \
+                            // expected-note {{mutex acquired here}}
+    case 1:
+      a = 1;
+      break; // never released
+    case 0:
+      break;
+    }
+  } // expected-warning {{mutex 'mu' is not held on every path through here}}
+
+  // For a non-boolean result the default covers both zero (failed) and other
+  // nonzero values (acquired): the capability stays conditionally held.
+  void switchIntDefaultUnknown() {
+    switch (TryLockInt()) { // expected-note {{mutex acquired here}}
+    case 1:
+      a = 1;
+      mu.Unlock();
+      break;
+    default:
+      break;
+    }
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
+
+  // With zero listed, the default edge implies a nonzero result: acquired.
+  void switchIntDefaultNonzero() {
+    switch (TryLockInt()) {
+    case 0:
+      break;
+    default:
+      a = 1;
+      mu.Unlock();
+      break;
+    }
+  }
+
+  // The implicit fall-out edge of an inner switch can land on an enclosing
+  // switch's case label. That label pins the enclosing condition, not the
+  // inner try-acquire result: the fall-out edge is derived from the inner
+  // switch's own cases (boolean with 1 listed, so the try-acquire failed).
+  void switchNestedFallout(int x) {
+    switch (x) {
+    case 1:
+      switch (mu.TryLock()) { // expected-warning {{switch condition has boolean value}}
+      case 1:
+        a = 1;
+        mu.Unlock();
+        break;
+      }
+      // The try-acquire failed here; falls through into the enclosing case.
+    case 2:
+      break;
+    }
+  }
+};  // end TestTrylockSwitch
+
 } // end namespace TrylockTest
 
 
