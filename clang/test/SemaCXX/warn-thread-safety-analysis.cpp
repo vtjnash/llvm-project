@@ -2424,6 +2424,56 @@ struct TestTryLock {
     mu_after.Unlock();
   }
 
+  // A re-check behind short-circuit evaluation still re-resolves the fact:
+  // the branch on the try-acquire result sits in a successor block of the
+  // join's compound condition.
+  void tryheld_rebranch_short_circuit(bool c) {
+    bool b = mu.TryLock();
+    if (b)
+      a = 1;
+    if (c && b) {
+      mu.Unlock();
+    } else if (b) {
+      mu.Unlock();
+    }
+  }
+
+  // The walk through a compound condition is not depth-limited: the branch
+  // on the try-acquire result may sit arbitrarily many short-circuit
+  // clauses deep.
+  void tryheld_rebranch_short_circuit_deep(bool c1, bool c2, bool c3, bool c4,
+                                           bool c5, bool c6, bool c7, bool c8,
+                                           bool c9) {
+    bool b = mu.TryLock();
+    if (b)
+      a = 1;
+    if (c1 && c2 && c3 && c4 && c5 && c6 && c7 && c8 && c9 && b) {
+      mu.Unlock();
+    } else if (b) {
+      mu.Unlock();
+    }
+  }
+
+  // A held/try-held join whose condition re-branches on the result only
+  // behind a short-circuit: the short-circuiting edge escapes past the
+  // re-branch with the result unchecked (when !c && ok, mu really is leaked
+  // here), so the mixed join is diagnosed immediately with the plain-mode
+  // missing-on-some-paths warning -- unlike tryheld_rebranch_short_circuit
+  // above, whose escape edges all re-branch on the result themselves. The
+  // demoted fact still resolves on the paths that do re-branch (the release
+  // below is not diagnosed).
+  void tryheld_rebranch_shortcircuit_escape(bool c) {
+    bool ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+    if (c) {
+      if (!ok)
+        return;
+    }
+    if (c && ok) { // expected-warning {{mutex 'mu' is not held on every path through here}}
+      a = 1;
+      mu.Unlock();
+    }
+  }
+
   // An assignment used as a condition evaluates to its right-hand side:
   // the branch resolves the stored try-acquire result.
   void tryheld_assign_as_condition() {

@@ -136,6 +136,17 @@ public:
     }
   }
 
+  void tryLockRebranchOneWarning(bool c) {
+    bool b = mu.TryLock(); // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}}
+    if (b)
+      a = 0;
+    if (c && b) {
+      mu.Unlock();
+    } else if (b) {
+      mu.Unlock();
+    }
+  }
+
   // Inside a REQUIRES(!mu) region the declared negative fact satisfies the
   // attempt; the success edge consumes it (no duplicate '!mu' facts, no
   // spurious diagnostics), and the failure path retains it.

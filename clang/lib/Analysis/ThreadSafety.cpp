@@ -1440,6 +1440,9 @@ public:
 
   TerminatorTrylockCall getTerminatorTrylockCall(const CFGBlock *Block);
   const CallExpr *getTerminatorTrylockCallExpr(const CFGBlock *Block);
+  const CallExpr *getConditionTrylockCallExpr(const CFGBlock *Block,
+                                              bool *ResolvesAllPaths =
+                                                  nullptr);
 
   void getEdgeLockset(FactSet &Result, const FactSet &ExitSet,
                       const CFGBlock* PredBlock,
@@ -1451,7 +1454,8 @@ public:
   void intersectAndWarn(FactSet &EntrySet, const FactSet &ExitSet,
                         SourceLocation JoinLoc, LockErrorKind EntryLEK,
                         LockErrorKind ExitLEK,
-                        const Expr *RebranchTryLock = nullptr);
+                        const Expr *RebranchTryLock = nullptr,
+                        bool RebranchResolvesAllPaths = true);
 
   void intersectAndWarn(FactSet &EntrySet, const FactSet &ExitSet,
                         SourceLocation JoinLoc, LockErrorKind LEK) {
@@ -1988,6 +1992,85 @@ ThreadSafetyAnalyzer::getTerminatorTrylockCall(const CFGBlock *Block) {
 const CallExpr *
 ThreadSafetyAnalyzer::getTerminatorTrylockCallExpr(const CFGBlock *Block) {
   return getTerminatorTrylockCall(Block).TrylockCall;
+}
+
+/// Find the try-acquire call whose result the condition starting at
+/// \p Block branches on. Unlike getTerminatorTrylockCallExpr(), this looks
+/// through short-circuit evaluation: in a compound condition such as
+/// `if (c && ok)`, \p Block tests only `c` and the branch on the
+/// try-acquire result sits in a successor block of the condition.
+///
+/// With \p ResolvesAllPaths, also reports whether every outgoing path of
+/// \p Block reaches a branch on that same call's result: a short-circuit
+/// edge escapes its condition without evaluating the rest, but may itself
+/// lead to another branch on the result (`if (c && b) ...; else if (b)`),
+/// which is verified by walking each escape edge the same way. A caller
+/// weakening a definitely-held fact on the strength of the re-branch needs
+/// this: on an escaping path that never re-branches, the weakened fact
+/// leaks unresolved (intersectAndWarn()).
+const CallExpr *
+ThreadSafetyAnalyzer::getConditionTrylockCallExpr(const CFGBlock *Block,
+                                                  bool *ResolvesAllPaths) {
+  // The walk follows only the successor edges of logical-operator
+  // terminators, which stay within one condition expression: a back edge
+  // originates only from a loop or goto terminator, so the walk cannot
+  // cycle and is linear in the size of the condition. The visited set is
+  // shared with the escape walks below: a walk that reaches an
+  // already-visited block has merged into a path already verified to reach
+  // the call (any walk that fails ends the search).
+  llvm::SmallPtrSet<const CFGBlock *, 8> Visited;
+  SmallVector<const CFGBlock *, 4> Escapes;
+  auto Walk = [&](const CFGBlock *Block) -> const CallExpr * {
+    while (Block) {
+      if (!Visited.insert(Block).second)
+        return getTerminatorTrylockCallExpr(Block);
+      if (const CallExpr *Exp = getTerminatorTrylockCallExpr(Block))
+        return Exp;
+      if (const auto *BOP =
+              dyn_cast_or_null<BinaryOperator>(Block->getTerminatorStmt());
+          BOP && BOP->isLogicalOp()) {
+        // Evaluation of the condition continues on the not-short-circuiting
+        // edge: the true edge for &&, the false edge for ||. The other edge
+        // escapes the condition; remember it for the all-paths check.
+        auto SI = Block->succ_begin();
+        auto EscapeSI = SI;
+        if (BOP->getOpcode() == BO_LOr)
+          ++SI;
+        else
+          ++EscapeSI;
+        if (EscapeSI != Block->succ_end())
+          if (const CFGBlock *Escape = EscapeSI->getReachableBlock())
+            Escapes.push_back(Escape);
+        Block = SI == Block->succ_end() ? nullptr : SI->getReachableBlock();
+        continue;
+      }
+      return nullptr;
+    }
+    return nullptr;
+  };
+
+  const CallExpr *Exp = Walk(Block);
+  if (ResolvesAllPaths) {
+    *ResolvesAllPaths = Exp != nullptr;
+    // Each escape edge must itself lead to a branch on the same call (its
+    // own escapes accumulate and are checked in turn). An already-visited
+    // block belongs to a walk that reached the call, so Walk() resolves it
+    // by looking at its (cached) terminator or, failing that, treating the
+    // merge into the verified path as reaching the call -- which the
+    // shared-visited early return above reports as that terminator's call;
+    // a null there means the path merged before the branch and still
+    // reaches it.
+    while (Exp && !Escapes.empty()) {
+      const CFGBlock *Escape = Escapes.pop_back_val();
+      if (Visited.count(Escape))
+        continue; // Merged into an already-verified path.
+      if (Walk(Escape) != Exp) {
+        *ResolvesAllPaths = false;
+        break;
+      }
+    }
+  }
+  return Exp;
 }
 
 /// Decode a try-acquire attribute's success value: the call result on which
@@ -3181,10 +3264,17 @@ bool ThreadSafetyAnalyzer::join(const FactEntry &A, const FactEntry &B,
 /// from that call are not diagnosed: the paths re-diverge at the terminator,
 /// so such facts are demoted to try-held (Held -> TryHeld) and re-resolved on
 /// the outgoing edges by getEdgeLockset().
+/// \param RebranchResolvesAllPaths Whether every outgoing path of the
+/// joining block reaches the branch on \p RebranchTryLock's result (false
+/// when the branch was found behind a short-circuit, whose other edge
+/// escapes unresolved). When false, weakening a definitely-held fact is
+/// diagnosed at the join after all -- the exemption's promise of
+/// re-resolution does not hold on the escaping paths -- though the fact is
+/// still demoted so the paths that do re-branch resolve it.
 void ThreadSafetyAnalyzer::intersectAndWarn(
     FactSet &EntrySet, const FactSet &ExitSet, SourceLocation JoinLoc,
     LockErrorKind EntryLEK, LockErrorKind ExitLEK,
-    const Expr *RebranchTryLock) {
+    const Expr *RebranchTryLock, bool RebranchResolvesAllPaths) {
   FactSet EntrySetOrig = EntrySet;
 
   auto IsTrylockRebranched = [RebranchTryLock](const FactEntry &FE) {
@@ -3233,15 +3323,17 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
     if (EntryIt != EntrySet.end()) {
       const FactEntry &EntryFact = FactMan[*EntryIt];
       if (EntryFact.tryHeld() != ExitFact.tryHeld() &&
-          !(IsTrylockRebranched(EntryFact) && IsTrylockRebranched(ExitFact))) {
+          !(IsTrylockRebranched(EntryFact) && IsTrylockRebranched(ExitFact) &&
+            RebranchResolvesAllPaths)) {
         // The capability is held on one path but only try-held on the other,
         // and the terminator does not re-branch on the try-acquire call both
         // facts originate from (demoting a fact whose held state was not
         // proved by that call's success -- an unrelated acquire or assert --
-        // would let the failure edge discard a definite hold): its definite
-        // state is lost. Diagnose the held side as if the try-held path did
-        // not hold the capability at all; join() below still keeps the
-        // weaker try-held fact.
+        // would let the failure edge discard a definite hold), or the
+        // re-branch sits behind a short-circuit whose other edge escapes
+        // without resolving the result: its definite state is lost. Diagnose
+        // the held side as if the try-held path did not hold the capability
+        // at all; join() below still keeps the weaker try-held fact.
         if (ExitFact.tryHeld())
           WarnRemovedEntryFact(EntryFact);
         else
@@ -3270,8 +3362,15 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
       // it on the outgoing edges. At a loop join the entry set must stay the
       // pre-loop set (as in join()), so the difference is merely not
       // diagnosed there.
-      if (EntryLEK != LEK_LockedSomeLoopIterations)
+      if (EntryLEK != LEK_LockedSomeLoopIterations) {
+        // A re-branch behind a short-circuit does not resolve the result on
+        // the escaping edge: a definite hold weakened here can leak there,
+        // so it is diagnosed at this join after all (the demotion stands,
+        // for the paths that do re-branch).
+        if (!RebranchResolvesAllPaths && !ExitFact.tryHeld())
+          WarnRemovedExitFact(ExitFact);
         EntrySet.addLock(FactMan, DemoteToTryHeld(ExitFact, EntryLEK));
+      }
     } else if (ExitFact.tryHeld()) {
       // The analysis loses track of the try-held fact here: this predecessor
       // carries a try-acquire result into the join unchecked (or to the end
@@ -3292,9 +3391,15 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
         // As above, but here the fact is kept in the intersection in its
         // demoted try-held form (except at a loop join, where the entry set
         // is left unmodified).
-        if (!EntryFact->tryHeld() && EntryLEK != LEK_LockedSomeLoopIterations)
+        if (!EntryFact->tryHeld() &&
+            EntryLEK != LEK_LockedSomeLoopIterations) {
+          // As above: an escaping short-circuit edge means the weakened
+          // definite hold is diagnosed at the join after all.
+          if (!RebranchResolvesAllPaths)
+            WarnRemovedEntryFact(*EntryFact);
           EntrySet.replaceLock(FactMan, *EntryFact,
                                DemoteToTryHeld(*EntryFact, ExitLEK));
+        }
         continue;
       }
       if (EntryFact->tryHeld()) {
@@ -3538,11 +3643,12 @@ void ThreadSafetyAnalyzer::runAnalysis(AnalysisDeclContext &AC) {
     // union because the real error is probably that we forgot to unlock M on
     // all code paths.
     bool LocksetInitialized = false;
-    // The try-acquire call whose result this block's terminator branches
-    // on, if any. Computed lazily on the first join of sets that carry a
-    // try-acquire fact at all.
+    // The try-acquire call whose result the condition starting at this
+    // block branches on, if any. Computed lazily on the first join of sets
+    // that carry a try-acquire fact at all.
     const CallExpr *RebranchTryLock = nullptr;
     bool RebranchTryLockComputed = false;
+    bool RebranchResolvesAllPaths = true;
     auto HasTryLockFact = [this](const FactSet &FS) {
       return AnyTryLockFacts &&
              llvm::any_of(
@@ -3583,19 +3689,22 @@ void ThreadSafetyAnalyzer::runAnalysis(AnalysisDeclContext &AC) {
         } else {
           // Branch join: a difference in the facts created by a try-acquire
           // is demoted to try-held and re-resolved on the outgoing edges if
-          // the terminator branches on that call's result.
+          // the condition branches on that call's result -- possibly behind
+          // short-circuit blocks of a compound condition like `c && ok`.
           if (!RebranchTryLockComputed &&
               (HasTryLockFact(CurrBlockInfo->EntrySet) ||
                HasTryLockFact(PrevLockset))) {
             // Compute once; the result depends only on CurrBlock, not on
             // *PI. Skipped entirely (the common case) while no fact at this
             // join originates from a try-acquire.
-            RebranchTryLock = getTerminatorTrylockCallExpr(CurrBlock);
+            RebranchTryLock = getConditionTrylockCallExpr(
+                CurrBlock, &RebranchResolvesAllPaths);
             RebranchTryLockComputed = true;
           }
           intersectAndWarn(CurrBlockInfo->EntrySet, PrevLockset,
                            CurrBlockInfo->EntryLoc, LEK_LockedSomePredecessors,
-                           LEK_LockedSomePredecessors, RebranchTryLock);
+                           LEK_LockedSomePredecessors, RebranchTryLock,
+                           RebranchResolvesAllPaths);
         }
       }
     }
