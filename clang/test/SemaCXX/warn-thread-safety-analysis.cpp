@@ -2560,17 +2560,24 @@ struct TestTryLock {
     mu.Unlock();
   }
 
-  // Two different try-acquires of the same capability merging at a join:
-  // neither call's result determines the merged state, so it can never be
-  // resolved -- diagnose both discarded origins immediately at the join.
+  // Two different try-acquires of the same capability merging at a join,
+  // only one stored: the branch resolves the merge of the stored result
+  // with the constant initializer, but the facts' merged origin is not
+  // determined by either call, so it is cleared -- and both discarded
+  // origins are diagnosed immediately at the join (the unchecked first
+  // TryLock really can leak its acquisition). The success edge then
+  // re-acquires the capability over the origin-cleared fact (the same
+  // conservative residue as tryheld_failure_path_lock_rebranch), and the
+  // failure edge cannot remove it, so it also leaks out of the function.
   void tryheld_merge_two_origins(bool c) {
     bool b = false;
     if (c)
       mu.TryLock();      // expected-note {{mutex acquired here}}
     else
-      b = mu.TryLock();  // expected-note 2 {{mutex acquired here}}
+      b = mu.TryLock();  // expected-note 3 {{mutex acquired here}} \
+                         // expected-warning {{acquiring mutex 'mu' that may already be held}}
     if (b)               // expected-warning 2 {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
-      mu.Unlock();       // expected-warning {{releasing mutex 'mu' that may not be held}}
+      mu.Unlock();
   } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
 
   // Re-branching on the result of a promoted fact is consistent with it; no
@@ -2646,17 +2653,17 @@ struct TestTryLock {
   // A try-held fact reaching a loop join is not a leak: the result was or
   // will be checked on the paths around the loop (here: at the top of every
   // iteration and after the loop) -- no "unchecked result of try-acquire"
-  // beta warning at the join. The releases still warn conservatively: the
-  // branches on 'b' are not yet resolved through the loop-merged variable.
+  // beta warning at the join, and the branches on 'b' resolve through the
+  // loop-merged variable, so the shape is warning-free end to end.
   void tryheld_loop_join_not_a_leak() {
     bool b = false;
     while (cond) {
       if (b)
-        mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+        mu.Unlock();
       b = mu.TryLock();
     }
     if (b)
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      mu.Unlock();
   }
 
   // A re-check behind short-circuit evaluation still re-resolves the fact:
@@ -2670,6 +2677,208 @@ struct TestTryLock {
       mu.Unlock();
     } else if (b) {
       mu.Unlock();
+    }
+  }
+
+  // A try-acquire result stored over a constant initializer: the merged
+  // variable still identifies the call, since on the edge where the variable
+  // is truthy it can only hold the (successful) call result. The common
+  // guard shape is warning-free.
+  void tryheld_merged_init_guard(bool c) {
+    bool b = false;
+    if (c)
+      b = mu.TryLock();
+    if (b) {
+      a = 1;
+      mu.Unlock();
+    }
+  }
+
+  // Negated re-check of the merged variable.
+  void tryheld_merged_init_early_return(bool c) {
+    bool b = false;
+    if (c)
+      b = mu.TryLock();
+    if (!b)
+      return;
+    a = 1;
+    mu.Unlock();
+  }
+
+  // A spin loop storing the result: on loop exit the merged variable is
+  // truthy, proving the try-acquire succeeded.
+  void tryheld_merged_init_spin() {
+    bool ok = false;
+    while (!ok)
+      ok = mu.TryLock();
+    a = 1;
+    mu.Unlock();
+  }
+
+  // A truthy initializer cannot prove the call executed on the success
+  // branch, so the capability stays conditionally held there and the
+  // release is diagnosed (when 'c' is false nothing was ever acquired).
+  void tryheld_merged_true_init(bool c) {
+    bool b = true;
+    if (c)
+      b = mu.TryLock();
+    if (b)
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+  }
+
+  // The merge is only resolved when the constant provably is not a later
+  // overwrite of the stored result: here the capability may still be held
+  // although 'b' is false again, so no resolution -- conservative try-held
+  // behavior remains.
+  void tryheld_merged_overwrite(bool c) {
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    if (c)
+      b = false;
+    if (b) {
+      a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+    }
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
+
+  // As above, with the overwrite around a loop back edge.
+  void tryheld_merged_loop_overwrite(bool c) {
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    while (c) {
+      b = false;
+    }
+    if (b) {
+      a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+    }
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
+
+  // The constant operand of a merge is recognized by constant evaluation,
+  // not literal spelling: an expression or constexpr variable initializer
+  // resolves the same way as `bool b = false;`.
+  void tryheld_merged_expr_init(bool c) {
+    bool b = (0 != 0);
+    if (c)
+      b = mu.TryLock();
+    if (b) {
+      a = 1;
+      mu.Unlock();
+    }
+  }
+
+  void tryheld_merged_constexpr_init(bool c) {
+    constexpr bool kFalse = false;
+    bool b = kFalse;
+    if (c)
+      b = mu.TryLock();
+    if (b) {
+      a = 1;
+      mu.Unlock();
+    }
+  }
+
+  // A merge of two structurally identical try-acquire calls resolves like a
+  // single call: either way the variable holds "the result of that call".
+  // The two-call retry idiom is warning-free end to end. This is sound
+  // because each call executes only after the previous result was checked
+  // false, so both calls' facts are tracked.
+  void tryheld_spin_two_calls() {
+    bool ok = mu.TryLock();
+    while (!ok)
+      ok = mu.TryLock();
+    a = 1;
+    mu.Unlock();
+  }
+
+  // Unlike the retry idiom, here the second call can execute while the
+  // first call's capability is still tracked, so its facts are dropped
+  // (first wins) and its stored result says nothing about the tracked
+  // fact: the merge must not resolve, or a successful first try-acquire
+  // would leak silently whenever the loop iterates.
+  void tryheld_retry_without_check() {
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    while (cond)
+      b = mu.TryLock();
+    if (b)
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
+
+  // Pairwise merging at a join of three or more predecessors must not
+  // discard the (constant, call) merge when a later arm contributes the
+  // same constant again: the guard resolves wherever the assignment sits.
+  void tryheld_merged_init_switch_middle_arm(int x) {
+    bool b = false;
+    switch (x) {
+    case 1:
+      break;
+    case 2:
+      b = mu.TryLock();
+      break;
+    default:
+      break;
+    }
+    if (b) {
+      a = 1;
+      mu.Unlock();
+    }
+  }
+
+  void tryheld_merged_init_last_arm(int x) {
+    bool b = false;
+    if (x == 1) {
+    } else if (x == 2) {
+    } else {
+      b = mu.TryLock();
+    }
+    if (b) {
+      a = 1;
+      mu.Unlock();
+    }
+  }
+
+  // A compound spin condition branches on the try-acquire result behind a
+  // short-circuit block; the back-edge join must still recognize the
+  // re-branch (the result is checked wherever it is used, so nothing is
+  // leaked).
+  void tryheld_spin_bounded(int i) {
+    bool ok = false;
+    while (i < 3 && !ok)
+      ok = mu.TryLock();
+    if (ok) {
+      a = 1;
+      mu.Unlock();
+    }
+  }
+
+  // Two DIFFERENT try-acquire calls stored on both paths of a branch: the
+  // states agree (b true implies mu held) and the merge resolves to the
+  // stored calls, but at the join the facts' merged origin is not
+  // determined by either call and is cleared, so the branch cannot resolve
+  // the fact: the success edge re-acquires over it and the failure edge
+  // leaks it. Conservative; a future refinement could keep the origin of
+  // the call the join's terminator re-branches on when the other origin is
+  // the same call per the merge.
+  void tryheld_merge_both_assigned(bool c) {
+    bool b;
+    if (c)
+      b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    else
+      b = mu.TryLock(); // expected-warning {{acquiring mutex 'mu' that may already be held}} \
+                        // expected-note 3 {{mutex acquired here}}
+    if (b)              // expected-warning 2 {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
+      mu.Unlock();
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
+
+  // Merged results of try-acquires of two different capabilities determine
+  // nothing about either; conservative try-held handling remains.
+  void tryheld_merge_two_mutexes(bool c) {
+    bool b;
+    if (c)
+      b = mu.TryLock();  // expected-note {{mutex acquired here}}
+    else
+      b = mu2.TryLock(); // expected-note {{mutex acquired here}}
+    if (b) {             // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}} \
+                         // expected-warning {{unchecked result of try-acquire; mutex 'mu2' may still be held past this point}}
+      mu.Unlock();       // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
