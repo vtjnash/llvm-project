@@ -221,8 +221,9 @@ public:
 
   bool isEmpty() const { return FactIDs.size() == 0; }
 
-  // Return true if the set contains only negative facts
-  bool isEmpty(FactManager &FactMan) const {
+  // Return true if the set holds no positive capability -- it contains only
+  // negative facts. Unlike isEmpty(), which tests the set itself.
+  bool holdsNoCapability(FactManager &FactMan) const {
     for (const auto FID : *this) {
       if (!FactMan[FID].negative())
         return false;
@@ -1255,6 +1256,8 @@ public:
   bool inCurrentScope(const CapabilityExpr &CapE);
 
   void addLock(FactSet &FSet, const FactEntry *Entry, bool ReqAttr = false);
+  void checkAcquiredCapability(FactSet &FSet, const FactEntry &Entry,
+                               bool ReqAttr);
   void removeLock(FactSet &FSet, const CapabilityExpr &CapE,
                   SourceLocation UnlockLoc, bool FullyRemove, LockKind Kind);
 
@@ -1262,21 +1265,26 @@ public:
   void getMutexIDs(CapExprSet &Mtxs, AttrType *Attr, const Expr *Exp,
                    const NamedDecl *D, til::SExpr *Self = nullptr);
 
-  template <class AttrType>
-  void getMutexIDs(CapExprSet &Mtxs, AttrType *Attr, const Expr *Exp,
-                   const NamedDecl *D,
-                   const CFGBlock *PredBlock, const CFGBlock *CurrBlock,
-                   Expr *BrE, bool Neg);
-
   const CallExpr* getTrylockCallExpr(const Stmt *Cond, LocalVarContext C,
                                      bool &Negate);
 
-  using TerminatorTrylockCall =
-      std::tuple<const CallExpr *, const NamedDecl *,
-                 std::optional<llvm::scope_exit<std::function<void()>>>>;
+  /// A block terminator's branch on the result of a try-acquire call, as
+  /// decoded by getTerminatorTrylockCall().
+  struct TerminatorTrylockCall {
+    /// The try-acquire call whose (possibly stored) result the terminator
+    /// branches on, or null if it does not branch on one.
+    const CallExpr *TrylockCall = nullptr;
+    /// The callee, carrying the try_acquire_capability attributes.
+    const NamedDecl *Callee = nullptr;
+    /// Whether the terminator tests the negated call result.
+    bool Negate = false;
+    /// Keeps the SExprBuilder local-variable lookup closure installed (beta
+    /// mode) so that the caller can translate the callee's attribute
+    /// expressions.
+    std::optional<llvm::scope_exit<std::function<void()>>> Cleanup;
+  };
 
-  TerminatorTrylockCall getTerminatorTrylockCall(const CFGBlock *Block,
-                                                 bool &Negate);
+  TerminatorTrylockCall getTerminatorTrylockCall(const CFGBlock *Block);
 
   void getEdgeLockset(FactSet &Result, const FactSet &ExitSet,
                       const CFGBlock* PredBlock,
@@ -1486,31 +1494,38 @@ void ThreadSafetyAnalyzer::addLock(FactSet &FSet, const FactEntry *Entry,
   if (Entry->shouldIgnore())
     return;
 
-  if (!ReqAttr && !Entry->negative()) {
-    // look for the negative capability, and remove it from the fact set.
-    CapabilityExpr NegC = !*Entry;
-    const FactEntry *Nen = FSet.findLock(FactMan, NegC);
-    if (Nen) {
-      FSet.removeLock(FactMan, NegC);
-    }
-    else {
-      if (inCurrentScope(*Entry) && !Entry->asserted() && !Entry->reentrant())
-        Handler.handleNegativeNotHeld(Entry->getKind(), Entry->toString(),
-                                      NegC.toString(), Entry->loc());
-    }
-  }
-
-  // Check before/after constraints
-  if (!Entry->asserted() && !Entry->declared()) {
-    GlobalBeforeSet->checkBeforeAfter(Entry->valueDecl(), FSet, *this,
-                                      Entry->loc(), Entry->getKind());
-  }
+  checkAcquiredCapability(FSet, *Entry, ReqAttr);
 
   if (const FactEntry *Cp = FSet.findLock(FactMan, *Entry)) {
     if (!Entry->asserted())
       Cp->handleLock(FSet, FactMan, *Entry, Handler);
   } else {
     FSet.addLock(FactMan, Entry);
+  }
+}
+
+/// The checks an acquisition performs: consume (or require) the negative
+/// capability, and check acquired_before/acquired_after ordering.
+void ThreadSafetyAnalyzer::checkAcquiredCapability(FactSet &FSet,
+                                                   const FactEntry &Entry,
+                                                   bool ReqAttr) {
+  if (!ReqAttr && !Entry.negative()) {
+    // look for the negative capability, and remove it from the fact set.
+    CapabilityExpr NegC = !Entry;
+    const FactEntry *Nen = FSet.findLock(FactMan, NegC);
+    if (Nen) {
+      FSet.removeLock(FactMan, NegC);
+    } else {
+      if (inCurrentScope(Entry) && !Entry.asserted() && !Entry.reentrant())
+        Handler.handleNegativeNotHeld(Entry.getKind(), Entry.toString(),
+                                      NegC.toString(), Entry.loc());
+    }
+  }
+
+  // Check before/after constraints
+  if (!Entry.asserted() && !Entry.declared()) {
+    GlobalBeforeSet->checkBeforeAfter(Entry.valueDecl(), FSet, *this,
+                                      Entry.loc(), Entry.getKind());
   }
 }
 
@@ -1570,35 +1585,6 @@ void ThreadSafetyAnalyzer::getMutexIDs(CapExprSet &Mtxs, AttrType *Attr,
     //else
     if (!Cp.shouldIgnore())
       Mtxs.push_back_nodup(Cp);
-  }
-}
-
-/// Extract the list of mutexIDs from a trylock attribute.  If the
-/// trylock applies to the given edge, then push them onto Mtxs, discarding
-/// any duplicates.
-template <class AttrType>
-void ThreadSafetyAnalyzer::getMutexIDs(CapExprSet &Mtxs, AttrType *Attr,
-                                       const Expr *Exp, const NamedDecl *D,
-                                       const CFGBlock *PredBlock,
-                                       const CFGBlock *CurrBlock,
-                                       Expr *BrE, bool Neg) {
-  // Find out which branch has the lock
-  bool branch = false;
-  if (const auto *BLE = dyn_cast_or_null<CXXBoolLiteralExpr>(BrE))
-    branch = BLE->getValue();
-  else if (const auto *ILE = dyn_cast_or_null<IntegerLiteral>(BrE))
-    branch = ILE->getValue().getBoolValue();
-
-  int branchnum = branch ? 0 : 1;
-  if (Neg)
-    branchnum = !branchnum;
-
-  // If we've taken the trylock branch, then add the lock
-  int i = 0;
-  for (CFGBlock::const_succ_iterator SI = PredBlock->succ_begin(),
-       SE = PredBlock->succ_end(); SI != SE && i < 2; ++SI, ++i) {
-    if (*SI == CurrBlock && i == branchnum)
-      getMutexIDs(Mtxs, Attr, Exp, D);
   }
 }
 
@@ -1694,15 +1680,11 @@ const CallExpr* ThreadSafetyAnalyzer::getTrylockCallExpr(const Stmt *Cond,
 
 /// If the terminator of \p Block branches on the result of a call to a
 /// function annotated with try_acquire_capability (possibly negated or stored
-/// in a local variable), return that call and its callee. \p Negate is set if
-/// the branch tests the negated result of the call. In beta mode, this leaves
-/// the local variable lookup closure of SExprBuilder installed so that callers
-/// can translate the callee's attribute expressions
+/// in a local variable), return that call and its callee. In beta mode, this
+/// leaves the local variable lookup closure of SExprBuilder installed so that
+/// callers can translate the callee's attribute expressions
 ThreadSafetyAnalyzer::TerminatorTrylockCall
-ThreadSafetyAnalyzer::getTerminatorTrylockCall(const CFGBlock *Block,
-                                               bool &Negate) {
-  assert(!Negate && "Must be called with Negate initialized to false");
-
+ThreadSafetyAnalyzer::getTerminatorTrylockCall(const CFGBlock *Block) {
   const Stmt *Cond = Block->getTerminatorCondition();
   if (!Cond)
     return {};
@@ -1725,6 +1707,7 @@ ThreadSafetyAnalyzer::getTerminatorTrylockCall(const CFGBlock *Block,
     Cleanup.emplace([this] { SxBuilder.setLookupLocalVarExpr(nullptr); });
   }
 
+  bool Negate = false;
   const auto *Exp = getTrylockCallExpr(Cond, LVarCtx, Negate);
   if (!Exp)
     return {};
@@ -1733,7 +1716,19 @@ ThreadSafetyAnalyzer::getTerminatorTrylockCall(const CFGBlock *Block,
   if (!FunDecl || !FunDecl->hasAttr<TryAcquireCapabilityAttr>())
     return {};
 
-  return {Exp, FunDecl, std::move(Cleanup)};
+  return {Exp, FunDecl, Negate, std::move(Cleanup)};
+}
+
+/// Decode a try-acquire attribute's success value: the call result on which
+/// it reports acquisition. Only true/false and integer literals are
+/// recognized; anything else defaults to false, as the branch decoding
+/// always has.
+static bool getTrySuccessValue(const Expr *BrE) {
+  if (const auto *BLE = dyn_cast_or_null<CXXBoolLiteralExpr>(BrE))
+    return BLE->getValue();
+  if (const auto *ILE = dyn_cast_or_null<IntegerLiteral>(BrE))
+    return ILE->getValue().getBoolValue();
+  return false;
 }
 
 /// Find the lockset that holds on the edge between PredBlock
@@ -1745,19 +1740,42 @@ void ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
                                           const CFGBlock *CurrBlock) {
   Result = ExitSet;
 
-  bool Negate = false;
-  auto [Exp, FunDecl, Cleanup] = getTerminatorTrylockCall(PredBlock, Negate);
+  TerminatorTrylockCall Trylock = getTerminatorTrylockCall(PredBlock);
+  const CallExpr *Exp = Trylock.TrylockCall;
   if (!Exp)
     return;
+  const NamedDecl *FunDecl = Trylock.Callee;
+  const bool Negate = Trylock.Negate;
 
+  // Which positions among PredBlock's first two successors this edge
+  // occupies.
+  bool IsSucc[2] = {false, false};
+  {
+    int i = 0;
+    for (CFGBlock::const_succ_iterator SI = PredBlock->succ_begin(),
+                                       SE = PredBlock->succ_end();
+         SI != SE && i < 2; ++SI, ++i)
+      if (*SI == CurrBlock)
+        IsSucc[i] = true;
+  }
+
+  // Whether the branch on this edge implies the call result was \p Result;
+  // an attribute with success value S acquires its capabilities on the edge
+  // taken when the condition's truthiness is S adjusted by any negations.
+  auto EdgeHasResult = [&](bool Result) {
+    return IsSucc[(Result != Negate) ? 0 : 1];
+  };
+
+  // For each try-acquire attribute, decode on which branch the call reports
+  // success; if that branch flows to this edge, the attribute's capabilities
+  // are acquired here. Attributes may carry different success values; each is
+  // decoded on its own.
   CapExprSet ExclusiveLocksToAdd;
   CapExprSet SharedLocksToAdd;
-
-  // If the condition is a call to a Trylock function, then grab the attributes
   for (const auto *Attr : FunDecl->specific_attrs<TryAcquireCapabilityAttr>())
-    getMutexIDs(Attr->isShared() ? SharedLocksToAdd : ExclusiveLocksToAdd, Attr,
-                Exp, FunDecl, PredBlock, CurrBlock, Attr->getSuccessValue(),
-                Negate);
+    if (EdgeHasResult(getTrySuccessValue(Attr->getSuccessValue())))
+      getMutexIDs(Attr->isShared() ? SharedLocksToAdd : ExclusiveLocksToAdd,
+                  Attr, Exp, FunDecl);
 
   // Add and remove locks.
   SourceLocation Loc = Exp->getExprLoc();
@@ -1774,13 +1792,14 @@ void ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
 /// that call to \p Caps.
 void ThreadSafetyAnalyzer::getTerminatorTrylockCaps(const CFGBlock *Block,
                                                     CapExprSet &Caps) {
-  bool Negate = false;
-  auto [Exp, FunDecl, Cleanup] = getTerminatorTrylockCall(Block, Negate);
+  TerminatorTrylockCall Trylock = getTerminatorTrylockCall(Block);
+  const CallExpr *Exp = Trylock.TrylockCall;
   if (!Exp)
     return;
 
-  for (const auto *Attr : FunDecl->specific_attrs<TryAcquireCapabilityAttr>())
-    getMutexIDs(Caps, Attr, Exp, FunDecl);
+  for (const auto *Attr :
+       Trylock.Callee->specific_attrs<TryAcquireCapabilityAttr>())
+    getMutexIDs(Caps, Attr, Exp, Trylock.Callee);
 }
 
 namespace {
@@ -2111,7 +2130,7 @@ void ThreadSafetyAnalyzer::checkAccess(const FactSet &FSet, const Expr *Exp,
   if (!D || !D->hasAttrs())
     return;
 
-  if (D->hasAttr<GuardedVarAttr>() && FSet.isEmpty(FactMan)) {
+  if (D->hasAttr<GuardedVarAttr>() && FSet.holdsNoCapability(FactMan)) {
     Handler.handleNoMutexHeld(D, POK, AK, Loc);
   }
 
@@ -2186,7 +2205,7 @@ void ThreadSafetyAnalyzer::checkPtAccess(const FactSet &FSet, const Expr *Exp,
   if (!D || !D->hasAttrs())
     return;
 
-  if (D->hasAttr<PtGuardedVarAttr>() && FSet.isEmpty(FactMan))
+  if (D->hasAttr<PtGuardedVarAttr>() && FSet.holdsNoCapability(FactMan))
     Handler.handleNoMutexHeld(D, PtPOK, AK, Exp->getExprLoc());
 
   for (auto const *I : D->specific_attrs<PtGuardedByAttr>()) {
