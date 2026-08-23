@@ -545,6 +545,12 @@ public:
     // The map with which Exp should be interpreted.
     Context Ctx;
 
+    // Whether this is the definition created at the variable's declaration
+    // when it has no initializer: the variable's birth, holding an
+    // indeterminate value. An invalidated reference has the same null
+    // shape but stands for an unknown later value (chainAvoids()).
+    bool UninitDecl = false;
+
     bool isPhi() const { return PhiAlt != 0; }
     bool isReference() const { return !Exp && !isPhi(); }
 
@@ -553,7 +559,7 @@ public:
   private:
     // Create ordinary variable definition
     VarDefinition(const NamedDecl *D, const Expr *E, Context C)
-        : Dec(D), Exp(E), Ctx(C) {}
+        : Dec(D), Exp(E), Ctx(C), UninitDecl(!E) {}
 
     // Create reference to previous definition
     VarDefinition(const NamedDecl *D, unsigned DirectRef, unsigned CanonicalRef,
@@ -634,44 +640,86 @@ public:
   void markEscaped(const NamedDecl *D) { EscapedDecls.insert(D); }
   bool isEscaped(const NamedDecl *D) const { return EscapedDecls.count(D); }
 
-  /// Returns true if the chain of \p D's definitions leading up to
-  /// definition \p ID provably does not contain definition \p Avoid: walking
-  /// the prior definitions from \p ID reaches \p D's declaration without
-  /// passing \p Avoid, a merge, or an unknown definition. Used to establish
-  /// that the assignment creating \p Avoid was never executed on the paths
-  /// where \p ID is the reaching definition.
-  bool chainAvoids(const NamedDecl *D, unsigned ID, unsigned Avoid) {
-    Avoid = getCanonicalDefinitionID(Avoid);
-    while (true) {
-      ID = getCanonicalDefinitionID(ID);
-      if (ID == 0 || ID == Avoid || VarDefinitions[ID].isPhi())
+  /// Walks the chain of \p D's definitions leading up to definition \p ID:
+  /// every path of prior definitions from \p ID back to \p D's declaration,
+  /// calling \p Visit on each definition passed through (a merge continues
+  /// into both of its operands' chains). Returns false if \p Visit rejects
+  /// a definition, or if a path reaches an unknown definition, about which
+  /// nothing can be concluded; true if every path ended at the declaration.
+  /// A loop back edge passes the loop-head definition as \p StopAt: a chain
+  /// that reaches the head has been walked as far as the iteration goes,
+  /// and what precedes the head is the merge being tested itself.
+  template <typename VisitFn>
+  bool walkChain(const NamedDecl *D, unsigned ID, unsigned StopAt,
+                 VisitFn Visit) {
+    SmallVector<unsigned, 4> Worklist = {ID};
+    llvm::SmallDenseSet<unsigned, 8> Visited;
+    while (!Worklist.empty()) {
+      unsigned ID = Worklist.pop_back_val();
+      // Resolve references one step at a time: \p StopAt is usually a
+      // loop-head reference, which one-hop canonicalization would skip
+      // right past.
+      bool PathEnds = false;
+      while (ID > 0 && VarDefinitions[ID].isReference()) {
+        if (ID == StopAt || VarDefinitions[ID].UninitDecl) {
+          // The loop head ends the path (see above); so does the variable's
+          // declaration, with or without an initializer.
+          PathEnds = true;
+          break;
+        }
+        ID = VarDefinitions[ID].DirectRef;
+      }
+      if (PathEnds || (StopAt != 0 && ID == StopAt))
+        continue; // A phi-converted loop head is its own canonical.
+      if (ID == 0)
         return false;
+      if (!Visited.insert(ID).second)
+        continue; // A phi-converted loop head can make the graph cyclic.
+      if (!Visit(ID))
+        return false;
+      if (VarDefinitions[ID].isPhi()) {
+        // The merged value is one of the operands': the chain continues
+        // into both.
+        Worklist.push_back(VarDefinitions[ID].DirectRef);
+        Worklist.push_back(VarDefinitions[ID].PhiAlt);
+        continue;
+      }
       const unsigned *P = VarDefinitions[ID].Ctx.lookup(D);
-      if (!P)
-        return true; // Reached the declaration.
-      ID = *P;
+      if (P)
+        Worklist.push_back(*P);
+      // Otherwise this path reached the declaration.
     }
+    return true;
   }
 
-  /// Collects into \p Defs every non-constant definition that the chain of
-  /// \p D's definitions leading up to \p ID passes through: exactly the
-  /// definitions a chainAvoids() query on \p ID can answer "no" for, since
-  /// only a non-constant definition is ever asked about. Returns false if
-  /// the chain reaches a merge or an unknown definition, about which
-  /// chainAvoids() concludes nothing either.
+  /// Returns true if the chain of \p D's definitions leading up to
+  /// definition \p ID provably does not contain definition \p Avoid: every
+  /// path of prior definitions from \p ID reaches \p D's declaration
+  /// without passing \p Avoid or an unknown definition (walkChain()). Used
+  /// to establish that the assignment creating \p Avoid was never executed
+  /// on the paths where \p ID is the reaching definition. \p StopAt is as
+  /// in walkChain(): a chain that reaches the loop head avoided \p Avoid
+  /// within the iteration.
+  bool chainAvoids(const NamedDecl *D, unsigned ID, unsigned Avoid,
+                   unsigned StopAt = 0) {
+    Avoid = getCanonicalDefinitionID(Avoid);
+    return walkChain(D, ID, StopAt,
+                     [Avoid](unsigned Def) { return Def != Avoid; });
+  }
+
+  /// Collects into \p Defs every non-constant definition (a merge included)
+  /// that the chain of \p D's definitions leading up to \p ID passes
+  /// through: exactly the definitions a chainAvoids() query on \p ID can
+  /// answer "no" for, since only a non-constant definition is ever asked
+  /// about. Returns false if the chain reaches an unknown definition, in
+  /// which case \p Defs says nothing about it.
   bool chainNonConstantDefs(const NamedDecl *D, unsigned ID,
                             llvm::SmallDenseSet<unsigned, 8> &Defs) {
-    while (true) {
-      ID = getCanonicalDefinitionID(ID);
-      if (ID == 0 || VarDefinitions[ID].isPhi())
-        return false;
-      if (!constantValue(ID))
-        Defs.insert(ID);
-      const unsigned *P = VarDefinitions[ID].Ctx.lookup(D);
-      if (!P)
-        return true; // Reached the declaration.
-      ID = *P;
-    }
+    return walkChain(D, ID, /*StopAt=*/0, [&](unsigned Def) {
+      if (!constantValue(Def))
+        Defs.insert(Def);
+      return true;
+    });
   }
 
   /// The constant integer value of the canonical definition \p Canon,
@@ -690,6 +738,79 @@ public:
         It->second = ER.Val.getInt();
     }
     return It->second;
+  }
+
+  /// Whether the canonical definitions \p Canon1 and \p Canon2 of variable
+  /// \p D are interchangeable for resolution purposes, so that a merge can
+  /// keep either one: e.g. after `bool b = false; if (c) b = false;` the
+  /// variable is still the constant false, and can later merge with a
+  /// try-acquire result (a merge of merges is not resolved).
+  ///
+  /// Both must constant-evaluate to the same integer value -- exactly, not
+  /// merely in truthiness, and non-integer constants (e.g. two distinct
+  /// addresses, which are both "true") never match. Equal values alone are
+  /// not enough: resolving a merge also asks whether the constant's chain
+  /// passes the try-acquire call (chainAvoids()), and two value-equal
+  /// constants can disagree about that. In
+  /// `if (c1) { ok = mu.TryLock(); if (c2) ok = false; } else ok = false;`
+  /// only the first `ok = false` can follow the call, so dropping it in
+  /// favour of the other would resolve a merge that must not resolve.
+  /// Interchangeable therefore also requires that the two chains pass
+  /// through the same non-constant definitions (chainNonConstantDefs()),
+  /// which is what every later chainAvoids() query asks about.
+  ///
+  /// The chains are always walked in full, a loop head included: an
+  /// in-loop constant's chain continues through the head into the
+  /// pre-loop definitions, which is what makes it comparable with the
+  /// head's own chain on a back edge. Shared by the branch-join and
+  /// back-edge merge engines (intersectContexts() / intersectBackEdge())
+  /// so that they cannot drift apart.
+  bool valueEqualConstants(const NamedDecl *D, unsigned Canon1,
+                           unsigned Canon2) {
+    std::optional<llvm::APSInt> V1 = constantValue(Canon1);
+    if (!V1)
+      return false;
+    std::optional<llvm::APSInt> V2 = constantValue(Canon2);
+    if (!V2 || !llvm::APSInt::isSameValue(*V1, *V2))
+      return false;
+    llvm::SmallDenseSet<unsigned, 8> Defs1, Defs2;
+    return chainNonConstantDefs(D, Canon1, Defs1) &&
+           chainNonConstantDefs(D, Canon2, Defs2) && Defs1 == Defs2;
+  }
+
+  /// Whether the merge \p CanonPhi already covers the definition
+  /// \p CanonOther of variable \p Dec, so that joining the two keeps the
+  /// phi as is: \p CanonOther is one of the phi's own operands, or a
+  /// definition that is not an operand but is value-equal to the phi's
+  /// constant operand (constants of the same value are interchangeable,
+  /// valueEqualConstants()) -- provided its chain avoids the phi's
+  /// non-constant operand, exactly as resolving the phi imposes on the
+  /// recorded constant (chainAvoids()): e.g. phi(call, false) absorbs
+  /// another `= false` assignment that cannot follow the call. \p StopAt
+  /// is forwarded to chainAvoids() by loop back edges. Shared by the
+  /// branch-join and back-edge merge engines so that they cannot drift
+  /// apart.
+  bool phiAbsorbs(const NamedDecl *Dec, unsigned CanonPhi, unsigned CanonOther,
+                  unsigned StopAt = 0) {
+    if (CanonPhi == 0 || CanonOther == 0 || !VarDefinitions[CanonPhi].isPhi())
+      return false;
+    const VarDefinition &VD = VarDefinitions[CanonPhi];
+    unsigned Op1 = getCanonicalDefinitionID(VD.DirectRef);
+    unsigned Op2 = getCanonicalDefinitionID(VD.PhiAlt);
+    if (Op1 == CanonOther || Op2 == CanonOther)
+      return true;
+    std::optional<llvm::APSInt> VO = constantValue(CanonOther);
+    if (!VO)
+      return false;
+    std::optional<llvm::APSInt> V1 = constantValue(Op1);
+    std::optional<llvm::APSInt> V2 = constantValue(Op2);
+    if (V1 && V2) // Both operands constant: absorb a matching value.
+      return llvm::APSInt::isSameValue(*V1, *VO) ||
+             llvm::APSInt::isSameValue(*V2, *VO);
+    std::optional<llvm::APSInt> VC = V1 ? V1 : V2;
+    unsigned NonConstOp = V1 ? Op2 : Op1;
+    return VC && llvm::APSInt::isSameValue(*VC, *VO) &&
+           chainAvoids(Dec, CanonOther, NonConstOp, StopAt);
   }
 
   Context getEmptyContext() { return ContextFactory.getEmptyMap(); }
@@ -1069,65 +1190,20 @@ LocalVariableMap::intersectContexts(Context C1, Context C2) {
       if (Canon1 == Canon2 && Canon1 != 0)
         continue; // Same underlying definition on both paths.
       // Distinct definitions that constant-evaluate to the same integer
-      // value can be interchangeable for resolution purposes: keep the
-      // first path's. E.g. after `bool b = false; if (c) b = false;` the
-      // variable is still the constant false, and can later merge with a
-      // try-acquire result (a merge of merges is not resolved). The values
-      // must match exactly, not merely in truthiness, and non-integer
-      // constants (e.g. two distinct addresses, which are both "true")
-      // never match. Equal values alone are not enough: resolving a merge
-      // also asks whether the constant's chain passes the try-acquire call
-      // (chainAvoids()), and two value-equal constants can disagree about
-      // that. In `if (c1) { ok = mu.TryLock(); if (c2) ok = false; } else
-      // ok = false;` only the first `ok = false` can follow the call, so
-      // dropping it in favour of the other would resolve a merge that must
-      // not resolve. The chains must therefore also pass through the same
-      // non-constant definitions (chainNonConstantDefs()), which is what
-      // every later chainAvoids() query asks about.
-      if (std::optional<llvm::APSInt> V1 = constantValue(Canon1)) {
-        std::optional<llvm::APSInt> V2 = constantValue(Canon2);
-        llvm::SmallDenseSet<unsigned, 8> Defs1, Defs2;
-        if (V2 && llvm::APSInt::isSameValue(*V1, *V2) &&
-            chainNonConstantDefs(Dec, Canon1, Defs1) &&
-            chainNonConstantDefs(Dec, Canon2, Defs2) && Defs1 == Defs2)
-          continue;
-      }
-      // A phi merged with one of its own operands is just the phi: at a
-      // join of three or more predecessors the paths merge pairwise, so
-      // e.g. (constant, call) -> phi followed by (phi, constant) must not
-      // discard the merge the first pair created. The same holds for a
-      // definition that is not an operand but is value-equal to the phi's
-      // constant operand (constants of the same value are interchangeable,
-      // as above), so the result does not depend on the order in which the
-      // paths merge -- provided its chain avoids the phi's non-constant
-      // operand, exactly as resolving the phi requires of the recorded
-      // constant (chainAvoids()): e.g. phi(call, false) absorbs another
-      // `= false` assignment that cannot follow the call.
-      auto PhiAbsorbs = [&, this](unsigned CanonPhi, unsigned CanonOther) {
-        if (CanonPhi == 0 || CanonOther == 0 ||
-            !VarDefinitions[CanonPhi].isPhi())
-          return false;
-        const VarDefinition &VD = VarDefinitions[CanonPhi];
-        unsigned Op1 = getCanonicalDefinitionID(VD.DirectRef);
-        unsigned Op2 = getCanonicalDefinitionID(VD.PhiAlt);
-        if (Op1 == CanonOther || Op2 == CanonOther)
-          return true;
-        std::optional<llvm::APSInt> VO = constantValue(CanonOther);
-        if (!VO)
-          return false;
-        std::optional<llvm::APSInt> V1 = constantValue(Op1);
-        std::optional<llvm::APSInt> V2 = constantValue(Op2);
-        if (V1 && V2) // Both operands constant: absorb a matching value.
-          return llvm::APSInt::isSameValue(*V1, *VO) ||
-                 llvm::APSInt::isSameValue(*V2, *VO);
-        std::optional<llvm::APSInt> VC = V1 ? V1 : V2;
-        unsigned NonConstOp = V1 ? Op2 : Op1;
-        return VC && llvm::APSInt::isSameValue(*VC, *VO) &&
-               chainAvoids(Dec, CanonOther, NonConstOp);
-      };
-      if (PhiAbsorbs(Canon1, Canon2))
+      // value and whose chains agree about the non-constant definitions
+      // they pass are interchangeable for resolution purposes: keep the
+      // first path's (valueEqualConstants()).
+      if (valueEqualConstants(Dec, Canon1, Canon2))
+        continue;
+      // A phi merged with a definition it already covers is just the phi:
+      // at a join of three or more predecessors the paths merge pairwise,
+      // so e.g. (constant, call) -> phi followed by (phi, constant) must
+      // not discard the merge the first pair created; absorbing a
+      // value-equal constant that is not an operand keeps the result
+      // independent of the order in which the paths merge (phiAbsorbs()).
+      if (phiAbsorbs(Dec, Canon1, Canon2))
         continue; // Keep the first path's phi.
-      if (PhiAbsorbs(Canon2, Canon1)) {
+      if (phiAbsorbs(Dec, Canon2, Canon1)) {
         // Keep the second path's phi.
         Result =
             ContextFactory.add(ContextFactory.remove(Result, Dec), Dec, *I2);
@@ -1176,14 +1252,14 @@ void LocalVariableMap::intersectBackEdge(Context C1, Context C2) {
 
     if (VDef->isPhi()) {
       // A previous back edge already merged this variable. Keep the phi only
-      // if this back edge carries one of the definitions it records -- or
-      // the loop-head reference itself (Canon2 == I1, a phi is its own
-      // canonical): a back edge that does not reassign the variable carries
-      // exactly the merged value and must not discard the merge another
-      // back edge created.
-      if (Canon2 == 0 ||
-          (Canon2 != I1 && Canon2 != getCanonicalDefinitionID(VDef->DirectRef) &&
-           Canon2 != getCanonicalDefinitionID(VDef->PhiAlt)))
+      // if this back edge carries a definition the merge already covers --
+      // one of its operands, or a value-equal constant whose chain avoids
+      // the non-constant operand up to the loop head (phiAbsorbs(), as at
+      // branch joins) -- or the loop-head reference itself (Canon2 == I1, a
+      // phi is its own canonical): a back edge that does not reassign the
+      // variable, or reassigns it a value the merge covers, must not
+      // discard the merge another back edge created.
+      if (Canon2 != I1 && !phiAbsorbs(P.first, I1, Canon2, /*StopAt=*/I1))
         VDef->invalidateRef();
       continue;
     }
@@ -1191,11 +1267,21 @@ void LocalVariableMap::intersectBackEdge(Context C1, Context C2) {
     // Compare the canonical IDs. This correctly handles chains of references
     // and determines if the variable is truly loop-invariant.
     if (VDef->CanonicalRef != Canon2) {
+      // The variable was reassigned in the loop a value that is a constant
+      // value-equal to the loop-head value: interchangeable for resolution
+      // purposes (valueEqualConstants(), as at branch joins), so the head
+      // reference stands.
+      if (valueEqualConstants(P.first, VDef->CanonicalRef, Canon2))
+        continue;
       // The variable is redefined in the loop. The back-edge value may
       // itself be a merge created at an intra-loop join with the loop-head
       // value as one of its operands (e.g. the path of a `continue` that
       // reassigned the variable joining the loop-end path that did not):
-      // the head value then merges with the other operand.
+      // the head value then merges with the other operand. An operand that
+      // is a constant value-equal to the head's constant stands in for the
+      // head value the same way -- provided its chain avoids the other
+      // operand up to the loop head, exactly as absorbing it at a branch
+      // join would require (phiAbsorbs()).
       auto RefersTo = [this](unsigned ID, unsigned Target) {
         while (ID > 0 && ID != Target && VarDefinitions[ID].isReference())
           ID = VarDefinitions[ID].DirectRef;
@@ -1205,9 +1291,17 @@ void LocalVariableMap::intersectBackEdge(Context C1, Context C2) {
       unsigned CanonAlt = Canon2;
       if (CanonAlt != 0 && VarDefinitions[CanonAlt].isPhi()) {
         const VarDefinition &P2 = VarDefinitions[CanonAlt];
+        const unsigned OpD = getCanonicalDefinitionID(P2.DirectRef);
+        const unsigned OpA = getCanonicalDefinitionID(P2.PhiAlt);
         if (RefersTo(P2.DirectRef, I1))
           Alt = P2.PhiAlt;
         else if (RefersTo(P2.PhiAlt, I1))
+          Alt = P2.DirectRef;
+        else if (valueEqualConstants(P.first, VDef->CanonicalRef, OpD) &&
+                 chainAvoids(P.first, OpD, OpA, /*StopAt=*/I1))
+          Alt = P2.PhiAlt;
+        else if (valueEqualConstants(P.first, VDef->CanonicalRef, OpA) &&
+                 chainAvoids(P.first, OpA, OpD, /*StopAt=*/I1))
           Alt = P2.DirectRef;
         else
           Alt = 0;
@@ -2519,13 +2613,19 @@ ThreadSafetyAnalyzer::getTerminatorTrylockCallExpr(const CFGBlock *Block) {
 const CallExpr *
 ThreadSafetyAnalyzer::getConditionTrylockCallExpr(const CFGBlock *Block,
                                                   bool *ResolvesAllPaths) {
-  // The walk follows only the successor edges of logical-operator
-  // terminators, which stay within one condition expression: a back edge
-  // originates only from a loop or goto terminator, so the walk cannot
-  // cycle and is linear in the size of the condition. The visited set is
-  // shared with the escape walks below: a walk that reaches an
-  // already-visited block has merged into a path already verified to reach
-  // the call (any walk that fails ends the search).
+  // The walk follows the successor edges of logical-operator terminators,
+  // which stay within one condition expression, and the fall-through edge
+  // of transition blocks (single successor, no terminator) -- e.g. where a
+  // branch join meets a loop back edge, one hop before the loop condition
+  // that re-branches on the merged variable. A transition block need not be
+  // empty: its statements cannot invalidate the decode, which uses the
+  // condition block's own ExitContext, and a write to the branched-on
+  // variable in it makes the resolution itself refuse (getTrylockCallExpr).
+  // A fall-through edge can reach an earlier block (the transition block's
+  // successor is the back edge's target), so the visited set keeps the walk
+  // finite. The visited set is shared with the escape walks below: a walk
+  // that reaches an already-visited block has merged into a path already
+  // verified to reach the call (any walk that fails ends the search).
   llvm::SmallPtrSet<const CFGBlock *, 8> Visited;
   SmallVector<const CFGBlock *, 4> Escapes;
   auto Walk = [&](const CFGBlock *Block) -> const CallExpr * {
@@ -2550,6 +2650,10 @@ ThreadSafetyAnalyzer::getConditionTrylockCallExpr(const CFGBlock *Block,
           if (const CFGBlock *Escape = EscapeSI->getReachableBlock())
             Escapes.push_back(Escape);
         Block = SI == Block->succ_end() ? nullptr : SI->getReachableBlock();
+        continue;
+      }
+      if (!Block->getTerminatorStmt() && Block->succ_size() == 1) {
+        Block = Block->succ_begin()->getReachableBlock();
         continue;
       }
       return nullptr;

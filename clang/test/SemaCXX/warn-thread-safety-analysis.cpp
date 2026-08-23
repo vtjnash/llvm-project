@@ -1981,6 +1981,7 @@ struct TestTryLock {
   int a GUARDED_BY(mu);
   int a2 GUARDED_BY(mu2);
   bool cond;
+  bool cond2;
   bool TryLockBoth() EXCLUSIVE_TRYLOCK_FUNCTION(true, mu, mu2);
 
   void foo1() {
@@ -2978,6 +2979,45 @@ struct TestTryLock {
     }
   }
 
+  // The same with an uninitialized declaration, whose chain end must not
+  // make the two constants agree: the else arm's chain reaches the
+  // declaration directly, the other one only through the call.
+  void tryheld_merged_value_equal_constants_after_call_uninit(bool c1,
+                                                              bool c2) {
+    bool ok;
+    if (c1) {
+      ok = mu.TryLock(); // expected-note 2 {{mutex acquired here}}
+      if (c2)
+        ok = false;
+    } else {
+      ok = false;
+    }
+    if (ok) { // expected-warning 2 {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
+      a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    }
+  }
+
+  // As above, with the join inside a loop: the back-edge merge is built
+  // from the same intra-loop join, so it must not treat the constant that
+  // follows the call as the loop-head constant either. A successful
+  // try-acquire followed by `ok = false` re-enters the loop and acquires
+  // the mutex it already holds.
+  void tryheld_loop_merge_value_equal_constants_after_call(bool c1, bool c2) {
+    bool ok = false;
+    while (!ok) { // expected-warning 2 {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
+      if (c1) {
+        ok = mu.TryLock(); // expected-note 2 {{mutex acquired here}}
+        if (c2)
+          ok = false;
+      } else {
+        ok = false;
+      }
+    }
+    a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+  }
+
   // No resolution when the variable's reference has escaped: a mutation
   // through the reference (a by-ref lambda capture, a pointer, a non-const
   // reference) is invisible to the local-variable map, so a branch on the
@@ -3188,6 +3228,89 @@ struct TestTryLock {
     }
   }
 
+  // The loop-shaped siblings of the join-order tests: a constant
+  // reassignment on one loop path is value-equal to the loop-head merge's
+  // constant operand and must not discard the merge -- whether it reaches
+  // the head through an intra-loop join or over its own back edge.
+  void tryheld_loop_merge_reassigned_1() {
+    bool ok = false;
+    while (!ok) {
+      if (cond)
+        ok = mu.TryLock();
+      else
+        ok = false;
+    }
+    a = 1;
+    mu.Unlock();
+  }
+
+  void tryheld_loop_merge_reassigned_2() {
+    bool ok = false;
+    while (!ok) {
+      if (cond)
+        ok = false;
+      else
+        ok = mu.TryLock();
+    }
+    a = 1;
+    mu.Unlock();
+  }
+
+  void tryheld_loop_merge_reassigned_latch(bool fast) {
+    bool ok = false;
+    while (!ok) {
+      if (fast) {
+        ok = mu.TryLock();
+        continue;
+      }
+      ok = false;
+    }
+    a = 1;
+    mu.Unlock();
+  }
+
+  // The loop condition does not branch on the merged variable: this
+  // iteration's possible success is carried around the loop unchecked, and
+  // keeping the head merge must not suppress that diagnosis.
+  void tryheld_loop_merge_unrelated_condition() {
+    bool ok = false;
+    while (cond) { // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
+      if (cond2)
+        ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+      else
+        ok = false;
+    }
+  }
+
+  // The reassignment follows the call on the same path: the variable being
+  // false no longer proves the call failed, so the merge stays unresolved.
+  void tryheld_loop_merge_overwrite(bool c) {
+    bool ok = false;
+    while (c) { // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
+      ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+      if (cond)
+        ok = false;
+    }
+    if (ok) {
+      a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    }
+  }
+
+  // A reassignment whose value differs from the merge's constant operand
+  // (true vs. the false initializer) is not absorbed.
+  void tryheld_loop_merge_wrong_constant() {
+    bool ok = false;
+    while (!ok) { // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
+      if (cond)
+        ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+      else
+        ok = true;
+    }
+    a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+  }
+
   // A release on the success path spends the stored result: a later branch
   // on it must not resurrect the acquisition. The second release is a real
   // runtime double unlock, and the write is unguarded.
@@ -3232,6 +3355,63 @@ struct TestTryLock {
       a = 1;
       mu.Unlock();
     }
+  }
+
+  // An uninitialized declaration ends the definition chain the same way an
+  // initializer does: the constant assigned on the else arm still resolves
+  // the merge.
+  void tryheld_merge_uninit_decl(bool c) {
+    bool ok;
+    if (c)
+      ok = mu.TryLock();
+    else
+      ok = false;
+    if (ok) {
+      a = 1;
+      mu.Unlock();
+    }
+  }
+
+  // A back-edge merge still forms when the variable's pre-loop history
+  // contains an unrelated merge: the chain walk continues through a phi's
+  // operands (and stops at the loop head) instead of refusing at any merge.
+  void tryheld_loop_merge_preloop_history(bool c, bool bad) {
+    bool ok;
+    if (c)
+      ok = mu2.TryLock();
+    else
+      ok = false;
+    if (ok) {
+      a2 = 1;
+      mu2.Unlock();
+    }
+    ok = false;
+    while (cond) { // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held past this point}}
+      if (bad)
+        ok = false;
+      else
+        ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+    }
+    if (ok) {
+      a = 1;
+      mu.Unlock();
+    }
+  }
+
+  // The transition-block hop of the loop-rebranch forgiveness tolerates
+  // statements in the join block: a trailing increment after the inner
+  // if/else must not regress tryheld_loop_merge_reassigned_1.
+  void tryheld_loop_merge_reassigned_nonempty(int n) {
+    bool ok = false;
+    while (!ok) {
+      if (cond)
+        ok = mu.TryLock();
+      else
+        ok = false;
+      ++n;
+    }
+    a = 1;
+    mu.Unlock();
   }
 
   // A negative fact that predates the try-acquire (here from a lock/unlock
