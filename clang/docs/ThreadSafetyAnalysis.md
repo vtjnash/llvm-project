@@ -493,19 +493,26 @@ that is already conditionally held by another try-acquire is tracked separately:
 each is resolved by the branch on its own return value. Asserting the capability
 (`ASSERT_CAPABILITY`) upgrades it to held without a warning.
 
+Under `-Wthread-safety-beta`, a try-acquire whose result is never used to
+determine success additionally warns where the analysis loses track of it --
+at a branch merge with a path that does not hold the capability, or at the
+end of the function -- since the capability may then be leaked. Loop merges
+are exempt: a result may be checked on the paths around the loop.
+
 On a {ref}`scoped_capability` constructor
 (`std::unique_lock lock(mu, std::try_to_lock)`-style), the named capabilities
 are likewise acquired conditionally, managed by the scoped object. A
 constructor has no return value to branch on, so uses under the guard remain
 diagnosed as unverified; but the destructor's conditional release -- it
 releases each capability only if the guard holds it -- pairs exactly with the
-conditional acquisition, so the guard's death discharges it silently and
-establishes that the capability is no longer held. An explicit `RELEASE`
-member function, by contrast, demands an unconditional release (releasing a
-guard that does not hold the capability is a runtime error) and warns that the
-capability may not be held. A try-acquire made directly on the underlying
-capability while the guard is alive is not the guard's own: the destructor
-keeps that conditional hold for its stored result to resolve after the scope.
+conditional acquisition, so the guard's death discharges it silently (no
+unchecked-result warning) and establishes that the capability is no longer
+held. An explicit `RELEASE` member function, by contrast, demands an
+unconditional release (releasing a guard that does not hold the capability is
+a runtime error) and warns that the capability may not be held. A try-acquire
+made directly on the underlying capability while the guard is alive is not
+the guard's own: the destructor keeps that conditional hold for its stored
+result to resolve after the scope.
 
 ```c++
 Mutex mu;

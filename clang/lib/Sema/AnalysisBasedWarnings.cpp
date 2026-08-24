@@ -2116,6 +2116,23 @@ class ThreadSafetyReporter : public clang::threadSafety::ThreadSafetyHandler {
                           makeLockedHereNote(LocLocked, Kind));
   }
 
+  void handleTryAcquireNeverChecked(StringRef Kind, Name LockName,
+                                    SourceLocation LocAcquired,
+                                    SourceLocation Loc,
+                                    bool AtEndOfFunction) override {
+    if (Loc.isInvalid()) {
+      // A join block with no location; point at the end of the function,
+      // and word the diagnostic to match.
+      Loc = FunEndLocation;
+      AtEndOfFunction = true;
+    }
+    PartialDiagnosticAt Warning(Loc,
+                                S.PDiag(diag::warn_try_acquire_never_checked)
+                                    << Kind << LockName << AtEndOfFunction);
+    Warnings.emplace_back(std::move(Warning),
+                          makeLockedHereNote(LocAcquired, Kind));
+  }
+
   void handleExclusiveAndShared(StringRef Kind, Name LockName,
                                 SourceLocation Loc1,
                                 SourceLocation Loc2) override {

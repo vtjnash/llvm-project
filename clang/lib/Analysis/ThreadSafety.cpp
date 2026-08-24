@@ -41,6 +41,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/StringSet.h"
 #include "llvm/Support/Allocator.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -60,6 +61,13 @@ using namespace threadSafety;
 
 // Key method definition
 ThreadSafetyHandler::~ThreadSafetyHandler() = default;
+
+/// Whether \p LEK diagnoses the end of the function rather than an interior
+/// join.
+static bool isEndOfFunctionLEK(LockErrorKind LEK) {
+  return LEK == LEK_LockedAtEndOfFunction ||
+         LEK == LEK_NotLockedAtEndOfFunction;
+}
 
 /// True if capability attributes on \p Param describe the function reached
 /// through it rather than the argument bound to it.
@@ -218,6 +226,13 @@ public:
   bool asserted() const { return Source == Asserted; }
   bool declared() const { return Source == Declared; }
   bool managed() const { return Source == Managed; }
+
+  /// Whether losing track of this fact warrants a diagnostic: an asserted
+  /// or universal capability's hold is not something the analyzed code is
+  /// expected to release, and a negative fact is not a hold at all.
+  bool lossNeedsWarning() const {
+    return !asserted() && !negative() && !isUniversal();
+  }
 
   virtual void
   handleRemovalFromIntersection(const FactSet &FSet, FactManager &FactMan,
@@ -1374,7 +1389,7 @@ public:
   handleRemovalFromIntersection(const FactSet &FSet, FactManager &FactMan,
                                 SourceLocation JoinLoc, LockErrorKind LEK,
                                 ThreadSafetyHandler &Handler) const override {
-    if (!asserted() && !negative() && !isUniversal()) {
+    if (lossNeedsWarning()) {
       Handler.handleMutexHeldEndOfScope(getKind(), toString(), loc(), JoinLoc,
                                         LEK);
     }
@@ -1598,7 +1613,7 @@ public:
   handleRemovalFromIntersection(const FactSet &FSet, FactManager &FactMan,
                                 SourceLocation JoinLoc, LockErrorKind LEK,
                                 ThreadSafetyHandler &Handler) const override {
-    if (LEK == LEK_LockedAtEndOfFunction || LEK == LEK_NotLockedAtEndOfFunction)
+    if (isEndOfFunctionLEK(LEK))
       return;
 
     for (const auto &UnderlyingMutex : getManaged()) {
@@ -1762,6 +1777,14 @@ class ThreadSafetyAnalyzer {
   ThreadSafetyHandler &Handler;
   const FunctionDecl *CurrentFunction;
   LocalVariableMap LocalVarMap;
+  // The beta unchecked-result diagnostics already emitted, keyed by
+  // "<join location>:<acquisition location>:<capability>". A join of three
+  // or more predecessors is intersected pairwise, and some predecessor
+  // orders lose the same try fact twice -- e.g. (conditionally held, not held,
+  // conditionally held): the middle predecessor removes it from the entry set
+  // with a diagnostic, then the last predecessor re-supplies it one-sided and
+  // would diagnose the same leak again (intersectAndWarn()).
+  llvm::StringSet<> NeverCheckedWarned;
   // Maps constructed objects to `this` placeholder prior to initialization.
   llvm::SmallDenseMap<const Expr *, til::LiteralPtr *> ConstructedObjects;
   /// The capabilities named by a try-acquire call's attributes, translated
@@ -3613,6 +3636,7 @@ private:
   /// \{
   void warnRemovedEntryFact(const FactEntry &EntryFact) const;
   void warnRemovedExitFact(const FactEntry &ExitFact) const;
+  void warnNeverChecked(const TryFactEntry &W, LockErrorKind LEK);
   void warnReentrancyMismatch(const FactEntry &FE, LockErrorKind LEK) const;
   static unsigned depth(const FactEntry *Def, bool HasCond);
   /// \}
@@ -3687,6 +3711,41 @@ void LocksetJoin::warnRemovedExitFact(const FactEntry &ExitFact) const {
   if (!ExitFact.managed() || Ctx.EntryLEK == LEK_LockedAtEndOfFunction)
     ExitFact.handleRemovalFromIntersection(ExitSet, FactMan, Ctx.JoinLoc,
                                            Ctx.EntryLEK, Handler);
+}
+
+// Likewise for the beta diagnostic that a try-acquire's possible success
+// is carried into the join (or out of the function) unchecked: for a
+// conditional try fact the analysis loses track of. Emitted once per (join,
+// acquisition, capability): the pairwise intersection of a
+// many-predecessor join can lose the same try fact twice, and the leak it
+// reports is one (see NeverCheckedWarned).
+// \p LEK is the error kind governing the branch that fires the warning
+// (EntryLEK for a try fact from the exit set, ExitLEK for one from the
+// entry set); it decides the at-end-of-function wording.
+void LocksetJoin::warnNeverChecked(const TryFactEntry &W, LockErrorKind LEK) {
+  assert(W.conditional() &&
+         "only a conditional try fact carries an unchecked result");
+  if (!Handler.issueBetaWarnings() || !W.lossNeedsWarning())
+    return;
+  // A capability managed by a scoped object is exempt at an interior
+  // join, as for the lost-hold diagnostics above: the scoped fact is
+  // still live and its destructor discharges the conditional
+  // acquisition. Only where the scope itself ends or repeats can the
+  // guard fail to check it.
+  if (W.managed() && LEK != LEK_LockedSomeLoopIterations &&
+      !isEndOfFunctionLEK(LEK))
+    return;
+  SourceLocation LocAcquired = W.origin()->getExprLoc();
+  std::string Name = W.toString();
+  SmallString<64> Key;
+  llvm::raw_svector_ostream(Key) << Ctx.JoinLoc.getRawEncoding() << ':'
+                                 << LocAcquired.getRawEncoding() << ':' << Name;
+  if (!Analyzer.NeverCheckedWarned.insert(Key).second)
+    return;
+  Handler.handleTryAcquireNeverChecked(W.getKind(), Name, LocAcquired,
+                                       Ctx.JoinLoc,
+                                       /*AtEndOfFunction=*/
+                                       isEndOfFunctionLEK(LEK));
 }
 
 // Diagnose a join where only the guaranteed depth of the hold differs.
@@ -3766,34 +3825,50 @@ void LocksetJoin::joinTryFactPair(FactSet::iterator EntryIt,
 // capability in any form (the other side's extra is what gets diagnosed),
 // or the terminator rebranches on its call. Missing from a path that does
 // not hold the capability at all, the analysis loses track of it: this
-// predecessor carries a try-acquire result into the join (or to the end of
-// the function) without its result having been checked. A ProvedHeld
-// try fact is never carried one-sided: the merged hold, if any, is not
-// proved by its call, and the definite join demotes it to conditional
-// where the rebranch exemption applies (demoteToConditional()).
+// predecessor carries a try-acquire result into the join without its
+// result having been checked -- the capability may be leaked, the beta
+// diagnostic. So does one reaching the end of the function, however the
+// expected set holds the capability: nothing after can check it. Loop
+// joins are exempt for now -- a result the code checks on the paths
+// around the loop is not a leak, and telling those apart from a result
+// never checked anywhere takes resolution of stored results, introduced
+// separately. A ProvedHeld try fact is never carried one-sided: the merged
+// hold, if any, is not proved by its call, and the definite join demotes
+// it to conditional where the rebranch exemption applies
+// (demoteToConditional()).
 void LocksetJoin::joinTryFactFromExit(FactID Fact, const TryFactEntry &ExitW) {
   if (!ExitW.conditional() || !Ctx.canModify())
     return;
-  if (EntrySetOrig.findDefinite(FactMan, ExitW) ||
-      EntrySetOrig.anyConditional(FactMan, ExitW) || isTrylockRebranched(ExitW))
+  if (Ctx.EntryLEK == LEK_LockedAtEndOfFunction)
+    warnNeverChecked(ExitW, Ctx.EntryLEK);
+  else if (EntrySetOrig.findDefinite(FactMan, ExitW) ||
+           EntrySetOrig.anyConditional(FactMan, ExitW) ||
+           isTrylockRebranched(ExitW))
     EntrySet.addLockByID(Fact);
+  else
+    warnNeverChecked(ExitW, Ctx.EntryLEK);
 }
 
 // A try fact of the entry set without a counterpart: as above, a
 // conditional one is kept wherever the other side holds the capability in
 // any form or the terminator rebranches on its call, and lost otherwise
-// -- with the unchecked try-acquire on an earlier predecessor. A one-sided
-// ProvedHeld try fact proves nothing on the other path and is dropped
-// (unless the definite join already turned it conditional, in which case
-// it is no longer here to drop).
+// -- with the unchecked try-acquire on an earlier predecessor; the beta
+// warning again not at a loop join (a conditionally held try fact missing from
+// a loop's back edge was checked inside the loop, which is not a leak). A
+// one-sided ProvedHeld try fact proves nothing on the other path and is dropped
+// (unless the definite join already turned it conditional, in which case it is
+// no longer here to drop).
 void LocksetJoin::joinTryFactFromEntry(const TryFactEntry &EntryW) {
-  if (Ctx.ExitLEK != LEK_LockedSomePredecessors)
-    return; // Only a branch join rewrites the entry set.
-  if (EntryW.conditional() &&
-      (ExitSet.findDefinite(FactMan, EntryW) ||
-       ExitSet.anyConditional(FactMan, EntryW) || isTrylockRebranched(EntryW)))
-    return;
-  EntrySet.removeFact(FactMan, EntryW);
+  if (EntryW.conditional()) {
+    if (ExitSet.findDefinite(FactMan, EntryW) ||
+        ExitSet.anyConditional(FactMan, EntryW) || isTrylockRebranched(EntryW))
+      return;
+    if (Ctx.ExitLEK != LEK_LockedSomeLoopIterations)
+      warnNeverChecked(EntryW, Ctx.ExitLEK);
+  }
+  // Only a branch join rewrites the entry set.
+  if (Ctx.ExitLEK == LEK_LockedSomePredecessors)
+    EntrySet.removeFact(FactMan, EntryW);
 }
 
 // Two definite facts of a capability: a mixed join if exactly one side
@@ -3815,19 +3890,23 @@ void LocksetJoin::joinDefinitePair(FactSet::iterator EntryIt, FactID Fact,
 // deeper. Forgiven when the definite side's extra level was proved by the
 // call the terminator rebranches on and the other side holds that call's
 // conditional try fact (mixedJoinExempt()): the merged state re-resolves
-// it. Otherwise the definite side's fact is diagnosed as not held on the
-// other path. The merged state is the conditional side's.
+// it. Otherwise the capability is held on every path and only the
+// guaranteed depth differs: the reentrancy-mismatch wording, like a join
+// of unequal definite depths, under the exemptions of the lost-hold path
+// it replaces (a scoped object still knows to release the levels it
+// manages at an interior join). The merged state is the conditional
+// side's.
 void LocksetJoin::joinMixedPair(FactSet::iterator EntryIt, FactID Fact,
                                 const FactEntry &EntryFact,
                                 const FactEntry &ExitFact, bool ExitHasCond) {
   const FactEntry &DefSide = ExitHasCond ? EntryFact : ExitFact;
+  const FactEntry &CondSide = ExitHasCond ? ExitFact : EntryFact;
   const FactSet &DefSet = ExitHasCond ? EntrySetOrig : ExitSet;
   const FactSet &CondSet = ExitHasCond ? ExitSet : EntrySetOrig;
   if (!mixedJoinExempt(DefSet, DefSide, CondSet)) {
-    if (ExitHasCond)
-      warnRemovedEntryFact(EntryFact);
-    else
-      warnRemovedExitFact(ExitFact);
+    if (CondSide.lossNeedsWarning() &&
+        !(CondSide.managed() && Ctx.EntryLEK == LEK_LockedSomePredecessors))
+      warnReentrancyMismatch(CondSide, Ctx.EntryLEK);
   } else if (Ctx.canModify() &&
              depth(&EntryFact, !ExitHasCond) != depth(&ExitFact, ExitHasCond)) {
     warnReentrancyMismatch(ExitFact, Ctx.EntryLEK);
@@ -3838,14 +3917,12 @@ void LocksetJoin::joinMixedPair(FactSet::iterator EntryIt, FactID Fact,
 
 // A definite hold of this predecessor only: a mixed join if the other side
 // holds the capability conditionally; else demoted to conditional under the
-// rebranch exemption; else lost -- silently when its own side also holds
-// the capability conditionally (this predecessor carries a try-acquire
-// result into the join without its result having been checked), and with
-// the default lost-capability diagnostic otherwise.
+// rebranch exemption; else lost, the default lost-capability diagnostic
+// (its conditional try facts, if any, are lost by joinTryFactFromExit()).
 void LocksetJoin::joinDefiniteFromExit(FactID Fact, const FactEntry &ExitFact) {
-  const bool ExitHasCond = ExitSet.anyConditional(FactMan, ExitFact);
   if (EntrySetOrig.anyConditional(FactMan, ExitFact)) {
-    joinMixedFromExit(Fact, ExitFact, ExitHasCond);
+    joinMixedFromExit(Fact, ExitFact,
+                      ExitSet.anyConditional(FactMan, ExitFact));
     return;
   }
   if (rebranchProof(ExitSet, ExitFact)) {
@@ -3857,17 +3934,16 @@ void LocksetJoin::joinDefiniteFromExit(FactID Fact, const FactEntry &ExitFact) {
       demoteExitFact(ExitFact, Ctx.EntryLEK);
     return;
   }
-  if (!ExitHasCond)
-    warnRemovedExitFact(ExitFact);
+  warnRemovedExitFact(ExitFact);
 }
 
 // A definite hold of the entry set only: as above, but a demotion keeps
 // the fact in the intersection in its demoted conditionally held form (except
 // at a loop join, where the entry set is left unmodified).
 void LocksetJoin::joinDefiniteFromEntry(const FactEntry &EntryFact) {
-  const bool EntryHasCond = EntrySetOrig.anyConditional(FactMan, EntryFact);
   if (ExitSet.anyConditional(FactMan, EntryFact)) {
-    joinMixedFromEntry(EntryFact, EntryHasCond);
+    joinMixedFromEntry(EntryFact,
+                       EntrySetOrig.anyConditional(FactMan, EntryFact));
     return;
   }
   if (rebranchProof(EntrySetOrig, EntryFact)) {
@@ -3875,8 +3951,7 @@ void LocksetJoin::joinDefiniteFromEntry(const FactEntry &EntryFact) {
       demoteEntryFactInPlace(EntryFact, Ctx.ExitLEK);
     return;
   }
-  if (!EntryHasCond)
-    warnRemovedEntryFact(EntryFact);
+  warnRemovedEntryFact(EntryFact);
   if (Ctx.ExitLEK == LEK_LockedSomePredecessors)
     EntrySet.removeFact(FactMan, EntryFact);
 }
