@@ -42,6 +42,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/StringSet.h"
 #include "llvm/Support/Allocator.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -61,6 +62,13 @@ using namespace threadSafety;
 
 // Key method definition
 ThreadSafetyHandler::~ThreadSafetyHandler() = default;
+
+/// Whether \p LEK diagnoses the end of the function rather than an interior
+/// join.
+static bool isEndOfFunctionLEK(LockErrorKind LEK) {
+  return LEK == LEK_LockedAtEndOfFunction ||
+         LEK == LEK_NotLockedAtEndOfFunction;
+}
 
 /// True if capability attributes on \p Param describe the function reached
 /// through it rather than the argument bound to it.
@@ -232,6 +240,13 @@ public:
   void setTryLock(const Expr *Call, bool Conditional) {
     assert((Call || !Conditional) && "conditional fact without an origin");
     TryLock.setPointerAndInt(Call, Conditional);
+  }
+
+  /// Whether losing track of this fact warrants a diagnostic: an asserted
+  /// or universal capability's hold is not something the analyzed code is
+  /// expected to release, and a negative fact is not a hold at all.
+  bool lossNeedsWarning() const {
+    return !asserted() && !negative() && !isUniversal();
   }
 
   /// The fact's reentrancy depth; only lockable facts can be reentrant.
@@ -1209,7 +1224,7 @@ public:
   handleRemovalFromIntersection(const FactSet &FSet, FactManager &FactMan,
                                 SourceLocation JoinLoc, LockErrorKind LEK,
                                 ThreadSafetyHandler &Handler) const override {
-    if (!asserted() && !negative() && !isUniversal()) {
+    if (lossNeedsWarning()) {
       Handler.handleMutexHeldEndOfScope(getKind(), toString(), loc(), JoinLoc,
                                         LEK);
     }
@@ -1445,7 +1460,7 @@ public:
   handleRemovalFromIntersection(const FactSet &FSet, FactManager &FactMan,
                                 SourceLocation JoinLoc, LockErrorKind LEK,
                                 ThreadSafetyHandler &Handler) const override {
-    if (LEK == LEK_LockedAtEndOfFunction || LEK == LEK_NotLockedAtEndOfFunction)
+    if (isEndOfFunctionLEK(LEK))
       return;
 
     for (const auto &UnderlyingMutex : getManaged()) {
@@ -1578,6 +1593,14 @@ class ThreadSafetyAnalyzer {
   ThreadSafetyHandler &Handler;
   const FunctionDecl *CurrentFunction;
   LocalVariableMap LocalVarMap;
+  // The beta unchecked-result diagnostics already emitted, keyed by
+  // "<join location>:<acquisition location>:<capability>". A join of three
+  // or more predecessors is intersected pairwise, and some predecessor
+  // orders lose the same fact twice -- e.g. (try-held, no-fact, try-held):
+  // the fact-free middle predecessor removes it from the entry set with a
+  // diagnostic, then the last predecessor re-supplies it one-sided and
+  // would diagnose the same leak again (intersectAndWarn()).
+  llvm::StringSet<> NeverCheckedWarned;
   // Maps constructed objects to `this` placeholder prior to initialization.
   llvm::SmallDenseMap<const Expr *, til::LiteralPtr *> ConstructedObjects;
   /// The capabilities named by a try-acquire call's attributes, translated
@@ -3416,14 +3439,49 @@ void ThreadSafetyAnalyzer::intersectAndWarn(FactSet &EntrySet,
       ExitFact.handleRemovalFromIntersection(ExitSet, FactMan, JoinLoc,
                                              EntryLEK, Handler);
   };
+  // Likewise for the beta diagnostic that a try-acquire's possible success
+  // is carried into the join (or out of the function) unchecked: for a
+  // conditional fact the analysis loses track of. Emitted once per (join,
+  // acquisition, capability): the pairwise intersection of a
+  // many-predecessor join can lose the same fact twice, and the leak it
+  // reports is one (see NeverCheckedWarned).
+  // \p LEK is the error kind governing the branch that fires the warning
+  // (EntryLEK for a fact from the exit set, ExitLEK for one from the entry
+  // set); it decides the at-end-of-function wording.
+  auto WarnNeverChecked = [&](const FactEntry &FE, LockErrorKind LEK) {
+    assert(FE.tryHeld() &&
+           "only a conditional fact carries an unchecked result");
+    if (!Handler.issueBetaWarnings() || !FE.lossNeedsWarning())
+      return;
+    // A capability managed by a scoped object is exempt at an interior
+    // join, as for the lost-hold diagnostics above: the scoped fact is
+    // still live and its destructor discharges the conditional
+    // acquisition. Only where the scope itself ends or repeats can the
+    // guard fail to check it.
+    if (FE.managed() && LEK != LEK_LockedSomeLoopIterations &&
+        !isEndOfFunctionLEK(LEK))
+      return;
+    SourceLocation LocAcquired = FE.tryLockCall()->getExprLoc();
+    std::string Name = FE.toString();
+    SmallString<64> Key;
+    llvm::raw_svector_ostream(Key)
+        << JoinLoc.getRawEncoding() << ':' << LocAcquired.getRawEncoding()
+        << ':' << Name;
+    if (!NeverCheckedWarned.insert(Key).second)
+      return;
+    Handler.handleTryAcquireNeverChecked(FE.getKind(), Name, LocAcquired,
+                                         JoinLoc,
+                                         /*AtEndOfFunction=*/
+                                         isEndOfFunctionLEK(LEK));
+  };
   // Diagnose a join where only the guaranteed depth of the hold differs.
   auto WarnReentrancyMismatch = [&](const FactEntry &FE, LockErrorKind LEK) {
     Handler.handleMutexHeldEndOfScope(FE.getKind(), FE.toString(), FE.loc(),
                                       JoinLoc, LEK,
                                       /*ReentrancyMismatch=*/true);
   };
-  // The total number of levels a side holds beyond the first, definite or
-  // conditional: what a reentrancy-depth comparison of the two sides sees.
+  // The total number of levels a side holds, definite or conditional: what
+  // a reentrancy-depth comparison of the two sides sees.
   auto Depth = [](const FactEntry *Def, bool HasCond) {
     return (Def ? Def->getReentrancyDepth() + 1 : 0) + (HasCond ? 1 : 0);
   };
@@ -3460,13 +3518,23 @@ void ThreadSafetyAnalyzer::intersectAndWarn(FactSet &EntrySet,
       // extra is what gets diagnosed), or the terminator re-branches on its
       // call. Missing from a path that does not hold the capability at all,
       // the analysis loses track of it: this predecessor carries a
-      // try-acquire result into the join (or to the end of the function)
-      // without its result having been checked.
+      // try-acquire result into the join without its result having been
+      // checked -- the capability may be leaked, the beta diagnostic. So
+      // does one reaching the end of the function, however the expected
+      // set holds the capability: nothing after can check it. Loop joins
+      // are exempt for now -- a result the code checks on the paths around
+      // the loop is not a leak, and telling those apart from a result never
+      // checked anywhere takes resolution of stored results, introduced
+      // separately.
       if (EntryIt != EntrySet.end() || !CanModify)
         continue;
-      if (EntrySetOrig.findDefinite(FactMan, ExitFact) || EntryHasCond ||
-          IsTrylockRebranched(ExitFact))
+      if (EntryLEK == LEK_LockedAtEndOfFunction)
+        WarnNeverChecked(ExitFact, EntryLEK);
+      else if (EntrySetOrig.findDefinite(FactMan, ExitFact) || EntryHasCond ||
+               IsTrylockRebranched(ExitFact))
         EntrySet.addLockByID(Fact);
+      else
+        WarnNeverChecked(ExitFact, EntryLEK);
       continue;
     }
 
@@ -3476,18 +3544,22 @@ void ThreadSafetyAnalyzer::intersectAndWarn(FactSet &EntrySet,
         // Mixed: one side's hold is one conditional level deeper. Forgiven
         // when the definite side's extra level was proved by the call the
         // terminator re-branches on and the other side holds that call's
-        // fact: the merged state re-resolves it. Otherwise the definite
-        // side's fact is diagnosed as not held on the other path.
+        // fact: the merged state re-resolves it. Otherwise the capability
+        // is held on every path and only the guaranteed depth differs:
+        // the reentrancy-mismatch wording, like a join of unequal definite
+        // depths, under the exemptions of the lost-hold path it replaces
+        // (a scoped object still knows to release the levels it manages
+        // at an interior join).
         const FactEntry &DefSide = ExitHasCond ? EntryFact : ExitFact;
+        const FactEntry &CondSide = ExitHasCond ? ExitFact : EntryFact;
         const FactSet &CondSet = ExitHasCond ? ExitSet : EntrySetOrig;
         const bool Exempt =
             IsTrylockRebranched(DefSide) &&
             CondSet.findConditional(FactMan, DefSide, RebranchTryLock);
         if (!Exempt) {
-          if (ExitHasCond)
-            WarnRemovedEntryFact(EntryFact);
-          else
-            WarnRemovedExitFact(ExitFact);
+          if (CondSide.lossNeedsWarning() &&
+              !(CondSide.managed() && EntryLEK == LEK_LockedSomePredecessors))
+            WarnReentrancyMismatch(CondSide, EntryLEK);
         } else if (CanModify && Depth(&EntryFact, EntryHasCond) !=
                                     Depth(&ExitFact, ExitHasCond)) {
           WarnReentrancyMismatch(ExitFact, EntryLEK);
@@ -3512,9 +3584,9 @@ void ThreadSafetyAnalyzer::intersectAndWarn(FactSet &EntrySet,
     // A definite fact of this predecessor only.
     if (EntryHasCond) {
       if (!ExitHasCond) {
-        // Mixed, with the other side holding only conditionally: as above,
-        // forgiven under the re-branch, else diagnosed; the merged state
-        // is the other side's.
+        // Mixed, with the other side holding only conditionally: forgiven
+        // under the re-branch, else diagnosed as not held on the other
+        // path; the merged state is the other side's.
         const bool Exempt =
             IsTrylockRebranched(ExitFact) &&
             EntrySetOrig.findConditional(FactMan, ExitFact, RebranchTryLock);
@@ -3539,12 +3611,10 @@ void ThreadSafetyAnalyzer::intersectAndWarn(FactSet &EntrySet,
         if (const FactEntry *Rest =
                 DemoteToTryHeld(EntrySet, ExitFact, EntryLEK))
           EntrySet.addLock(FactMan, Rest);
-    } else if (ExitHasCond) {
-      // The analysis loses track of a hold that is also conditionally
-      // deeper: this predecessor carries a try-acquire result into the join
-      // (or to the end of the function) without its result having been
-      // checked.
     } else {
+      // The analysis loses track of the fact here: the default
+      // lost-capability diagnostic. (Its conditional facts, if any, are
+      // lost above.)
       WarnRemovedExitFact(ExitFact);
     }
   }
@@ -3561,10 +3631,15 @@ void ThreadSafetyAnalyzer::intersectAndWarn(FactSet &EntrySet,
     if (EntryFact->tryHeld()) {
       // As above: a conditional fact is kept wherever the other side holds
       // the capability in any form or the terminator re-branches on its
-      // call, and lost otherwise.
+      // call, and lost otherwise -- with the unchecked try-acquire on an
+      // earlier predecessor; the beta warning again not at a loop join (a
+      // try-held fact missing from a loop's back edge was checked inside
+      // the loop, which is not a leak).
       if (ExitSet.findDefinite(FactMan, *EntryFact) || ExitHasCond ||
           IsTrylockRebranched(*EntryFact))
         continue;
+      if (ExitLEK != LEK_LockedSomeLoopIterations)
+        WarnNeverChecked(*EntryFact, ExitLEK);
       if (ExitLEK == LEK_LockedSomePredecessors)
         EntrySet.removeFact(FactMan, *EntryFact);
       continue;
@@ -3604,12 +3679,7 @@ void ThreadSafetyAnalyzer::intersectAndWarn(FactSet &EntrySet,
       }
       continue;
     }
-    if (EntryHasCond) {
-      // As above, with the unchecked try-acquire on an earlier
-      // predecessor: it gets lost by the analysis.
-    } else {
-      WarnRemovedEntryFact(*EntryFact);
-    }
+    WarnRemovedEntryFact(*EntryFact);
     if (ExitLEK == LEK_LockedSomePredecessors)
       EntrySet.removeFact(FactMan, *EntryFact);
   }
