@@ -479,7 +479,15 @@ as `ACQUIRE`. See {ref}`mutexheader`, below, for example uses.
 
 The capability is tracked as conditionally ("try") held from the call until a
 recognized branch on its return value: on the success path the capability is
-held, on the failure path it is not. A conditionally held capability does not
+held, on the failure path it is not. A branch is recognized when it tests the
+call's result directly or through a local variable, including a variable that
+merges the result with an earlier constant initializer
+(`bool ok = false; if (...) ok = mu.TryLock(); if (ok) ...`) -- when the
+variable is true despite the false initializer, the try-acquire must have
+succeeded. The branch resolves only a still-tracked acquisition: a fact the
+analysis already lost -- at a merge with a path that does not hold the
+capability, or around an intervening loop -- is not revived, and the checked
+region stays conservatively diagnosed. A conditionally held capability does not
 satisfy requirements such as `GUARDED_BY` or `REQUIRES` and it also violates
 `LOCKS_EXCLUDED` and negative requirements (`REQUIRES(!mu)`). Acquiring a
 non-reentrant lock again before branching on the return value warns that it may
@@ -496,8 +504,9 @@ each is resolved by the branch on its own return value. Asserting the capability
 Under `-Wthread-safety-beta`, a try-acquire whose result is never used to
 determine success additionally warns where the analysis loses track of it --
 at a branch merge with a path that does not hold the capability, or at the
-end of the function -- since the capability may then be leaked. Loop merges
-are exempt: a result may be checked on the paths around the loop.
+end of the function -- since the capability may then be leaked. A loop merge
+is exempt only while the result is branched on somewhere around the loop; a
+result never checked anywhere warns at the loop merge too.
 
 On a {ref}`scoped_capability` constructor
 (`std::unique_lock lock(mu, std::try_to_lock)`-style), the named capabilities
