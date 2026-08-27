@@ -463,6 +463,9 @@ constructor or function returning them by value (using C++17 guaranteed copy
 elision). Acquire-type attributes on other member functions are treated as
 applying to that set of associated capabilities, while `RELEASE` implies that
 a function releases all associated capabilities in whatever mode they're held.
+A constructor annotated with `TRY_ACQUIRE` acquires the associated
+capabilities conditionally, managed by the scoped object; see
+`TRY_ACQUIRE` below.
 
 ### TRY_ACQUIRE(\<bool>, ...), TRY_ACQUIRE_SHARED(\<bool>, ...)
 
@@ -489,6 +492,20 @@ generates a warning since a hold has one kind. A try-acquire of a capability
 that is already conditionally held by another try-acquire is tracked separately:
 each is resolved by the branch on its own return value. Asserting the capability
 (`ASSERT_CAPABILITY`) upgrades it to held without a warning.
+
+On a {ref}`scoped_capability` constructor
+(`std::unique_lock lock(mu, std::try_to_lock)`-style), the named capabilities
+are likewise acquired conditionally, managed by the scoped object. A
+constructor has no return value to branch on, so uses under the guard remain
+diagnosed as unverified; but the destructor's conditional release -- it
+releases each capability only if the guard holds it -- pairs exactly with the
+conditional acquisition, so the guard's death discharges it silently and
+establishes that the capability is no longer held. An explicit `RELEASE`
+member function, by contrast, demands an unconditional release (releasing a
+guard that does not hold the capability is a runtime error) and warns that the
+capability may not be held. A try-acquire made directly on the underlying
+capability while the guard is alive is not the guard's own: the destructor
+keeps that conditional hold for its stored result to resolve after the scope.
 
 ```c++
 Mutex mu;
