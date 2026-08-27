@@ -409,6 +409,41 @@ void test_trylock_void_conditional_via_var(void) {
   mutex_unlock(&mu1);
 }
 
+// Before C23 <stdbool.h> defines `true` as the integer constant 1, so a
+// boolean success value is spelled exactly like an exact success code.
+// It has to keep meaning "acquired on any nonzero result", or a wrapper
+// returning some other nonzero value on success is reported as never
+// acquiring on every edge that excludes 1.
+#define true 1
+int mutex_trylock_true(struct Mutex *mu) EXCLUSIVE_TRYLOCK_FUNCTION(true, mu);
+void mutex_unlock_mu1(void) UNLOCK_FUNCTION(mu1);
+
+void test_trylock_true_is_not_a_code(void) {
+  switch (mutex_trylock_true(&mu1)) {
+  case 1:
+    mutex_unlock_mu1();
+    break;
+  default:
+    // The result is not 1, but the wrapper may return 2 on success, so
+    // the capability may well be held here.
+    mutex_unlock_mu1(); // expected-warning {{releasing mutex 'mu1' that may not be held}}
+    break;
+  }
+}
+
+// A code written out as a literal still keys the acquisition to it.
+int mutex_trylock_one(struct Mutex *mu) EXCLUSIVE_TRYLOCK_FUNCTION(1, mu);
+void test_trylock_literal_one_is_a_code(void) {
+  switch (mutex_trylock_one(&mu1)) {
+  case 1:
+    mutex_unlock_mu1();
+    break;
+  default:
+    mutex_unlock_mu1(); // expected-warning {{releasing mutex 'mu1' that was not held}}
+    break;
+  }
+}
+
 // A switch on an int-typed but provably boolean condition (a comparison in
 // C) derives the default edge the same way as a _Bool condition: case 1 is
 // the success edge, so default implies the try-lock failed.
