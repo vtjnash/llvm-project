@@ -157,7 +157,8 @@ class FactSet;
 ///             success edge (the failure edge is infeasible
 ///             and skipped at joins)-----------------------------> held
 ///   held -----join with a failed path of the same try-acquire,
-///             when the join re-branches on its result
+///             when the join re-branches on its result or the
+///             other path records that call's failure
 ///             (intersectAndWarn)-------------------------------> try-held
 ///   held -----release------------------------------------------> not-held
 ///
@@ -2364,11 +2365,6 @@ class ThreadSafetyAnalyzer {
     /// cross-kind pairing guarantees no more than a shared hold either
     /// way.
     CapExprSet UnconditionalExclusive, UnconditionalShared;
-    /// Whether try-held facts were created for these capabilities at the
-    /// call, i.e. whether the walk has reached it. getEdgeLockset() only
-    /// re-materializes a lost fact for a call that tracked one to lose.
-    bool TracksFacts = false;
-
     /// Visit every capability the call's attributes name conditionally --
     /// the groups decodeTrylockBranch() builds its per-edge resolutions
     /// from -- until \p Pred returns true. An unconditional acquisition
@@ -2545,7 +2541,7 @@ public:
       bool RebranchResolvesAllPaths = true,
       const Expr *RebranchTryLock2 = nullptr,
       const llvm::SmallPtrSetImpl<const Expr *> *CheckedAroundLoop = nullptr,
-      bool ForwardJoin = false);
+      bool SealedEntry = false);
 
   void intersectAndWarn(FactSet &EntrySet, const FactSet &ExitSet,
                         SourceLocation JoinLoc, LockErrorKind LEK) {
@@ -3759,10 +3755,12 @@ bool ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
   // excludes the paths it holds on, so resolve over it. (Its real form
   // already proved this edge infeasible above.) An ambiguous edge proves
   // no acquisition either way -- the call may never have executed -- so it
-  // re-materializes nothing.
+  // re-materializes nothing. Every recorded call creates facts, scoped
+  // lockable constructions included: theirs are managed by the scoped
+  // fact, and a branch cannot reach one anyway (the decode does not look
+  // through the conversion that would test a guard object).
   if (auto MapIt = TryAcquireCapsMap.find(Exp);
-      !Ambiguous && MapIt != TryAcquireCapsMap.end() &&
-      MapIt->second.TracksFacts) {
+      !Ambiguous && MapIt != TryAcquireCapsMap.end()) {
     for (const TrylockEdgeCap &EC : Edge.Caps) {
       if (EC.Resolution != CapResolution::Success)
         continue;
@@ -4516,12 +4514,6 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
   // silently (handleUncheckedTryHeldUnlock()).
   CapExprSet TryLocksExclusive, TryLocksShared, TryLocksManaged;
   if (Exp && TryCaps) {
-    // Set as the walk reaches the call, not in the pre-walk: a branch
-    // decoded before the call is walked -- a loop-top `if (ok)` above
-    // `ok = mu.TryLock()` -- must not re-materialize a hold for an
-    // acquisition that has not happened on the first iteration
-    // (tryheld_retry_with_continue).
-    TryCaps->TracksFacts = true;
     for (const auto &M : TryCaps->TruthyExclusive)
       TryLocksExclusive.push_back(M);
     for (const auto &M : TryCaps->FalsyExclusive)
@@ -4863,15 +4855,30 @@ bool ThreadSafetyAnalyzer::join(const FactEntry &A, const FactEntry &B,
 /// \param RebranchTryLock2 When the branched-on variable merges the
 /// results of two structurally identical try-acquire calls (the merge
 /// resolves to \p RebranchTryLock, the first path's call), the second
-/// path's call. A join of two try-held facts whose origins are exactly
-/// these two calls keeps \p RebranchTryLock as the merged origin instead
-/// of clearing it: the variable holds either call's result and both
-/// resolve the capability identically, so the outgoing edges resolve the
-/// merged fact like a single call's.
-/// \param ForwardJoin Whether the join accumulates a block entry set still
-/// under construction (branch and continue joins): only such joins may keep
-/// one-sided negatives as weak facts. The sealed post-hoc comparisons (back
-/// edges, the function exit) must not grow their sets.
+/// path's call. A side holding one of the two calls' facts alone holds
+/// "the result of that call" either way, so its fact folds into the fact
+/// of \p RebranchTryLock, which the outgoing edges resolve like a single
+/// call's.
+///
+/// At loop joins there is a second, terminator-free exemption: facts on
+/// the two sides that carry the same origin call C both denote "held iff
+/// C's result" -- a held fact is merely edge-strengthened by a check of a
+/// previous execution of C, and a failure-edge negative is "C's result is
+/// falsy" -- so try-held(C) is their exact join and the demotion is
+/// silent. A negative fact on either side that spent C's result refutes
+/// the shared condition (the result stays truthy while the hold is gone)
+/// and keeps the diagnosis. Applied at loop joins always -- the
+/// check-first loop idioms (`if (ok) continue; ok = mu.TryLock();`)
+/// create this shape at continue latches -- and for a one-sided fact at
+/// branch joins under -Wthread-safety-beta, where the unchecked-result
+/// diagnostics keep the hidden leak reported; a mixed same-origin branch
+/// join means a re-branch failed to resolve all paths and stays
+/// diagnosed eagerly.
+///
+/// \param SealedEntry The entry set belongs to an already-analyzed loop
+/// head (the back-edge comparison): suppression still applies, but the
+/// set must not be rewritten in place -- the head's edges were processed
+/// long ago.
 ///
 /// Facts are paired by form (FactSet::findCounterpart()): a capability's
 /// definite facts join through join(), and its conditional facts join per
@@ -4887,11 +4894,15 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
     LockErrorKind EntryLEK, LockErrorKind ExitLEK, const Expr *RebranchTryLock,
     bool RebranchResolvesAllPaths, const Expr *RebranchTryLock2,
     const llvm::SmallPtrSetImpl<const Expr *> *CheckedAroundLoop,
-    bool ForwardJoin) {
+    bool SealedEntry) {
   FactSet EntrySetOrig = EntrySet;
   // A loop join compares against an entry set that was analyzed long ago:
-  // it diagnoses, but must not rewrite that set.
-  const bool CanModify = EntryLEK != LEK_LockedSomeLoopIterations;
+  // it diagnoses, but must not rewrite that set -- except at a continue
+  // latch, a loop-kind join still accumulating a block's entry set, where
+  // the same-origin exemption below does write.
+  const bool LoopJoin = EntryLEK == LEK_LockedSomeLoopIterations;
+  const bool CanModify = !LoopJoin;
+  const bool UnsealedLoopJoin = LoopJoin && !SealedEntry;
 
   auto IsTrylockRebranched = [RebranchTryLock](const FactEntry &FE) {
     return RebranchTryLock && FE.tryLockCall() == RebranchTryLock;
@@ -4939,12 +4950,71 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
   // Whether a join may keep a one-sided negative as weak evidence: only
   // the forward joins that are still accumulating a block's entry set.
   auto MayKeepWeakNegative = [&](LockErrorKind LEK) {
-    return LEK == LEK_LockedSomePredecessors || ForwardJoin;
+    return LEK == LEK_LockedSomePredecessors ||
+           (LEK == LEK_LockedSomeLoopIterations && !SealedEntry);
   };
   auto RebranchVetoedByNegative = [&, this](const FactSet &OtherSet,
                                             const FactEntry &FE) {
     const FactEntry *Neg = OtherSet.findDefinite(FactMan, !FE);
     return Neg && Neg->spentTryLock();
+  };
+  // The same-origin analogue of the re-branch exemption for a one-sided
+  // fact: the join's other side carries this fact's own call's
+  // failure-edge negative, so the sides are exactly "held iff C's result"
+  // and "C's result is falsy", and their join is try-held(C). A weak
+  // negative proves less (failure on only some of that side's paths) and
+  // a spent one refutes the stored result instead; neither qualifies.
+  auto SameOriginFailureNegative =
+      [&, this](const FactSet &OtherSet,
+                const FactEntry &FE) -> const FactEntry * {
+    if (!FE.tryLockCall())
+      return nullptr;
+    const FactEntry *Neg = OtherSet.findDefinite(FactMan, !FE);
+    if (Neg && !Neg->weak() && !Neg->spentTryLock() &&
+        Neg->tryLockCall() == FE.tryLockCall())
+      return Neg;
+    return nullptr;
+  };
+  // Where the silent reconstitution applies: at loop joins always, and at
+  // branch joins only in beta mode -- there the try-held machinery
+  // reports an eventual leak, while without beta the eager lost-hold
+  // diagnosis at the join is the only coverage and is retained. Naming
+  // both join kinds also keeps the exemption away from the end-of-function
+  // comparison, whose entry set is the declared expected set: rewriting
+  // that would swallow the still-held diagnostic. (No fact there carries a
+  // try-acquire origin to match on today, so this only pins the
+  // invariant.)
+  auto SameOriginJoinAllowed = [&, this](const FactSet &OtherSet,
+                                         const FactEntry &FE,
+                                         LockErrorKind LEK) {
+    return (LEK == LEK_LockedSomeLoopIterations ||
+            (LEK == LEK_LockedSomePredecessors &&
+             Handler.issueBetaWarnings())) &&
+           SameOriginFailureNegative(OtherSet, FE);
+  };
+  // The same-origin mixed join: a definite hold proved by call C meets C's
+  // own conditional fact on the other side. Both sides' states are
+  // conditioned on C's result -- the hold is merely edge-strengthened by a
+  // check of a previous execution of C -- so the mixed join loses nothing
+  // and the merged state is the conditional one: always at loop joins
+  // (the check-first loop idioms `if (ok) continue; ok = mu.TryLock();`
+  // create this shape at continue latches), unless a negative on either
+  // side spent that result, which refutes the shared condition; at branch
+  // joins only through the terminator re-branching on C, which
+  // re-resolves the demoted state on its outgoing edges.
+  auto SpentNegativeFor = [&, this](const FactSet &Set, const FactEntry &FE,
+                                    const Expr *Call) {
+    const FactEntry *Neg = Set.findDefinite(FactMan, !FE);
+    return Neg && Neg->spentTryLock() == Call;
+  };
+  auto MixedJoinExempt = [&](const FactEntry &DefSide, const FactSet &CondSet) {
+    const Expr *C = DefSide.tryLockCall();
+    if (!C || !CondSet.findConditional(FactMan, DefSide, C))
+      return false;
+    if (C == RebranchTryLock && RebranchResolvesAllPaths)
+      return true;
+    return LoopJoin && !SpentNegativeFor(EntrySetOrig, DefSide, C) &&
+           !SpentNegativeFor(ExitSet, DefSide, C);
   };
   // Warn about a fact the intersection removes (or weakens to try-held).
   // However, a capability managed by a scoped object is exempt -- the
@@ -5007,12 +5077,12 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
   auto Depth = [](const FactEntry *Def, bool HasCond) {
     return (Def ? Def->getReentrancyDepth() + 1 : 0) + (HasCond ? 1 : 0);
   };
-  // Demote the definite hold \p Def, proved by the re-branched call (or
-  // given up by it: a hold the call releases on success carries no origin
-  // of its own, and the demotion adopts the call, whose outcome resolves
-  // the hold inverted, getEdgeLockset()), to that call's conditional fact
-  // in \p Into, which getEdgeLockset() re-resolves on the outgoing edges.
-  // A mismatched reentrancy depth is diagnosed here but kept -- after the
+  // Demote the definite hold \p Def, proved by a try-acquire call (or
+  // given up by the re-branched one: a hold the call releases on success
+  // carries no origin of its own, and the demotion adopts the call, whose
+  // outcome resolves the hold inverted, getEdgeLockset()), to that call's
+  // conditional fact in \p Into, which a branch on the result resolves. A
+  // mismatched reentrancy depth is diagnosed here but kept -- after the
   // warning, the deeper fact guards more of the releases downstream than
   // a stripped one would -- as the levels below the demoted one, no
   // longer determined by the call: returned for the caller to place, since
@@ -5020,10 +5090,12 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
   auto DemoteToTryHeld = [&, this](FactSet &Into, const FactEntry &Def,
                                    LockErrorKind LEK) -> const FactEntry * {
     const auto &LDef = cast<LockableFactEntry>(Def);
+    const Expr *Origin =
+        Def.tryLockCall() ? Def.tryLockCall() : RebranchTryLock;
     if (Def.getReentrancyDepth() != 0)
       WarnReentrancyMismatch(Def, LEK);
-    if (!Into.findConditional(FactMan, Def, RebranchTryLock))
-      Into.addLock(FactMan, LDef.asConditional(FactMan, RebranchTryLock));
+    if (!Into.findConditional(FactMan, Def, Origin))
+      Into.addLock(FactMan, LDef.asConditional(FactMan, Origin));
     if (const FactEntry *Shallower = LDef.leaveReentrant(FactMan))
       return cast<LockableFactEntry>(Shallower)->withOrigin(FactMan, nullptr);
     return nullptr;
@@ -5039,7 +5111,7 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
                                   ? EntryFact.spentTryLock()
                                   : ExitFact.spentTryLock();
     const FactEntry &Merged = FactMan[*EntryIt];
-    if (!(EntryLEK == LEK_LockedSomePredecessors || ForwardJoin) ||
+    if (!MayKeepWeakNegative(EntryLEK) ||
         !((EitherWeak && !Merged.weak()) ||
           (EitherSpent && !Merged.spentTryLock())))
       return;
@@ -5065,19 +5137,27 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
       // the other side holds the capability in any form (the other side's
       // extra is what gets diagnosed), or the terminator re-branches on its
       // call (unless a spent negative on the other side vetoes that, see
-      // RebranchVetoedByNegative above). Missing from a path that does not
-      // hold the capability at all, the analysis loses track of it: this
-      // predecessor carries a try-acquire result into the join without its
-      // result having been checked -- the capability may be leaked, the
-      // beta diagnostic. So does one reaching the end of the function,
-      // however the expected set holds the capability: nothing after can
-      // check it. Loop joins are exempt for now -- a result the code
-      // checks on the paths around the loop is not a leak, and telling
-      // those apart from a result never checked anywhere takes resolution
-      // of stored results, introduced separately.
+      // RebranchVetoedByNegative above), or the other side carries the
+      // call's own failure-edge negative (the same-origin exemption).
+      // Missing from a path that does not hold the capability at all, the
+      // analysis loses track of it: this predecessor carries a try-acquire
+      // result into the join without its result having been checked --
+      // the capability may be leaked, the beta diagnostic. So does one
+      // reaching the end of the function, however the expected set holds
+      // the capability: nothing after can check it.
       if (EntryIt != EntrySet.end())
         continue;
-      if (!CanModify) {
+      const FactEntry *EntryDef = EntrySetOrig.findDefinite(FactMan, ExitFact);
+      if (LoopJoin) {
+        // A sealed loop join leaves the entry set alone; a continue latch
+        // takes the same-origin reconstitution: the fact joins a definite
+        // hold proved by its own call, or its own failure-edge negative.
+        if (UnsealedLoopJoin &&
+            ((EntryDef && MixedJoinExempt(*EntryDef, ExitSet)) ||
+             SameOriginFailureNegative(EntrySetOrig, ExitFact))) {
+          EntrySet.addLockByID(Fact);
+          continue;
+        }
         // At a loop join it warns only when the result is not branched on
         // anywhere inside the loop (CheckedAroundLoop): then the next
         // iteration re-executes the call (or the loop discards the result)
@@ -5085,10 +5165,12 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
         // check after the loop sees only the last result and cannot make
         // this sound. Joins without that information (continue joins, see
         // runAnalysis()) stay exempt, and so does a fact the pre-loop
-        // state holds definitely (the depth mismatch is diagnosed instead);
-        // another call's conditional fact there is no check of this one.
-        if (!EntrySetOrig.findDefinite(FactMan, ExitFact) &&
-            !IsTrylockRebranched(ExitFact) && CheckedAroundLoop &&
+        // state holds definitely (the depth mismatch is diagnosed instead)
+        // or proves failed; another call's conditional fact there is no
+        // check of this one.
+        if (!EntryDef && !IsTrylockRebranched(ExitFact) &&
+            !SameOriginFailureNegative(EntrySetOrig, ExitFact) &&
+            CheckedAroundLoop &&
             !CheckedAroundLoop->count(ExitFact.tryLockCall()))
           WarnNeverChecked(ExitFact, EntryLEK);
         continue;
@@ -5116,9 +5198,10 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
         if (const FactEntry *Twin = EntrySetOrig.findConditional(
                 FactMan, ExitFact, RebranchTryLock2))
           EntrySet.removeFact(FactMan, *Twin);
-      if (EntrySetOrig.findDefinite(FactMan, ExitFact) || EntryHasCond ||
+      if (EntryDef || EntryHasCond ||
           (IsTrylockRebranched(ExitFact) &&
-           !RebranchVetoedByNegative(EntrySetOrig, ExitFact)))
+           !RebranchVetoedByNegative(EntrySetOrig, ExitFact)) ||
+          SameOriginJoinAllowed(EntrySetOrig, ExitFact, EntryLEK))
         EntrySet.addLockByID(Fact);
       else
         WarnNeverChecked(ExitFact, EntryLEK);
@@ -5135,12 +5218,10 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
         MergeNegativeEvidence(EntryIt, EntryFact, ExitFact);
       } else if (EntryHasCond != ExitHasCond) {
         // Mixed: one side's hold is one conditional level deeper. Forgiven
-        // when the definite side's extra level was proved by the call the
-        // terminator re-branches on and the other side holds that call's
-        // fact: the merged state re-resolves it -- unless the re-branch
-        // sits behind a short-circuit whose other edge escapes without
-        // resolving the result. Otherwise the capability is held on every
-        // path and only the guaranteed depth differs: the
+        // when the definite side's extra level was proved by the call
+        // whose conditional fact the other side holds (MixedJoinExempt):
+        // the merged state re-resolves it. Otherwise the capability is
+        // held on every path and only the guaranteed depth differs: the
         // reentrancy-mismatch wording, like a join of unequal definite
         // depths, under the exemptions of the lost-hold path it replaces
         // (a scoped object still knows to release the levels it manages
@@ -5148,16 +5229,27 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
         const FactEntry &DefSide = ExitHasCond ? EntryFact : ExitFact;
         const FactEntry &CondSide = ExitHasCond ? ExitFact : EntryFact;
         const FactSet &CondSet = ExitHasCond ? ExitSet : EntrySetOrig;
-        const bool Exempt =
-            IsTrylockRebranched(DefSide) && RebranchResolvesAllPaths &&
-            CondSet.findConditional(FactMan, DefSide, RebranchTryLock);
-        if (!Exempt) {
+        if (!MixedJoinExempt(DefSide, CondSet)) {
           if (CondSide.lossNeedsWarning() &&
               !(CondSide.managed() && EntryLEK == LEK_LockedSomePredecessors))
             WarnReentrancyMismatch(CondSide, EntryLEK);
         } else if (CanModify && Depth(&EntryFact, EntryHasCond) !=
                                     Depth(&ExitFact, ExitHasCond)) {
+          // A forgiven mixed join with unequal reentrancy depths is
+          // otherwise silent: diagnose the mismatch here.
           WarnReentrancyMismatch(ExitFact, EntryLEK);
+        } else if (UnsealedLoopJoin && ExitHasCond) {
+          // Under the same-origin exemption the merged state must be the
+          // conditional one: the continue latch keeps the entry's definite
+          // fact, which the exit side's fact demotes (the conditional fact
+          // itself was carried above; reentrancy depth loss is still
+          // diagnosed).
+          if (const FactEntry *Rest =
+                  DemoteToTryHeld(EntrySet, EntryFact, EntryLEK))
+            EntrySet.replaceFact(FactMan, EntryIt, Rest);
+          else
+            EntrySet.erase(EntryIt);
+          continue;
         }
         // The merged state is the conditional side's.
         if (CanModify && ExitHasCond)
@@ -5179,9 +5271,9 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
     // A definite fact of this predecessor only.
     if (ExitFact.negative() && !IsCallsOwnNegative(ExitFact)) {
       // A negative fact on this predecessor only: keep it in the merged
-      // set as a weak fact at branch and continue joins -- evidence for
-      // the try-held machinery that the capability was released, or a
-      // try-acquire of it failed, on some path (see
+      // set as a weak fact at branch joins and continue-latch joins --
+      // evidence for the try-held machinery that the capability was
+      // released, or a try-acquire of it failed, on some path (see
       // RebranchVetoedByNegative above and getEdgeLockset()'s
       // re-materialization veto). Under a re-branch this loses nothing:
       // the failure edge re-derives the real negative over it. Skipped for
@@ -5195,12 +5287,9 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
     } else if (EntryHasCond) {
       if (!ExitHasCond) {
         // Mixed, with the other side holding only conditionally: forgiven
-        // under the re-branch, else diagnosed as not held on the other
+        // under MixedJoinExempt, else diagnosed as not held on the other
         // path; the merged state is the other side's.
-        const bool Exempt =
-            IsTrylockRebranched(ExitFact) && RebranchResolvesAllPaths &&
-            EntrySetOrig.findConditional(FactMan, ExitFact, RebranchTryLock);
-        if (!Exempt)
+        if (!MixedJoinExempt(ExitFact, EntrySetOrig))
           WarnRemovedExitFact(ExitFact);
         else if (CanModify && ExitFact.getReentrancyDepth() != 0)
           WarnReentrancyMismatch(ExitFact, EntryLEK);
@@ -5212,19 +5301,40 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
         if (CanModify)
           EntrySet.addLockByID(Fact);
       }
-    } else if (RebranchExemptAgainst(EntrySetOrig, ExitFact) &&
-               !RebranchVetoedByNegative(EntrySetOrig, ExitFact)) {
-      // Held on this predecessor only, but the terminator re-branches on
-      // the try-acquire that proved it (or gives it up): demote it to
-      // try-held without warning, as getEdgeLockset will re-resolve it on
-      // the outgoing edges.
+    } else if (RebranchExemptAgainst(EntrySetOrig, ExitFact)
+                   // The spent-veto compares against RebranchTryLock and so
+                   // belongs to the re-branch exemption only; the
+                   // same-origin form refuses weak and spent negatives
+                   // itself.
+                   ? !RebranchVetoedByNegative(EntrySetOrig, ExitFact)
+                   : SameOriginJoinAllowed(EntrySetOrig, ExitFact, EntryLEK)) {
+      // Held on this predecessor only, and either the terminator
+      // re-branches on the try-acquire that proved it (getEdgeLockset
+      // will re-resolve it on the outgoing edges) or the other side
+      // carries the call's own failure-edge negative: demote it to
+      // try-held.
       if (CanModify) {
         // A re-branch behind a short-circuit does not resolve the result on
         // the escaping edge: a definite hold weakened here can leak there,
         // so it is diagnosed at this join after all (the demotion stands,
-        // for the paths that do re-branch).
-        if (!RebranchResolvesAllPaths)
+        // for the paths that do re-branch). This covers both forms of the
+        // re-branch exemption -- the inverse-hold form's fact carries no
+        // origin of its own (IsRebranchedInverseHold() requires that), so
+        // testing IsTrylockRebranched() here would silence it. The
+        // same-origin exemption is the one that stays silent: it is not a
+        // re-branch, and its demotion is resolved by the branch itself.
+        if (RebranchExemptAgainst(EntrySetOrig, ExitFact) &&
+            !RebranchResolvesAllPaths)
           WarnRemovedExitFact(ExitFact);
+        if (const FactEntry *Rest =
+                DemoteToTryHeld(EntrySet, ExitFact, EntryLEK))
+          EntrySet.addLock(FactMan, Rest);
+      } else if (UnsealedLoopJoin &&
+                 SameOriginFailureNegative(EntrySetOrig, ExitFact)) {
+        // Same-origin loop join of a hold with its call's failure-edge
+        // negative: their join is try-held(C). The entry side's real
+        // negative is weakened by the second loop below, as at branch
+        // joins.
         if (const FactEntry *Rest =
                 DemoteToTryHeld(EntrySet, ExitFact, EntryLEK))
           EntrySet.addLock(FactMan, Rest);
@@ -5247,12 +5357,6 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
     const bool EntryHasCond = EntrySetOrig.anyConditional(FactMan, *EntryFact);
 
     if (EntryFact->tryHeld()) {
-      // As above: a conditional fact is kept wherever the other side holds
-      // the capability in any form or the terminator re-branches on its
-      // call, and lost otherwise -- with the unchecked try-acquire on an
-      // earlier predecessor; the beta warning again not at a loop join (a
-      // try-held fact missing from a loop's back edge was checked inside
-      // the loop, which is not a leak).
       // A fact of the second of two identical calls the terminator's merged
       // variable resolves (RebranchTryLock2), held alone on this side,
       // folds into the first call's fact, kept from the exit side above.
@@ -5263,9 +5367,17 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
         EntrySet.removeFact(FactMan, *EntryFact);
         continue;
       }
+      // As above: a conditional fact is kept wherever the other side holds
+      // the capability in any form, the terminator re-branches on its
+      // call, or the other side carries the call's own failure-edge
+      // negative; and lost otherwise -- with the unchecked try-acquire on
+      // an earlier predecessor; the beta warning again not at a loop join
+      // (a try-held fact missing from a loop's back edge was checked
+      // inside the loop, which is not a leak).
       if (ExitSet.findDefinite(FactMan, *EntryFact) || ExitHasCond ||
           (IsTrylockRebranched(*EntryFact) &&
-           !RebranchVetoedByNegative(ExitSet, *EntryFact)))
+           !RebranchVetoedByNegative(ExitSet, *EntryFact)) ||
+          SameOriginJoinAllowed(ExitSet, *EntryFact, ExitLEK))
         continue;
       // (The CheckedAroundLoop narrowing the exit-set side applies is
       // deliberately not mirrored here: a fact reaching this arm was
@@ -5282,8 +5394,8 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
 
     if (EntryFact->negative() && !IsCallsOwnNegative(*EntryFact)) {
       // As above: a one-sided negative is kept in the merged set as a
-      // weak fact at branch and continue joins (or dropped, for a
-      // capability no try-acquire names), and a promoted negative
+      // weak fact at branch joins and continue-latch joins (or dropped,
+      // for a capability no try-acquire names), and a promoted negative
       // capability of the re-branched call is excluded, taking the
       // demotion below; other joins leave the entry set unmodified.
       if (!EntryFact->weak()) {
@@ -5303,16 +5415,24 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
       if (!EntryHasCond) {
         // Mixed (see above): the exit side's conditional facts were kept
         // by the first loop; this definite fact is diagnosed unless
-        // forgiven, and gives way to them.
-        const bool Exempt =
-            IsTrylockRebranched(*EntryFact) && RebranchResolvesAllPaths &&
-            ExitSet.findConditional(FactMan, *EntryFact, RebranchTryLock);
+        // forgiven, and gives way to them -- at a branch join, and at a
+        // continue latch under the same-origin exemption, where it is
+        // demoted in place.
+        const bool Exempt = MixedJoinExempt(*EntryFact, ExitSet);
         if (!Exempt)
           WarnRemovedEntryFact(*EntryFact);
         else if (CanModify && EntryFact->getReentrancyDepth() != 0)
           WarnReentrancyMismatch(*EntryFact, ExitLEK);
-        if (ExitLEK == LEK_LockedSomePredecessors)
+        if (ExitLEK == LEK_LockedSomePredecessors) {
           EntrySet.removeFact(FactMan, *EntryFact);
+        } else if (Exempt && UnsealedLoopJoin) {
+          const FactEntry *Rest =
+              DemoteToTryHeld(EntrySet, *EntryFact, ExitLEK);
+          if (Rest)
+            EntrySet.replaceFact(FactMan, *EntryFact, Rest);
+          else
+            EntrySet.removeFact(FactMan, *EntryFact);
+        }
       } else {
         // Both sides conditional, this one definitely deeper: diagnosed
         // above from the exit side's view; the deeper state is kept.
@@ -5320,15 +5440,22 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
       }
       continue;
     }
-    if (RebranchExemptAgainst(ExitSet, *EntryFact) &&
-        !RebranchVetoedByNegative(ExitSet, *EntryFact)) {
+    if (RebranchExemptAgainst(ExitSet, *EntryFact)
+            // As above: the spent-veto belongs to the re-branch
+            // exemption only.
+            ? !RebranchVetoedByNegative(ExitSet, *EntryFact)
+            : SameOriginJoinAllowed(ExitSet, *EntryFact, EntryLEK)) {
       // As above, but here the fact is kept in the intersection in its
-      // demoted try-held form (except at a loop join, where the entry set
-      // is left unmodified).
-      if (CanModify) {
+      // demoted try-held form (except at a sealed loop join, where the
+      // entry set is left unmodified).
+      if (CanModify || (UnsealedLoopJoin &&
+                        SameOriginFailureNegative(ExitSet, *EntryFact))) {
         // As above: an escaping short-circuit edge means the weakened
-        // definite hold is diagnosed at the join after all.
-        if (!RebranchResolvesAllPaths)
+        // definite hold is diagnosed at the join after all, for both
+        // forms of the re-branch exemption but not for the same-origin
+        // one.
+        if (CanModify && RebranchExemptAgainst(ExitSet, *EntryFact) &&
+            !RebranchResolvesAllPaths)
           WarnRemovedEntryFact(*EntryFact);
         const FactEntry *Rest = DemoteToTryHeld(EntrySet, *EntryFact, ExitLEK);
         if (Rest)
@@ -5874,11 +6001,7 @@ void ThreadSafetyAnalyzer::runAnalysis(AnalysisDeclContext &AC) {
           intersectAndWarn(CurrBlockInfo->EntrySet, PrevLockset,
                            CurrBlockInfo->EntryLoc,
                            LEK_LockedSomeLoopIterations,
-                           LEK_LockedSomeLoopIterations, nullptr,
-                           /*RebranchResolvesAllPaths=*/true,
-                           /*RebranchTryLock2=*/nullptr,
-                           /*CheckedAroundLoop=*/nullptr,
-                           /*ForwardJoin=*/true);
+                           LEK_LockedSomeLoopIterations, nullptr);
         } else {
           // Branch join: a difference in the facts created by a try-acquire
           // is demoted to try-held and re-resolved on the outgoing edges if
@@ -5897,9 +6020,7 @@ void ThreadSafetyAnalyzer::runAnalysis(AnalysisDeclContext &AC) {
           intersectAndWarn(CurrBlockInfo->EntrySet, PrevLockset,
                            CurrBlockInfo->EntryLoc, LEK_LockedSomePredecessors,
                            LEK_LockedSomePredecessors, RebranchTryLock,
-                           RebranchResolvesAllPaths, RebranchTryLock2,
-                           /*CheckedAroundLoop=*/nullptr,
-                           /*ForwardJoin=*/true);
+                           RebranchResolvesAllPaths, RebranchTryLock2);
         }
       }
     }
@@ -6062,7 +6183,8 @@ void ThreadSafetyAnalyzer::runAnalysis(AnalysisDeclContext &AC) {
                        LEK_LockedSomeLoopIterations,
                        LEK_LockedSomeLoopIterations, RebranchTryLock,
                        /*RebranchResolvesAllPaths=*/true,
-                       /*RebranchTryLock2=*/nullptr, CheckedInLoopPtr);
+                       /*RebranchTryLock2=*/nullptr, CheckedInLoopPtr,
+                       /*SealedEntry=*/true);
       // A negative fact reaching the loop head on its back edge is
       // evidence that an iteration may have released the capability (or
       // failed to re-acquire it): patch it into the sealed exit sets the
