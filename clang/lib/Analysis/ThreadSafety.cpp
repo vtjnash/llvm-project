@@ -5475,18 +5475,6 @@ void BuildLockset::VisitCallExpr(const CallExpr *Exp) {
     updateLocalVarMapCtx(Exp);
 }
 
-void BuildLockset::VisitCXXConstructExpr(const CXXConstructExpr *Exp) {
-  const CXXConstructorDecl *D = Exp->getConstructor();
-  if (D && D->isCopyConstructor()) {
-    const Expr* Source = Exp->getArg(0);
-    checkAccess(Source, AK_Read);
-  } else {
-    examineArguments(D, Exp->arg_begin(), Exp->arg_end());
-  }
-  if (D && D->hasAttrs())
-    handleCall(Exp, D);
-}
-
 static const Expr *UnpackConstruction(const Expr *E) {
   if (auto *CE = dyn_cast<CastExpr>(E))
     if (CE->getCastKind() == CK_NoOp)
@@ -5498,6 +5486,62 @@ static const Expr *UnpackConstruction(const Expr *E) {
   if (auto *BTE = dyn_cast<CXXBindTemporaryExpr>(E))
     E = BTE->getSubExpr();
   return E;
+}
+
+/// Whether \p D carries an attribute handleCall() acts on. Plain
+/// hasAttrs() is too coarse a gate for the elidable-copy handover below:
+/// an unrelated attribute on a copy or move constructor -- the
+/// ABI-visibility or inlining macro every library guard type carries --
+/// would send it to handleCall(), which builds a scope object managing
+/// nothing.
+static bool hasThreadSafetyAttrs(const Decl *D) {
+  return llvm::any_of(D->attrs(), [](const Attr *At) {
+    switch (At->getKind()) {
+    case attr::AcquireCapability:
+    case attr::TryAcquireCapability:
+    case attr::ReleaseCapability:
+    case attr::RequiresCapability:
+    case attr::LocksExcluded:
+    case attr::AssertCapability:
+    case attr::AcquiredBefore:
+    case attr::AcquiredAfter:
+    case attr::LockReturned:
+      return true;
+    default:
+      return false;
+    }
+  });
+}
+
+void BuildLockset::VisitCXXConstructExpr(const CXXConstructExpr *Exp) {
+  const CXXConstructorDecl *D = Exp->getConstructor();
+  if (D && D->isCopyConstructor()) {
+    const Expr *Source = Exp->getArg(0);
+    checkAccess(Source, AK_Read);
+  } else {
+    examineArguments(D, Exp->arg_begin(), Exp->arg_end());
+  }
+  if (D && hasThreadSafetyAttrs(D))
+    handleCall(Exp, D);
+  else if (D && Exp->isElidable() && D->isCopyOrMoveConstructor() &&
+           D->getParent()->getMostRecentDecl()->hasAttr<ScopedLockableAttr>()) {
+    // Without guaranteed copy elision (C++11/14), initializing or returning
+    // a scoped lockable by value goes through an elidable copy or move of a
+    // materialized temporary. The temporary owns nothing once the target
+    // takes over -- the C++17 semantics -- so hand its scope object over to
+    // this construction: a variable initialized by the result binds it in
+    // VisitDeclStmt, and the temporary's destructor, which looks up the
+    // inner expression, no longer finds anything to release.
+    if (const auto *MTE =
+            dyn_cast<MaterializeTemporaryExpr>(Exp->getArg(0)->IgnoreParens()))
+      if (auto Object = Analyzer->ConstructedObjects.find(
+              UnpackConstruction(MTE->getSubExpr()->IgnoreParens()));
+          Object != Analyzer->ConstructedObjects.end()) {
+        til::LiteralPtr *Placeholder = Object->second;
+        Analyzer->ConstructedObjects.erase(Object);
+        Analyzer->ConstructedObjects.insert({Exp, Placeholder});
+      }
+  }
 }
 
 void BuildLockset::VisitDeclStmt(const DeclStmt *S) {
