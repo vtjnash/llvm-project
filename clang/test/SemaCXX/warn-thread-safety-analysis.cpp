@@ -1817,6 +1817,17 @@ namespace template_member_test {
 
 namespace test_scoped_lockable {
 
+// The ABI-visibility / inlining macros a library guard type puts on its
+// special members; unrelated to thread safety, but they make hasAttrs()
+// true on the copy or move constructor.
+#define GUARD_ABI __attribute__((noinline)) __attribute__((visibility("hidden")))
+class SCOPED_LOCKABLE AttributedGuard {
+public:
+  GUARD_ABI AttributedGuard(Mutex *mu) EXCLUSIVE_LOCK_FUNCTION(mu);
+  GUARD_ABI AttributedGuard(AttributedGuard &&);
+  GUARD_ABI ~AttributedGuard() UNLOCK_FUNCTION();
+};
+
 struct TestScopedLockable {
   Mutex mu1;
   Mutex mu2;
@@ -1832,12 +1843,41 @@ struct TestScopedLockable {
     a = 5;
   }
 
-#ifdef __cpp_guaranteed_copy_elision
   void const_lock() {
     const MutexLock mulock = MutexLock(&mu1);
     a = 5;
   }
-#endif
+
+  // Without guaranteed copy elision, the initializer is an elidable copy of
+  // the temporary; the analysis transfers the temporary's capabilities to the
+  // variable as if elided. A non-elidable copy from an lvalue gets no such
+  // transfer: the copy owns nothing the analysis can see.
+  void copy_from_lvalue() {
+    MutexLock mulock_a(&mu1);
+    MutexLock mulock_b = mulock_a;
+    a = 5;
+  } // expected-warning {{releasing mutex 'mulock_b' that was not held}}
+
+  // The handover is gated on the thread-safety attributes specifically, not
+  // on the constructor carrying any attribute at all: the ABI-visibility and
+  // inlining macros a library guard puts on its copy or move constructor
+  // must not divert it to the ordinary call path, which would build a scope
+  // object managing nothing and lose the capability at the initialization.
+  AttributedGuard attributedFactory() EXCLUSIVE_LOCK_FUNCTION(mu1);
+  void attributed_move_ctor() {
+    AttributedGuard guard = attributedFactory();
+    a = 5;
+  }
+
+  // The guard is handed over even where nothing later claims it, so a
+  // temporary that is neither bound to a variable nor extended keeps the
+  // capability to the end of the scope rather than releasing it at the end
+  // of the full expression. This matches what C++17's guaranteed elision
+  // already did; it is pinned here so that the pre-C++17 modes stay in step
+  // with it.
+  MutexLock unannotated_return() {
+    return MutexLock(&mu1); // expected-note {{mutex acquired here}}
+  } // expected-warning {{mutex 'mu1' is still held at the end of function}}
 
   void temporary() {
     MutexLock{&mu1}, a = 5;
@@ -6721,10 +6761,11 @@ void adoptTryHeldChecked() {
   }
 }
 
-#ifdef __cpp_guaranteed_copy_elision
-// A TRY_ACQUIRE-annotated factory returning the guard by value (guaranteed
-// copy elision) associates the conditional capability with the returned
-// scope: the same managed try-held semantics as the annotated constructor.
+// A TRY_ACQUIRE-annotated factory returning the guard by value associates
+// the conditional capability with the returned scope: the same managed
+// try-held semantics as the annotated constructor. Under C++11/14 the
+// initializer is an elidable copy of the returned temporary rather than a
+// direct initialization; the analysis looks through it either way.
 MutexLockMaybe tryFactory() EXCLUSIVE_TRYLOCK_FUNCTION(true, mu);
 
 void guardFromFactory() {
@@ -6740,7 +6781,6 @@ void guardFromFactoryReacquire() {
   x = 2;
   mu.Unlock();
 }
-#endif
 
 // A try-guard nesting over a hold that is already definite deepens it
 // conditionally (addLock()), and the guard's destructor releases exactly
@@ -7454,19 +7494,15 @@ void Foo::test() {
   int b = a;  // expected-warning {{reading variable 'a' requires holding mutex 'getMutexPtr()'}}
 }
 
-#ifdef __cpp_guaranteed_copy_elision
-
-void guaranteed_copy_elision() {
+void copy_elided() {
   MutexLock lock = MutexLock{&sls_mu};
   sls_guard_var = 0;
 }
 
-void guaranteed_copy_elision_const() {
+void copy_elided_const() {
   const MutexLock lock = MutexLock{&sls_mu};
   sls_guard_var = 0;
 }
-
-#endif
 
 } // end namespace TemporaryCleanupExpr
 
@@ -10440,8 +10476,6 @@ C c;
 void f() { c[A()]->g(); }
 } // namespace PR34800
 
-#ifdef __cpp_guaranteed_copy_elision
-
 namespace ReturnScopedLockable {
 
 class Object {
@@ -10502,8 +10536,6 @@ int testAdoptShared() {
 }
 
 } // namespace ReturnScopedLockable
-
-#endif // __cpp_guaranteed_copy_elision
 
 namespace PR38640 {
 void f() {
@@ -11024,14 +11056,12 @@ struct TestScopedReentrantLockable {
     a = 5;
   }
 
-#ifdef __cpp_guaranteed_copy_elision
   void const_lock() {
     const ReentrantMutexLock mulock1 = ReentrantMutexLock(&mu1);
     a = 5;
     const ReentrantMutexLock mulock2 = ReentrantMutexLock(&mu1);
     a = 3;
   }
-#endif
 
   void temporary() {
     ReentrantMutexLock{&mu1}, a = 1, ReentrantMutexLock{&mu1}, a = 5;
