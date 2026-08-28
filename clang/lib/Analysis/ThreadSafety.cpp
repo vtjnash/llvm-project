@@ -162,7 +162,8 @@ class LockableFactEntry;
 ///                 proved it: success edge (the failure edge is
 ///                 infeasible and skipped at joins)---------------> held
 ///   held ---------join with a failed path of the same try-acquire,
-///                 when the join rebranches on its result
+///                 when the join rebranches on its result or the
+///                 other path records that call's failure
 ///                 (intersectAndWarn)-----------------------------> conditional
 ///   held ---------release----------------------------------------> not-held
 ///
@@ -2619,12 +2620,6 @@ class ThreadSafetyAnalyzer {
     /// cross-kind pairing guarantees no more than a shared hold either
     /// way.
     CapExprSet UnconditionalExclusive, UnconditionalShared;
-    /// Whether try facts were created for these capabilities at the call,
-    /// i.e. whether the walk has reached it. getEdgeLockset() only
-    /// re-materializes a lost hold for a call that tracked a try fact to
-    /// lose.
-    bool TracksFacts = false;
-
     /// Visit every capability the call's attributes name conditionally --
     /// the groups decodeTrylockBranch() builds its per-edge resolutions
     /// from -- until \p Pred returns true. An unconditional acquisition
@@ -3953,11 +3948,12 @@ bool ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
   // released on every path here, and for a try-release the positive hold
   // means the release already discharged a level. An ambiguous edge proves
   // no acquisition either way -- the call may never have executed -- so it
-  // re-materializes nothing. Only for a call that tracked a
-  // try fact to lose (TracksFacts).
+  // re-materializes nothing. Every recorded call creates try facts, scoped
+  // lockable constructions included: theirs are managed by the scoped
+  // fact, and a branch cannot reach one anyway (the decode does not look
+  // through the conversion that would test a guard object).
   if (auto MapIt = TryAcquireCapsMap.find(Exp);
-      !Ambiguous && MapIt != TryAcquireCapsMap.end() &&
-      MapIt->second.TracksFacts) {
+      !Ambiguous && MapIt != TryAcquireCapsMap.end()) {
     for (const TrylockEdgeCap &EC : Edge.Caps) {
       if (EC.Resolution != CapResolution::Success)
         continue;
@@ -4707,12 +4703,6 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
   // silently (handleUncheckedConditionalUnlock()).
   CapExprSet TryLocksExclusive, TryLocksShared, TryLocksManaged;
   if (Exp && TryCaps) {
-    // Set as the walk reaches the call, not in the pre-walk: a branch
-    // decoded before the call is walked -- a loop-top `if (ok)` above
-    // `ok = mu.TryLock()` -- must not re-materialize a hold for an
-    // acquisition that has not happened on the first iteration
-    // (tryheld_retry_with_continue).
-    TryCaps->TracksFacts = true;
     for (const auto &M : TryCaps->TruthyExclusive)
       TryLocksExclusive.push_back(M);
     for (const auto &M : TryCaps->FalsyExclusive)
@@ -5097,13 +5087,56 @@ private:
   }
   bool rebranchVetoedByReleased(const FactSet &OtherSet,
                              const FactEntry &FE) const;
+  const TryFactEntry *sameOriginProof(const FactSet &OwnSet,
+                                      const FactSet &OtherSet,
+                                      const FactEntry &FE) const;
+  bool sameOriginGate(LockErrorKind LEK) const;
+  bool sameOriginJoinAllowed(const FactSet &OwnSet, const FactSet &OtherSet,
+                             const FactEntry &FE, LockErrorKind LEK) const {
+    return sameOriginGate(LEK) && sameOriginProof(OwnSet, OtherSet, FE);
+  }
+  /// Whether a one-sided definite hold is demoted to conditional rather than
+  /// lost: the terminator rebranches on the try-acquire that proved it
+  /// (getEdgeLockset() will re-resolve it on the outgoing edges), or the
+  /// other side carries the call's own failure record. The stale-result veto
+  /// compares against the rebranched call and so belongs to the
+  /// rebranch exemption only; the same-origin form needs the other
+  /// side's negative fact itself.
   bool holdDemotable(const FactSet &OwnSet, const FactSet &OtherSet,
-                     const FactEntry &FE) const {
-    return rebranchExemptAgainst(OwnSet, OtherSet, FE) &&
-           !rebranchVetoedByReleased(OtherSet, FE);
+                     const FactEntry &FE, LockErrorKind LEK) const {
+    return rebranchExemptAgainst(OwnSet, OtherSet, FE)
+               ? !rebranchVetoedByReleased(OtherSet, FE)
+               : sameOriginJoinAllowed(OwnSet, OtherSet, FE, LEK);
+  }
+  /// The call a demotable hold is demoted to the conditional try fact of.
+  const Expr *demotionOrigin(const FactSet &OwnSet, const FactSet &OtherSet,
+                             const FactEntry &FE) const {
+    if (rebranchExemptAgainst(OwnSet, OtherSet, FE))
+      return Ctx.RebranchTryLock;
+    return sameOriginProof(OwnSet, OtherSet, FE)->origin();
+  }
+  bool releasedFor(const FactSet &Set, const CapabilityExpr &Cap,
+                const Expr *Call) const {
+    return Set.findTryFactIf(FactMan, Cap, [&](const TryFactEntry &W) {
+      return W.released() && W.origin() == Call;
+    });
   }
   bool mixedJoinExempt(const FactSet &DefSet, const FactEntry &DefSide,
                        const FactSet &CondSet) const;
+  /// The call whose proof a forgiven mixed join rests on: the first
+  /// ProvedHeld try fact of \p DefSide in \p DefSet with a conditional
+  /// counterpart in \p CondSet.
+  const Expr *demotionOriginOfProof(const FactSet &DefSet,
+                                    const FactEntry &DefSide,
+                                    const FactSet &CondSet) const {
+    const TryFactEntry *W =
+        DefSet.findTryFactIf(FactMan, DefSide, [&](const TryFactEntry &W) {
+          return W.provedHeld() &&
+                 condTryFact(CondSet, DefSide, W.origin(), DefSide.kind());
+        });
+    assert(W && "a forgiven mixed join rests on a proof");
+    return W->origin();
+  }
   bool conditionalKeptAgainst(const TryFactEntry &W, const FactSet &OtherSet,
                               bool AllowRebranch = true) const;
   /// The conditional try fact of \p Cap from \p Origin in \p Kind in
@@ -5126,9 +5159,12 @@ private:
 
   /// \name Rewriting the merged set
   /// \{
-  const FactEntry *demoteToConditional(const FactEntry &Def, LockErrorKind LEK);
-  void demoteExitFact(const FactEntry &Def, LockErrorKind LEK);
-  void demoteEntryFactInPlace(const FactEntry &Def, LockErrorKind LEK);
+  const FactEntry *demoteToConditional(const FactEntry &Def, const Expr *Origin,
+                                   LockErrorKind LEK);
+  void demoteExitFact(const FactEntry &Def, const Expr *Origin,
+                      LockErrorKind LEK);
+  void demoteEntryFactInPlace(const FactEntry &Def, const Expr *Origin,
+                              LockErrorKind LEK);
   /// \}
 
   /// \name The joins, by form
@@ -5212,17 +5248,69 @@ bool LocksetJoin::conditionalKeptAgainst(const TryFactEntry &W,
          (AllowRebranch && isTrylockRebranched(W));
 }
 
-// The mixed join is forgiven when the definite side's extra level was
-// proved by the call the terminator rebranches on and the other side
-// holds that call's conditional try fact: the merged state re-resolves it.
+// The same-origin analogue of the rebranch exemption for a one-sided
+// hold: the join's other side carries the failure record of a call that
+// proved the hold, so the sides are exactly "held iff C's result" and
+// "C's result is falsy", and their join is the call's conditional try fact.
+// The other side may instead carry the call's own proved release of the
+// capability (a hold the call gives up on success, proved by the call's
+// failure): the sides are then "held iff C failed" and "C succeeded", and
+// their join is the same conditional try fact, which resolves inverted
+// (getEdgeLockset()). Returns the proving try fact, whose call the
+// demotion adopts.
+const TryFactEntry *LocksetJoin::sameOriginProof(const FactSet &OwnSet,
+                                                 const FactSet &OtherSet,
+                                                 const FactEntry &FE) const {
+  if (!OtherSet.findDefinite(FactMan, !FE))
+    return nullptr;
+  return OwnSet.findTryFactIf(FactMan, FE, [&](const TryFactEntry &W) {
+    if (!W.provedHeld())
+      return false;
+    const Expr *C = W.origin();
+    return OtherSet.findTryFactIf(FactMan, FE, [&](const TryFactEntry &O) {
+      return O.provedNotHeld() && O.origin() == C;
+    }) || OtherSet.findTryFactIf(FactMan, !FE, [&](const TryFactEntry &O) {
+      return O.provedHeld() && O.origin() == C;
+    });
+  });
+}
+
+// Where the silent same-origin reconstitution applies: at loop joins
+// always; at branch joins only under -Wthread-safety-beta, where the
+// unchecked-result diagnostics report the hidden leak downstream --
+// without beta the eager lost-hold diagnosis at the join is the only
+// coverage and is retained. Naming both join kinds also keeps the
+// exemption away from the end-of-function comparison, whose entry set is
+// the declared expected set: rewriting that would swallow the still-held
+// diagnostic. (No try fact there today, so this only pins the invariant.)
+bool LocksetJoin::sameOriginGate(LockErrorKind LEK) const {
+  return LEK == LEK_LockedSomeLoopIterations ||
+         (LEK == LEK_LockedSomePredecessors && Handler.issueBetaWarnings());
+}
+
+// The same-origin mixed join: a definite hold proved by call C meets C's
+// own conditional try fact on the other side. Both sides' states are
+// conditioned on C's result -- the hold is merely edge-strengthened by a
+// check of a previous execution of C -- so the mixed join loses nothing
+// and the merged state is the conditional one: always at loop joins (the
+// check-first loop idioms `if (ok) continue; ok = mu.TryLock();` create
+// this shape at continue latches), unless C's hold was released on either
+// side, which refutes the shared condition; at branch joins only through
+// the terminator rebranching on C, which re-resolves the demoted state
+// on its outgoing edges.
 bool LocksetJoin::mixedJoinExempt(const FactSet &DefSet,
                                   const FactEntry &DefSide,
                                   const FactSet &CondSet) const {
-  if (!rebranchProof(DefSet, DefSide) || !Ctx.RebranchResolvesAllPaths)
-    return false;
-  const TryFactEntry *W = CondSet.findTryFact(
-      FactMan, DefSide, Ctx.RebranchTryLock, DefSide.kind());
-  return W && W->conditional();
+  return DefSet.findTryFactIf(FactMan, DefSide, [&](const TryFactEntry &W) {
+    if (!W.provedHeld() ||
+        !condTryFact(CondSet, DefSide, W.origin(), DefSide.kind()))
+      return false;
+    if (W.origin() == Ctx.RebranchTryLock && Ctx.RebranchResolvesAllPaths)
+      return true;
+    return Ctx.isLoopJoin() &&
+           !releasedFor(EntrySetOrig, DefSide, W.origin()) &&
+           !releasedFor(ExitSet, DefSide, W.origin());
+  });
 }
 
 // Warn about a fact the intersection removes (or weakens to conditional).
@@ -5292,17 +5380,20 @@ unsigned LocksetJoin::depth(const FactEntry *Def, bool HasCond) {
   return (Def ? reentrancyDepth(*Def) + 1 : 0) + (HasCond ? 1 : 0);
 }
 
-// Demote the definite hold \p Def, proved by the rebranched call, to that
-// call's conditional try fact in the entry set, which a branch on the
+// Demote the definite hold \p Def, proved by the try-acquire call
+// \p Origin (or given up by the rebranched one: a hold the call releases
+// on success carries no proof of its own, and the demotion adopts the
+// call, whose outcome resolves the hold inverted, getEdgeLockset()), to
+// that call's conditional try fact in the entry set, which a branch on the
 // result resolves. A mismatched reentrancy depth is diagnosed here but
 // kept -- after the warning, the deeper fact guards more of the releases
 // downstream than a stripped one would -- as the levels below the demoted
 // one, no longer proved by any call: returned for the caller to place,
 // since \p Def itself may belong to the other side.
 const FactEntry *LocksetJoin::demoteToConditional(const FactEntry &Def,
+                                              const Expr *Origin,
                                               LockErrorKind LEK) {
   const auto &LDef = cast<LockableFactEntry>(Def);
-  const Expr *Origin = Ctx.RebranchTryLock;
   if (LDef.getReentrancyDepth() != 0)
     warnReentrancyMismatch(Def, LEK);
   // The call's try fact in the merged set is conditional: the proof it
@@ -5322,16 +5413,18 @@ const FactEntry *LocksetJoin::demoteToConditional(const FactEntry &Def,
 
 // Demote the exit set's hold \p Def into the entry set, adding the levels
 // below it beside the conditional try fact.
-void LocksetJoin::demoteExitFact(const FactEntry &Def, LockErrorKind LEK) {
-  if (const FactEntry *Rest = demoteToConditional(Def, LEK))
+void LocksetJoin::demoteExitFact(const FactEntry &Def, const Expr *Origin,
+                                 LockErrorKind LEK) {
+  if (const FactEntry *Rest = demoteToConditional(Def, Origin, LEK))
     EntrySet.addLock(FactMan, Rest);
 }
 
 // Demote the entry set's own hold \p Def in place: the levels below it
 // take its slot, or it is removed.
 void LocksetJoin::demoteEntryFactInPlace(const FactEntry &Def,
+                                         const Expr *Origin,
                                          LockErrorKind LEK) {
-  if (const FactEntry *Rest = demoteToConditional(Def, LEK))
+  if (const FactEntry *Rest = demoteToConditional(Def, Origin, LEK))
     EntrySet.replaceFact(FactMan, Def, Rest);
   else
     EntrySet.removeFact(FactMan, Def);
@@ -5397,13 +5490,32 @@ void LocksetJoin::joinTryFactPair(FactSet::iterator EntryIt,
       EntrySet.replaceFact(FactMan, EntryIt, &ExitW);
     return;
   }
-  if (!Ctx.canModify())
-    return;
   if (EntryW.provedNotHeld() || ExitW.provedNotHeld()) {
-    if (CondSide && conditionalKeptAgainst(*CondSide, CondOther)) {
+    // The same-origin reconstitution: allowed under the policy gate when
+    // the failure record comes with its side's real negative fact, the
+    // merged try fact is conditional (a proved hold on the other side is
+    // demoted silently by the definite join, whose exemption agrees).
+    const bool EntryNotHeld = EntryW.provedNotHeld();
+    const FactEntry *NotHeldNeg =
+        (EntryNotHeld ? EntrySetOrig : ExitSet).findDefinite(FactMan, !ExitW);
+    const bool Allowed = NotHeldNeg && sameOriginGate(Ctx.EntryLEK);
+    if (Ctx.isLoopJoin()) {
+      // A sealed loop join leaves the entry set alone; a continue latch
+      // takes the reconstitution.
+      if (Ctx.isUnsealedLoopJoin() && Allowed && EntryNotHeld)
+        EntrySet.replaceFact(
+            FactMan, EntryIt,
+            CondSide ? CondSide
+                     : EntryW.withState(FactMan, State::Conditional));
+      return;
+    }
+    if (Allowed || (CondSide && conditionalKeptAgainst(*CondSide, CondOther))) {
       // The conditional side, may-be-released or not, is the merged try fact.
-      if (CondSide != &EntryW)
-        EntrySet.replaceFact(FactMan, EntryIt, CondSide);
+      if (CondSide ? CondSide != &EntryW : !EntryW.conditional())
+        EntrySet.replaceFact(
+            FactMan, EntryIt,
+            CondSide ? CondSide
+                     : EntryW.withState(FactMan, State::Conditional));
       return;
     }
     if (CondSide)
@@ -5421,7 +5533,16 @@ void LocksetJoin::joinTryFactPair(FactSet::iterator EntryIt,
   }
   // Conditional meeting ProvedHeld (the mixed join): the conditional side,
   // may-be-released or not, is the merged try fact; the definite join diagnoses
-  // or demotes the proved hold.
+  // or demotes the proved hold. A sealed loop join leaves the entry set alone;
+  // a continue latch takes the same-origin mixed exemption.
+  if (Ctx.isLoopJoin()) {
+    if (Ctx.isUnsealedLoopJoin() && EntryW.provedHeld()) {
+      const FactEntry *EntryDef = EntrySetOrig.findDefinite(FactMan, EntryW);
+      if (EntryDef && mixedJoinExempt(EntrySetOrig, *EntryDef, ExitSet))
+        EntrySet.replaceFact(FactMan, EntryIt, CondSide);
+    }
+    return;
+  }
   if (CondSide != &EntryW)
     EntrySet.replaceFact(FactMan, EntryIt, CondSide);
 }
@@ -5538,6 +5659,8 @@ void LocksetJoin::joinTryFactFromEntry(const TryFactEntry &EntryW) {
     }
     if (conditionalKeptAgainst(EntryW, ExitSet))
       return;
+    // (A try fact the other side records the failure of is a pair, joined
+    // above under the same-origin exemption.)
     // (The CheckedAroundLoop narrowing the exit-set side applies is
     // deliberately not mirrored here: a try fact reaching this arm was
     // released inside the loop, which is diagnosed at the release itself
@@ -5605,7 +5728,22 @@ void LocksetJoin::joinMixedPair(FactSet::iterator EntryIt, FactID Fact,
       warnReentrancyMismatch(CondSide, Ctx.EntryLEK);
   } else if (Ctx.canModify() &&
              depth(&EntryFact, !ExitHasCond) != depth(&ExitFact, ExitHasCond)) {
+    // A forgiven mixed join with unequal reentrancy depths is otherwise
+    // silent: diagnose the mismatch here.
     warnReentrancyMismatch(ExitFact, Ctx.EntryLEK);
+  } else if (Ctx.isUnsealedLoopJoin() && ExitHasCond) {
+    // Under the same-origin exemption the merged state must be the
+    // conditional one: the continue latch keeps the entry's definite
+    // fact, which the exit side's try fact demotes (the conditional
+    // try fact itself was carried by joinTryFactPair(); reentrancy depth
+    // loss is still diagnosed).
+    if (const FactEntry *Rest = demoteToConditional(
+            EntryFact, demotionOriginOfProof(EntrySetOrig, EntryFact, ExitSet),
+            Ctx.EntryLEK))
+      EntrySet.replaceFact(FactMan, EntryIt, Rest);
+    else
+      EntrySet.erase(EntryIt);
+    return;
   }
   if (Ctx.canModify() && ExitHasCond)
     *EntryIt = Fact;
@@ -5629,19 +5767,32 @@ void LocksetJoin::joinDefiniteFromExit(FactID Fact, const FactEntry &ExitFact) {
                       ExitSet.anyConditional(FactMan, ExitFact));
     return;
   }
-  if (holdDemotable(ExitSet, EntrySetOrig, ExitFact)) {
-    // Held on this predecessor only, but the terminator rebranches on
-    // the try-acquire that proved it (or gives it up): demote it to
-    // conditionally held without warning, as getEdgeLockset() will re-resolve
-    // it on the outgoing edges.
+  if (holdDemotable(ExitSet, EntrySetOrig, ExitFact, Ctx.EntryLEK)) {
+    // Held on this predecessor only, and either the terminator
+    // rebranches on the try-acquire that proved it (or gives it up;
+    // getEdgeLockset() will re-resolve it on the outgoing edges) or the
+    // other side carries the call's own failure record: demote it to
+    // conditionally held.
+    const Expr *Origin = demotionOrigin(ExitSet, EntrySetOrig, ExitFact);
     if (Ctx.canModify()) {
       // A rebranch behind a short-circuit does not resolve the result on
       // the escaping edge: a definite hold weakened here can leak there,
       // so it is diagnosed at this join after all (the demotion stands,
-      // for the paths that do rebranch).
-      if (!Ctx.RebranchResolvesAllPaths)
+      // for the paths that do rebranch). This covers both forms of the
+      // rebranch exemption; the same-origin exemption is the one that
+      // stays silent: it is not a rebranch, and its demotion is
+      // resolved by the branch itself.
+      if (rebranchExemptAgainst(ExitSet, EntrySetOrig, ExitFact) &&
+          !Ctx.RebranchResolvesAllPaths)
         warnRemovedExitFact(ExitFact);
-      demoteExitFact(ExitFact, Ctx.EntryLEK);
+      demoteExitFact(ExitFact, Origin, Ctx.EntryLEK);
+    } else if (Ctx.isUnsealedLoopJoin() &&
+               sameOriginProof(ExitSet, EntrySetOrig, ExitFact)) {
+      // Same-origin loop join of a hold with its call's failure record:
+      // their join is the call's conditional try fact. The entry side's
+      // negative is left in place by joinDefiniteFromEntry(), as at any
+      // loop-kind join.
+      demoteExitFact(ExitFact, Origin, Ctx.EntryLEK);
     }
     return;
   }
@@ -5664,13 +5815,20 @@ void LocksetJoin::joinDefiniteFromEntry(const FactEntry &EntryFact) {
                        EntrySetOrig.anyConditional(FactMan, EntryFact));
     return;
   }
-  if (holdDemotable(EntrySetOrig, ExitSet, EntryFact)) {
-    if (Ctx.canModify()) {
+  if (holdDemotable(EntrySetOrig, ExitSet, EntryFact, Ctx.EntryLEK)) {
+    if (Ctx.canModify() ||
+        (Ctx.isUnsealedLoopJoin() &&
+         sameOriginProof(EntrySetOrig, ExitSet, EntryFact))) {
       // As above: an escaping short-circuit edge means the weakened
-      // definite hold is diagnosed at the join after all.
-      if (!Ctx.RebranchResolvesAllPaths)
+      // definite hold is diagnosed at the join after all, for both forms
+      // of the rebranch exemption but not for the same-origin one.
+      if (Ctx.canModify() &&
+          rebranchExemptAgainst(EntrySetOrig, ExitSet, EntryFact) &&
+          !Ctx.RebranchResolvesAllPaths)
         warnRemovedEntryFact(EntryFact);
-      demoteEntryFactInPlace(EntryFact, Ctx.ExitLEK);
+      demoteEntryFactInPlace(EntryFact,
+                             demotionOrigin(EntrySetOrig, ExitSet, EntryFact),
+                             Ctx.ExitLEK);
     }
     return;
   }
@@ -5711,12 +5869,17 @@ void LocksetJoin::joinMixedFromEntry(const FactEntry &EntryFact,
     warnReentrancyMismatch(EntryFact, Ctx.ExitLEK);
     return;
   }
-  if (!mixedJoinExempt(EntrySetOrig, EntryFact, ExitSet))
+  const bool Exempt = mixedJoinExempt(EntrySetOrig, EntryFact, ExitSet);
+  if (!Exempt)
     warnRemovedEntryFact(EntryFact);
   else if (Ctx.canModify() && reentrancyDepth(EntryFact) != 0)
     warnReentrancyMismatch(EntryFact, Ctx.ExitLEK);
   if (Ctx.ExitLEK == LEK_LockedSomePredecessors)
     EntrySet.removeFact(FactMan, EntryFact);
+  else if (Exempt && Ctx.isUnsealedLoopJoin())
+    demoteEntryFactInPlace(
+        EntryFact, demotionOriginOfProof(EntrySetOrig, EntryFact, ExitSet),
+        Ctx.ExitLEK);
 }
 
 void LocksetJoin::run() {
