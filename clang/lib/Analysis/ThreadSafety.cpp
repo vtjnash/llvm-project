@@ -2714,6 +2714,7 @@ public:
                   FactEntry::SourceKind Src = FactEntry::Acquired);
   void checkAcquiredCapability(FactSet &FSet, const FactEntry &Entry,
                                bool ReqAttr);
+  bool callResolvesConditionally(const Expr *Call);
   void injectLoopReleasedTryFacts(const CFGBlock *Head, const CFGBlock *Latch,
                                 PostOrderCFGView::CFGBlockSet &Visited);
   void removeLock(FactSet &FSet, const CapabilityExpr &CapE,
@@ -2740,6 +2741,13 @@ public:
     /// value may be the constant rather than the call's result (see
     /// decodeTrylockCond()).
     std::optional<bool> AmbiguousCond;
+    /// Set when the branched-on value is a `?:` merge that identifies the
+    /// call's result on only one truthiness: the branch-condition
+    /// truthiness of the edges that determine nothing about the result.
+    /// Unlike AmbiguousCond the call did execute on such an edge -- its
+    /// result is simply undetermined there -- so the edge must not resolve
+    /// any fact (see decodeTrylockCond()).
+    std::optional<bool> UnknownCond;
     /// The second of two structurally identical try-acquire calls whose
     /// merged result the condition branches on; null otherwise.
     const CallExpr *MergedCall = nullptr;
@@ -2760,6 +2768,19 @@ public:
     /// `== 1` a truthiness test and any other value impossible, whatever
     /// the call's own return type is (`_Bool ok = f();`).
     QualType CmpType;
+    /// The branched-on value is a `?:` merge of two constants selected by
+    /// the result: its truthiness tracks the result's, but its magnitude
+    /// is the arm's, so an exact value an edge carries (a case label)
+    /// must not be applied to the result (clears
+    /// TrylockBranch::ValueIsResult).
+    bool ValueMerged = false;
+    /// The walk left the block's own terminator condition -- through a
+    /// stored variable, a comparison, an assignment, a `?:` value merge,
+    /// or a statement expression. The branch block may then be a value
+    /// join that a short-circuit edge also reaches, so the `&&`/`||`
+    /// descents -- sound only for the block evaluating the operator's
+    /// right-hand side in situ -- are refused.
+    bool CrossedBlocks = false;
   };
 
   void decodeTrylockCond(const Stmt *Cond, LocalVarContext C, TrylockDecode &D);
@@ -2794,10 +2815,12 @@ public:
     /// capability's resolution holds only if it did (TrylockEdge's
     /// Ambiguous).
     bool AmbiguousTrue = false, AmbiguousFalse = false;
-    /// The branched-on value is the call's result itself -- no negation
-    /// or comparison in between -- so an exact value an edge carries (a
-    /// switch case label, a default edge's exclusions) applies to the
-    /// result and refines the capabilities' resolutions on that edge.
+    /// The branched-on value is the call's result itself -- no negation,
+    /// comparison, or value-obscuring `?:` merge in between (GNU `r ?: 0`
+    /// qualifies: it keeps the result as the value) -- so an exact value
+    /// an edge carries (a switch case label, a default edge's exclusions)
+    /// applies to the result and refines the capabilities' resolutions on
+    /// that edge.
     bool ValueIsResult = false;
     /// Whether the per-direction resolutions below were decided by an
     /// exact value comparison (`result == code`) rather than truthiness.
@@ -3114,6 +3137,18 @@ void ThreadSafetyAnalyzer::checkAcquiredCapability(FactSet &FSet,
   }
 }
 
+/// Whether branching on \p Call's result can resolve any capability at
+/// all. A call whose attributes all reconciled to unconditional
+/// acquisitions (TRY_ACQUIRE(true, mu) TRY_ACQUIRE(false, mu)) names none
+/// conditionally, so its branch decodes to nothing -- letting it claim a
+/// `?:` condition would only discard an arm that does resolve.
+bool ThreadSafetyAnalyzer::callResolvesConditionally(const Expr *Call) {
+  auto It = TryAcquireCapsMap.find(Call);
+  return It != TryAcquireCapsMap.end() &&
+         It->second.anyConditionalCap(
+             [](const CapabilityExpr &) { return true; });
+}
+
 /// Add a conditional try fact of the try-acquire call \p Call at \p Loc for
 /// the capability \p CE. It joins the capability's other facts: a definite
 /// hold, which the success edge deepens (at runtime a try-acquire over a
@@ -3287,8 +3322,8 @@ constantMeetsCond(const Expr *ConstE, bool K,
 // If Cond can be traced back to a try-acquire function call, the `D` variable
 // will be populated with the call and with how the branched-on value relates
 // to its result -- negation (e.g. `if (!mu.tryLock(...))`), a comparison
-// against a constant, a merge with a constant, or a merge of two structurally
-// identical calls.
+// against a constant, a merge with a constant (directly or through `?:`
+// arms), or a merge of two structurally identical calls.
 void ThreadSafetyAnalyzer::decodeTrylockCond(const Stmt *Cond,
                                              LocalVarContext C,
                                              TrylockDecode &D) {
@@ -3296,8 +3331,14 @@ void ThreadSafetyAnalyzer::decodeTrylockCond(const Stmt *Cond,
     return;
 
   if (const auto *CallExp = dyn_cast<CallExpr>(Cond)) {
-    if (CallExp->getBuiltinCallee() == Builtin::BI__builtin_expect)
+    if (CallExp->getBuiltinCallee() == Builtin::BI__builtin_expect) {
+      // The argument value is materialized for the call, so a logical
+      // operator inside it was evaluated across a join, not in situ.
+      D.CrossedBlocks = true;
       return decodeTrylockCond(CallExp->getArg(0), C, D);
+    }
+    // Any other call ends the walk with an empty decode -- e.g. letting a
+    // `?:` arm that is not the try-acquire fall back to the condition.
     const auto *FD = dyn_cast_or_null<NamedDecl>(CallExp->getCalleeDecl());
     if (FD && FD->hasAttr<TryAcquireCapabilityAttr>())
       D.TrylockCall = CallExp;
@@ -3328,6 +3369,9 @@ void ThreadSafetyAnalyzer::decodeTrylockCond(const Stmt *Cond,
     // the branched-on value.
     if (LocalVarMap.isEscaped(DRE->getDecl()))
       return;
+    // Every descent below leaves the terminator condition for a stored
+    // definition evaluated in an earlier block.
+    D.CrossedBlocks = true;
     LocalVarContext DefCtx = C;
     if (const Expr *E = LocalVarMap.lookupExpr(DRE->getDecl(), DefCtx))
       return decodeTrylockCond(E, DefCtx, D);
@@ -3408,8 +3452,11 @@ void ThreadSafetyAnalyzer::decodeTrylockCond(const Stmt *Cond,
       // Note the expression comparison above does not establish agreement:
       // the same expression (a reference to one variable) can resolve
       // differently per path (`if (c) { t = !t; ok = t; } else ok = t;`).
+      //
+      // MergedCall cannot be set on entry: its only non-null write below
+      // returns without descending further.
+      assert(!D.MergedCall && "two-call merge state leaked into a descent");
       const TrylockDecode BeforeD = D;
-      D.MergedCall = nullptr;
       decodeTrylockCond(NonConst, NonConstCtx, D);
       const CallExpr *First = D.TrylockCall;
       // Either the first path resolves to no call at all, or its
@@ -3420,7 +3467,6 @@ void ThreadSafetyAnalyzer::decodeTrylockCond(const Stmt *Cond,
         return;
       }
       TrylockDecode D2 = BeforeD;
-      D2.MergedCall = nullptr;
       decodeTrylockCond(NonConst2, NonConstCtx2, D2);
       const CallExpr *Second = D2.TrylockCall;
       auto SameCmp = [](const std::optional<llvm::APSInt> &A,
@@ -3430,6 +3476,7 @@ void ThreadSafetyAnalyzer::decodeTrylockCond(const Stmt *Cond,
       };
       if (!Second || D2.MergedCall || D2.Negate != D.Negate ||
           D2.AmbiguousCond != D.AmbiguousCond ||
+          D2.UnknownCond != D.UnknownCond || D2.ValueMerged != D.ValueMerged ||
           !SameCmp(D2.CmpValue, D.CmpValue)) {
         D = BeforeD;
         return;
@@ -3512,6 +3559,9 @@ void ThreadSafetyAnalyzer::decodeTrylockCond(const Stmt *Cond,
       // conversion found below, between the comparison and the call, can
       // cost the exact resolution.
       D.ValueNarrowed = false;
+      // The comparison's operand value is materialized before the branch,
+      // so a logical operator inside it was evaluated across a join.
+      D.CrossedBlocks = true;
       // The compared value is the constant as the comparison sees it,
       // after its own promotions: `x == true` on an integer x is `x == 1`,
       // not a truthiness test, so the constant's own type does not decide
@@ -3529,34 +3579,67 @@ void ThreadSafetyAnalyzer::decodeTrylockCond(const Stmt *Cond,
         D.Negate = !D.Negate;
       return decodeTrylockCond(VarSide, C, D);
     }
-    if (BOP->getOpcode() == BO_LAnd) {
-      // LHS must have been evaluated in a different block.
+    if (BOP->getOpcode() == BO_LAnd || BOP->getOpcode() == BO_LOr) {
+      // The right-hand side is evaluated in this very block, which is
+      // reached only on the non-short-circuiting edge (the LHS was tested
+      // in an earlier block), so the branch here is exactly a branch on
+      // the RHS. That premise holds only for the block's own terminator
+      // condition in situ: a walk that arrived through a stored variable,
+      // a comparison, or a `?:` value merge sits at a join the
+      // short-circuit edge also reaches, where the LHS may have produced
+      // the value with the RHS never evaluated -- refuse the descent
+      // there.
+      if (D.CrossedBlocks)
+        return;
       return decodeTrylockCond(BOP->getRHS(), C, D);
     }
-    if (BOP->getOpcode() == BO_LOr)
-      return decodeTrylockCond(BOP->getRHS(), C, D);
     // An assignment used as a condition (`if ((b = mu.TryLock()))`)
-    // evaluates to its right-hand side.
-    if (BOP->getOpcode() == BO_Assign)
+    // evaluates to its right-hand side; the assigned value is
+    // materialized, so a logical operator inside it crossed a join.
+    if (BOP->getOpcode() == BO_Assign) {
+      D.CrossedBlocks = true;
       return decodeTrylockCond(BOP->getRHS(), C, D);
+    }
     return;
   } else if (const auto *COP = dyn_cast<ConditionalOperator>(Cond)) {
+    // The `?:` arms merge at a value join, so every descent below leaves
+    // the terminator condition.
     bool TCond, FCond;
     if (getStaticBooleanValue(COP->getTrueExpr(), TCond, *ASTCtx) &&
         getStaticBooleanValue(COP->getFalseExpr(), FCond, *ASTCtx)) {
-      if (TCond && !FCond)
-        return decodeTrylockCond(COP->getCond(), C, D);
-      if (!TCond && FCond) {
+      if (TCond == FCond)
+        return; // Constants of equal truthiness determine nothing.
+      // Both arms are constants of differing truthiness: the value's
+      // truthiness is the condition's, but its magnitude is the arm's, so
+      // it proves nothing about the result's -- an exact value a later
+      // edge carries (a case label) must not be applied to the result
+      // (ValueMerged clears ValueIsResult). A comparison against a
+      // specific value does still resolve: the value equals it exactly
+      // when the condition selected the arm holding it, which is a plain
+      // truthiness test of the condition (`(t ? 1 : 0) == 1` is `t`). A
+      // value neither arm holds makes the comparison never true, so it
+      // determines nothing.
+      if (D.CmpValue) {
+        std::optional<bool> TrueArmHasIt =
+            constantMeetsCond(COP->getTrueExpr(), TCond, D, *ASTCtx);
+        std::optional<bool> FalseArmHasIt =
+            constantMeetsCond(COP->getFalseExpr(), FCond, D, *ASTCtx);
+        if (!TrueArmHasIt || !FalseArmHasIt || *TrueArmHasIt == *FalseArmHasIt)
+          return;
+        if (!*TrueArmHasIt)
+          D.Negate = !D.Negate;
+        D.CmpValue.reset();
+      } else if (!TCond) {
         D.Negate = !D.Negate;
-        return decodeTrylockCond(COP->getCond(), C, D);
       }
-      return;
+      D.ValueMerged = true;
+      D.CrossedBlocks = true;
+      return decodeTrylockCond(COP->getCond(), C, D);
     }
     // One arm is a constant of truthiness K, the other is not: like the
     // merged variable above, a branch on the value still identifies the
     // non-constant arm -- on an edge where the value's truthiness is !K it
-    // can only be that arm's result. Edges matching K are recorded as
-    // ambiguous; only one merge can be resolved per condition.
+    // can only be that arm's result.
     bool ArmCond;
     const Expr *NonConstArm = nullptr, *ConstArm = nullptr;
     std::optional<bool> K;
@@ -3569,21 +3652,117 @@ void ThreadSafetyAnalyzer::decodeTrylockCond(const Stmt *Cond,
       ConstArm = COP->getFalseExpr();
       NonConstArm = COP->getTrueExpr();
     }
-    if (K && !D.AmbiguousCond) {
-      // As for the merged variable above: which edge the constant arm can
-      // account for depends on whether the condition tests truthiness or
-      // an exact value.
+    if (!K)
+      return; // Two non-constant arms determine nothing.
+    // The call may sit in the condition (`mu.TryLock() ? other() : 0`):
+    // an edge whose value-truthiness is !K proves the non-constant arm
+    // ran, i.e. the condition selected it -- the condition's truthiness
+    // there is whether that arm is the true arm -- while an edge matching
+    // K determines nothing: the value may be the constant (the condition
+    // selected the other arm), or the arm's result happening to share the
+    // constant's truthiness (with the condition -- the call's result --
+    // unrestricted). Record those edges in UnknownCond; a comparison of
+    // the merged value against a specific constant (CmpValue) identifies
+    // neither arm, so it is refused. The condition keeps priority over
+    // the arm probe below: the `?:` terminator honors the condition's own
+    // branch (decodeTrylockBranch()), so a join's rebranch must name the
+    // same call for the rebranch exemption to repair the split arms
+    // (`mu.TryLock() ? mu2.TryLock() : false` resolves mu; mu2's
+    // arm-held fact joins conservatively).
+    if (!D.UnknownCond && !D.CmpValue) {
+      TrylockDecode CondD = D;
+      CondD.UnknownCond = *K != D.Negate;
+      // On the determined edges the branch truthiness is !K, while the
+      // condition's truthiness is whether the non-constant arm is the
+      // true arm. The two disagree for the "crossed" shapes
+      // (`X ? false : nc`, `X ? nc : true`): fold the mismatch into
+      // Negate.
+      if ((NonConstArm == COP->getTrueExpr()) == *K)
+        CondD.Negate = !CondD.Negate;
+      CondD.CrossedBlocks = true;
+      decodeTrylockCond(COP->getCond(), C, CondD);
+      if (CondD.TrylockCall && callResolvesConditionally(CondD.TrylockCall)) {
+        D = CondD;
+        return;
+      }
+    }
+    // Otherwise the non-constant arm may hold the call itself
+    // (`c ? mu.TryLock() : false`): an edge matching K may carry the
+    // constant with the call never executed -- AmbiguousCond's premise.
+    // Only one such merge can be resolved per condition.
+    if (!D.AmbiguousCond) {
+      // Which edge the constant arm can account for depends on what the
+      // condition asks: its truthiness for a plain branch, but under a
+      // comparison the edge the constant itself satisfies -- the same
+      // rule the merged variable above follows (constantMeetsCond()).
       std::optional<bool> ConstMeetsCond =
           constantMeetsCond(ConstArm, *K, D, *ASTCtx);
       if (!ConstMeetsCond)
         return;
-      D.AmbiguousCond = *ConstMeetsCond != D.Negate;
-      return decodeTrylockCond(NonConstArm, C, D);
+      TrylockDecode ArmD = D;
+      ArmD.AmbiguousCond = *ConstMeetsCond != D.Negate;
+      ArmD.CrossedBlocks = true;
+      decodeTrylockCond(NonConstArm, C, ArmD);
+      if (ArmD.TrylockCall)
+        D = ArmD;
+    }
+    return;
+  } else if (const auto *BCO = dyn_cast<BinaryConditionalOperator>(Cond)) {
+    // GNU `r ?: x` keeps r itself when it is truthy. With x a falsy
+    // constant the value's truthiness is exactly r's; a truthy constant
+    // makes the value unconditionally truthy (the branch determines
+    // nothing). With x non-constant, when the call sits in r a truthy
+    // value no longer determines its result (x may have produced it):
+    // those edges are recorded in UnknownCond as for the one-constant-arm
+    // `?:` above, and the condition keeps priority to match the honored
+    // terminator branch. Otherwise x may hold the call itself
+    // (`flag ?: mu.TryLock()`) -- a falsy value proves both operands
+    // falsy, and a truthy one may be r without the call executing, which
+    // is AmbiguousCond's premise.
+    bool FCond;
+    if (getStaticBooleanValue(BCO->getFalseExpr(), FCond, *ASTCtx)) {
+      if (FCond)
+        return;
+      D.CrossedBlocks = true;
+      return decodeTrylockCond(BCO->getCommon(), C, D);
+    }
+    if (!D.UnknownCond && !D.CmpValue) {
+      TrylockDecode CondD = D;
+      CondD.UnknownCond = !D.Negate;
+      CondD.CrossedBlocks = true;
+      decodeTrylockCond(BCO->getCommon(), C, CondD);
+      if (CondD.TrylockCall && callResolvesConditionally(CondD.TrylockCall)) {
+        D = CondD;
+        return;
+      }
+    }
+    if (!D.AmbiguousCond) {
+      TrylockDecode ArmD = D;
+      ArmD.AmbiguousCond = !D.Negate;
+      ArmD.CrossedBlocks = true;
+      decodeTrylockCond(BCO->getFalseExpr(), C, ArmD);
+      if (ArmD.TrylockCall)
+        D = ArmD;
+    }
+    return;
+  } else if (const auto *OVE = dyn_cast<OpaqueValueExpr>(Cond)) {
+    // A BinaryConditionalOperator's terminator condition is the opaque
+    // value bound to its shared operand (getTerminatorCondition() returns
+    // BCO->getCond()). The operand itself may have been evaluated across
+    // earlier blocks -- this block is its value join when it
+    // short-circuits -- so the descent is not in situ.
+    if (const Expr *SE = OVE->getSourceExpr()) {
+      D.CrossedBlocks = true;
+      return decodeTrylockCond(SE, C, D);
     }
   } else if (const auto *SE = dyn_cast<StmtExpr>(Cond)) {
     if (const auto *CS = SE->getSubStmt(); CS && !CS->body_empty()) {
-      if (const auto *E = dyn_cast<Expr>(CS->body_back()))
+      if (const auto *E = dyn_cast<Expr>(CS->body_back())) {
+        // The statement expression's value is materialized within it, so
+        // a logical operator there was evaluated across a join.
+        D.CrossedBlocks = true;
         return decodeTrylockCond(E, C, D);
+      }
     }
   }
 }
@@ -3769,12 +3948,6 @@ ThreadSafetyAnalyzer::decodeTrylockBranch(const CFGBlock *Block) {
   if (TryAcquireCapsMap.empty())
     return CacheMiss();
 
-  // We don't acquire try-locks on ?: branches, except when its result is used.
-  if (const auto *COp =
-          dyn_cast_if_present<ConditionalOperator>(Block->getTerminatorStmt()))
-    if (!COp->getType()->isVoidType())
-      return CacheMiss();
-
   TrylockDecode D;
   decodeTrylockCond(Cond, BlockInfo[BlockID].ExitContext, D);
   if (!D.TrylockCall)
@@ -3809,7 +3982,8 @@ ThreadSafetyAnalyzer::decodeTrylockBranch(const CFGBlock *Block) {
   // A narrowed value is not the result either, so a switch over it
   // resolves no case label against the codes -- `switch (ok)` on a
   // `bool ok = f()` selects `case 1:` for every nonzero result.
-  Result.ValueIsResult = !D.Negate && !D.CmpValue && !D.ValueNarrowed;
+  Result.ValueIsResult = !D.Negate && !D.CmpValue && !D.ValueNarrowed &&
+                         !D.UnknownCond && !D.ValueMerged;
   Result.ValueCompared = D.CmpValue.has_value();
 
   // Per capability, on the direction where the condition reports the
@@ -3827,6 +4001,8 @@ ThreadSafetyAnalyzer::decodeTrylockBranch(const CFGBlock *Block) {
   //    -- its codes are nonzero, and `if (x)` on a two-code capability
   //    must keep resolving -- while one acquired under both polarities
   //    resolves only where an exact value does.
+  // A direction recorded as undetermined by the decode (a `?:` merge, see
+  // TrylockDecode::UnknownCond) resolves nothing for any capability.
   if (auto MapIt = TryAcquireCapsMap.find(D.TrylockCall);
       MapIt != TryAcquireCapsMap.end()) {
     const TryAcquireCaps &Caps = MapIt->second;
@@ -3851,6 +4027,9 @@ ThreadSafetyAnalyzer::decodeTrylockBranch(const CFGBlock *Block) {
         (D.Negate ? Result.OnFalse : Result.OnTrue).push_back({CE, LK, Direct});
         (D.Negate ? Result.OnTrue : Result.OnFalse)
             .push_back({CE, LK, Inverse});
+        if (D.UnknownCond)
+          (*D.UnknownCond ? Result.OnTrue : Result.OnFalse).back().Resolution =
+              CapResolution::Unknown;
       }
     };
     AddCaps(Caps.TruthyExclusive, LK_Exclusive);
@@ -4309,9 +4488,15 @@ bool ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
       // one already proves as much. The failure of a try-acquire of a
       // negative capability itself proves nothing about the positive
       // capability, so nothing is installed for it.
-      Result.replaceFact(
-          FactMan, *W,
-          W->withState(FactMan, TryFactEntry::State::ProvedNotHeld));
+      const TryFactEntry *NotHeldW =
+          W->withState(FactMan, TryFactEntry::State::ProvedNotHeld);
+      // A value `?:` split its arms to make this edge: mark the failure
+      // so their join reconstitutes silently even without beta.
+      if (const auto *COp = dyn_cast_if_present<AbstractConditionalOperator>(
+              PredBlock->getTerminatorStmt());
+          COp && !COp->getType()->isVoidType())
+        NotHeldW = NotHeldW->withArmSplit(FactMan);
+      Result.replaceFact(FactMan, *W, NotHeldW);
       if (!W->negative() && !Result.findDefiniteOrConditional(FactMan, *W) &&
           !Result.anyConditional(FactMan, !*W))
         installNegativeFact(Result, FactMan, !*W, Exp->getExprLoc(),
@@ -5491,10 +5676,19 @@ private:
   const TryFactEntry *sameOriginProof(const FactSet &OwnSet,
                                       const FactSet &OtherSet,
                                       const FactEntry &FE) const;
-  bool sameOriginGate(LockErrorKind LEK) const;
+  bool sameOriginGate(LockErrorKind LEK, const TryFactEntry *NotHeldW) const;
   bool sameOriginJoinAllowed(const FactSet &OwnSet, const FactSet &OtherSet,
                              const FactEntry &FE, LockErrorKind LEK) const {
-    return sameOriginGate(LEK) && sameOriginProof(OwnSet, OtherSet, FE);
+    const TryFactEntry *W = sameOriginProof(OwnSet, OtherSet, FE);
+    return W && sameOriginGate(LEK, failureRecord(OtherSet, FE, W->origin()));
+  }
+  /// The ProvedNotHeld try fact of \p Cap from \p Call in \p Set, if any.
+  const TryFactEntry *failureRecord(const FactSet &Set,
+                                    const CapabilityExpr &Cap,
+                                    const Expr *Call) const {
+    return Set.findTryFactIf(FactMan, Cap, [&](const TryFactEntry &W) {
+      return W.provedNotHeld() && W.origin() == Call;
+    });
   }
   /// Whether a one-sided definite hold is demoted to conditional rather than
   /// lost: the terminator rebranches on the try-acquire that proved it
@@ -5677,16 +5871,21 @@ const TryFactEntry *LocksetJoin::sameOriginProof(const FactSet &OwnSet,
 }
 
 // Where the silent same-origin reconstitution applies: at loop joins
-// always; at branch joins only under -Wthread-safety-beta, where the
-// unchecked-result diagnostics report the hidden leak downstream --
-// without beta the eager lost-hold diagnosis at the join is the only
-// coverage and is retained. Naming both join kinds also keeps the
-// exemption away from the end-of-function comparison, whose entry set is
-// the declared expected set: rewriting that would swallow the still-held
-// diagnostic. (No try fact there today, so this only pins the invariant.)
-bool LocksetJoin::sameOriginGate(LockErrorKind LEK) const {
+// always; at branch joins where the hidden leak stays diagnosable or was
+// never diagnosed -- under -Wthread-safety-beta (the unchecked-result
+// diagnostics report it downstream) or for a `?:` arm split (\p NotHeldW
+// carries the mark: the branch was never honored before, so its join
+// never warned). Otherwise the eager lost-hold diagnosis at the join is
+// the only coverage and is retained. Naming both join kinds also keeps
+// the exemption away from the end-of-function comparison, whose entry set
+// is the declared expected set: rewriting that would swallow the
+// still-held diagnostic. (No try fact there today, so this only pins the
+// invariant.)
+bool LocksetJoin::sameOriginGate(LockErrorKind LEK,
+                                 const TryFactEntry *NotHeldW) const {
   return LEK == LEK_LockedSomeLoopIterations ||
-         (LEK == LEK_LockedSomePredecessors && Handler.issueBetaWarnings());
+         (LEK == LEK_LockedSomePredecessors &&
+          (Handler.issueBetaWarnings() || (NotHeldW && NotHeldW->armSplit())));
 }
 
 // The same-origin mixed join: a definite hold proved by call C meets C's
@@ -5893,13 +6092,14 @@ void LocksetJoin::joinTryFactPair(FactSet::iterator EntryIt,
   }
   if (EntryW.provedNotHeld() || ExitW.provedNotHeld()) {
     // The same-origin reconstitution: allowed under the policy gate when
-    // the failure record comes with its side's real negative fact, the
+    // the failure record comes with its side's negative fact, the
     // merged try fact is conditional (a proved hold on the other side is
     // demoted silently by the definite join, whose exemption agrees).
     const bool EntryNotHeld = EntryW.provedNotHeld();
+    const TryFactEntry &NotHeldW = EntryNotHeld ? EntryW : ExitW;
     const FactEntry *NotHeldNeg =
         (EntryNotHeld ? EntrySetOrig : ExitSet).findDefinite(FactMan, !ExitW);
-    const bool Allowed = NotHeldNeg && sameOriginGate(Ctx.EntryLEK);
+    const bool Allowed = NotHeldNeg && sameOriginGate(Ctx.EntryLEK, &NotHeldW);
     if (Ctx.isLoopJoin()) {
       // A sealed loop join leaves the entry set alone; a continue latch
       // takes the reconstitution.
