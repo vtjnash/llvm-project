@@ -3135,10 +3135,10 @@ struct TestTryLock {
   }
 
   // A cross-kind pairing -- exclusive on success, shared on failure -- may
-  // be a deliberate API, but a single fact cannot represent a hold whose
-  // kind varies with the result, so it keeps only the guarantee that holds
-  // either way: an unconditional *shared* hold. Exclusive access on the
-  // success arm is then (conservatively) diagnosed.
+  // be a deliberate API, but an unconditional acquisition is one hold of
+  // one kind, so it keeps only the guarantee that holds either way: an
+  // unconditional *shared* hold. Exclusive access on the success arm is
+  // then (conservatively) diagnosed.
   bool TryUpgrade() EXCLUSIVE_TRYLOCK_FUNCTION(true, mu)
       SHARED_TRYLOCK_FUNCTION(false, mu);
   void tryheld_regardless_of_result_cross_kind() {
@@ -5311,27 +5311,39 @@ struct TestTrylockValueCodes {
     }
   }
 
-  // One fact carries one lock kind, but a cross-kind pair of polarities
-  // promises different kinds on different outcomes, so the fact takes the
-  // weaker one and an exclusive write is diagnosed on both edges. The
-  // point is the edge promising only a shared hold: it no longer grants
-  // an exclusive one on the strength of the other polarity's attribute.
+  // A cross-kind pair of polarities promises different kinds on different
+  // outcomes: the call tracks one conditional fact per kind, each resolved
+  // by its own attribute's edge, so the edge promising a shared hold
+  // grants exactly that -- an exclusive write there is diagnosed -- and
+  // the edge promising an exclusive one grants that.
   Mutex mu6;
   int data6 GUARDED_BY(mu6);
   int TryLockCross() EXCLUSIVE_TRYLOCK_FUNCTION(1, mu6)
       SHARED_TRYLOCK_FUNCTION(0, mu6);
-  void valuecodes_cross_kind_takes_shared() {
+  void valuecodes_cross_kind_per_kind() {
     switch (TryLockCross()) {
     case 0:
       data6 = 1; // expected-warning {{writing variable 'data6' requires holding mutex 'mu6' exclusively}}
       mu6.Unlock();
       break;
     case 1:
-      data6 = 2; // expected-warning {{writing variable 'data6' requires holding mutex 'mu6' exclusively}}
+      data6 = 2;
       mu6.Unlock();
       break;
     default:
       break;
+    }
+  }
+
+  // The same on a truthiness branch: nonzero is the exclusive outcome,
+  // zero the shared one.
+  void valuecodes_cross_kind_truthiness() {
+    if (TryLockCross()) {
+      data6 = 3;
+      mu6.Unlock();
+    } else {
+      data6 = 4; // expected-warning {{writing variable 'data6' requires holding mutex 'mu6' exclusively}}
+      mu6.Unlock();
     }
   }
 };  // end TestTrylockValueCodes
