@@ -517,19 +517,27 @@ public:
 
   /// \name Conditional facts
   /// The facts stating that \p CapE is held if a try-acquire call
-  /// succeeded, one per originating call.
+  /// succeeded, one per originating call and lock kind: a call whose
+  /// attributes promise the capability in one kind on one outcome and in
+  /// the other kind on another outcome has a fact of each, resolved by
+  /// its own attribute. Lookups by origin alone find the first.
   /// \{
   iterator findConditionalIter(FactManager &FM, const CapabilityExpr &CapE,
-                               const Expr *Origin) {
+                               const Expr *Origin,
+                               std::optional<LockKind> Kind = std::nullopt) {
     return findIf(FM, [&](const FactEntry &FE) {
-      return FE.tryHeld() && FE.tryLockCall() == Origin && FE.matches(CapE);
+      return FE.tryHeld() && FE.tryLockCall() == Origin && FE.matches(CapE) &&
+             (!Kind || FE.kind() == *Kind);
     });
   }
 
-  const FactEntry *findConditional(FactManager &FM, const CapabilityExpr &CapE,
-                                   const Expr *Origin) const {
+  const FactEntry *
+  findConditional(FactManager &FM, const CapabilityExpr &CapE,
+                  const Expr *Origin,
+                  std::optional<LockKind> Kind = std::nullopt) const {
     return findEntry(FM, [&](const FactEntry &FE) {
-      return FE.tryHeld() && FE.tryLockCall() == Origin && FE.matches(CapE);
+      return FE.tryHeld() && FE.tryLockCall() == Origin && FE.matches(CapE) &&
+             (!Kind || FE.kind() == *Kind);
     });
   }
 
@@ -563,13 +571,16 @@ public:
         Out.push_back(&FM[ID]);
   }
 
-  bool removeConditional(FactManager &FM, const CapabilityExpr &CapE,
-                         const Expr *Origin) {
-    iterator It = findConditionalIter(FM, CapE, Origin);
-    if (It == end())
-      return false;
-    erase(It);
-    return true;
+  /// Remove every conditional fact of \p CapE originating from \p Origin
+  /// (one per lock kind); returns whether there was any.
+  bool removeConditionalsOf(FactManager &FM, const CapabilityExpr &CapE,
+                            const Expr *Origin) {
+    const size_t Before = FactIDs.size();
+    llvm::erase_if(FactIDs, [&](FactID ID) {
+      const FactEntry &FE = FM[ID];
+      return FE.tryHeld() && FE.tryLockCall() == Origin && FE.matches(CapE);
+    });
+    return FactIDs.size() != Before;
   }
 
   void removeAllConditional(FactManager &FM, const CapabilityExpr &CapE) {
@@ -587,15 +598,16 @@ public:
 
   /// \name Counterparts
   /// The fact of the same form as \p F -- definite, or conditional on the
-  /// same call -- for \p F's capability: what a join pairs \p F with.
+  /// same call in the same kind -- for \p F's capability: what a join
+  /// pairs \p F with.
   /// \{
   iterator findCounterpartIter(FactManager &FM, const FactEntry &F) {
-    return F.tryHeld() ? findConditionalIter(FM, F, F.tryLockCall())
+    return F.tryHeld() ? findConditionalIter(FM, F, F.tryLockCall(), F.kind())
                        : findDefiniteIter(FM, F);
   }
 
   const FactEntry *findCounterpart(FactManager &FM, const FactEntry &F) const {
-    return F.tryHeld() ? findConditional(FM, F, F.tryLockCall())
+    return F.tryHeld() ? findConditional(FM, F, F.tryLockCall(), F.kind())
                        : findDefinite(FM, F);
   }
   /// \}
@@ -2109,7 +2121,7 @@ static bool handleUncheckedTryHeldUnlock(FactSet &FSet, FactManager &FactMan,
     Handler->handleUnmatchedUnlock(Cp.getKind(), Cp.toString(), UnlockLoc,
                                    SourceLocation(), true);
     FSet.removeAllConditional(FactMan, Cp);
-  } else if (!OwnOrigin || !FSet.removeConditional(FactMan, Cp, OwnOrigin) ||
+  } else if (!OwnOrigin || !FSet.removeConditionalsOf(FactMan, Cp, OwnOrigin) ||
              FSet.anyConditional(FactMan, Cp)) {
     return true;
   }
@@ -2300,7 +2312,7 @@ private:
       // another call contributed stays: this guard did not acquire it, and
       // its own level was a definite one.
       if (CondAcquireExpr &&
-          FSet.removeConditional(FactMan, Cp, CondAcquireExpr))
+          FSet.removeConditionalsOf(FactMan, Cp, CondAcquireExpr))
         return;
       if (const FactEntry *RFact = Fact.leaveReentrant(FactMan)) {
         // This capability remains reentrantly acquired.
@@ -2453,7 +2465,7 @@ class ThreadSafetyAnalyzer {
     }
   };
   static CapProfile getCapProfile(const TryAcquireCaps &Caps,
-                                  const CapabilityExpr &Probe);
+                                  const CapabilityExpr &Probe, LockKind Kind);
 
   // Maps each try-acquire call to its attributes' capabilities, recorded
   // before the lockset walk.
@@ -2989,10 +3001,11 @@ void ThreadSafetyAnalyzer::keepAsWeak(FactSet &Set, FactID Fact) {
 /// other calls' conditional facts, each resolved by its own branch.
 /// What cannot be tracked is diagnosed and left untracked: a hold of the
 /// other kind (shared vs. exclusive), one this acquisition can neither
-/// nest in nor coexist with, and a repeat of this call over its own fact
-/// (one fact per origin). \p Src is Managed for a scoped lockable's
-/// construction, whose destructor conditionally releases (disarms) the
-/// fact.
+/// nest in nor coexist with -- unless it is this same call's fact of the
+/// other kind, its companion (below) -- and a repeat of this call over its
+/// own fact (one fact per origin). \p Src is Managed for a scoped
+/// lockable's construction, whose destructor conditionally releases
+/// (disarms) the fact.
 void ThreadSafetyAnalyzer::addTryLock(FactSet &FSet, const CapabilityExpr &CE,
                                       LockKind LK, SourceLocation Loc,
                                       const Expr *Call,
@@ -3002,7 +3015,11 @@ void ThreadSafetyAnalyzer::addTryLock(FactSet &FSet, const CapabilityExpr &CE,
   if (Fact->shouldIgnore())
     return;
 
-  checkAcquiredCapability(FSet, *Fact, /*ReqAttr=*/false);
+  // The acquisition checks run once per call and capability: the same
+  // call's fact of the other kind (its companion, below) was checked
+  // already.
+  if (!FSet.findConditional(FactMan, CE, Call))
+    checkAcquiredCapability(FSet, *Fact, /*ReqAttr=*/false);
 
   if (const FactEntry *Cp = FSet.findDefinite(FactMan, CE)) {
     if (Cp->kind() != LK || !isa<LockableFactEntry>(Cp)) {
@@ -3020,6 +3037,11 @@ void ThreadSafetyAnalyzer::addTryLock(FactSet &FSet, const CapabilityExpr &CE,
   SmallVector<const FactEntry *, 2> Conds;
   FSet.collectConditional(FactMan, CE, Conds);
   for (const FactEntry *Cond : Conds) {
+    // The same call's fact of the other kind is its companion: the call
+    // promises each kind on a different outcome, and the edges resolve
+    // the two facts by their own attributes.
+    if (Cond->tryLockCall() == Call && Cond->kind() != LK)
+      continue;
     if (Cond->kind() != LK || Cond->tryLockCall() == Call) {
       Handler.handleDoubleLock(CE.getKind(), CE.toString(), Cond->loc(), Loc,
                                /*MaybeHeld=*/true);
@@ -3738,16 +3760,22 @@ static bool getTrySuccessValue(ASTContext &Ctx, const Expr *BrE) {
   return BrE && getStaticBooleanValue(BrE, Result, Ctx) && Result;
 }
 
-ThreadSafetyAnalyzer::CapProfile
-ThreadSafetyAnalyzer::getCapProfile(const TryAcquireCaps &Caps,
-                                    const CapabilityExpr &Probe) {
+ThreadSafetyAnalyzer::CapProfile ThreadSafetyAnalyzer::getCapProfile(
+    const TryAcquireCaps &Caps, const CapabilityExpr &Probe, LockKind Kind) {
   CapProfile P;
   auto MatchesAny = [&](const CapExprSet &S) {
     return llvm::any_of(
         S, [&](const CapabilityExpr &CE) { return Probe.matches(CE); });
   };
-  P.Truthy = MatchesAny(Caps.TruthyExclusive) || MatchesAny(Caps.TruthyShared);
-  P.Falsy = MatchesAny(Caps.FalsyExclusive) || MatchesAny(Caps.FalsyShared);
+  // The polarities of the attributes promising the capability in \p Kind:
+  // the fact of that kind resolves by them alone, so a call promising an
+  // exclusive hold on one outcome and a shared one on another resolves
+  // each fact on its own edge. The exact codes are keyed by capability
+  // (a code belongs to one attribute, of one kind).
+  P.Truthy =
+      MatchesAny(Kind == LK_Shared ? Caps.TruthyShared : Caps.TruthyExclusive);
+  P.Falsy =
+      MatchesAny(Kind == LK_Shared ? Caps.FalsyShared : Caps.FalsyExclusive);
   for (const auto &[CE, Code] : Caps.ExactCodes)
     if (Probe.matches(CE))
       P.Codes.push_back(Code);
@@ -3840,7 +3868,7 @@ ThreadSafetyAnalyzer::decodeTrylockBranch(const CFGBlock *Block) {
     const TryAcquireCaps &Caps = MapIt->second;
     auto AddCaps = [&](const CapExprSet &CapSet, LockKind LK) {
       for (const CapabilityExpr &CE : CapSet) {
-        const CapProfile P = getCapProfile(Caps, CE);
+        const CapProfile P = getCapProfile(Caps, CE, LK);
         CapResolution Direct, Inverse;
         if (D.CmpValue) {
           auto IsCmpValue = [&](const llvm::APSInt &C) {
@@ -4068,14 +4096,14 @@ ThreadSafetyAnalyzer::resolveTrylockEdge(const CFGBlock *PredBlock,
   // Resolve one capability by the exact value the edge carries; nullopt
   // when that information does not decide it, in which case the caller
   // falls back to the capability's truthiness resolution.
-  auto ResolveByValue =
-      [&](const CapabilityExpr &Probe) -> std::optional<CapResolution> {
+  auto ResolveByValue = [&](const CapabilityExpr &Probe,
+                            LockKind Kind) -> std::optional<CapResolution> {
     const auto CapsIt = TryAcquireCapsMap.find(B.TrylockCall);
     assert(CapsIt != TryAcquireCapsMap.end() &&
            "resolved capabilities without a record at their call");
     if (CapsIt == TryAcquireCapsMap.end())
       return std::nullopt;
-    const CapProfile P = getCapProfile(CapsIt->second, Probe);
+    const CapProfile P = getCapProfile(CapsIt->second, Probe, Kind);
     if (EqValue)
       return P.containsValue(*EqValue) ? CapResolution::Success
                                        : CapResolution::Failure;
@@ -4100,7 +4128,7 @@ ThreadSafetyAnalyzer::resolveTrylockEdge(const CFGBlock *PredBlock,
     // ever the constant's own truthiness and the other edge still pins
     // the result; so the plain per-direction resolutions still apply.
     if ((EqValue || !Excluded.empty()) && !Edge.Ambiguous)
-      R = ResolveByValue(TC.Cap);
+      R = ResolveByValue(TC.Cap, TC.Kind);
     if (!R)
       R = CondVal == EdgeValue::True    ? TC.Resolution
           : CondVal == EdgeValue::False ? FC.Resolution
@@ -4161,9 +4189,17 @@ bool ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
   // at the call, with the resolution this edge proves for each
   // (resolveTrylockEdge()): every fact originating from the call was
   // created from that record.
-  auto ResolveFact = [&](const CapabilityExpr &FE) {
-    const auto *EC = llvm::find_if(
-        Edge.Caps, [&](const TrylockEdgeCap &C) { return FE.matches(C.Cap); });
+  auto ResolveFact = [&](const CapabilityExpr &FE, LockKind Kind) {
+    // The record has one entry per capability and kind; a fact resolves by
+    // its own kind's entry (a cross-kind call's two facts resolve on
+    // different edges), and by the capability's only entry otherwise.
+    const auto *EC = llvm::find_if(Edge.Caps, [&](const TrylockEdgeCap &C) {
+      return C.Kind == Kind && FE.matches(C.Cap);
+    });
+    if (EC == Edge.Caps.end())
+      EC = llvm::find_if(Edge.Caps, [&](const TrylockEdgeCap &C) {
+        return FE.matches(C.Cap);
+      });
     if (EC != Edge.Caps.end())
       return EC->Resolution;
     // A hold of the capability a release-style try-acquire gives up
@@ -4235,14 +4271,14 @@ bool ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
       // whose paths carry a truthy result; nor can an ambiguous edge be
       // ruled out at all, since it does not prove the call executed.
       if (!Ambiguous && !FE.weak() && !FE.spentTryLock() &&
-          ResolveFact(!FE) == CapResolution::Success)
+          ResolveFact(!FE, FE.kind()) == CapResolution::Success)
         Infeasible = true;
       continue;
     }
     // A promoted fact; kept weak or spent-merged by a join it proves
     // nothing on every path, as above.
     if (!FE.weak() && !FE.spentTryLock() &&
-        ResolveFact(FE) == CapResolution::Failure)
+        ResolveFact(FE, FE.kind()) == CapResolution::Failure)
       Infeasible = true;
   }
   // An infeasible edge's lockset still seeds the analysis of a block left
@@ -4256,7 +4292,7 @@ bool ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
     return true;
   for (const FactEntry *FE : ResolvedTryFacts) {
     const auto *Cond = cast<LockableFactEntry>(FE);
-    const CapResolution R = ResolveFact(*FE);
+    const CapResolution R = ResolveFact(*FE, FE->kind());
     if (R == CapResolution::Unknown)
       continue; // The edge does not decide this capability's outcome.
     const bool Succeeds = R == CapResolution::Success;
@@ -5114,26 +5150,17 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
   if (Exp && TryCaps) {
     // A capability recorded under both polarities (specific-code truthy
     // plus falsy, kept conditional by the reconciliation above) tracks
-    // one fact. Its kind is fixed when it is created, while the outcome
-    // that decides which attribute applies is only known per edge, so a
-    // cross-kind pairing takes the weaker kind: one of the two outcomes
-    // promises no more than a shared hold, and an exclusive fact would
-    // grant more than that outcome allows.
-    auto AddTryLock = [&](const CapabilityExpr &M) {
-      if (TryLocksExclusive.contains(M) || TryLocksShared.contains(M))
-        return;
-      const bool AnyShared =
-          TryCaps->TruthyShared.contains(M) || TryCaps->FalsyShared.contains(M);
-      (AnyShared ? TryLocksShared : TryLocksExclusive).push_back(M);
-    };
+    // one fact per kind it is promised in: a cross-kind pairing promises
+    // an exclusive hold on one outcome and a shared one on another, and
+    // each fact resolves on its own attribute's edge (getEdgeLockset()).
     for (const auto &M : TryCaps->TruthyExclusive)
-      AddTryLock(M);
-    for (const auto &M : TryCaps->TruthyShared)
-      AddTryLock(M);
+      TryLocksExclusive.push_back_nodup(M);
     for (const auto &M : TryCaps->FalsyExclusive)
-      AddTryLock(M);
+      TryLocksExclusive.push_back_nodup(M);
+    for (const auto &M : TryCaps->TruthyShared)
+      TryLocksShared.push_back_nodup(M);
     for (const auto &M : TryCaps->FalsyShared)
-      AddTryLock(M);
+      TryLocksShared.push_back_nodup(M);
     for (const auto &M : TryLocksExclusive)
       Analyzer->addTryLock(FSet, M, LK_Exclusive, Loc, Exp, Source);
     for (const auto &M : TryLocksShared)
@@ -6176,10 +6203,10 @@ static bool neverReturns(const CFGBlock *B) {
 /// remaining capability recorded under exactly one polarity and kind.
 /// Exclusive under both polarities stays exclusive. A cross-kind pairing
 /// (e.g. exclusive on success, shared on failure) may be a deliberate
-/// API, but a single fact cannot represent a hold whose kind varies with
-/// the result, so it keeps only the guarantee that holds either way: an
-/// unconditional shared hold. handleCall() adds the unconditional groups
-/// to the lockset, with the diagnostic.
+/// API, but an unconditional acquisition is one hold of one kind, so it
+/// keeps only the guarantee that holds either way: an unconditional
+/// shared hold. handleCall() adds the unconditional groups to the
+/// lockset, with the diagnostic.
 /// "Regardless" is a truthiness conclusion, so it holds only when the
 /// two polarities cover the result's domain: always for a boolean
 /// result, and for an integer result whose truthy side promises any
