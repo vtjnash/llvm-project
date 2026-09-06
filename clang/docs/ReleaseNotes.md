@@ -278,6 +278,20 @@ features cannot lower the translation-unit ABI level;
   initialization, while not diagnosing parameters passed to the selected
   allocation function or promise constructor. (#GH217501)
 
+- Thread safety analysis now tracks capabilities acquired by functions
+  annotated with `try_acquire_capability` accurately: the capability is
+  conditionally ("try") held from the call until a branch on its result, and
+  then is held only on the success path. A conditionally held capability does
+  not satisfy capability requirements, positive or negative, and acquiring or
+  releasing it before branching on the result warns that it may (or may not) be
+  held. Some diagnostics under `-Wthread-safety` change accordingly, although
+  the main improvements are intended to be behind `-Wthread-safety-negative` and
+  `-Wthread-safety-beta`. Several unresolved try-acquires of one capability
+  are tracked side by side, each resolved by the branch on its own result. An
+  acquisition, blocking or try, that changes the kind (shared vs. exclusive)
+  of a held or conditionally held capability will now warn, even for a
+  re-entrant one.
+
 - Fixed bug in `-Wdocumentation` so that it correctly handles explicit
   function template instantiations (#64087).
 
