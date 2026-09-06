@@ -38,6 +38,7 @@
 #include "clang/Basic/Specifiers.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/ImmutableMap.h"
+#include "llvm/ADT/PointerIntPair.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
@@ -106,9 +107,30 @@ class FactManager;
 class FactSet;
 
 /// This is a helper class that stores a fact that is known at a
-/// particular point in program execution.  Currently, a fact is a capability,
+/// particular point in program execution. Concretely, a fact is a capability,
 /// along with additional information, such as where it was acquired, whether
 /// it is exclusive or shared, etc.
+///
+/// A capability's facts come in two forms, and a FactSet keeps them apart:
+///
+///  * At most one *definite* fact per capability: the capability is held (or,
+///    for a negative capability, provably not held). Its reentrancy depth
+///    counts the levels acquired on top of the first; definite levels are
+///    interchangeable -- releasing "a" level is releasing "the" level -- so
+///    a counter is all they need.
+///
+///  * Any number of *conditional* facts per capability, one per originating
+///    try-acquire call: "held if that call succeeded". Each keeps its own
+///    lock kind. A branch on the call's result resolves exactly the facts
+///    that name it as their origin, and a scope object releases exactly the
+///    facts it created. No producer of conditional facts exists yet; the
+///    representation and the FactSet accessors below establish the model.
+///
+/// A capability is *held* if a definite fact exists, *may be held* if only
+/// conditional facts exist, and *not held* if neither does. Every lookup
+/// says which of the two it asks for (FactSet::findDefinite(),
+/// FactSet::findConditional(), ...) rather than taking whichever fact the
+/// set lists first.
 class FactEntry : public CapabilityExpr {
 public:
   enum FactEntryKind { Lockable, ScopedLockable };
@@ -133,6 +155,12 @@ private:
   /// Where it was acquired.
   SourceLocation AcquireLoc;
 
+  /// The try-acquire call this fact originates from (or null), and whether
+  /// the fact is conditional: held only on the paths where that call
+  /// succeeded. A conditional fact always has an origin; a definite fact
+  /// may keep one, recording the call whose success proved its hold.
+  llvm::PointerIntPair<const Expr *, 1, bool> TryLock;
+
 protected:
   ~FactEntry() = default;
 
@@ -148,6 +176,21 @@ public:
   bool asserted() const { return Source == Asserted; }
   bool declared() const { return Source == Declared; }
   bool managed() const { return Source == Managed; }
+
+  /// Whether this is a conditional fact (see the class comment).
+  bool tryHeld() const { return TryLock.getInt(); }
+  /// The try-acquire call this fact originates from, or null.
+  const Expr *tryLockCall() const { return TryLock.getPointer(); }
+
+  /// Record that this fact originates from the try-acquire call \p Call,
+  /// as a conditional fact if \p Conditional.
+  void setTryLock(const Expr *Call, bool Conditional) {
+    assert((Call || !Conditional) && "conditional fact without an origin");
+    TryLock.setPointerAndInt(Call, Conditional);
+  }
+
+  /// The fact's reentrancy depth; only lockable facts can be reentrant.
+  virtual unsigned int getReentrancyDepth() const { return 0; }
 
   virtual void
   handleRemovalFromIntersection(const FactSet &FSet, FactManager &FactMan,
@@ -202,6 +245,11 @@ public:
 /// locks, so we can get away with doing a linear search for lookup.  Note
 /// that a hashtable or map is inappropriate in this case, because lookups
 /// may involve partial pattern matches, rather than exact matches.
+///
+/// A capability may be represented by several facts at once (see FactEntry):
+/// at most one definite fact, and any number of conditional facts, unique
+/// per originating call. The accessors name which of the two they look for;
+/// there is no lookup for "the" fact of a capability.
 class FactSet {
 private:
   using FactVec = SmallVector<FactID, 4>;
@@ -212,6 +260,24 @@ public:
   using iterator = FactVec::iterator;
   using const_iterator = FactVec::const_iterator;
 
+private:
+  template <typename Pred> iterator findIf(FactManager &FM, Pred P) {
+    return llvm::find_if(*this, [&](FactID ID) { return P(FM[ID]); });
+  }
+  template <typename Pred>
+  const FactEntry *findEntry(FactManager &FM, Pred P) const {
+    auto I = llvm::find_if(*this, [&](FactID ID) { return P(FM[ID]); });
+    return I != end() ? &FM[*I] : nullptr;
+  }
+
+  /// Remove the fact at \p It, moving the set's last element into its
+  /// slot.
+  void erase(iterator It) {
+    *It = FactIDs.back();
+    FactIDs.pop_back();
+  }
+
+public:
   iterator begin() { return FactIDs.begin(); }
   const_iterator begin() const { return FactIDs.begin(); }
 
@@ -220,10 +286,12 @@ public:
 
   bool isEmpty() const { return FactIDs.size() == 0; }
 
-  // Return true if the set contains only negative facts
-  bool isEmpty(FactManager &FactMan) const {
+  // Return true if the set holds no definite positive capability. It may
+  // hold negative or conditional facts, unlike isEmpty, which tests the
+  // set itself.
+  bool holdsNoCapability(FactManager &FactMan) const {
     for (const auto FID : *this) {
-      if (!FactMan[FID].negative())
+      if (!FactMan[FID].negative() && !FactMan[FID].tryHeld())
         return false;
     }
     return true;
@@ -237,26 +305,22 @@ public:
     return F;
   }
 
-  bool removeLock(FactManager& FM, const CapabilityExpr &CapE) {
-    unsigned n = FactIDs.size();
-    if (n == 0)
-      return false;
-
-    for (unsigned i = 0; i < n-1; ++i) {
-      if (FM[FactIDs[i]].matches(CapE)) {
-        FactIDs[i] = FactIDs[n-1];
-        FactIDs.pop_back();
-        return true;
-      }
-    }
-    if (FM[FactIDs[n-1]].matches(CapE)) {
-      FactIDs.pop_back();
-      return true;
-    }
-    return false;
+  /// \name Lookup by identity
+  /// The fact \p F itself, which a caller obtained from a lookup below.
+  /// \{
+  iterator findFactIter(FactManager &FM, const FactEntry &F) {
+    return findIf(FM, [&](const FactEntry &FE) { return &FE == &F; });
   }
 
-  std::optional<FactID> replaceLock(FactManager &FM, iterator It,
+  bool removeFact(FactManager &FM, const FactEntry &F) {
+    iterator It = findFactIter(FM, F);
+    if (It == end())
+      return false;
+    erase(It);
+    return true;
+  }
+
+  std::optional<FactID> replaceFact(FactManager &FM, iterator It,
                                     const FactEntry *Entry) {
     if (It == end())
       return std::nullopt;
@@ -265,36 +329,115 @@ public:
     return F;
   }
 
-  std::optional<FactID> replaceLock(FactManager &FM, const CapabilityExpr &CapE,
+  std::optional<FactID> replaceFact(FactManager &FM, const FactEntry &Old,
                                     const FactEntry *Entry) {
-    return replaceLock(FM, findLockIter(FM, CapE), Entry);
+    return replaceFact(FM, findFactIter(FM, Old), Entry);
   }
+  /// \}
 
-  iterator findLockIter(FactManager &FM, const CapabilityExpr &CapE) {
-    return llvm::find_if(*this,
-                         [&](FactID ID) { return FM[ID].matches(CapE); });
-  }
-
-  const FactEntry *findLock(FactManager &FM, const CapabilityExpr &CapE) const {
-    auto I =
-        llvm::find_if(*this, [&](FactID ID) { return FM[ID].matches(CapE); });
-    return I != end() ? &FM[*I] : nullptr;
-  }
-
-  const FactEntry *findLockUniv(FactManager &FM,
-                                const CapabilityExpr &CapE) const {
-    auto I = llvm::find_if(
-        *this, [&](FactID ID) -> bool { return FM[ID].matchesUniv(CapE); });
-    return I != end() ? &FM[*I] : nullptr;
-  }
-
-  const FactEntry *findPartialMatch(FactManager &FM,
-                                    const CapabilityExpr &CapE) const {
-    auto I = llvm::find_if(*this, [&](FactID ID) -> bool {
-      return FM[ID].partiallyMatches(CapE);
+  /// \name Definite facts
+  /// The one fact stating that \p CapE is held (or, negated, provably not
+  /// held).
+  /// \{
+  iterator findDefiniteIter(FactManager &FM, const CapabilityExpr &CapE) {
+    return findIf(FM, [&](const FactEntry &FE) {
+      return !FE.tryHeld() && FE.matches(CapE);
     });
-    return I != end() ? &FM[*I] : nullptr;
   }
+
+  const FactEntry *findDefinite(FactManager &FM,
+                                const CapabilityExpr &CapE) const {
+    return findEntry(FM, [&](const FactEntry &FE) {
+      return !FE.tryHeld() && FE.matches(CapE);
+    });
+  }
+
+  const FactEntry *findDefiniteUniv(FactManager &FM,
+                                    const CapabilityExpr &CapE) const {
+    return findEntry(FM, [&](const FactEntry &FE) {
+      return !FE.tryHeld() && FE.matchesUniv(CapE);
+    });
+  }
+
+  const FactEntry *findDefinitePartialMatch(FactManager &FM,
+                                            const CapabilityExpr &CapE) const {
+    return findEntry(FM, [&](const FactEntry &FE) {
+      return !FE.tryHeld() && FE.partiallyMatches(CapE);
+    });
+  }
+
+  bool removeDefinite(FactManager &FM, const CapabilityExpr &CapE) {
+    iterator It = findDefiniteIter(FM, CapE);
+    if (It == end())
+      return false;
+    erase(It);
+    return true;
+  }
+  /// \}
+
+  /// \name Conditional facts
+  /// The facts stating that \p CapE is held if a try-acquire call
+  /// succeeded, one per originating call.
+  /// \{
+  iterator findConditionalIter(FactManager &FM, const CapabilityExpr &CapE,
+                               const Expr *Origin) {
+    return findIf(FM, [&](const FactEntry &FE) {
+      return FE.tryHeld() && FE.tryLockCall() == Origin && FE.matches(CapE);
+    });
+  }
+
+  const FactEntry *findConditional(FactManager &FM, const CapabilityExpr &CapE,
+                                   const Expr *Origin) const {
+    return findEntry(FM, [&](const FactEntry &FE) {
+      return FE.tryHeld() && FE.tryLockCall() == Origin && FE.matches(CapE);
+    });
+  }
+
+  bool anyConditional(FactManager &FM, const CapabilityExpr &CapE) const {
+    return findEntry(FM, [&](const FactEntry &FE) {
+             return FE.tryHeld() && FE.matches(CapE);
+           }) != nullptr;
+  }
+
+  /// Collect every conditional fact of \p CapE into \p Out, so that a
+  /// caller can mutate the set while visiting them.
+  void collectConditional(FactManager &FM, const CapabilityExpr &CapE,
+                          SmallVectorImpl<const FactEntry *> &Out) const {
+    for (FactID ID : *this)
+      if (FM[ID].tryHeld() && FM[ID].matches(CapE))
+        Out.push_back(&FM[ID]);
+  }
+
+  bool removeConditional(FactManager &FM, const CapabilityExpr &CapE,
+                         const Expr *Origin) {
+    iterator It = findConditionalIter(FM, CapE, Origin);
+    if (It == end())
+      return false;
+    erase(It);
+    return true;
+  }
+  /// \}
+
+  /// The first fact of either form matching \p CapE: whether the
+  /// capability is held or may be held.
+  const FactEntry *findAny(FactManager &FM, const CapabilityExpr &CapE) const {
+    return findEntry(FM, [&](const FactEntry &FE) { return FE.matches(CapE); });
+  }
+
+  /// \name Counterparts
+  /// The fact of the same form as \p F -- definite, or conditional on the
+  /// same call -- for \p F's capability: what a join pairs \p F with.
+  /// \{
+  iterator findCounterpartIter(FactManager &FM, const FactEntry &F) {
+    return F.tryHeld() ? findConditionalIter(FM, F, F.tryLockCall())
+                       : findDefiniteIter(FM, F);
+  }
+
+  const FactEntry *findCounterpart(FactManager &FM, const FactEntry &F) const {
+    return F.tryHeld() ? findConditional(FM, F, F.tryLockCall())
+                       : findDefinite(FM, F);
+  }
+  /// \}
 
   bool containsMutexDecl(FactManager &FM, const ValueDecl* Vd) const {
     auto I = llvm::find_if(
@@ -1009,7 +1152,7 @@ public:
                   ThreadSafetyHandler &Handler) const override {
     if (const FactEntry *RFact = tryReenter(FactMan, entry.kind())) {
       // This capability has been reentrantly acquired.
-      FSet.replaceLock(FactMan, entry, RFact);
+      FSet.replaceFact(FactMan, *this, RFact);
     } else {
       Handler.handleDoubleLock(entry.getKind(), entry.toString(), loc(),
                                entry.loc());
@@ -1020,7 +1163,7 @@ public:
                     const CapabilityExpr &Cp, SourceLocation UnlockLoc,
                     bool FullyRemove,
                     ThreadSafetyHandler &Handler) const override {
-    FSet.removeLock(FactMan, Cp);
+    FSet.removeFact(FactMan, *this);
 
     if (const FactEntry *RFact = leaveReentrant(FactMan)) {
       // This capability remains reentrantly acquired.
@@ -1137,7 +1280,8 @@ public:
       return;
 
     for (const auto &UnderlyingMutex : getManaged()) {
-      const auto *Entry = FSet.findLock(FactMan, UnderlyingMutex.Cap);
+      // Held or possibly held: either way the scope still has it to release.
+      const auto *Entry = FSet.findAny(FactMan, UnderlyingMutex.Cap);
       if ((UnderlyingMutex.Kind == UCK_Acquired && Entry) ||
           (UnderlyingMutex.Kind != UCK_Acquired && !Entry)) {
         // If this scoped lock manages another mutex, and if the underlying
@@ -1179,7 +1323,7 @@ public:
       }
     }
     if (FullyRemove)
-      FSet.removeLock(FactMan, Cp);
+      FSet.removeFact(FactMan, *this);
   }
 
   static bool classof(const FactEntry *A) {
@@ -1190,16 +1334,16 @@ private:
   void lock(FactSet &FSet, FactManager &FactMan, const CapabilityExpr &Cp,
             LockKind kind, SourceLocation loc,
             ThreadSafetyHandler *Handler) const {
-    if (const auto It = FSet.findLockIter(FactMan, Cp); It != FSet.end()) {
+    if (const auto It = FSet.findDefiniteIter(FactMan, Cp); It != FSet.end()) {
       const auto &Fact = cast<LockableFactEntry>(FactMan[*It]);
       if (const FactEntry *RFact = Fact.tryReenter(FactMan, kind)) {
         // This capability has been reentrantly acquired.
-        FSet.replaceLock(FactMan, It, RFact);
+        FSet.replaceFact(FactMan, It, RFact);
       } else if (Handler) {
         Handler->handleDoubleLock(Cp.getKind(), Cp.toString(), Fact.loc(), loc);
       }
     } else {
-      FSet.removeLock(FactMan, !Cp);
+      FSet.removeDefinite(FactMan, !Cp);
       FSet.addLock(FactMan, FactMan.createFact<LockableFactEntry>(Cp, kind, loc,
                                                                   Managed));
     }
@@ -1207,20 +1351,20 @@ private:
 
   void unlock(FactSet &FSet, FactManager &FactMan, const CapabilityExpr &Cp,
               SourceLocation loc, ThreadSafetyHandler *Handler) const {
-    if (const auto It = FSet.findLockIter(FactMan, Cp); It != FSet.end()) {
+    if (const auto It = FSet.findDefiniteIter(FactMan, Cp); It != FSet.end()) {
       const auto &Fact = cast<LockableFactEntry>(FactMan[*It]);
       if (const FactEntry *RFact = Fact.leaveReentrant(FactMan)) {
         // This capability remains reentrantly acquired.
-        FSet.replaceLock(FactMan, It, RFact);
+        FSet.replaceFact(FactMan, It, RFact);
         return;
       }
 
-      FSet.replaceLock(
+      FSet.replaceFact(
           FactMan, It,
           FactMan.createFact<LockableFactEntry>(!Cp, LK_Exclusive, loc));
     } else if (Handler) {
       SourceLocation PrevLoc;
-      if (const FactEntry *Neg = FSet.findLock(FactMan, !Cp))
+      if (const FactEntry *Neg = FSet.findDefinite(FactMan, !Cp))
         PrevLoc = Neg->loc();
       Handler->handleUnmatchedUnlock(Cp.getKind(), Cp.toString(), loc, PrevLoc);
     }
@@ -1519,11 +1663,7 @@ void ThreadSafetyAnalyzer::addLock(FactSet &FSet, const FactEntry *Entry,
   if (!ReqAttr && !Entry->negative()) {
     // look for the negative capability, and remove it from the fact set.
     CapabilityExpr NegC = !*Entry;
-    const FactEntry *Nen = FSet.findLock(FactMan, NegC);
-    if (Nen) {
-      FSet.removeLock(FactMan, NegC);
-    }
-    else {
+    if (!FSet.removeDefinite(FactMan, NegC)) {
       if (inCurrentScope(*Entry) && !Entry->asserted() && !Entry->reentrant())
         Handler.handleNegativeNotHeld(Entry->getKind(), Entry->toString(),
                                       NegC.toString(), Entry->loc());
@@ -1536,7 +1676,7 @@ void ThreadSafetyAnalyzer::addLock(FactSet &FSet, const FactEntry *Entry,
                                       Entry->loc(), Entry->getKind());
   }
 
-  if (const FactEntry *Cp = FSet.findLock(FactMan, *Entry)) {
+  if (const FactEntry *Cp = FSet.findDefinite(FactMan, *Entry)) {
     if (!Entry->asserted())
       Cp->handleLock(FSet, FactMan, *Entry, Handler);
   } else {
@@ -1552,10 +1692,10 @@ void ThreadSafetyAnalyzer::removeLock(FactSet &FSet, const CapabilityExpr &Cp,
   if (Cp.shouldIgnore())
     return;
 
-  const FactEntry *LDat = FSet.findLock(FactMan, Cp);
+  const FactEntry *LDat = FSet.findDefinite(FactMan, Cp);
   if (!LDat) {
     SourceLocation PrevLoc;
-    if (const FactEntry *Neg = FSet.findLock(FactMan, !Cp))
+    if (const FactEntry *Neg = FSet.findDefinite(FactMan, !Cp))
       PrevLoc = Neg->loc();
     Handler.handleUnmatchedUnlock(Cp.getKind(), Cp.toString(), UnlockLoc,
                                   PrevLoc);
@@ -2006,9 +2146,8 @@ void ThreadSafetyAnalyzer::warnIfMutexNotHeld(
   }
 
   if (Cp.negative()) {
-    // Negative capabilities act like locks excluded
-    const FactEntry *LDat = FSet.findLock(FactMan, !Cp);
-    if (LDat) {
+    // Negative capabilities act like locks excluded.
+    if (FSet.findDefinite(FactMan, !Cp)) {
       Handler.handleFunExcludesLock(Cp.getKind(), D->getNameAsString(),
                                     (!Cp).toString(), Loc);
       return;
@@ -2020,18 +2159,16 @@ void ThreadSafetyAnalyzer::warnIfMutexNotHeld(
       return;
 
     // Otherwise the negative requirement must be propagated to the caller.
-    LDat = FSet.findLock(FactMan, Cp);
-    if (!LDat) {
+    if (!FSet.findDefinite(FactMan, Cp))
       Handler.handleNegativeNotHeld(D, Cp.toString(), Loc);
-    }
     return;
   }
 
-  const FactEntry *LDat = FSet.findLockUniv(FactMan, Cp);
+  const FactEntry *LDat = FSet.findDefiniteUniv(FactMan, Cp);
   bool NoError = true;
   if (!LDat) {
     // No exact match found.  Look for a partial match.
-    LDat = FSet.findPartialMatch(FactMan, Cp);
+    LDat = FSet.findDefinitePartialMatch(FactMan, Cp);
     if (LDat) {
       // Warn that there's no precise match.
       std::string PartMatchStr = LDat->toString();
@@ -2063,10 +2200,10 @@ void ThreadSafetyAnalyzer::warnIfAnyMutexNotHeldForRead(
     }
     if (Cp.shouldIgnore())
       continue;
-    const FactEntry *LDat = FSet.findLockUniv(FactMan, Cp);
+    const FactEntry *LDat = FSet.findDefiniteUniv(FactMan, Cp);
     if (LDat && LDat->isAtLeast(LK_Shared))
       return; // At least one held — read access is safe.
-    // FIXME: try findPartialMatch as a fallback to support
+    // FIXME: try findDefinitePartialMatch as a fallback to support
     //        -Wno-thread-safety-precise, as warnIfMutexNotHeld does.
     Caps.push_back(Cp);
   }
@@ -2095,8 +2232,7 @@ void ThreadSafetyAnalyzer::warnIfMutexHeld(const FactSet &FSet,
     return;
   }
 
-  const FactEntry *LDat = FSet.findLock(FactMan, Cp);
-  if (LDat) {
+  if (FSet.findDefinite(FactMan, Cp)) {
     Handler.handleFunExcludesLock(Cp.getKind(), D->getNameAsString(),
                                   Cp.toString(), Loc);
   }
@@ -2164,7 +2300,7 @@ void ThreadSafetyAnalyzer::checkAccess(const FactSet &FSet, const Expr *Exp,
   if (!D || !D->hasAttrs())
     return;
 
-  if (D->hasAttr<GuardedVarAttr>() && FSet.isEmpty(FactMan)) {
+  if (D->hasAttr<GuardedVarAttr>() && FSet.holdsNoCapability(FactMan)) {
     Handler.handleNoMutexHeld(D, POK, AK, Loc);
   }
 
@@ -2239,7 +2375,7 @@ void ThreadSafetyAnalyzer::checkPtAccess(const FactSet &FSet, const Expr *Exp,
   if (!D || !D->hasAttrs())
     return;
 
-  if (D->hasAttr<PtGuardedVarAttr>() && FSet.isEmpty(FactMan))
+  if (D->hasAttr<PtGuardedVarAttr>() && FSet.holdsNoCapability(FactMan))
     Handler.handleNoMutexHeld(D, PtPOK, AK, Exp->getExprLoc());
 
   for (auto const *I : D->specific_attrs<PtGuardedByAttr>()) {
@@ -2457,7 +2593,7 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
           Cp = CapabilityExpr(Object->second, StringRef("mutex"), /*Neg=*/false,
                               /*Reentrant=*/false);
       }
-      const FactEntry *Fact = FSet.findLock(Analyzer->FactMan, Cp);
+      const FactEntry *Fact = FSet.findDefinite(Analyzer->FactMan, Cp);
       if (!Fact) {
         Analyzer->Handler.handleMutexNotHeld(Cp.getKind(), D, POK_FunctionCall,
                                              Cp.toString(), LK_Exclusive,
@@ -2828,7 +2964,7 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
   for (const auto &Fact : ExitSet) {
     const FactEntry &ExitFact = FactMan[Fact];
 
-    FactSet::iterator EntryIt = EntrySet.findLockIter(FactMan, ExitFact);
+    FactSet::iterator EntryIt = EntrySet.findCounterpartIter(FactMan, ExitFact);
     if (EntryIt != EntrySet.end()) {
       if (join(FactMan[*EntryIt], ExitFact, JoinLoc, EntryLEK))
         *EntryIt = Fact;
@@ -2842,7 +2978,7 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
   // Find locks in EntrySet that are not in ExitSet, and remove them.
   for (const auto &Fact : EntrySetOrig) {
     const FactEntry *EntryFact = &FactMan[Fact];
-    const FactEntry *ExitFact = ExitSet.findLock(FactMan, *EntryFact);
+    const FactEntry *ExitFact = ExitSet.findCounterpart(FactMan, *EntryFact);
 
     if (!ExitFact) {
       if ((!EntryFact->managed() || ExitLEK == LEK_LockedSomeLoopIterations ||
@@ -2851,7 +2987,7 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
         EntryFact->handleRemovalFromIntersection(EntrySetOrig, FactMan, JoinLoc,
                                                  ExitLEK, Handler);
       if (ExitLEK == LEK_LockedSomePredecessors)
-        EntrySet.removeLock(FactMan, *EntryFact);
+        EntrySet.removeFact(FactMan, *EntryFact);
     }
   }
 }
@@ -3062,7 +3198,7 @@ void ThreadSafetyAnalyzer::runAnalysis(AnalysisDeclContext &AC) {
         FactMan, FactMan.createFact<LockableFactEntry>(Lock, LK_Shared,
                                                        D->getLocation()));
   for (const auto &Lock : LocksReleased)
-    ExpectedFunctionExitSet.removeLock(FactMan, Lock);
+    ExpectedFunctionExitSet.removeDefinite(FactMan, Lock);
 
   for (const auto *CurrBlock : *SortedGraph) {
     unsigned CurrBlockID = CurrBlock->getBlockID();
