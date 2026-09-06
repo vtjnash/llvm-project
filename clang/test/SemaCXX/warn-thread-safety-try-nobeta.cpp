@@ -81,11 +81,11 @@ void same_origin_continue_latch_leak_adds_nothing() {
 // the hidden level eagerly, as a depth difference. The merged state is the
 // demotion's either way, so the release below unwinds the base level.
 void same_origin_depth_pair_warns_without_beta() {
-  mu.Lock();   // expected-note {{mutex acquired here}}
-  if (mu.TryLock()) { // expected-warning {{acquiring mutex 'mu' that is already held}}
+  mu.Lock();   // expected-note 2 {{mutex acquired here}}
+  if (mu.TryLock()) {
   }
-  mu.Unlock();
-}
+  mu.Unlock(); // expected-warning {{mutex 'mu' is not held on every path through here}}
+} // expected-warning {{mutex 'mu' is still held at the end of function}}
 
 // The idioms the same-origin demotion is for, in the mode where it does not
 // apply at branch merges: each keeps the eager diagnosis the merge gives.
@@ -93,9 +93,10 @@ void same_origin_depth_pair_warns_without_beta() {
 // Two try-acquires of one capability, each branched on (the merged state is
 // still two conditional try facts, so the uses below are diagnosed).
 void two_calls_each_branched() {
-  if (mu.TryLock())
-    cond = true;
   if (mu.TryLock()) // expected-note {{mutex acquired here}}
+    cond = true;
+  if (mu.TryLock()) // expected-warning {{mutex 'mu' is not held on every path through here}} \
+                    // expected-note {{mutex acquired here}}
     cond = true;
   a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}} \
                // expected-warning {{mutex 'mu' is not held on every path through here}}
@@ -120,7 +121,7 @@ void negative_requirement_after_join() {
   bool ok = mu.TryLock();
   if (ok)
     cond = true;
-  needsNotHeld();
+  needsNotHeld(); // expected-warning {{cannot call function 'needsNotHeld' while mutex 'mu' may be held}}
   if (ok)
     mu.Unlock();
 }
@@ -261,7 +262,7 @@ void cond_split_join_stays_silent_without_beta() {
   int r = mu.TryLock() ? 1 : 2;
   if (r) {
     a = 3;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
   }
 }
 
@@ -277,7 +278,7 @@ int a2 __attribute__((guarded_by(mu2)));
 void cond_terminator_resolves_without_beta() {
   if (mu.TryLock() ? use() : false) {
     a = 3; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
   }
 }
 
@@ -285,8 +286,8 @@ void cond_terminator_resolves_without_beta() {
 void cond_arm_resolves_without_beta() {
   if (mu.TryLock() ? mu2.TryLock() : false) {
     a2 = 3; // expected-warning {{writing variable 'a2' requires holding mutex 'mu2' exclusively}}
-    mu2.Unlock(); // expected-warning {{releasing mutex 'mu2' that was not held}}
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu2.Unlock(); // expected-warning {{releasing mutex 'mu2' that may not be held}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
   }
 }
 
@@ -295,9 +296,9 @@ void cond_merged_constant_without_beta() {
   int r = mu.TryLock() ? 1 : 2;
   if (r == 1) {
     a = 3; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
   } else {
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
   }
 }
 
@@ -306,7 +307,7 @@ void gnu_cond_without_beta() {
   bool ok = mu.TryLock();
   if (ok ?: 0) {
     a = 3; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
   }
 }
 

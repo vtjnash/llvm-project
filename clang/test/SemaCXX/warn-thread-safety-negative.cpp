@@ -160,14 +160,14 @@ public:
   }
 
   void tryLockRebranchOneWarning(bool c) {
-    bool b = mu.TryLock(); // expected-warning 3 {{acquiring mutex 'mu' requires negative capability '!mu'}} \
+    bool b = mu.TryLock(); // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}} \
                            // expected-note {{mutex acquired here}}
     if (b)
       a = 0;
     if (c && b) { // expected-warning {{mutex 'mu' is not held on every path through here}}
-      mu.Unlock();
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
     } else if (b) {
-      mu.Unlock();
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
@@ -187,8 +187,8 @@ public:
   // does not show the thread free of the capability (the caller may hold a
   // reentrant one): without a declared '!mu', re-acquiring needs it again.
   void tryLockUncheckedReleaseThenLock() {
-    mu.TryLock();
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.TryLock(); // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}}
+    mu.Unlock();  // expected-warning{{releasing mutex 'mu' that may not be held}}
     mu.Lock();    // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}}
     a = 0;
     mu.Unlock();
@@ -197,7 +197,7 @@ public:
   // With '!mu' declared, the release restores it.
   void tryLockUncheckedReleaseKeepsDeclared() EXCLUSIVE_LOCKS_REQUIRED(!mu) {
     mu.TryLock();
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock(); // expected-warning{{releasing mutex 'mu' that may not be held}}
     mu.Lock();
     a = 0;
     mu.Unlock();
@@ -212,12 +212,12 @@ public:
   void tryLockReaddChecksOnce(bool c, bool d) {
     bool b = false;
     if (c)
-      b = mu.TryLock();
+      b = mu.TryLock(); // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}}
     if (d) {
       a = 0;            // expected-warning{{writing variable 'a' requires holding mutex 'mu' exclusively}}
     }
     if (b) {
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
     }
   }
 

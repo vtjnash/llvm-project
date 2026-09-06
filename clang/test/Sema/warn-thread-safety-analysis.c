@@ -757,7 +757,7 @@ int get_data(void);
 void test_trylock_conditional_arm(void) {
   if (mutex_exclusive_trylock(&mu1) ? get_data() : 0) {
     work_data = 1; // expected-warning {{writing variable 'work_data' requires holding mutex 'mu1' exclusively}}
-    mutex_unlock(&mu1); // expected-warning {{releasing mutex 'mu1' that was not held}}
+    mutex_unlock(&mu1); // expected-warning {{releasing mutex 'mu1' that may not be held}}
   }
 }
 
@@ -766,7 +766,7 @@ void test_trylock_conditional_arm(void) {
 void test_trylock_gnu_conditional(void) {
   if (mutex_exclusive_trylock(&mu1) ?: 0) {
     work_data = 1; // expected-warning {{writing variable 'work_data' requires holding mutex 'mu1' exclusively}}
-    mutex_unlock(&mu1); // expected-warning {{releasing mutex 'mu1' that was not held}}
+    mutex_unlock(&mu1); // expected-warning {{releasing mutex 'mu1' that may not be held}}
   }
 }
 
@@ -775,7 +775,7 @@ void test_trylock_gnu_conditional(void) {
 // right operand's, so the result stays undetermined there.
 void test_trylock_gnu_conditional_nonconst(void) {
   if (mutex_exclusive_trylock(&mu1) ?: get_data())
-    mutex_unlock(&mu1); // expected-warning {{releasing mutex 'mu1' that was not held}}
+    mutex_unlock(&mu1); // expected-warning{{releasing mutex 'mu1' that may not be held}}
 }
 
 // A switch on an int-typed but provably boolean condition (a comparison in
@@ -797,8 +797,7 @@ void test_trylock_switch_comparison(void) {
 // on which the mutex stays held is diagnosed rather than pruned as
 // infeasible.
 void test_trylock_result_decremented(void) {
-  int r = mutex_exclusive_trylock(&mu1); // expected-note 2 {{mutex acquired here}} \
-                                         // expected-warning {{acquiring mutex 'mu1' that is already held}}
+  int r = mutex_exclusive_trylock(&mu1); // expected-note {{mutex acquired here}}
   if (!r)
     return;
   r--;
