@@ -828,6 +828,7 @@ public:
 };
 
 class ThreadSafetyAnalyzer;
+class BuildLockset;
 
 } // namespace
 
@@ -2882,6 +2883,16 @@ public:
   }
 
   void runAnalysis(AnalysisDeclContext &AC);
+  bool hasTryLockFact(const FactSet &FS) const;
+  bool addDeclaredLocksets(const NamedDecl *D, FactSet &EntrySet,
+                           FactSet &ExpectedExitSet);
+  void joinPredecessors(const CFGBlock *CurrBlock, CFGBlockInfo &CurrBlockInfo,
+                        PostOrderCFGView::CFGBlockSet &VisitedBlocks);
+  void visitBlock(const CFGBlock *CurrBlock, BuildLockset &LocksetBuilder);
+  void collectLoopCheckedResults(const CFGBlock *Head, const CFGBlock *Latch,
+                                 llvm::SmallPtrSetImpl<const Expr *> &Checked);
+  void checkBackEdges(const CFGBlock *CurrBlock,
+                      PostOrderCFGView::CFGBlockSet &VisitedBlocks);
 
   void warnIfMutexNotHeld(const FactSet &FSet, const NamedDecl *D,
                           const Expr *Exp, AccessKind AK, Expr *MutexExp,
@@ -6896,14 +6907,395 @@ void ThreadSafetyAnalyzer::injectLoopReleasedTryFacts(
   }
 }
 
+/// Whether \p FS holds any try fact of a try-acquire call.
+bool ThreadSafetyAnalyzer::hasTryLockFact(const FactSet &FS) const {
+  // Functions without a try-acquire (the common case) record none: skip
+  // scanning the fact sets entirely.
+  return FactMan.tracksTryAcquires() && llvm::any_of(FS, [this](FactID ID) {
+           return isa<TryFactEntry>(FactMan[ID]);
+         });
+}
+
+/// Add the locks the function \p D declares to hold on entry -- its
+/// exclusive_locks_required and shared_locks_required, and the scoped
+/// objects among its parameters -- to \p EntrySet, and compute
+/// \p ExpectedExitSet, the locks it is expected to hold on exit: those,
+/// adjusted by what *-LOCK_FUNCTION and UNLOCK_FUNCTION declare it
+/// acquires or releases (the end-of-function intersection then issues
+/// the appropriate warning). Returns false, and the caller skips the
+/// function entirely, for one the analysis does not check: a lock or
+/// unlock function hiding the underlying lock implementation (an
+/// argument-less acquire or release attribute), or a try-acquire function.
+/// FIXME: is there a more intelligent way to check lock/unlock functions?
+bool ThreadSafetyAnalyzer::addDeclaredLocksets(const NamedDecl *D,
+                                               FactSet &EntrySet,
+                                               FactSet &ExpectedExitSet) {
+  CapExprSet ExclusiveLocksAcquired;
+  CapExprSet SharedLocksAcquired;
+  CapExprSet LocksReleased;
+  CapExprSet ExclusiveLocksToAdd;
+  CapExprSet SharedLocksToAdd;
+
+  SourceLocation Loc = D->getLocation();
+  for (const auto *Attr : D->attrs()) {
+    Loc = Attr->getLocation();
+    if (const auto *A = dyn_cast<RequiresCapabilityAttr>(Attr)) {
+      getMutexIDs(A->isShared() ? SharedLocksToAdd : ExclusiveLocksToAdd, A,
+                  nullptr, D);
+    } else if (const auto *A = dyn_cast<ReleaseCapabilityAttr>(Attr)) {
+      // UNLOCK_FUNCTION() is used to hide the underlying lock implementation.
+      // We must ignore such methods.
+      if (A->args_size() == 0)
+        return false;
+      getMutexIDs(A->isShared() ? SharedLocksToAdd : ExclusiveLocksToAdd, A,
+                  nullptr, D);
+      getMutexIDs(LocksReleased, A, nullptr, D);
+    } else if (const auto *A = dyn_cast<AcquireCapabilityAttr>(Attr)) {
+      if (A->args_size() == 0)
+        return false;
+      getMutexIDs(A->isShared() ? SharedLocksAcquired : ExclusiveLocksAcquired,
+                  A, nullptr, D);
+    } else if (isa<TryAcquireCapabilityAttr>(Attr)) {
+      // Don't try to check trylock functions for now.
+      return false;
+    }
+  }
+  ArrayRef<ParmVarDecl *> Params;
+  if (CurrentFunction)
+    Params = CurrentFunction->getCanonicalDecl()->parameters();
+  else if (auto CurrentMethod = dyn_cast<ObjCMethodDecl>(D))
+    Params = CurrentMethod->getCanonicalDecl()->parameters();
+  else
+    llvm_unreachable("Unknown function kind");
+  for (const ParmVarDecl *Param : Params) {
+    if (isCallbackParam(Param))
+      continue;
+    CapExprSet UnderlyingLocks;
+    for (const auto *Attr : Param->attrs()) {
+      Loc = Attr->getLocation();
+      if (const auto *A = dyn_cast<ReleaseCapabilityAttr>(Attr)) {
+        getMutexIDs(A->isShared() ? SharedLocksToAdd : ExclusiveLocksToAdd, A,
+                    nullptr, Param);
+        getMutexIDs(LocksReleased, A, nullptr, Param);
+        getMutexIDs(UnderlyingLocks, A, nullptr, Param);
+      } else if (const auto *A = dyn_cast<RequiresCapabilityAttr>(Attr)) {
+        getMutexIDs(A->isShared() ? SharedLocksToAdd : ExclusiveLocksToAdd, A,
+                    nullptr, Param);
+        getMutexIDs(UnderlyingLocks, A, nullptr, Param);
+      } else if (const auto *A = dyn_cast<AcquireCapabilityAttr>(Attr)) {
+        getMutexIDs(A->isShared() ? SharedLocksAcquired
+                                  : ExclusiveLocksAcquired,
+                    A, nullptr, Param);
+        getMutexIDs(UnderlyingLocks, A, nullptr, Param);
+      } else if (const auto *A = dyn_cast<LocksExcludedAttr>(Attr)) {
+        getMutexIDs(UnderlyingLocks, A, nullptr, Param);
+      }
+    }
+    if (UnderlyingLocks.empty())
+      continue;
+    CapabilityExpr Cp(SxBuilder.translateVariable(Param, nullptr), StringRef(),
+                      /*Neg=*/false, /*Reentrant=*/false);
+    auto *ScopedEntry = FactMan.createFact<ScopedLockableFactEntry>(
+        Cp, Param->getLocation(), FactEntry::Declared, UnderlyingLocks.size());
+    for (const CapabilityExpr &M : UnderlyingLocks)
+      ScopedEntry->addLock(M);
+    addLock(EntrySet, ScopedEntry, true);
+  }
+
+  // FIXME -- Loc can be wrong here.
+  for (const auto &Mu : ExclusiveLocksToAdd) {
+    const auto *Entry = FactMan.createFact<LockableFactEntry>(
+        Mu, LK_Exclusive, Loc, FactEntry::Declared);
+    addLock(EntrySet, Entry, true);
+  }
+  for (const auto &Mu : SharedLocksToAdd) {
+    const auto *Entry = FactMan.createFact<LockableFactEntry>(
+        Mu, LK_Shared, Loc, FactEntry::Declared);
+    addLock(EntrySet, Entry, true);
+  }
+
+  // By default, we expect all locks held on entry to be held on exit.
+  // FIXME: the location here is not quite right.
+  ExpectedExitSet = EntrySet;
+  for (const auto &Lock : ExclusiveLocksAcquired)
+    ExpectedExitSet.addLock(FactMan, FactMan.createFact<LockableFactEntry>(
+                                         Lock, LK_Exclusive, D->getLocation()));
+  for (const auto &Lock : SharedLocksAcquired)
+    ExpectedExitSet.addLock(FactMan, FactMan.createFact<LockableFactEntry>(
+                                         Lock, LK_Shared, D->getLocation()));
+  for (const auto &Lock : LocksReleased)
+    ExpectedExitSet.removeDefinite(FactMan, Lock);
+  return true;
+}
+
+/// Compute \p CurrBlock's entry lockset by intersecting, edge by edge,
+/// what each visited predecessor's exit lockset proves along its edge into
+/// the block (getEdgeLockset(), intersectAndWarn()), warning where they
+/// differ. The block is reachable if some predecessor reaches it over a
+/// feasible edge; one reached over infeasible edges alone is still
+/// analyzed, for coverage only (CoverageOnly).
+///
+/// FIXME: By keeping the intersection, we may output more errors in future
+/// for a lock which is not in the intersection, but was in the union. We
+/// may want to also keep the union in future. As an example, let's say
+/// the intersection contains Mutex L, and the union contains L and M.
+/// Later we unlock M. At this point, we would output an error because we
+/// never locked M; although the real error is probably that we forgot to
+/// lock M on all code paths. Conversely, let's say that later we lock M.
+/// In this case, we should compare against the intersection instead of the
+/// union because the real error is probably that we forgot to unlock M on
+/// all code paths.
+void ThreadSafetyAnalyzer::joinPredecessors(
+    const CFGBlock *CurrBlock, CFGBlockInfo &CurrBlockInfo,
+    PostOrderCFGView::CFGBlockSet &VisitedBlocks) {
+  bool LocksetInitialized = false;
+  // The branch-join context. Its try-acquire call -- the one whose
+  // result the condition starting at this block branches on, if any --
+  // is computed lazily on the first join where a set carries a try fact
+  // at all. Each incoming set is scanned once as it arrives
+  // (JoinHasTryLockFact accumulates); the entry set itself never gains
+  // try facts from anywhere else.
+  JoinContext Ctx{CurrBlockInfo.EntryLoc, LEK_LockedSomePredecessors,
+                  LEK_LockedSomePredecessors};
+  bool RebranchTryLockComputed = false;
+  bool JoinHasTryLockFact = false;
+  // The lockset of the first infeasible incoming edge, if any (see below).
+  std::optional<FactSet> InfeasibleEdgeSet;
+  for (CFGBlock::const_pred_iterator PI = CurrBlock->pred_begin(),
+                                     PE = CurrBlock->pred_end();
+       PI != PE; ++PI) {
+    // if *PI -> CurrBlock is a back edge
+    if (*PI == nullptr || !VisitedBlocks.alreadySet(*PI))
+      continue;
+
+    unsigned PrevBlockID = (*PI)->getBlockID();
+    CFGBlockInfo *PrevBlockInfo = &BlockInfo[PrevBlockID];
+
+    // Ignore edges from blocks that can't return.
+    if (neverReturns(*PI) || !PrevBlockInfo->Reachable)
+      continue;
+
+    FactSet PrevLockset;
+    if (getEdgeLockset(PrevLockset, PrevBlockInfo->ExitSet, *PI, CurrBlock) ||
+        PrevBlockInfo->CoverageOnly) {
+      // The edge cannot be taken (a resolved try fact contradicts it), or
+      // the predecessor itself was analyzed only for coverage and its exit
+      // set is dead state either way: skip
+      // the edge at the join like an unreachable predecessor. Remember
+      // the lockset in case no live predecessor remains: infeasibility
+      // only prunes joins, never analysis coverage (see below).
+      if (!InfeasibleEdgeSet)
+        InfeasibleEdgeSet = std::move(PrevLockset);
+      continue;
+    }
+
+    // Okay, we can reach this block from the entry.
+    CurrBlockInfo.Reachable = true;
+
+    if (!LocksetInitialized) {
+      JoinHasTryLockFact = hasTryLockFact(PrevLockset);
+      CurrBlockInfo.EntrySet = std::move(PrevLockset);
+      LocksetInitialized = true;
+    } else if (isa_and_nonnull<ContinueStmt>((*PI)->getTerminatorStmt())) {
+      // Loop join: warn on locks held for only some iterations.
+      // Surprisingly 'continue' doesn't always produce back edges, because
+      // the CFG has empty "transition" blocks where they meet with the end
+      // of the regular loop body. We still want to diagnose them as loop.
+      intersectAndWarn(CurrBlockInfo.EntrySet, PrevLockset,
+                       CurrBlockInfo.EntryLoc, LEK_LockedSomeLoopIterations);
+    } else {
+      // Branch join: a difference in the holds a try-acquire's try facts
+      // prove is demoted to conditional and re-resolved on the outgoing
+      // edges if the condition branches on that call's result --
+      // possibly behind short-circuit blocks of a compound condition
+      // like `c && ok`.
+      if (!RebranchTryLockComputed && !JoinHasTryLockFact)
+        JoinHasTryLockFact = hasTryLockFact(PrevLockset);
+      if (!RebranchTryLockComputed && JoinHasTryLockFact) {
+        // Compute once; the result depends only on CurrBlock, not on
+        // *PI. Skipped entirely (the common case) until some try fact
+        // reaches this join.
+        const CallExpr *MergedCall = nullptr;
+        Ctx.RebranchTryLock = getConditionTrylockCallExpr(
+            CurrBlock, &Ctx.RebranchResolvesAllPaths, &MergedCall);
+        Ctx.RebranchTryLock2 = MergedCall;
+        RebranchTryLockComputed = true;
+      }
+      intersectAndWarn(CurrBlockInfo.EntrySet, PrevLockset, Ctx);
+    }
+  }
+
+  // A block reached only through infeasible edges is dynamically dead if
+  // the infeasibility proofs are right -- but the proof rests on the
+  // local-variable map, which can be stale (e.g. a result variable
+  // mutated through an escaped reference), and even genuinely dead code
+  // gets its diagnostics. So analyze the block anyway, with one of the
+  // infeasible edges' locksets: infeasibility prunes joins, never
+  // analysis coverage. The block is marked coverage-only, which
+  // quarantines its exit set from downstream joins (above) and
+  // propagates through blocks reachable only from it.
+  if (!CurrBlockInfo.Reachable && InfeasibleEdgeSet) {
+    CurrBlockInfo.Reachable = true;
+    CurrBlockInfo.CoverageOnly = true;
+    CurrBlockInfo.EntrySet = std::move(*InfeasibleEdgeSet);
+  }
+}
+
+/// Visit the elements of \p CurrBlock with \p LocksetBuilder: its
+/// statements, and the destructor and cleanup calls the CFG records.
+void ThreadSafetyAnalyzer::visitBlock(const CFGBlock *CurrBlock,
+                                      BuildLockset &LocksetBuilder) {
+  for (const auto &BI : *CurrBlock) {
+    switch (BI.getKind()) {
+    case CFGElement::Statement: {
+      CFGStmt CS = BI.castAs<CFGStmt>();
+      LocksetBuilder.Visit(CS.getStmt());
+      break;
+    }
+    // Ignore BaseDtor and MemberDtor for now.
+    case CFGElement::AutomaticObjectDtor: {
+      CFGAutomaticObjDtor AD = BI.castAs<CFGAutomaticObjDtor>();
+      const auto *DD = AD.getDestructorDecl(*ASTCtx);
+      // Function parameters as they are constructed in caller's context and
+      // the CFG does not contain the ctors. Ignore them as their
+      // capabilities cannot be analysed because of this missing
+      // information.
+      if (isa_and_nonnull<ParmVarDecl>(AD.getVarDecl()))
+        break;
+      if (!DD || !DD->hasAttrs())
+        break;
+
+      LocksetBuilder.handleCall(
+          nullptr, DD, SxBuilder.translateVariable(AD.getVarDecl(), nullptr),
+          AD.getTriggerStmt()->getEndLoc());
+      break;
+    }
+
+    case CFGElement::CleanupFunction: {
+      const CFGCleanupFunction &CF = BI.castAs<CFGCleanupFunction>();
+      LocksetBuilder.handleCall(
+          /*Exp=*/nullptr, CF.getFunctionDecl(),
+          SxBuilder.translateVariable(CF.getVarDecl(), nullptr),
+          CF.getVarDecl()->getLocation());
+      break;
+    }
+
+    case CFGElement::TemporaryDtor: {
+      auto TD = BI.castAs<CFGTemporaryDtor>();
+
+      // Clean up constructed object even if there are no attributes to
+      // keep the number of objects in limbo as small as possible.
+      if (auto Object =
+              ConstructedObjects.find(TD.getBindTemporaryExpr()->getSubExpr());
+          Object != ConstructedObjects.end()) {
+        const auto *DD = TD.getDestructorDecl(*ASTCtx);
+        if (DD->hasAttrs())
+          // TODO: the location here isn't quite correct.
+          LocksetBuilder.handleCall(nullptr, DD, Object->second,
+                                    TD.getBindTemporaryExpr()->getEndLoc());
+        ConstructedObjects.erase(Object);
+      }
+      break;
+    }
+    default:
+      break;
+    }
+  }
+}
+
+/// Collect into \p Checked the try-acquire calls whose results are branched
+/// on inside the natural loop of the back edge \p Latch -> \p Head: for
+/// the unchecked-result warning, they are (or will be, on the next
+/// iteration) checked around the loop. Results checked only outside the
+/// loop are not: the loop re-executes the call (or discards the result)
+/// unchecked.
+void ThreadSafetyAnalyzer::collectLoopCheckedResults(
+    const CFGBlock *Head, const CFGBlock *Latch,
+    llvm::SmallPtrSetImpl<const Expr *> &Checked) {
+  // The natural loop of this back edge: the head, plus every block
+  // reaching this latch without passing through the head. (All these
+  // blocks precede the latch in the traversal, so their exit contexts
+  // are available for the decode below; on an irreducible CFG the
+  // walk may escape the loop, erring toward suppression.)
+  llvm::SmallPtrSet<const CFGBlock *, 8> LoopBlocks;
+  SmallVector<const CFGBlock *, 8> Worklist;
+  LoopBlocks.insert(Head);
+  if (LoopBlocks.insert(Latch).second)
+    Worklist.push_back(Latch);
+  while (!Worklist.empty()) {
+    const CFGBlock *B = Worklist.pop_back_val();
+    for (CFGBlock::const_pred_iterator BPI = B->pred_begin(),
+                                       BPE = B->pred_end();
+         BPI != BPE; ++BPI)
+      if (*BPI && LoopBlocks.insert(*BPI).second)
+        Worklist.push_back(*BPI);
+  }
+  // Decode each loop block's terminator now, rather than consulting
+  // what happened to be decoded already: a goto-rotated loop's latch
+  // terminator has not had its forward edges processed yet, and its
+  // check must still count. (The decode is memoized, so blocks whose
+  // edges were already processed cost a cache hit.)
+  for (const CFGBlock *B : LoopBlocks) {
+    TerminatorTrylockCall Call = getTerminatorTrylockCall(B);
+    if (Call.TrylockCall)
+      Checked.insert(Call.TrylockCall);
+    // A branch on a merge of two identical calls checks both results.
+    if (Call.TrylockCall2)
+      Checked.insert(Call.TrylockCall2);
+  }
+}
+
+/// For every back edge from \p CurrBlock (a loop's latch) to a visited
+/// block (the loop's head), check that the latch's exit lockset equals
+/// the head's entry lockset, sealed when the head was analyzed, and patch
+/// the release evidence the back edge carries into the exit sets the
+/// loop's exit edges are computed from (injectLoopReleasedTryFacts()).
+void ThreadSafetyAnalyzer::checkBackEdges(
+    const CFGBlock *CurrBlock, PostOrderCFGView::CFGBlockSet &VisitedBlocks) {
+  CFGBlockInfo *LoopEnd = &BlockInfo[CurrBlock->getBlockID()];
+  for (CFGBlock::const_succ_iterator SI = CurrBlock->succ_begin(),
+                                     SE = CurrBlock->succ_end();
+       SI != SE; ++SI) {
+    // if CurrBlock -> *SI is *not* a back edge
+    if (*SI == nullptr || !VisitedBlocks.alreadySet(*SI))
+      continue;
+
+    CFGBlock *FirstLoopBlock = *SI;
+    CFGBlockInfo *PreLoop = &BlockInfo[FirstLoopBlock->getBlockID()];
+    // A back-edge difference in the holds a try-acquire's try facts prove
+    // is forgiven when the loop condition branches on that call's result
+    // (e.g. a spin loop storing the result), possibly behind
+    // short-circuit blocks of a compound condition: the entry set keeps
+    // the (weaker) pre-loop facts and the condition's outgoing edges
+    // re-resolve the try fact each iteration, so it does not leak around
+    // the loop -- even behind a short-circuit.
+    JoinContext Ctx{PreLoop->EntryLoc, LEK_LockedSomeLoopIterations,
+                    LEK_LockedSomeLoopIterations};
+    Ctx.RebranchTryLock = getConditionTrylockCallExpr(FirstLoopBlock);
+    Ctx.SealedEntry = true;
+    llvm::SmallPtrSet<const Expr *, 4> CheckedInLoop;
+    if (Handler.issueBetaWarnings() && hasTryLockFact(LoopEnd->ExitSet)) {
+      collectLoopCheckedResults(FirstLoopBlock, CurrBlock, CheckedInLoop);
+      Ctx.CheckedAroundLoop = &CheckedInLoop;
+    }
+    intersectAndWarn(PreLoop->EntrySet, LoopEnd->ExitSet, Ctx);
+    // A released try fact or negative fact reaching the loop head on its back
+    // edge is evidence that an iteration may have released the capability
+    // (or failed to re-acquire it): patch it into the sealed exit sets the
+    // loop's exit edges are computed from.
+    injectLoopReleasedTryFacts(FirstLoopBlock, CurrBlock, VisitedBlocks);
+  }
+}
+
 /// Check a function's CFG for thread-safety violations.
 ///
 /// We traverse the blocks in the CFG, compute the set of mutexes that are held
 /// at the end of each block, and issue warnings for thread safety violations.
 /// Each block in the CFG is traversed exactly once.
 void ThreadSafetyAnalyzer::runAnalysis(AnalysisDeclContext &AC) {
-  // TODO: this whole function needs be rewritten as a visitor for CFGWalker.
-  // For now, we just use the walker to set things up.
+  // TODO: the phases below (joinPredecessors(), visitBlock(),
+  // checkBackEdges()) map onto CFGWalker's visitor hooks; for now the
+  // walker only sets things up.
   threadSafety::CFGWalker walker;
   if (!walker.init(AC))
     return;
@@ -6945,395 +7337,51 @@ void ThreadSafetyAnalyzer::runAnalysis(AnalysisDeclContext &AC) {
   // Mark entry block as reachable
   Initial.Reachable = true;
 
+  // The initial lockset, from the function's declared requirements, and
+  // the lockset expected at its exit -- decided before the per-block
+  // setup below, which a skipped lock or unlock function never needs.
+  FactSet ExpectedFunctionExitSet;
+  if (!SortedGraph->empty()) {
+    assert(*SortedGraph->begin() == &CFGraph->getEntry());
+    if (!addDeclaredLocksets(D, Initial.EntrySet, ExpectedFunctionExitSet))
+      return;
+  }
+
   // Compute SSA names for local variables
   LocalVarMap.traverseCFG(AC, CFGraph, SortedGraph, BlockInfo);
 
   // Fill in source locations for all CFGBlocks.
   findBlockLocations(CFGraph, SortedGraph, BlockInfo);
 
-  CapExprSet ExclusiveLocksAcquired;
-  CapExprSet SharedLocksAcquired;
-  CapExprSet LocksReleased;
-
-  // Add locks from exclusive_locks_required and shared_locks_required
-  // to initial lockset. Also turn off checking for lock and unlock functions.
-  // FIXME: is there a more intelligent way to check lock/unlock functions?
-  if (!SortedGraph->empty()) {
-    assert(*SortedGraph->begin() == &CFGraph->getEntry());
-    FactSet &InitialLockset = Initial.EntrySet;
-
-    CapExprSet ExclusiveLocksToAdd;
-    CapExprSet SharedLocksToAdd;
-
-    SourceLocation Loc = D->getLocation();
-    for (const auto *Attr : D->attrs()) {
-      Loc = Attr->getLocation();
-      if (const auto *A = dyn_cast<RequiresCapabilityAttr>(Attr)) {
-        getMutexIDs(A->isShared() ? SharedLocksToAdd : ExclusiveLocksToAdd, A,
-                    nullptr, D);
-      } else if (const auto *A = dyn_cast<ReleaseCapabilityAttr>(Attr)) {
-        // UNLOCK_FUNCTION() is used to hide the underlying lock implementation.
-        // We must ignore such methods.
-        if (A->args_size() == 0)
-          return;
-        getMutexIDs(A->isShared() ? SharedLocksToAdd : ExclusiveLocksToAdd, A,
-                    nullptr, D);
-        getMutexIDs(LocksReleased, A, nullptr, D);
-      } else if (const auto *A = dyn_cast<AcquireCapabilityAttr>(Attr)) {
-        if (A->args_size() == 0)
-          return;
-        getMutexIDs(A->isShared() ? SharedLocksAcquired
-                                  : ExclusiveLocksAcquired,
-                    A, nullptr, D);
-      } else if (isa<TryAcquireCapabilityAttr>(Attr)) {
-        // Don't try to check trylock functions for now.
-        return;
-      }
-    }
-    ArrayRef<ParmVarDecl *> Params;
-    if (CurrentFunction)
-      Params = CurrentFunction->getCanonicalDecl()->parameters();
-    else if (auto CurrentMethod = dyn_cast<ObjCMethodDecl>(D))
-      Params = CurrentMethod->getCanonicalDecl()->parameters();
-    else
-      llvm_unreachable("Unknown function kind");
-    for (const ParmVarDecl *Param : Params) {
-      if (isCallbackParam(Param))
-        continue;
-      CapExprSet UnderlyingLocks;
-      for (const auto *Attr : Param->attrs()) {
-        Loc = Attr->getLocation();
-        if (const auto *A = dyn_cast<ReleaseCapabilityAttr>(Attr)) {
-          getMutexIDs(A->isShared() ? SharedLocksToAdd : ExclusiveLocksToAdd, A,
-                      nullptr, Param);
-          getMutexIDs(LocksReleased, A, nullptr, Param);
-          getMutexIDs(UnderlyingLocks, A, nullptr, Param);
-        } else if (const auto *A = dyn_cast<RequiresCapabilityAttr>(Attr)) {
-          getMutexIDs(A->isShared() ? SharedLocksToAdd : ExclusiveLocksToAdd, A,
-                      nullptr, Param);
-          getMutexIDs(UnderlyingLocks, A, nullptr, Param);
-        } else if (const auto *A = dyn_cast<AcquireCapabilityAttr>(Attr)) {
-          getMutexIDs(A->isShared() ? SharedLocksAcquired
-                                    : ExclusiveLocksAcquired,
-                      A, nullptr, Param);
-          getMutexIDs(UnderlyingLocks, A, nullptr, Param);
-        } else if (const auto *A = dyn_cast<LocksExcludedAttr>(Attr)) {
-          getMutexIDs(UnderlyingLocks, A, nullptr, Param);
-        }
-      }
-      if (UnderlyingLocks.empty())
-        continue;
-      CapabilityExpr Cp(SxBuilder.translateVariable(Param, nullptr),
-                        StringRef(),
-                        /*Neg=*/false, /*Reentrant=*/false);
-      auto *ScopedEntry = FactMan.createFact<ScopedLockableFactEntry>(
-          Cp, Param->getLocation(), FactEntry::Declared,
-          UnderlyingLocks.size());
-      for (const CapabilityExpr &M : UnderlyingLocks)
-        ScopedEntry->addLock(M);
-      addLock(InitialLockset, ScopedEntry, true);
-    }
-
-    // FIXME -- Loc can be wrong here.
-    for (const auto &Mu : ExclusiveLocksToAdd) {
-      const auto *Entry = FactMan.createFact<LockableFactEntry>(
-          Mu, LK_Exclusive, Loc, FactEntry::Declared);
-      addLock(InitialLockset, Entry, true);
-    }
-    for (const auto &Mu : SharedLocksToAdd) {
-      const auto *Entry = FactMan.createFact<LockableFactEntry>(
-          Mu, LK_Shared, Loc, FactEntry::Declared);
-      addLock(InitialLockset, Entry, true);
-    }
-  }
-
   // Record the capabilities of every try-acquire call, recorded in the exact
   // context of that call.
   recordTryAcquireCalls(SortedGraph);
 
-  // Compute the expected exit set.
-  // By default, we expect all locks held on entry to be held on exit.
-  FactSet ExpectedFunctionExitSet = Initial.EntrySet;
-
-  // Adjust the expected exit set by adding or removing locks, as declared
-  // by *-LOCK_FUNCTION and UNLOCK_FUNCTION.  The intersect below will then
-  // issue the appropriate warning.
-  // FIXME: the location here is not quite right.
-  for (const auto &Lock : ExclusiveLocksAcquired)
-    ExpectedFunctionExitSet.addLock(
-        FactMan, FactMan.createFact<LockableFactEntry>(Lock, LK_Exclusive,
-                                                       D->getLocation()));
-  for (const auto &Lock : SharedLocksAcquired)
-    ExpectedFunctionExitSet.addLock(
-        FactMan, FactMan.createFact<LockableFactEntry>(Lock, LK_Shared,
-                                                       D->getLocation()));
-  for (const auto &Lock : LocksReleased)
-    ExpectedFunctionExitSet.removeDefinite(FactMan, Lock);
-
   for (const auto *CurrBlock : *SortedGraph) {
-    unsigned CurrBlockID = CurrBlock->getBlockID();
-    CFGBlockInfo *CurrBlockInfo = &BlockInfo[CurrBlockID];
+    CFGBlockInfo &CurrBlockInfo = BlockInfo[CurrBlock->getBlockID()];
 
-    // Use the default initial lockset in case there are no predecessors.
+    // Visited before its predecessors are joined: an unvisited predecessor
+    // reaches this block over a back edge, which checkBackEdges() compares
+    // from the latch once the latch is analyzed.
     VisitedBlocks.insert(CurrBlock);
 
-    // Iterate through the predecessor blocks and warn if the lockset for all
-    // predecessors is not the same. We take the entry lockset of the current
-    // block to be the intersection of all previous locksets.
-    // FIXME: By keeping the intersection, we may output more errors in future
-    // for a lock which is not in the intersection, but was in the union. We
-    // may want to also keep the union in future. As an example, let's say
-    // the intersection contains Mutex L, and the union contains L and M.
-    // Later we unlock M. At this point, we would output an error because we
-    // never locked M; although the real error is probably that we forgot to
-    // lock M on all code paths. Conversely, let's say that later we lock M.
-    // In this case, we should compare against the intersection instead of the
-    // union because the real error is probably that we forgot to unlock M on
-    // all code paths.
-    bool LocksetInitialized = false;
-    // The branch-join context. Its try-acquire call -- the one whose
-    // result the condition starting at this block branches on, if any --
-    // is computed lazily on the first join where a set carries a try fact
-    // at all. Each incoming set is scanned once as it arrives
-    // (JoinHasTryLockFact accumulates); the entry set itself never gains
-    // try facts from anywhere else.
-    JoinContext Ctx{CurrBlockInfo->EntryLoc, LEK_LockedSomePredecessors,
-                    LEK_LockedSomePredecessors};
-    bool RebranchTryLockComputed = false;
-    bool JoinHasTryLockFact = false;
-    auto HasTryLockFact = [this](const FactSet &FS) {
-      // Functions without a try-acquire (the common case) record none:
-      // skip scanning the fact sets entirely.
-      return FactMan.tracksTryAcquires() && llvm::any_of(FS, [this](FactID ID) {
-               return isa<TryFactEntry>(FactMan[ID]);
-             });
-    };
-    // The lockset of the first infeasible incoming edge, if any (see below).
-    std::optional<FactSet> InfeasibleEdgeSet;
-    for (CFGBlock::const_pred_iterator PI = CurrBlock->pred_begin(),
-         PE  = CurrBlock->pred_end(); PI != PE; ++PI) {
-      // if *PI -> CurrBlock is a back edge
-      if (*PI == nullptr || !VisitedBlocks.alreadySet(*PI))
-        continue;
-
-      unsigned PrevBlockID = (*PI)->getBlockID();
-      CFGBlockInfo *PrevBlockInfo = &BlockInfo[PrevBlockID];
-
-      // Ignore edges from blocks that can't return.
-      if (neverReturns(*PI) || !PrevBlockInfo->Reachable)
-        continue;
-
-      FactSet PrevLockset;
-      if (getEdgeLockset(PrevLockset, PrevBlockInfo->ExitSet, *PI, CurrBlock) ||
-          PrevBlockInfo->CoverageOnly) {
-        // The edge cannot be taken (a resolved try fact contradicts it), or
-        // the predecessor itself was analyzed only for coverage and its exit
-        // set is dead state either way: skip
-        // the edge at the join like an unreachable predecessor. Remember
-        // the lockset in case no live predecessor remains: infeasibility
-        // only prunes joins, never analysis coverage (see below).
-        if (!InfeasibleEdgeSet)
-          InfeasibleEdgeSet = std::move(PrevLockset);
-        continue;
-      }
-
-      // Okay, we can reach this block from the entry.
-      CurrBlockInfo->Reachable = true;
-
-      if (!LocksetInitialized) {
-        CurrBlockInfo->EntrySet = PrevLockset;
-        JoinHasTryLockFact = HasTryLockFact(PrevLockset);
-        LocksetInitialized = true;
-      } else {
-        // Surprisingly 'continue' doesn't always produce back edges, because
-        // the CFG has empty "transition" blocks where they meet with the end
-        // of the regular loop body. We still want to diagnose them as loop.
-        if (isa_and_nonnull<ContinueStmt>((*PI)->getTerminatorStmt())) {
-          // Loop join: warn on locks held for only some iterations.
-          intersectAndWarn(CurrBlockInfo->EntrySet, PrevLockset,
-                           CurrBlockInfo->EntryLoc,
-                           LEK_LockedSomeLoopIterations);
-        } else {
-          // Branch join: a difference in the holds a try-acquire's try facts
-          // prove is demoted to conditional and re-resolved on the outgoing
-          // edges if the condition branches on that call's result --
-          // possibly behind short-circuit blocks of a compound condition
-          // like `c && ok`.
-          if (!RebranchTryLockComputed && !JoinHasTryLockFact)
-            JoinHasTryLockFact = HasTryLockFact(PrevLockset);
-          if (!RebranchTryLockComputed && JoinHasTryLockFact) {
-            // Compute once; the result depends only on CurrBlock, not on
-            // *PI. Skipped entirely (the common case) until some try fact
-            // reaches this join.
-            const CallExpr *MergedCall = nullptr;
-            Ctx.RebranchTryLock = getConditionTrylockCallExpr(
-                CurrBlock, &Ctx.RebranchResolvesAllPaths, &MergedCall);
-            Ctx.RebranchTryLock2 = MergedCall;
-            RebranchTryLockComputed = true;
-          }
-          intersectAndWarn(CurrBlockInfo->EntrySet, PrevLockset, Ctx);
-        }
-      }
-    }
-
-    // A block reached only through infeasible edges is dynamically dead if
-    // the infeasibility proofs are right -- but the proof rests on the
-    // local-variable map, which can be stale (e.g. a result variable
-    // mutated through an escaped reference), and even genuinely dead code
-    // gets its diagnostics. So analyze the block anyway, with one of the
-    // infeasible edges' locksets: infeasibility prunes joins, never
-    // analysis coverage. The block is marked coverage-only, which
-    // quarantines its exit set from downstream joins (above) and
-    // propagates through blocks reachable only from it.
-    if (!CurrBlockInfo->Reachable && InfeasibleEdgeSet) {
-      CurrBlockInfo->Reachable = true;
-      CurrBlockInfo->CoverageOnly = true;
-      CurrBlockInfo->EntrySet = std::move(*InfeasibleEdgeSet);
-    }
+    joinPredecessors(CurrBlock, CurrBlockInfo, VisitedBlocks);
 
     // Skip rest of block if it's not reachable.
-    if (!CurrBlockInfo->Reachable)
+    if (!CurrBlockInfo.Reachable)
       continue;
 
-    BuildLockset LocksetBuilder(this, *CurrBlockInfo, ExpectedFunctionExitSet);
-
-    // Visit all the statements in the basic block.
-    for (const auto &BI : *CurrBlock) {
-      switch (BI.getKind()) {
-        case CFGElement::Statement: {
-          CFGStmt CS = BI.castAs<CFGStmt>();
-          LocksetBuilder.Visit(CS.getStmt());
-          break;
-        }
-        // Ignore BaseDtor and MemberDtor for now.
-        case CFGElement::AutomaticObjectDtor: {
-          CFGAutomaticObjDtor AD = BI.castAs<CFGAutomaticObjDtor>();
-          const auto *DD = AD.getDestructorDecl(AC.getASTContext());
-          // Function parameters as they are constructed in caller's context and
-          // the CFG does not contain the ctors. Ignore them as their
-          // capabilities cannot be analysed because of this missing
-          // information.
-          if (isa_and_nonnull<ParmVarDecl>(AD.getVarDecl()))
-            break;
-          if (!DD || !DD->hasAttrs())
-            break;
-
-          LocksetBuilder.handleCall(
-              nullptr, DD,
-              SxBuilder.translateVariable(AD.getVarDecl(), nullptr),
-              AD.getTriggerStmt()->getEndLoc());
-          break;
-        }
-
-        case CFGElement::CleanupFunction: {
-          const CFGCleanupFunction &CF = BI.castAs<CFGCleanupFunction>();
-          LocksetBuilder.handleCall(
-              /*Exp=*/nullptr, CF.getFunctionDecl(),
-              SxBuilder.translateVariable(CF.getVarDecl(), nullptr),
-              CF.getVarDecl()->getLocation());
-          break;
-        }
-
-        case CFGElement::TemporaryDtor: {
-          auto TD = BI.castAs<CFGTemporaryDtor>();
-
-          // Clean up constructed object even if there are no attributes to
-          // keep the number of objects in limbo as small as possible.
-          if (auto Object = ConstructedObjects.find(
-                  TD.getBindTemporaryExpr()->getSubExpr());
-              Object != ConstructedObjects.end()) {
-            const auto *DD = TD.getDestructorDecl(AC.getASTContext());
-            if (DD->hasAttrs())
-              // TODO: the location here isn't quite correct.
-              LocksetBuilder.handleCall(nullptr, DD, Object->second,
-                                        TD.getBindTemporaryExpr()->getEndLoc());
-            ConstructedObjects.erase(Object);
-          }
-          break;
-        }
-        default:
-          break;
-      }
-    }
-    CurrBlockInfo->ExitSet = LocksetBuilder.FSet;
+    BuildLockset LocksetBuilder(this, CurrBlockInfo, ExpectedFunctionExitSet);
+    visitBlock(CurrBlock, LocksetBuilder);
+    CurrBlockInfo.ExitSet = std::move(LocksetBuilder.FSet);
 
     // A block analyzed only for coverage stops here: its exit set is
     // provably dead state, so back-edge comparisons must not consume it
-    // either (the predecessor loop above keeps it out of forward joins).
-    if (CurrBlockInfo->CoverageOnly)
+    // either (joinPredecessors() keeps it out of forward joins).
+    if (CurrBlockInfo.CoverageOnly)
       continue;
 
-    // For every back edge from CurrBlock (the end of the loop) to another block
-    // (FirstLoopBlock) we need to check that the Lockset of Block is equal to
-    // the one held at the beginning of FirstLoopBlock. We can look up the
-    // Lockset held at the beginning of FirstLoopBlock in the EntryLockSets map.
-    for (CFGBlock::const_succ_iterator SI = CurrBlock->succ_begin(),
-         SE  = CurrBlock->succ_end(); SI != SE; ++SI) {
-      // if CurrBlock -> *SI is *not* a back edge
-      if (*SI == nullptr || !VisitedBlocks.alreadySet(*SI))
-        continue;
-
-      CFGBlock *FirstLoopBlock = *SI;
-      CFGBlockInfo *PreLoop = &BlockInfo[FirstLoopBlock->getBlockID()];
-      CFGBlockInfo *LoopEnd = &BlockInfo[CurrBlockID];
-      // A back-edge difference in the holds a try-acquire's try facts prove
-      // is forgiven when the loop condition branches on that call's result
-      // (e.g. a spin loop storing the result), possibly behind
-      // short-circuit blocks of a compound condition: the entry set keeps
-      // the (weaker) pre-loop facts and the condition's outgoing edges
-      // re-resolve the try fact each iteration, so it does not leak around
-      // the loop -- even behind a short-circuit.
-      JoinContext Ctx{PreLoop->EntryLoc, LEK_LockedSomeLoopIterations,
-                      LEK_LockedSomeLoopIterations};
-      Ctx.RebranchTryLock = getConditionTrylockCallExpr(FirstLoopBlock);
-      Ctx.SealedEntry = true;
-      // For the unchecked-result warning: the try-acquire results branched
-      // on inside this back edge's natural loop are (or will be, on the
-      // next iteration) checked around the loop. Results checked only
-      // outside the loop are not: the loop re-executes the call (or
-      // discards the result) unchecked.
-      llvm::SmallPtrSet<const Expr *, 4> CheckedInLoop;
-      if (Handler.issueBetaWarnings() && HasTryLockFact(LoopEnd->ExitSet)) {
-        // The natural loop of this back edge: the head, plus every block
-        // reaching this latch without passing through the head. (All these
-        // blocks precede the latch in the traversal, so their exit contexts
-        // are available for the decode below; on an irreducible CFG the
-        // walk may escape the loop, erring toward suppression.)
-        llvm::SmallPtrSet<const CFGBlock *, 8> LoopBlocks;
-        SmallVector<const CFGBlock *, 8> Worklist;
-        LoopBlocks.insert(FirstLoopBlock);
-        if (LoopBlocks.insert(CurrBlock).second)
-          Worklist.push_back(CurrBlock);
-        while (!Worklist.empty()) {
-          const CFGBlock *B = Worklist.pop_back_val();
-          for (CFGBlock::const_pred_iterator BPI = B->pred_begin(),
-                                             BPE = B->pred_end();
-               BPI != BPE; ++BPI)
-            if (*BPI && LoopBlocks.insert(*BPI).second)
-              Worklist.push_back(*BPI);
-        }
-        // Decode each loop block's terminator now, rather than consulting
-        // what happened to be decoded already: a goto-rotated loop's latch
-        // terminator has not had its forward edges processed yet, and its
-        // check must still count. (The decode is memoized, so blocks whose
-        // edges were already processed cost a cache hit.)
-        for (const CFGBlock *B : LoopBlocks) {
-          TerminatorTrylockCall Checked = getTerminatorTrylockCall(B);
-          if (Checked.TrylockCall)
-            CheckedInLoop.insert(Checked.TrylockCall);
-          // A branch on a merge of two identical calls checks both results.
-          if (Checked.TrylockCall2)
-            CheckedInLoop.insert(Checked.TrylockCall2);
-        }
-        Ctx.CheckedAroundLoop = &CheckedInLoop;
-      }
-      intersectAndWarn(PreLoop->EntrySet, LoopEnd->ExitSet, Ctx);
-      // A released try fact or negative fact reaching the loop head on its
-      // back edge is evidence that an iteration may have released the
-      // capability (or failed to re-acquire it): patch it into the sealed
-      // exit sets the loop's exit edges are computed from.
-      injectLoopReleasedTryFacts(FirstLoopBlock, CurrBlock, VisitedBlocks);
-    }
+    checkBackEdges(CurrBlock, VisitedBlocks);
   }
 
   // Skip the final check if the exit block is unreachable, or reachable
