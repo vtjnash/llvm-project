@@ -236,40 +236,77 @@ private:
   /// try-acquire failed can be recognized; a definite fact acquired or
   /// asserted unconditionally has none: its hold is not proved by any
   /// call's result. Merging holds proved by different calls clears it.
+  /// A fact of a negative capability the call names itself (a try-release,
+  /// try_acquire_capability(true, !mu)) is a hold in this sense; a
+  /// negative fact recorded because a call failed is not -- that is
+  /// evidence, below.
   llvm::PointerIntPair<const Expr *, 1, bool> TryLock;
 
-  /// Whether this fact holds on only some, not all, paths into the current
-  /// program point. Only negative facts are tracked this way: instead of
-  /// leaving the intersection silently, a one-sided negative fact is kept
-  /// in a join's merged set as a weak fact (intersectAndWarn()) --
-  /// evidence that the capability was provably released, or a try-acquire
-  /// of it provably failed, on at least one path. The try-held machinery
-  /// consults it to refuse carrying (intersectAndWarn()) or
-  /// re-materializing (getEdgeLockset()) a hold whose stored try-acquire
-  /// result is stale on such a path. A weak fact proves nothing on all
-  /// paths: it does not satisfy negative-capability requirements and
-  /// cannot prove a branch edge infeasible.
-  bool Weak = false;
+public:
+  /// What a negative fact -- the capability provably not held -- rests on
+  /// beyond a plain release, and how far it reaches. Only negative facts
+  /// carry any of it, and only the try-held machinery consults it: whether
+  /// a stored try-acquire result can still witness a hold on every path
+  /// into a program point.
+  struct NegativeEvidence {
+    /// The try-acquire call whose failure edge recorded the fact
+    /// (getEdgeLockset()), or null: the call provably did not acquire the
+    /// capability, so its stored result is falsy on every path the fact
+    /// holds on. A later branch on that result stays consistent with it
+    /// (an edge implying success is infeasible), and a join with a hold
+    /// the same call proved is the call's conditional fact again
+    /// (intersectAndWarn()). Merging records of different calls clears it.
+    const Expr *FailedCall = nullptr;
 
-  /// For a negative fact recorded by the release of a hold that a
-  /// try-acquire call's success had proved (a fact promoted from that
-  /// call, released by handleUnlock()): that call. The release spends the
-  /// call's stored result -- the result stays truthy while the capability
-  /// is no longer held -- so a later branch on it must not resurrect the
-  /// hold: a join refuses to carry (intersectAndWarn()) and an edge to
-  /// re-materialize (getEdgeLockset()) a fact of this call across this
-  /// negative. Null for a negative from a plain release or from the call's
-  /// failure edge (there the result is provably falsy, and a branch on it
-  /// excludes those paths itself). Merges keep it like \c Weak: spent on
-  /// some path is spent.
-  const Expr *SpentTryLock = nullptr;
+    /// The try-acquire call whose stored result the release recording the
+    /// fact spent -- a release of a hold that call's success had proved
+    /// (handleUnlock()) -- or null. The result stays truthy while the
+    /// capability is no longer held, so a later branch on it must not
+    /// resurrect the hold: a join refuses to carry (intersectAndWarn())
+    /// and an edge to re-materialize (getEdgeLockset()) a fact of this
+    /// call across this negative. Null for a negative from a plain release
+    /// or from a call's failure edge (there the result is provably falsy,
+    /// and a branch on it excludes those paths itself). Merges keep it
+    /// like \c Weak: spent on some path is spent.
+    const Expr *SpentCall = nullptr;
 
-  /// For a failure-edge negative: the edge belonged to a non-void `?:`
-  /// terminator, i.e. the arms of a value merge were split. Their join
-  /// reconstitutes the try-held state silently even without
-  /// -Wthread-safety-beta: the branch was never honored before, so its
-  /// join never warned.
-  bool CondSplit = false;
+    /// Whether the fact holds on only some, not all, paths into the
+    /// current program point. Instead of leaving the intersection
+    /// silently, a one-sided negative fact is kept in a join's merged set
+    /// as a weak fact (intersectAndWarn()) -- evidence that the capability
+    /// was provably released, or a try-acquire of it provably failed, on
+    /// at least one path. The try-held machinery consults it to refuse
+    /// carrying (intersectAndWarn()) or re-materializing
+    /// (getEdgeLockset()) a hold whose stored try-acquire result is stale
+    /// on such a path. A weak fact proves nothing on all paths: it does
+    /// not satisfy negative-capability requirements and cannot prove a
+    /// branch edge infeasible.
+    bool Weak = false;
+
+    /// For a failure-edge record: the edge belonged to a non-void `?:`
+    /// terminator, i.e. the arms of a value merge were split. Their join
+    /// reconstitutes the try-held state silently even without
+    /// -Wthread-safety-beta: the branch was never honored before, so its
+    /// join never warned.
+    bool CondSplit = false;
+
+    /// Absorb the evidence of the other side of a join: weak, or spending
+    /// a result, on either side is weak, or spent, in the merged fact.
+    /// Returns whether anything changed.
+    bool absorb(const NegativeEvidence &Other) {
+      bool Changed = false;
+      if (Other.Weak && !Weak)
+        Weak = Changed = true;
+      if (Other.SpentCall && !SpentCall) {
+        SpentCall = Other.SpentCall;
+        Changed = true;
+      }
+      return Changed;
+    }
+  };
+
+private:
+  NegativeEvidence Evidence;
 
 protected:
   ~FactEntry() = default;
@@ -306,19 +343,46 @@ public:
     return !asserted() && !negative() && !isUniversal();
   }
 
-  bool weak() const { return Weak; }
+  /// \name Negative evidence
+  /// See NegativeEvidence; meaningful for a negative fact only.
+  /// \{
+  const NegativeEvidence &negativeEvidence() const { return Evidence; }
+  void setNegativeEvidence(const NegativeEvidence &E) {
+    assert(negative() && "only a negative fact carries evidence");
+    Evidence = E;
+  }
+
+  bool weak() const { return Evidence.Weak; }
   /// Mark this fact as holding on only some paths (see \c Weak).
-  void setWeak() { Weak = true; }
+  void setWeak() {
+    assert(negative() && "only a negative fact is kept weak");
+    Evidence.Weak = true;
+  }
 
-  const Expr *spentTryLock() const { return SpentTryLock; }
+  const Expr *failedCall() const { return Evidence.FailedCall; }
+  /// Record that this negative fact was recorded on \p Call's failure edge
+  /// (see \c FailedCall).
+  void setFailedCall(const Expr *Call) {
+    assert(negative() && "only a negative fact records a failure");
+    Evidence.FailedCall = Call;
+  }
+
+  const Expr *spentTryLock() const { return Evidence.SpentCall; }
   /// Record that this negative fact spends \p Call's stored result (see
-  /// \c SpentTryLock).
-  void setSpentTryLock(const Expr *Call) { SpentTryLock = Call; }
+  /// \c SpentCall).
+  void setSpentTryLock(const Expr *Call) {
+    assert(negative() && "only a negative fact spends a result");
+    Evidence.SpentCall = Call;
+  }
 
-  bool condSplit() const { return CondSplit; }
+  bool condSplit() const { return Evidence.CondSplit; }
   /// Mark this failure-edge negative as one arm of a `?:` split (see
   /// \c CondSplit).
-  void setCondSplit() { CondSplit = true; }
+  void setCondSplit() {
+    assert(negative() && "only a negative fact records a split arm");
+    Evidence.CondSplit = true;
+  }
+  /// \}
 
   /// The fact's reentrancy depth; only lockable facts can be reentrant.
   virtual unsigned int getReentrancyDepth() const { return 0; }
@@ -1860,7 +1924,7 @@ class LockableFactEntry;
 static LockableFactEntry *
 installNegativeFact(FactSet &FSet, FactManager &FactMan,
                     const CapabilityExpr &NegCp, SourceLocation Loc,
-                    const Expr *OriginCall, const Expr *SpentCall,
+                    const Expr *FailedCall, const Expr *SpentCall,
                     bool KeepExistingReal);
 
 static bool consumeNegativeFact(FactSet &FSet, FactManager &FactMan,
@@ -1929,9 +1993,9 @@ public:
       // case the capability is now merely try-held. Releasing a hold that
       // a try-acquire's success proved spends the call's stored result: it
       // stays truthy, but no longer witnesses a live hold (see
-      // SpentTryLock).
+      // NegativeEvidence).
       installNegativeFact(FSet, FactMan, !Cp, UnlockLoc,
-                          /*OriginCall=*/nullptr, /*SpentCall=*/tryLockCall(),
+                          /*FailedCall=*/nullptr, /*SpentCall=*/tryLockCall(),
                           /*KeepExistingReal=*/false);
     }
   }
@@ -2003,25 +2067,33 @@ public:
     return NewFact;
   }
 
+  /// This negative fact with the evidence \p E.
+  const LockableFactEntry *
+  withNegativeEvidence(FactManager &FactMan, const NegativeEvidence &E) const {
+    auto *NewFact = FactMan.createFact<LockableFactEntry>(*this);
+    NewFact->setNegativeEvidence(E);
+    return NewFact;
+  }
+
   static bool classof(const FactEntry *A) {
     return A->getFactEntryKind() == Lockable;
   }
 };
 
 /// Install the negative fact for \p NegCp at \p Loc: the capability is
-/// provably not held from here. \p OriginCall records the try-acquire whose
+/// provably not held from here. \p FailedCall records the try-acquire whose
 /// failure edge proves it (getEdgeLockset()); \p SpentCall marks the fact as
-/// spending that call's stored result (see SpentTryLock). A weak negative
-/// already in the set (not-held on only some paths, see intersectAndWarn())
-/// is superseded -- the caller proves not-held on every path from here --
-/// keeping any spend evidence it carries; a real one is kept when
-/// \p KeepExistingReal (it already proves as much) and replaced otherwise.
-/// The supersede scan runs only in functions with try-acquires, the only
-/// place weak or spent facts exist.
+/// spending that call's stored result (see NegativeEvidence). A weak
+/// negative already in the set (not-held on only some paths, see
+/// intersectAndWarn()) is superseded -- the caller proves not-held on every
+/// path from here -- keeping any spend evidence it carries; a real one is
+/// kept when \p KeepExistingReal (it already proves as much) and replaced
+/// otherwise. The supersede scan runs only in functions with try-acquires,
+/// the only place weak or spent facts exist.
 static LockableFactEntry *
 installNegativeFact(FactSet &FSet, FactManager &FactMan,
                     const CapabilityExpr &NegCp, SourceLocation Loc,
-                    const Expr *OriginCall, const Expr *SpentCall,
+                    const Expr *FailedCall, const Expr *SpentCall,
                     bool KeepExistingReal) {
   FactSet::iterator Existing = FSet.end();
   if (FactMan.tracksTryAcquires()) {
@@ -2036,8 +2108,8 @@ installNegativeFact(FactSet &FSet, FactManager &FactMan,
   }
   auto *NegFact =
       FactMan.createFact<LockableFactEntry>(NegCp, LK_Exclusive, Loc);
-  if (OriginCall)
-    NegFact->setTryLock(OriginCall, /*Conditional=*/false);
+  if (FailedCall)
+    NegFact->setFailedCall(FailedCall);
   if (SpentCall)
     NegFact->setSpentTryLock(SpentCall);
   // Replacing in place keeps the superseded fact's slot: removing swaps in
@@ -2052,7 +2124,7 @@ installNegativeFact(FactSet &FSet, FactManager &FactMan,
 /// Consume the negative fact for an acquisition of its capability: after
 /// the acquisition the capability is possibly held, so the negative no
 /// longer describes the state. One that spent another try-acquire's stored
-/// result (see SpentTryLock) survives as a weak fact -- the resurrection
+/// result (see NegativeEvidence) survives as a weak fact -- the resurrection
 /// vetoes still need it -- unless \p AcquiringCall is the spent call
 /// itself re-executing, which overwrites the stored result and ends its
 /// staleness. Returns whether the consumed fact proved the capability not
@@ -2082,12 +2154,13 @@ static bool consumeNegativeFact(FactSet &FSet, FactManager &FactMan,
 /// The location for an unmatched-unlock "released here" note: the negative
 /// fact's location if one exists -- unless it came from a try-acquire's
 /// failure edge (getEdgeLockset()), which records where the call failed,
-/// not a release, and the note would misread it.
+/// not a release, and the note would misread it; nor from a try-release
+/// call's success edge, where it names the call rather than a release.
 static SourceLocation unmatchedUnlockNoteLoc(const FactSet &FSet,
                                              FactManager &FactMan,
                                              const CapabilityExpr &Cp) {
   if (const FactEntry *Neg = FSet.findDefinite(FactMan, !Cp);
-      Neg && !Neg->tryLockCall())
+      Neg && !Neg->failedCall() && !Neg->tryLockCall())
     return Neg->loc();
   return SourceLocation();
 }
@@ -2127,7 +2200,7 @@ static bool handleUncheckedTryHeldUnlock(FactSet &FSet, FactManager &FactMan,
   // everywhere from here.
   if (!Cp.negative())
     installNegativeFact(FSet, FactMan, !Cp, UnlockLoc,
-                        /*OriginCall=*/nullptr, /*SpentCall=*/nullptr,
+                        /*FailedCall=*/nullptr, /*SpentCall=*/nullptr,
                         /*KeepExistingReal=*/true);
   return true;
 }
@@ -2326,7 +2399,7 @@ private:
       const Expr *Spent = Fact.tryLockCall();
       FSet.erase(It);
       if (!FSet.anyConditional(FactMan, Cp))
-        installNegativeFact(FSet, FactMan, !Cp, loc, /*OriginCall=*/nullptr,
+        installNegativeFact(FSet, FactMan, !Cp, loc, /*FailedCall=*/nullptr,
                             /*SpentCall=*/Spent, /*KeepExistingReal=*/false);
       return;
     }
@@ -2496,7 +2569,6 @@ public:
   // before it are analyzed. Joins there keep every negative as weak
   // evidence rather than analyze differently by block order.
   bool HasUnrecordedTryAcquire = false;
-  bool callNamesCapability(const Expr *Call, const CapabilityExpr &CE);
   bool callResolvesConditionally(const Expr *Call);
   void keepAsWeak(FactSet &Set, FactID Fact);
   void injectLoopWeakNegatives(const CFGBlock *Head, const CFGBlock *Latch,
@@ -2907,8 +2979,8 @@ void ThreadSafetyAnalyzer::addLock(FactSet &FSet, const FactEntry *Entry,
 /// consumed either way: after the call the capability is possibly held, so
 /// a negative fact that predates it no longer describes the state (and must
 /// not later testify that this call failed); on the call's failure edge
-/// getEdgeLockset() re-establishes the negative fact, carrying the call as
-/// its origin.
+/// getEdgeLockset() re-establishes the negative fact, recording the call
+/// as the failure it proves (NegativeEvidence::FailedCall).
 void ThreadSafetyAnalyzer::checkAcquiredCapability(FactSet &FSet,
                                                    const FactEntry &Entry,
                                                    bool ReqAttr) {
@@ -2953,18 +3025,6 @@ bool ThreadSafetyAnalyzer::isTryAcquireCapability(const CapabilityExpr &CE) {
   return llvm::any_of(AllTryAcquireCaps, [&](const CapabilityExpr &Cap) {
     return CE.matches(Cap) || Inverse.matches(Cap);
   });
-}
-
-/// Whether \p Call's try-acquire attributes name a capability matching
-/// \p CE itself (not its inverse): a resolved negative fact for such a
-/// capability is the call's own promoted acquisition, not a failure-edge
-/// record.
-bool ThreadSafetyAnalyzer::callNamesCapability(const Expr *Call,
-                                               const CapabilityExpr &CE) {
-  auto It = TryAcquireCapsMap.find(Call);
-  return It != TryAcquireCapsMap.end() &&
-         It->second.anyConditionalCap(
-             [&](const CapabilityExpr &Cap) { return CE.matches(Cap); });
 }
 
 /// Whether branching on \p Call's result can resolve any capability at
@@ -4246,19 +4306,7 @@ bool ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
   bool Infeasible = false;
   for (const auto &Fact : Result) {
     const FactEntry &FE = FactMan[Fact];
-    if (FE.tryLockCall() != Exp)
-      continue;
-    if (FE.tryHeld()) {
-      ResolvedTryFacts.push_back(&FE);
-      continue;
-    }
-    // A resolved fact of the call: promoted to held on a success edge, or
-    // recorded negative on a failure edge. A negative fact is a failure
-    // record only when the call's attributes do not name it itself -- a
-    // try-acquire can name a negative capability
-    // (try_acquire_capability(true, !mu)), and such a fact resolved to
-    // held is handled like any promoted one.
-    if (FE.negative() && !callNamesCapability(Exp, FE)) {
+    if (FE.failedCall() == Exp) {
       // A negative fact recorded on the call's failure edge (below): the
       // call provably failed to acquire this fact's capability on every
       // path here, so an edge on which the capability's own attribute
@@ -4266,16 +4314,25 @@ bool ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
       // consistent with it (attributes carry their own success values, so
       // the test is per fact, not per edge). A weak negative proves the
       // failure on only some paths and cannot rule the edge out; nor can
-      // one that merged with a spent-result negative (see SpentTryLock),
-      // whose paths carry a truthy result; nor can an ambiguous edge be
-      // ruled out at all, since it does not prove the call executed.
+      // one that merged with a spent-result negative (see
+      // NegativeEvidence), whose paths carry a truthy result; nor can an
+      // ambiguous edge be ruled out at all, since it does not prove the
+      // call executed.
       if (!Ambiguous && !FE.weak() && !FE.spentTryLock() &&
           ResolveFact(!FE, FE.kind()) == CapResolution::Success)
         Infeasible = true;
       continue;
     }
-    // A promoted fact; kept weak or spent-merged by a join it proves
-    // nothing on every path, as above.
+    if (FE.tryLockCall() != Exp)
+      continue;
+    if (FE.tryHeld()) {
+      ResolvedTryFacts.push_back(&FE);
+      continue;
+    }
+    // A fact the call's success edge promoted: a hold, or the proved
+    // release of a negative capability the call names itself
+    // (try_acquire_capability(true, !mu)). Kept weak or spent-merged by a
+    // join it proves nothing on every path, as above.
     if (!FE.weak() && !FE.spentTryLock() &&
         ResolveFact(FE, FE.kind()) == CapResolution::Failure)
       Infeasible = true;
@@ -4304,7 +4361,7 @@ bool ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
       const CapabilityExpr NegC = !*FE;
       const FactEntry *Neg = Result.findDefinite(FactMan, NegC);
       // A negative that spent this call's stored result (a release of the
-      // hold its success proved, see SpentTryLock) refutes the promotion:
+      // hold its success proved, see NegativeEvidence) refutes the promotion:
       // the result stays truthy while the hold is gone, so re-resolving
       // must not resurrect it -- the fact resolves to released instead.
       if (Neg && Neg->spentTryLock() == Exp)
@@ -4348,9 +4405,9 @@ bool ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
                !Result.anyConditional(FactMan, !*FE)) {
       // Failure edge: the conditional fact is dropped, and when no fact of
       // the capability remains, this edge proves the call did not acquire
-      // it: record that as a negative fact carrying the call as its
-      // origin, so a later branch on the same result stays consistent (an
-      // edge implying success is infeasible, above). A weak negative
+      // it: record that as a negative fact naming the call as the failure
+      // it proves, so a later branch on the same result stays consistent
+      // (an edge implying success is infeasible, above). A weak negative
       // (not-held on only some paths) is upgraded -- this edge proves it
       // on all -- keeping any spend evidence it carries; a real one is
       // kept, and so is a conditional fact of the negative capability (a
@@ -4359,7 +4416,7 @@ bool ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
       // nothing about the positive capability, so nothing is recorded.
       if (LockableFactEntry *NegFact =
               installNegativeFact(Result, FactMan, !*FE, Exp->getExprLoc(),
-                                  /*OriginCall=*/Exp, /*SpentCall=*/nullptr,
+                                  /*FailedCall=*/Exp, /*SpentCall=*/nullptr,
                                   /*KeepExistingReal=*/true)) {
         // A value `?:` split its arms to make this edge: mark the
         // negative so their join reconstitutes silently even without
@@ -4403,7 +4460,7 @@ bool ThreadSafetyAnalyzer::getEdgeLockset(FactSet &Result,
       if (Result.findAny(FactMan, CE))
         continue;
       if (const FactEntry *Neg = Result.findDefinite(FactMan, !CE)) {
-        if (Neg->tryLockCall() != Exp || Neg->spentTryLock())
+        if (Neg->failedCall() != Exp || Neg->spentTryLock())
           continue;
         Result.removeFact(FactMan, *Neg);
       }
@@ -5610,7 +5667,7 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
   // side missing it: lost to the call's failure edge, or never acquired.
   // A negative fact on the other side that spent a call's result (a
   // release of a hold a try-acquire's success had proved, see
-  // SpentTryLock) refutes that premise: some path there keeps a truthy
+  // NegativeEvidence) refutes that premise: some path there keeps a truthy
   // stored result for a hold that is gone, so re-resolving the carried
   // fact could resurrect the dead hold -- e.g. the release in
   // `if (c) { if (ok) mu.Unlock(); }` followed by another `if (ok)`. A
@@ -5618,14 +5675,12 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
   // same way, and so does a different call's spend: with one negative fact
   // per capability, the analysis cannot tell whose stale truth would do
   // the resurrecting.
-  // A negative fact whose capability the re-branched call itself names is
-  // that call's own resolved acquisition
-  // (try_acquire_capability(true, !mu)), not not-held evidence: it takes
-  // the re-branch demotion like any promoted fact instead of being kept
-  // weak.
-  auto IsCallsOwnNegative = [&, this](const FactEntry &FE) {
-    return IsTrylockRebranched(FE) && callNamesCapability(RebranchTryLock, FE);
-  };
+  // A negative fact originating from the re-branched call is the call's
+  // own resolved acquisition (try_acquire_capability(true, !mu)), not
+  // not-held evidence (a failure-edge record names its call as evidence,
+  // not as origin): it takes the re-branch demotion like any promoted fact
+  // instead of being kept weak.
+  //
   // Either form of the exemption, against the other side of the join.
   auto RebranchExemptAgainst = [&](const FactSet &OtherSet,
                                    const FactEntry &FE) {
@@ -5645,17 +5700,23 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
   // The same-origin analogue of the re-branch exemption for a one-sided
   // fact: the join's other side carries this fact's own call's
   // failure-edge negative, so the sides are exactly "held iff C's result"
-  // and "C's result is falsy", and their join is try-held(C). A weak
-  // negative proves less (failure on only some of that side's paths) and
-  // a spent one refutes the stored result instead; neither qualifies.
+  // and "C's result is falsy", and their join is try-held(C). The other
+  // side may instead carry the call's own promoted release of the
+  // capability (a hold the call gives up on success, proved by the call's
+  // failure): the sides are then "held iff C failed" and "C succeeded",
+  // and their join is the same conditional fact, which resolves inverted
+  // (getEdgeLockset()). A weak negative proves less (failure on only some
+  // of that side's paths) and a spent one refutes the stored result
+  // instead; neither qualifies.
   auto SameOriginFailureNegative =
       [&, this](const FactSet &OtherSet,
                 const FactEntry &FE) -> const FactEntry * {
-    if (!FE.tryLockCall())
+    const Expr *C = FE.tryLockCall();
+    if (!C)
       return nullptr;
     const FactEntry *Neg = OtherSet.findDefinite(FactMan, !FE);
     if (Neg && !Neg->weak() && !Neg->spentTryLock() &&
-        Neg->tryLockCall() == FE.tryLockCall())
+        (Neg->failedCall() == C || Neg->tryLockCall() == C))
       return Neg;
     return nullptr;
   };
@@ -5788,26 +5849,26 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
   };
   // A negative fact weak or spent on either side of a pair is weak or
   // spent in the merged set: proven, or spending a result, on some of that
-  // side's paths.
+  // side's paths (where the join keeps such evidence at all). Failure
+  // records of different calls merge to a plain negative: the merged fact
+  // is determined by neither result.
   auto MergeNegativeEvidence = [&, this](FactSet::iterator EntryIt,
                                          const FactEntry &EntryFact,
                                          const FactEntry &ExitFact) {
-    const bool EitherWeak = EntryFact.weak() || ExitFact.weak();
-    const Expr *EitherSpent = EntryFact.spentTryLock()
-                                  ? EntryFact.spentTryLock()
-                                  : ExitFact.spentTryLock();
     const FactEntry &Merged = FactMan[*EntryIt];
-    if (!MayKeepWeakNegative(EntryLEK) ||
-        !((EitherWeak && !Merged.weak()) ||
-          (EitherSpent && !Merged.spentTryLock())))
-      return;
-    auto *NewFact =
-        FactMan.createFact<LockableFactEntry>(cast<LockableFactEntry>(Merged));
-    if (EitherWeak)
-      NewFact->setWeak();
-    if (EitherSpent && !NewFact->spentTryLock())
-      NewFact->setSpentTryLock(EitherSpent);
-    EntrySet.replaceFact(FactMan, EntryIt, NewFact);
+    const FactEntry &Other = &Merged == &EntryFact ? ExitFact : EntryFact;
+    FactEntry::NegativeEvidence E = Merged.negativeEvidence();
+    bool Changed =
+        MayKeepWeakNegative(EntryLEK) && E.absorb(Other.negativeEvidence());
+    if (EntryLEK == LEK_LockedSomePredecessors && E.FailedCall &&
+        EntryFact.failedCall() != ExitFact.failedCall()) {
+      E.FailedCall = nullptr;
+      Changed = true;
+    }
+    if (Changed)
+      EntrySet.replaceFact(
+          FactMan, EntryIt,
+          cast<LockableFactEntry>(Merged).withNegativeEvidence(FactMan, E));
   };
 
   // Find locks in ExitSet that conflict or are not in EntrySet, and warn.
@@ -5958,7 +6019,7 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
     }
 
     // A definite fact of this predecessor only.
-    if (ExitFact.negative() && !IsCallsOwnNegative(ExitFact)) {
+    if (ExitFact.negative() && !IsTrylockRebranched(ExitFact)) {
       // A negative fact on this predecessor only: keep it in the merged
       // set as a weak fact at branch joins and continue-latch joins --
       // evidence for the try-held machinery that the capability was
@@ -6083,7 +6144,7 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
       continue;
     }
 
-    if (EntryFact->negative() && !IsCallsOwnNegative(*EntryFact)) {
+    if (EntryFact->negative() && !IsTrylockRebranched(*EntryFact)) {
       // As above: a one-sided negative is kept in the merged set as a
       // weak fact at branch joins and continue-latch joins (or dropped,
       // for a capability no try-acquire names), and a promoted negative
@@ -6677,7 +6738,7 @@ void ThreadSafetyAnalyzer::runAnalysis(AnalysisDeclContext &AC) {
       // TryAcquireCapsMap is empty in functions without try-acquires (the
       // common case): skip scanning the fact sets entirely.
       return FactMan.tracksTryAcquires() && llvm::any_of(FS, [this](FactID ID) {
-               return FactMan[ID].tryLockCall();
+               return FactMan[ID].tryLockCall() || FactMan[ID].failedCall();
              });
     };
     // The lockset of the first infeasible incoming edge, if any (see below).
