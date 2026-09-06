@@ -135,8 +135,8 @@ class FactSet;
 ///    a counter is all they need.
 ///
 ///  * Any number of *conditional* facts per capability, one per originating
-///    try-acquire call: "held if that call succeeded". Each keeps its own
-///    lock kind. A branch on the call's result resolves exactly the facts
+///    try-acquire call and lock kind: "held in that kind if that call
+///    succeeded". A branch on the call's result resolves exactly the facts
 ///    that name it as their origin, and a scope object releases exactly the
 ///    facts it created.
 ///
@@ -388,8 +388,8 @@ private:
 ///
 /// A capability may be represented by several facts at once (see FactEntry):
 /// at most one definite fact, and any number of conditional facts, unique
-/// per originating call. The accessors name which of the two they look for;
-/// there is no lookup for "the" fact of a capability.
+/// per originating call and lock kind. The accessors name which of the two
+/// they look for; there is no lookup for "the" fact of a capability.
 class FactSet {
 private:
   using FactVec = SmallVector<FactID, 4>;
@@ -517,27 +517,24 @@ public:
 
   /// \name Conditional facts
   /// The facts stating that \p CapE is held if a try-acquire call
-  /// succeeded, one per originating call and lock kind: a call whose
-  /// attributes promise the capability in one kind on one outcome and in
-  /// the other kind on another outcome has a fact of each, resolved by
-  /// its own attribute. Lookups by origin alone find the first.
+  /// succeeded. A conditional fact is identified by its capability, its
+  /// originating call and its lock kind: a call whose attributes promise
+  /// the capability in one kind on one outcome and in the other kind on
+  /// another outcome has a fact of each, resolved by its own attribute.
   /// \{
   iterator findConditionalIter(FactManager &FM, const CapabilityExpr &CapE,
-                               const Expr *Origin,
-                               std::optional<LockKind> Kind = std::nullopt) {
+                               const Expr *Origin, LockKind Kind) {
     return findIf(FM, [&](const FactEntry &FE) {
-      return FE.tryHeld() && FE.tryLockCall() == Origin && FE.matches(CapE) &&
-             (!Kind || FE.kind() == *Kind);
+      return FE.tryHeld() && FE.tryLockCall() == Origin && FE.kind() == Kind &&
+             FE.matches(CapE);
     });
   }
 
-  const FactEntry *
-  findConditional(FactManager &FM, const CapabilityExpr &CapE,
-                  const Expr *Origin,
-                  std::optional<LockKind> Kind = std::nullopt) const {
+  const FactEntry *findConditional(FactManager &FM, const CapabilityExpr &CapE,
+                                   const Expr *Origin, LockKind Kind) const {
     return findEntry(FM, [&](const FactEntry &FE) {
-      return FE.tryHeld() && FE.tryLockCall() == Origin && FE.matches(CapE) &&
-             (!Kind || FE.kind() == *Kind);
+      return FE.tryHeld() && FE.tryLockCall() == Origin && FE.kind() == Kind &&
+             FE.matches(CapE);
     });
   }
 
@@ -3003,9 +3000,9 @@ void ThreadSafetyAnalyzer::keepAsWeak(FactSet &Set, FactID Fact) {
 /// other kind (shared vs. exclusive), one this acquisition can neither
 /// nest in nor coexist with -- unless it is this same call's fact of the
 /// other kind, its companion (below) -- and a repeat of this call over its
-/// own fact (one fact per origin). \p Src is Managed for a scoped
-/// lockable's construction, whose destructor conditionally releases
-/// (disarms) the fact.
+/// own fact (one fact per origin and kind). \p Src is Managed for a
+/// scoped lockable's construction, whose destructor conditionally
+/// releases (disarms) the fact.
 void ThreadSafetyAnalyzer::addTryLock(FactSet &FSet, const CapabilityExpr &CE,
                                       LockKind LK, SourceLocation Loc,
                                       const Expr *Call,
@@ -3015,10 +3012,17 @@ void ThreadSafetyAnalyzer::addTryLock(FactSet &FSet, const CapabilityExpr &CE,
   if (Fact->shouldIgnore())
     return;
 
-  // The acquisition checks run once per call and capability: the same
-  // call's fact of the other kind (its companion, below) was checked
-  // already.
-  if (!FSet.findConditional(FactMan, CE, Call))
+  SmallVector<const FactEntry *, 2> Conds;
+  FSet.collectConditional(FactMan, CE, Conds);
+  // The same call's fact of the other kind is its companion: the call
+  // promises each kind on a different outcome, and the edges resolve the
+  // two facts by their own attributes.
+  auto IsCompanion = [&](const FactEntry *Cond) {
+    return Cond->tryLockCall() == Call && Cond->kind() != LK;
+  };
+  // The acquisition checks run once per call and capability: a companion
+  // was checked already.
+  if (llvm::none_of(Conds, IsCompanion))
     checkAcquiredCapability(FSet, *Fact, /*ReqAttr=*/false);
 
   if (const FactEntry *Cp = FSet.findDefinite(FactMan, CE)) {
@@ -3034,13 +3038,8 @@ void ThreadSafetyAnalyzer::addTryLock(FactSet &FSet, const CapabilityExpr &CE,
           FactMan, *Cp,
           cast<LockableFactEntry>(Cp)->withOrigin(FactMan, nullptr));
   }
-  SmallVector<const FactEntry *, 2> Conds;
-  FSet.collectConditional(FactMan, CE, Conds);
   for (const FactEntry *Cond : Conds) {
-    // The same call's fact of the other kind is its companion: the call
-    // promises each kind on a different outcome, and the edges resolve
-    // the two facts by their own attributes.
-    if (Cond->tryLockCall() == Call && Cond->kind() != LK)
+    if (IsCompanion(Cond))
       continue;
     if (Cond->kind() != LK || Cond->tryLockCall() == Call) {
       Handler.handleDoubleLock(CE.getKind(), CE.toString(), Cond->loc(), Loc,
@@ -5696,7 +5695,7 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
   };
   auto MixedJoinExempt = [&](const FactEntry &DefSide, const FactSet &CondSet) {
     const Expr *C = DefSide.tryLockCall();
-    if (!C || !CondSet.findConditional(FactMan, DefSide, C))
+    if (!C || !CondSet.findConditional(FactMan, DefSide, C, DefSide.kind()))
       return false;
     if (C == RebranchTryLock && RebranchResolvesAllPaths)
       return true;
@@ -5781,7 +5780,7 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
         Def.tryLockCall() ? Def.tryLockCall() : RebranchTryLock;
     if (Def.getReentrancyDepth() != 0)
       WarnReentrancyMismatch(Def, LEK);
-    if (!Into.findConditional(FactMan, Def, Origin))
+    if (!Into.findConditional(FactMan, Def, Origin, Def.kind()))
       Into.addLock(FactMan, LDef.asConditional(FactMan, Origin));
     if (const FactEntry *Shallower = LDef.leaveReentrant(FactMan))
       return cast<LockableFactEntry>(Shallower)->withOrigin(FactMan, nullptr);
@@ -5875,15 +5874,18 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
       // first's unresolved fact: the variable then holds only the second
       // call's result, and the first's fact is left alone, to be reported
       // unchecked where it is lost.
+      const LockKind Kind = ExitFact.kind();
       if (RebranchTryLock2 && ExitFact.tryLockCall() == RebranchTryLock2 &&
-          !ExitSet.findConditional(FactMan, ExitFact, RebranchTryLock) &&
-          EntrySetOrig.findConditional(FactMan, ExitFact, RebranchTryLock))
+          !ExitSet.findConditional(FactMan, ExitFact, RebranchTryLock, Kind) &&
+          EntrySetOrig.findConditional(FactMan, ExitFact, RebranchTryLock,
+                                       Kind))
         continue;
       if (RebranchTryLock2 && ExitFact.tryLockCall() == RebranchTryLock &&
-          !ExitSet.findConditional(FactMan, ExitFact, RebranchTryLock2) &&
-          !EntrySetOrig.findConditional(FactMan, ExitFact, RebranchTryLock))
+          !ExitSet.findConditional(FactMan, ExitFact, RebranchTryLock2, Kind) &&
+          !EntrySetOrig.findConditional(FactMan, ExitFact, RebranchTryLock,
+                                        Kind))
         if (const FactEntry *Twin = EntrySetOrig.findConditional(
-                FactMan, ExitFact, RebranchTryLock2))
+                FactMan, ExitFact, RebranchTryLock2, Kind))
           EntrySet.removeFact(FactMan, *Twin);
       if (EntryDef || EntryHasCond ||
           (IsTrylockRebranched(ExitFact) &&
@@ -6049,8 +6051,10 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
       // folds into the first call's fact, kept from the exit side above.
       if (RebranchTryLock2 && ExitLEK == LEK_LockedSomePredecessors &&
           EntryFact->tryLockCall() == RebranchTryLock2 &&
-          !EntrySetOrig.findConditional(FactMan, *EntryFact, RebranchTryLock) &&
-          ExitSet.findConditional(FactMan, *EntryFact, RebranchTryLock)) {
+          !EntrySetOrig.findConditional(FactMan, *EntryFact, RebranchTryLock,
+                                        EntryFact->kind()) &&
+          ExitSet.findConditional(FactMan, *EntryFact, RebranchTryLock,
+                                  EntryFact->kind())) {
         EntrySet.removeFact(FactMan, *EntryFact);
         continue;
       }
