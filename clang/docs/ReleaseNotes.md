@@ -313,8 +313,9 @@ features cannot lower the translation-unit ABI level;
   later branch on that value proves depends on which arm can account for the
   edge it tests. The GNU form `ok ?: 0` is decoded too. Conversely, a branch
   on a stored `&&` or `||` is no longer read as proof that its right-hand
-  side was evaluated -- `bool b = a || mu.TryLock(); if (b)` says nothing
-  about the call, while `if (a || mu.TryLock())` still does.
+  side was evaluated: `bool b = a || mu.TryLock(); if (b)` is read as the
+  merge it is -- `b` may be true because `a` was, with the call never made --
+  while `if (a || mu.TryLock())` still resolves the call exactly.
 
 - Thread safety analysis has a new `-Wthread-safety-beta` diagnostic for a
   try-acquire whose result the analysis never sees checked: the capability may
