@@ -6804,6 +6804,38 @@ void ThreadSafetyAnalyzer::recordTryAcquireCalls(
     SxBuilder.setLookupLocalVarExpr(nullptr);
 }
 
+/// Collect into \p LoopBlocks the natural loop of the back edge
+/// \p Latch -> \p Head: the head, plus every block reaching the latch
+/// backwards without passing the head, bounded by what the head reaches
+/// forwards. Without that bound a second entry into the body (a goto into
+/// the loop, or an irreducible loop) would let the backward walk escape
+/// the loop and absorb arbitrary blocks up to the function's entry. All
+/// the blocks precede the latch in the traversal.
+static void
+collectNaturalLoop(const CFGBlock *Head, const CFGBlock *Latch,
+                   llvm::SmallPtrSetImpl<const CFGBlock *> &LoopBlocks) {
+  llvm::SmallPtrSet<const CFGBlock *, 16> FromHead;
+  SmallVector<const CFGBlock *, 16> Work{Head};
+  FromHead.insert(Head);
+  while (!Work.empty()) {
+    const CFGBlock *B = Work.pop_back_val();
+    for (CFGBlock::const_succ_iterator SI = B->succ_begin(), SE = B->succ_end();
+         SI != SE; ++SI)
+      if (*SI && FromHead.insert(*SI).second)
+        Work.push_back(*SI);
+  }
+  LoopBlocks.insert(Head);
+  if (LoopBlocks.insert(Latch).second)
+    Work.push_back(Latch);
+  while (!Work.empty()) {
+    const CFGBlock *B = Work.pop_back_val();
+    for (CFGBlock::const_pred_iterator PI = B->pred_begin(), PE = B->pred_end();
+         PI != PE; ++PI)
+      if (*PI && FromHead.contains(*PI) && LoopBlocks.insert(*PI).second)
+        Work.push_back(*PI);
+  }
+}
+
 /// Record the released try facts reaching a loop's latch in the sealed exit
 /// sets its exit edges are computed from: an iteration may have released
 /// the capability, and the blocks were analyzed before this back edge was
@@ -6823,32 +6855,8 @@ void ThreadSafetyAnalyzer::injectLoopReleasedTryFacts(
   if (Injectable.empty())
     return;
 
-  // The loop's blocks: those reaching the latch backwards without passing
-  // the head, bounded by what the head reaches forwards. Without that
-  // bound a second entry into the body (a goto into the loop, or an
-  // irreducible loop) would let the backward walk escape the loop and
-  // absorb arbitrary blocks up to the function's entry.
-  llvm::SmallPtrSet<const CFGBlock *, 16> FromHead;
-  SmallVector<const CFGBlock *, 16> Work{Head};
-  FromHead.insert(Head);
-  while (!Work.empty()) {
-    const CFGBlock *B = Work.pop_back_val();
-    for (CFGBlock::const_succ_iterator SI = B->succ_begin(), SE = B->succ_end();
-         SI != SE; ++SI)
-      if (*SI && FromHead.insert(*SI).second)
-        Work.push_back(*SI);
-  }
   llvm::SmallPtrSet<const CFGBlock *, 8> LoopBlocks;
-  LoopBlocks.insert(Head);
-  LoopBlocks.insert(Latch);
-  Work.assign({Latch});
-  while (!Work.empty()) {
-    const CFGBlock *B = Work.pop_back_val();
-    for (CFGBlock::const_pred_iterator PI = B->pred_begin(), PE = B->pred_end();
-         PI != PE; ++PI)
-      if (*PI && FromHead.contains(*PI) && LoopBlocks.insert(*PI).second)
-        Work.push_back(*PI);
-  }
+  collectNaturalLoop(Head, Latch, LoopBlocks);
 
   // Any member owning an exit edge needs the evidence (the head, a break,
   // a goto out), and so does a sealed block outside the loop that an exit
@@ -7212,24 +7220,10 @@ void ThreadSafetyAnalyzer::visitBlock(const CFGBlock *CurrBlock,
 void ThreadSafetyAnalyzer::collectLoopCheckedResults(
     const CFGBlock *Head, const CFGBlock *Latch,
     llvm::SmallPtrSetImpl<const Expr *> &Checked) {
-  // The natural loop of this back edge: the head, plus every block
-  // reaching this latch without passing through the head. (All these
-  // blocks precede the latch in the traversal, so their exit contexts
-  // are available for the decode below; on an irreducible CFG the
-  // walk may escape the loop, erring toward suppression.)
+  // The loop's blocks precede the latch in the traversal, so their exit
+  // contexts are available for the decode below.
   llvm::SmallPtrSet<const CFGBlock *, 8> LoopBlocks;
-  SmallVector<const CFGBlock *, 8> Worklist;
-  LoopBlocks.insert(Head);
-  if (LoopBlocks.insert(Latch).second)
-    Worklist.push_back(Latch);
-  while (!Worklist.empty()) {
-    const CFGBlock *B = Worklist.pop_back_val();
-    for (CFGBlock::const_pred_iterator BPI = B->pred_begin(),
-                                       BPE = B->pred_end();
-         BPI != BPE; ++BPI)
-      if (*BPI && LoopBlocks.insert(*BPI).second)
-        Worklist.push_back(*BPI);
-  }
+  collectNaturalLoop(Head, Latch, LoopBlocks);
   // Decode each loop block's terminator now, rather than consulting
   // what happened to be decoded already: a goto-rotated loop's latch
   // terminator has not had its forward edges processed yet, and its
