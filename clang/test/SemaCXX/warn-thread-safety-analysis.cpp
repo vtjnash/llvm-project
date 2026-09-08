@@ -2373,12 +2373,11 @@ struct TestTryLock {
   // truthy edge is ambiguous, so the try fact stays conditional through
   // the body and is reported unchecked at the end.
   void foo27() {
-    if ((cond2 || mu.TryLock()) ? cond : false) { // expected-note{{mutex acquired here}} \
-                                                  // expected-warning {{mutex 'mu' is not held on every path through here}}
+    if ((cond2 || mu.TryLock()) ? cond : false) { // expected-note{{mutex acquired here}}
       a = 3;       // expected-warning{{writing variable 'a' requires holding mutex 'mu' exclusively}}
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      mu.Unlock(); // expected-warning{{releasing mutex 'mu' that may not be held}}
     }
-  }
+  } // expected-warning{{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
 
   // A phi merge (the stored-over-constant initializer) composes with a
   // `?:` merge in the same condition: a truthy value proves both that the
@@ -10509,8 +10508,8 @@ public:
   void test11() {
     if (!(c || mu.TryLock()))
       return;
-    a = 0;
-    mu.Unlock();
+    a = 0;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
   }
 
   // For `&&` the short-circuit constant is false: the continuing edge
@@ -10526,20 +10525,20 @@ public:
   // `c || TryLock()` is ambiguous, the truthy edge of `c && TryLock()` is
   // the call's success.
   void test13() {
-    bool b = c || mu.TryLock(); // expected-note {{mutex acquired here}}
+    bool b = c || mu.TryLock();
     if (b) {
       a = 0;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
       mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
     }
-  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
+  }
 
   void test14() {
-    bool b = c && mu.TryLock(); // expected-note {{mutex acquired here}}
+    bool b = c && mu.TryLock();
     if (b) {
-      a = 0; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+      a = 0;
+      mu.Unlock();
     }
-  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
+  }
 
   // A folded comparison leaves the branch reading the comparison's own
   // boolean, whose magnitude is 0 or 1 whatever the result was, so no case
@@ -10565,41 +10564,41 @@ public:
     switch (v) {
     case 1:
       dataB = 1;     // expected-warning {{writing variable 'dataB' requires holding mutex 'muB' exclusively}}
-      muB.Unlock(); // expected-warning {{releasing mutex 'muB' that was not held}}
+      muB.Unlock();  // expected-warning {{releasing mutex 'muB' that may not be held}}
       break;
     }
-  } // expected-warning {{unchecked result of try-acquire; mutex 'muB' may still be held at the end of function}} \
-    // expected-warning {{mutex 'muA' is not held on every path through here}}
+  } // expected-warning {{unchecked result of try-acquire; mutex 'muA' may still be held at the end of function}} \
+    // expected-warning {{unchecked result of try-acquire; mutex 'muB' may still be held at the end of function}}
 
   // The shapes the merge newly resolves, which the parent could only
   // refuse: a stored operator, one behind __builtin_expect (the kernel's
   // likely()), one compared against a constant, and one inside a
   // statement expression.
   void test23() {
-    bool b = c && mu.TryLock(); // expected-note {{mutex acquired here}}
+    bool b = c && mu.TryLock();
     if (b) {
-      a = 0; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+      a = 0;
+      mu.Unlock();
     }
-  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
+  }
   void test24() {
-    if (__builtin_expect(c && mu.TryLock(), 1)) { // expected-note {{mutex acquired here}}
-      a = 0; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+    if (__builtin_expect(c && mu.TryLock(), 1)) {
+      a = 0;
+      mu.Unlock();
     }
-  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
+  }
   void test25() {
-    if ((c && mu.TryLock()) == 1) { // expected-note {{mutex acquired here}}
-      a = 0; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+    if ((c && mu.TryLock()) == 1) {
+      a = 0;
+      mu.Unlock();
     }
-  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
+  }
   void test26() {
-    if (({ c && mu.TryLock(); })) { // expected-note {{mutex acquired here}}
-      a = 0; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+    if (({ c && mu.TryLock(); })) {
+      a = 0;
+      mu.Unlock();
     }
-  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
+  }
 
   // A left-hand side the constant evaluator decides is not a merge at
   // all: the short-circuit edge is unreachable, so the value is the
@@ -10658,11 +10657,11 @@ public:
   // test13 give a single merge, not the definite one the whole decode's
   // loss would have produced.
   void test15() {
-    if (!(c && (newc() || mu.TryLock())))
+    if (!(c && (newc() || mu.TryLock()))) // expected-note {{mutex acquired here}}
       return;
-    a = 0;
-    mu.Unlock();
-  }
+    a = 0;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
 };
 
 }  // end namespace LogicalConditionalTryLock

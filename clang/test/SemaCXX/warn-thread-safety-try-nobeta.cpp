@@ -330,8 +330,8 @@ void stored_logical_without_beta(bool other) {
 void logical_merge_without_beta(bool other) {
   if (!(other || mu.TryLock()))
     return;
-  a = 3;
-  mu.Unlock();
+  a = 3;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+  mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
 }
 
 // In situ it still resolves exactly: the block evaluating the right-hand

@@ -881,13 +881,32 @@ int mutex_trylock_codes(struct Mutex *mu, struct Mutex *mu2)
     EXCLUSIVE_TRYLOCK_FUNCTION(1, mu) EXCLUSIVE_TRYLOCK_FUNCTION(2, mu2);
 
 void test_trylock_logical_compared(int c) {
-  int r = mutex_trylock_codes(&mu1, &mu2); // expected-note 2 {{mutex acquired here}}
+  int r = mutex_trylock_codes(&mu1, &mu2); // expected-note {{mutex acquired here}}
   if ((c && r) == 1) {
     work_data = 1;      // expected-warning {{writing variable 'work_data' requires holding mutex 'mu1' exclusively}}
     mutex_unlock_mu1(); // expected-warning {{releasing mutex 'mu1' that may not be held}}
   }
-} // expected-warning {{unchecked result of try-acquire; mutex 'mu2' may still be held at the end of function}} \
-  // expected-warning {{unchecked result of try-acquire; mutex 'mu1' may still be held at the end of function}}
+} // expected-warning {{unchecked result of try-acquire; mutex 'mu2' may still be held at the end of function}}
+
+// A `&&` or `||` whose value is materialized is a merge of the right-hand
+// side's result with the left-hand side's constant: the edge the constant
+// can account for proves nothing, the other one carries the result. In C
+// the operator's own boolean is an int, so a case label on it pins no code
+// either.
+void test_trylock_logical_merge(int c) {
+  if (!(c || mutex_trylock_true(&mu1)))
+    return;
+  work_data = 1;      // expected-warning {{writing variable 'work_data' requires holding mutex 'mu1' exclusively}}
+  mutex_unlock_mu1(); // expected-warning {{releasing mutex 'mu1' that may not be held}}
+}
+
+// In situ the same operator resolves exactly.
+void test_trylock_logical_insitu(int c) {
+  if (c || !mutex_trylock_true(&mu1))
+    return;
+  work_data = 1;
+  mutex_unlock_mu1();
+}
 
 // We had a problem where we'd skip all attributes that follow a late-parsed
 // attribute in a single __attribute__.
