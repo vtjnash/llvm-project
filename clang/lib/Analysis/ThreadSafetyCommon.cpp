@@ -400,19 +400,6 @@ static const ParmVarDecl *getCanonicalParamDecl(const Decl *D, unsigned I) {
     return FD->getCanonicalDecl()->getParamDecl(I);
   if (const auto *MD = dyn_cast<ObjCMethodDecl>(D))
     return MD->getCanonicalDecl()->getParamDecl(I);
-  if (const auto *DD = dyn_cast<DeclaratorDecl>(D)) {
-    if (auto *TSI = DD->getTypeSourceInfo()) {
-      TypeLoc TL = TSI->getTypeLoc();
-      if (auto RTL = TL.getAsAdjusted<ReferenceTypeLoc>())
-        TL = RTL.getPointeeLoc();
-      // A function pointer can be multiple levels deep.
-      while (auto PTL = TL.getAsAdjusted<PointerTypeLoc>())
-        TL = PTL.getPointeeLoc();
-      if (auto FPTL = TL.getAsAdjusted<FunctionProtoTypeLoc>())
-        if (I < FPTL.getNumParams())
-          return FPTL.getParam(I);
-    }
-  }
   return nullptr;
 }
 
@@ -453,7 +440,13 @@ til::SExpr *SExprBuilder::translateDeclRefExpr(const DeclRefExpr *DRE,
         Match = (FD->getCanonicalDecl() == Canonical);
       else if (const auto *MD = dyn_cast<ObjCMethodDecl>(D))
         Match = (MD->getCanonicalDecl() == Canonical);
-      else if (getCanonicalParamDecl(Canonical, I) == PV->getCanonicalDecl())
+      else if (D->isTranslationUnit())
+        // A pointee's parameter belongs to no function (see
+        // ActOnParamDeclarator). An attribute on a declarator can only name a
+        // parameter of the prototype in its type, which may be a
+        // redeclaration's, or the template pattern's when the parameter's type
+        // is not dependent (see FindInstantiatedDecl); it is at the same
+        // position in the prototype called here.
         Match = true;
       else
         llvm_unreachable("ParmVarDecl does not belong to current declaration");
