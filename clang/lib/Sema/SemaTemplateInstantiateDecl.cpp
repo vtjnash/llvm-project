@@ -1167,6 +1167,37 @@ void Sema::InstantiateAttrs(const MultiLevelTemplateArgumentList &TemplateArgs,
   }
 }
 
+void Sema::InstantiateLateAttrs(
+    const MultiLevelTemplateArgumentList &TemplateArgs,
+    LateInstantiatedAttrVec &LateAttrs) {
+  LocalInstantiationScope *OuterMostScope = CurrentInstantiationScope;
+  for (const LateInstantiatedAttribute &LA : LateAttrs) {
+    CurrentInstantiationScope = LA.Scope;
+
+    // Allow 'this' within late-parsed attributes.
+    auto *ND = cast<NamedDecl>(LA.NewDecl);
+    auto *ThisContext = dyn_cast_or_null<CXXRecordDecl>(ND->getDeclContext());
+    CXXThisScopeRAII ThisScope(*this, ThisContext, Qualifiers(),
+                               ND->isCXXInstanceMember());
+
+    Attr *NewAttr =
+        instantiateTemplateAttribute(LA.TmplAttr, Context, *this, TemplateArgs);
+    if (NewAttr && checkInstantiatedThreadSafetyAttrs(LA.NewDecl, NewAttr))
+      LA.NewDecl->addAttr(NewAttr);
+    LocalInstantiationScope::deleteScopes(LA.Scope, OuterMostScope);
+  }
+  CurrentInstantiationScope = OuterMostScope;
+  LateAttrs.clear();
+}
+
+void Sema::DiscardLateAttrs(LateInstantiatedAttrVec &LateAttrs) {
+  LocalInstantiationScope *OuterMostScope = CurrentInstantiationScope;
+  for (const LateInstantiatedAttribute &LA : LateAttrs)
+    LocalInstantiationScope::deleteScopes(LA.Scope, OuterMostScope);
+  CurrentInstantiationScope = OuterMostScope;
+  LateAttrs.clear();
+}
+
 void Sema::updateAttrsForLateParsedTemplate(const Decl *Pattern, Decl *Inst) {
   for (const auto *Attr : Pattern->attrs()) {
     if (auto *A = dyn_cast<StrictFPAttr>(Attr)) {
@@ -5572,6 +5603,9 @@ TypeSourceInfo *TemplateDeclInstantiator::SubstFunctionType(
       // the function parameters themselves.
       const FunctionProtoType *OldProto =
           cast<FunctionProtoType>(OldProtoLoc.getType());
+      // A late-parsed attribute on a parameter may name a parameter declared
+      // after it, so instantiate those attributes once every parameter is.
+      Sema::LateInstantiatedAttrVec LateAttrs;
       for (unsigned i = 0, i_end = OldProtoLoc.getNumParams(); i != i_end;
            ++i) {
         ParmVarDecl *OldParam = OldProtoLoc.getParam(i);
@@ -5584,11 +5618,14 @@ TypeSourceInfo *TemplateDeclInstantiator::SubstFunctionType(
         ParmVarDecl *Parm = SemaRef.SubstParmVarDecl(
             OldParam, TemplateArgs, /*indexAdjustment=*/0,
             /*NumExpansions=*/std::nullopt,
-            /*ExpectParameterPack=*/false, EvaluateConstraints);
-        if (!Parm)
+            /*ExpectParameterPack=*/false, EvaluateConstraints, &LateAttrs);
+        if (!Parm) {
+          SemaRef.DiscardLateAttrs(LateAttrs);
           return nullptr;
+        }
         Params.push_back(Parm);
       }
+      SemaRef.InstantiateLateAttrs(TemplateArgs, LateAttrs);
     }
   } else {
     // If the type of this function, after ignoring parentheses, is not

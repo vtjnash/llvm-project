@@ -58,9 +58,8 @@ struct Outer {
   static Mutex m;
 };
 
-// Template instantiation cannot yet map a parameter declared after the one an
-// attribute is on. A name binds the same way in a template as elsewhere, but an
-// attribute naming one is rejected.
+// A name binds the same way in a template as elsewhere; see
+// warn-thread-safety-late-parsing-instantiation.cpp for how it is instantiated.
 template <typename T>
 struct InTemplate {
   void (*cb)(T *h) REQUIRES(h->lock);
@@ -68,22 +67,21 @@ struct InTemplate {
   void (*shadow)(T *own) REQUIRES(own->lock); // both-error{{reference to 'own' is ambiguous}} \
                                               // both-note{{candidate found by name lookup is 'own'}}
   T *own; // both-note{{candidate found by name lookup is 'InTemplate::own'}}
-  void method(void (*release)(T) RELEASE(mu), // early-error{{use of undeclared identifier 'mu'}} \
-                                              // late-error{{'release_capability' attribute in a template cannot name later parameter 'mu'}}
+  void method(void (*release)(T) RELEASE(mu), // early-error{{use of undeclared identifier 'mu'}}
               Mutex *mu);
 };
 InTemplate<Holder> in_template;
 
 template <typename T>
-void put_later_template(void (*release)(T) RELEASE(mu), // early-error{{use of undeclared identifier 'mu'}} \
-                                                        // late-error{{'release_capability' attribute in a template cannot name later parameter 'mu'}}
+void put_later_template(void (*release)(T) RELEASE(mu), // early-error{{use of undeclared identifier 'mu'}}
                         Mutex *mu);
+void use_put_later_template(Mutex *mu) { put_later_template<int>(nullptr, mu); }
 
-auto generic_lambda = [](auto x, void (*release)(int) RELEASE(mu), // early-error{{use of undeclared identifier 'mu'}} \
-                                                                   // late-error{{'release_capability' attribute in a template cannot name later parameter 'mu'}}
+auto generic_lambda = [](auto x, void (*release)(int) RELEASE(mu), // early-error{{use of undeclared identifier 'mu'}}
                          Mutex *mu) {};
+void use_generic_lambda(Mutex *mu) { generic_lambda(0, nullptr, mu); }
 
-// An earlier parameter is instantiated first, so it can be named.
+// An earlier parameter could always be named.
 template <typename T>
 void put_earlier_template(Mutex *mu, void (*release)(T) RELEASE(mu)) {}
 void use_put_earlier_template(Mutex *mu) { put_earlier_template<int>(mu, nullptr); }

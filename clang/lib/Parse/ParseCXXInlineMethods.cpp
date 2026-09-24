@@ -737,8 +737,8 @@ static void collectParamRefs(const ParsedAttributes &Attrs,
 }
 
 bool Parser::checkLateAttributeParamRefs(
-    const LateParsedAttribute &LPA, const Decl *D,
-    ArrayRef<const DeclRefExpr *> ParamRefs, bool ReenteredProtoParams) {
+    const LateParsedAttribute &LPA, ArrayRef<const DeclRefExpr *> ParamRefs,
+    bool ReenteredProtoParams) {
   auto IsPointeeParam = [&](const ParmVarDecl *PVD) {
     return ReenteredProtoParams && llvm::is_contained(LPA.ProtoParams, PVD);
   };
@@ -761,26 +761,6 @@ bool Parser::checkLateAttributeParamRefs(
       Diag(PVD->getLocation(), diag::note_ambiguous_candidate) << PVD;
       for (const NamedDecl *Other : R)
         Diag(Other->getLocation(), diag::note_ambiguous_candidate) << Other;
-      return true;
-    }
-  }
-
-  // A name binds the same way in a template, but instantiation cannot yet map
-  // a parameter declared after the one the attribute is on, which is
-  // instantiated after that parameter's attributes. Reject the attribute
-  // rather than instantiate it wrongly.
-  // FIXME: Map these parameters during template instantiation.
-  if (isa<ParmVarDecl>(D) && (Actions.CurContext->isDependentContext() ||
-                              getCurScope()->getTemplateParamParent() ||
-                              Actions.getCurGenericLambda())) {
-    const SourceManager &SM = PP.getSourceManager();
-    for (const DeclRefExpr *DRE : ParamRefs) {
-      const auto *PVD = cast<ParmVarDecl>(DRE->getDecl());
-      if (IsPointeeParam(PVD) ||
-          !SM.isBeforeInTranslationUnit(D->getLocation(), PVD->getLocation()))
-        continue;
-      Diag(DRE->getLocation(), diag::err_late_attribute_param_in_template)
-          << &LPA.AttrName << PVD;
       return true;
     }
   }
@@ -841,7 +821,7 @@ void Parser::ParseLexedAttribute(LateParsedAttribute &LPA, bool EnterScope,
     SmallVector<const DeclRefExpr *, 4> ParamRefs;
     collectParamRefs(Parsed, ParamRefs);
     if (!ParamRefs.empty() &&
-        checkLateAttributeParamRefs(LPA, D, ParamRefs, HasProtoParams))
+        checkLateAttributeParamRefs(LPA, ParamRefs, HasProtoParams))
       Parsed.clear();
     Attrs.takeAllAppendingFrom(Parsed);
 

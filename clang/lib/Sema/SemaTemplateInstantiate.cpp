@@ -1327,6 +1327,11 @@ namespace {
     llvm::DenseMap<llvm::FoldingSetNodeID, TemplateArgumentLoc>
         *CurrentCachedTemplateArgs = nullptr;
 
+    // While the parameters of a prototype are substituted, where their
+    // late-parsed attributes are deferred to, and the scope that maps them.
+    Sema::LateInstantiatedAttrVec *LateParmAttrs = nullptr;
+    LocalInstantiationScope *LateParmAttrScope = nullptr;
+
     bool instantiateMissingDeclsToScopeForConcepts(Decl *D);
 
   public:
@@ -1730,6 +1735,15 @@ namespace {
                                             int indexAdjustment,
                                             UnsignedOrNone NumExpansions,
                                             bool ExpectParameterPack);
+
+    using inherited::TransformFunctionTypeParams;
+    bool TransformFunctionTypeParams(
+        SourceLocation Loc, ArrayRef<ParmVarDecl *> Params,
+        const QualType *ParamTypes,
+        const FunctionProtoType::ExtParameterInfo *ParamInfos,
+        SmallVectorImpl<QualType> &PTypes,
+        SmallVectorImpl<ParmVarDecl *> *PVars,
+        Sema::ExtParameterInfoBuilder &PInfos, unsigned *LastParamTransformed);
 
     using inherited::TransformTemplateTypeParmType;
     /// Transforms a template type parameter type by performing
@@ -2507,12 +2521,39 @@ QualType TemplateInstantiator::TransformFunctionProtoType(TypeLocBuilder &TLB,
 ParmVarDecl *TemplateInstantiator::TransformFunctionTypeParam(
     ParmVarDecl *OldParm, int indexAdjustment, UnsignedOrNone NumExpansions,
     bool ExpectParameterPack) {
+  // Defer the late-parsed attributes only of a parameter of the prototype
+  // being transformed, not of one substituted on its own.
+  Sema::LateInstantiatedAttrVec *LateAttrs =
+      SemaRef.CurrentInstantiationScope == LateParmAttrScope ? LateParmAttrs
+                                                             : nullptr;
   auto NewParm = SemaRef.SubstParmVarDecl(
       OldParm, TemplateArgs, indexAdjustment, NumExpansions,
-      ExpectParameterPack, EvaluateConstraints);
+      ExpectParameterPack, EvaluateConstraints, LateAttrs);
   if (NewParm && SemaRef.getLangOpts().OpenCL)
     SemaRef.deduceOpenCLAddressSpace(NewParm);
   return NewParm;
+}
+
+bool TemplateInstantiator::TransformFunctionTypeParams(
+    SourceLocation Loc, ArrayRef<ParmVarDecl *> Params,
+    const QualType *ParamTypes,
+    const FunctionProtoType::ExtParameterInfo *ParamInfos,
+    SmallVectorImpl<QualType> &PTypes, SmallVectorImpl<ParmVarDecl *> *PVars,
+    Sema::ExtParameterInfoBuilder &PInfos, unsigned *LastParamTransformed) {
+  // A late-parsed attribute on a parameter may name a parameter declared after
+  // it, so instantiate those attributes once every parameter is.
+  Sema::LateInstantiatedAttrVec LateAttrs;
+  llvm::SaveAndRestore SaveLateAttrs(LateParmAttrs, &LateAttrs);
+  llvm::SaveAndRestore SaveLateScope(LateParmAttrScope,
+                                     SemaRef.CurrentInstantiationScope);
+  if (inherited::TransformFunctionTypeParams(Loc, Params, ParamTypes,
+                                             ParamInfos, PTypes, PVars, PInfos,
+                                             LastParamTransformed)) {
+    SemaRef.DiscardLateAttrs(LateAttrs);
+    return true;
+  }
+  SemaRef.InstantiateLateAttrs(TemplateArgs, LateAttrs);
+  return false;
 }
 
 QualType TemplateInstantiator::BuildSubstTemplateTypeParmType(
@@ -3166,11 +3207,10 @@ bool Sema::SubstTypeConstraint(
           : SourceLocation());
 }
 
-ParmVarDecl *
-Sema::SubstParmVarDecl(ParmVarDecl *OldParm,
-                       const MultiLevelTemplateArgumentList &TemplateArgs,
-                       int indexAdjustment, UnsignedOrNone NumExpansions,
-                       bool ExpectParameterPack, bool EvaluateConstraint) {
+ParmVarDecl *Sema::SubstParmVarDecl(
+    ParmVarDecl *OldParm, const MultiLevelTemplateArgumentList &TemplateArgs,
+    int indexAdjustment, UnsignedOrNone NumExpansions, bool ExpectParameterPack,
+    bool EvaluateConstraint, LateInstantiatedAttrVec *LateAttrs) {
   TypeSourceInfo *OldTSI = OldParm->getTypeSourceInfo();
   TypeSourceInfo *NewTSI = nullptr;
 
@@ -3286,7 +3326,8 @@ Sema::SubstParmVarDecl(ParmVarDecl *OldParm,
   NewParm->setScopeInfo(OldParm->getFunctionScopeDepth(),
                         OldParm->getFunctionScopeIndex() + indexAdjustment);
 
-  InstantiateAttrs(TemplateArgs, OldParm, NewParm);
+  InstantiateAttrs(TemplateArgs, OldParm, NewParm, LateAttrs,
+                   CurrentInstantiationScope);
 
   NewParm->deduceParmAddressSpace(Context);
 
@@ -3748,26 +3789,9 @@ bool Sema::InstantiateClassImpl(
 
   // Instantiate late parsed attributes, and attach them to their decls.
   // See Sema::InstantiateAttrs
-  for (LateInstantiatedAttrVec::iterator I = LateAttrs.begin(),
-       E = LateAttrs.end(); I != E; ++I) {
-    assert(CurrentInstantiationScope == Instantiator.getStartingScope());
-    CurrentInstantiationScope = I->Scope;
-
-    // Allow 'this' within late-parsed attributes.
-    auto *ND = cast<NamedDecl>(I->NewDecl);
-    auto *ThisContext = dyn_cast_or_null<CXXRecordDecl>(ND->getDeclContext());
-    CXXThisScopeRAII ThisScope(*this, ThisContext, Qualifiers(),
-                               ND->isCXXInstanceMember());
-
-    Attr *NewAttr =
-      instantiateTemplateAttribute(I->TmplAttr, Context, *this, TemplateArgs);
-    if (NewAttr && checkInstantiatedThreadSafetyAttrs(I->NewDecl, NewAttr))
-      I->NewDecl->addAttr(NewAttr);
-    LocalInstantiationScope::deleteScopes(I->Scope,
-                                          Instantiator.getStartingScope());
-  }
+  assert(CurrentInstantiationScope == Instantiator.getStartingScope());
+  InstantiateLateAttrs(TemplateArgs, LateAttrs);
   Instantiator.disableLateAttributeInstantiation();
-  LateAttrs.clear();
 
   ActOnFinishDelayedMemberInitializers(Instantiation);
 
