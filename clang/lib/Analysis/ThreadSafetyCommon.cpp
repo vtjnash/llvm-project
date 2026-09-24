@@ -440,7 +440,10 @@ til::SExpr *SExprBuilder::translateDeclRefExpr(const DeclRefExpr *DRE,
         Match = (FD->getCanonicalDecl() == Canonical);
       else if (const auto *MD = dyn_cast<ObjCMethodDecl>(D))
         Match = (MD->getCanonicalDecl() == Canonical);
-      else if (getCanonicalParamDecl(Canonical, I) == PV->getCanonicalDecl())
+      // An attribute on a redeclaration names that redeclaration's parameter.
+      else if (llvm::any_of(Canonical->redecls(), [&](const Decl *R) {
+                 return getCanonicalParamDecl(R, I) == PV->getCanonicalDecl();
+               }))
         Match = true;
       else
         llvm_unreachable("ParmVarDecl does not belong to current declaration");

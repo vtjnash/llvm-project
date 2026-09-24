@@ -606,6 +606,10 @@ features cannot lower the translation-unit ABI level;
   written after the declarator-id, where it appertains to the declared entity
   rather than to a declarator chunk. (#GH196982, #GH111463)
 
+- Fixed a crash when a thread safety attribute on a redeclared function pointer
+  names a parameter of the pointee, as in
+  `void (*release)(struct H *h) RELEASE(h->lock)`.
+
 #### Bug Fixes to C++ Support
 
 - Fixed lambdas with specifiers or attributes after the capture list being

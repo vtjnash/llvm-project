@@ -8370,4 +8370,16 @@ void testDependent(int n) {
   callDependent<void (&)(int)>(callback, n); // expected-note {{in instantiation of function template specialization 'FunctionPointers::callDependent<void (&)(int)>' requested here}}
 }
 
+struct Guarded {
+  Mutex gmu;
+};
+
+// An attribute on a redeclaration names that redeclaration's parameters.
+extern void (*redecl_cb)(int, Guarded *g);
+void (*redecl_cb)(int, Guarded *g) EXCLUSIVE_LOCKS_REQUIRED(g->gmu) = nullptr;
+
+void callRedecl(int n, Guarded *arg) {
+  redecl_cb(n, arg); // expected-warning {{calling function 'redecl_cb' requires holding mutex 'arg->gmu' exclusively}}
+}
+
 } // namespace FunctionPointers
