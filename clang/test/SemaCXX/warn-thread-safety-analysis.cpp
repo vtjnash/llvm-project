@@ -8382,4 +8382,83 @@ void callRedecl(int n, Guarded *arg) {
   redecl_cb(n, arg); // expected-warning {{calling function 'redecl_cb' requires holding mutex 'arg->gmu' exclusively}}
 }
 
+// In a template, an attribute on a function pointer may name the pointee's
+// parameters as well. In each of these, the pointee's parameter 'g' is at the
+// same position as a parameter of the enclosing function, which it must not be
+// taken for.
+template <typename T>
+void callPointee(int n, void (*cb)(int, T *g) EXCLUSIVE_LOCKS_REQUIRED(g->gmu),
+                 T *arg) {
+  cb(n, arg); // expected-warning {{calling function 'cb' requires holding mutex 'arg->gmu' exclusively}}
+  arg->gmu.Lock();
+  cb(n, arg);
+  arg->gmu.Unlock();
+}
+template void callPointee<Guarded>(int, void (*)(int, Guarded *), Guarded *); // expected-note {{in instantiation of function template specialization 'FunctionPointers::callPointee<FunctionPointers::Guarded>' requested here}}
+
+// Through nested declarators, and on a parameter of function type.
+template <typename T>
+void callPointeeNested(int n, void (*(*cb)(int, T *g))(int) EXCLUSIVE_LOCKS_REQUIRED(g->gmu),
+                       T *arg) {
+  cb(n, arg); // expected-warning {{calling function 'cb' requires holding mutex 'arg->gmu' exclusively}}
+}
+template void callPointeeNested<Guarded>(int, void (*(*)(int, Guarded *))(int), Guarded *); // expected-note {{in instantiation of function template specialization 'FunctionPointers::callPointeeNested<FunctionPointers::Guarded>' requested here}}
+
+template <typename T>
+void callPointeeFunction(int n, void cb(int, T *g) EXCLUSIVE_LOCKS_REQUIRED(g->gmu),
+                         T *arg) {
+  cb(n, arg); // expected-warning {{calling function 'cb' requires holding mutex 'arg->gmu' exclusively}}
+}
+template void callPointeeFunction<Guarded>(int, void (int, Guarded *), Guarded *); // expected-note {{in instantiation of function template specialization 'FunctionPointers::callPointeeFunction<FunctionPointers::Guarded>' requested here}}
+
+template <typename T>
+void callPointeeLocal(int n, T *arg) {
+  void (*cb)(int, T *g) EXCLUSIVE_LOCKS_REQUIRED(g->gmu) = nullptr;
+  cb(n, arg); // expected-warning {{calling function 'cb' requires holding mutex 'arg->gmu' exclusively}}
+}
+template void callPointeeLocal<Guarded>(int, Guarded *); // expected-note {{in instantiation of function template specialization 'FunctionPointers::callPointeeLocal<FunctionPointers::Guarded>' requested here}}
+
+struct PointeeMethod {
+  template <typename T>
+  void call(int n, void (*cb)(int, T *g) EXCLUSIVE_LOCKS_REQUIRED(g->gmu),
+            T *arg) {
+    cb(n, arg); // expected-warning {{calling function 'cb' requires holding mutex 'arg->gmu' exclusively}}
+  }
+};
+template void PointeeMethod::call<Guarded>(int, void (*)(int, Guarded *), Guarded *); // expected-note {{in instantiation of function template specialization 'FunctionPointers::PointeeMethod::call<FunctionPointers::Guarded>' requested here}}
+
+template <typename T>
+struct PointeeMembers {
+  void (*cb)(int, T *g) EXCLUSIVE_LOCKS_REQUIRED(g->gmu);
+  static void (*scb)(int, T *g) EXCLUSIVE_LOCKS_REQUIRED(g->gmu);
+
+  void call(int n, T *arg) {
+    cb(n, arg);  // expected-warning {{calling function 'cb' requires holding mutex 'arg->gmu' exclusively}}
+    // FIXME: Reported twice, as for any attribute that the definition below
+    // inherits.
+    scb(n, arg); // expected-warning 2 {{calling function 'scb' requires holding mutex 'arg->gmu' exclusively}}
+  }
+};
+// The definition inherits the attribute, which names the declaration's 'g'.
+template <typename T>
+void (*PointeeMembers<T>::scb)(int, T *g) = nullptr;
+template struct PointeeMembers<Guarded>; // expected-note {{in instantiation of member function 'FunctionPointers::PointeeMembers<FunctionPointers::Guarded>::call' requested here}}
+
+#if __cplusplus >= 201402L
+template <typename T>
+void (*pointee_var)(int, T *g) EXCLUSIVE_LOCKS_REQUIRED(g->gmu) = nullptr;
+
+void callPointeeVar(int n, Guarded *arg) {
+  pointee_var<Guarded>(n, arg); // expected-warning {{calling function 'pointee_var<FunctionPointers::Guarded>' requires holding mutex 'arg->gmu' exclusively}}
+}
+
+auto pointee_lambda = [](int n, void (*cb)(int, Guarded *g) EXCLUSIVE_LOCKS_REQUIRED(g->gmu),
+                         auto *arg) {
+  cb(n, arg); // expected-warning {{calling function 'cb' requires holding mutex 'arg->gmu' exclusively}}
+};
+void callPointeeLambda(void (*cb)(int, Guarded *), Guarded *arg) {
+  pointee_lambda(0, cb, arg); // expected-note {{in instantiation of function template specialization}}
+}
+#endif
+
 } // namespace FunctionPointers

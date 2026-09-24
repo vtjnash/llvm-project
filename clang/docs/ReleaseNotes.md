@@ -606,9 +606,9 @@ features cannot lower the translation-unit ABI level;
   written after the declarator-id, where it appertains to the declared entity
   rather than to a declarator chunk. (#GH196982, #GH111463)
 
-- Fixed a crash when a thread safety attribute on a redeclared function pointer
-  names a parameter of the pointee, as in
-  `void (*release)(struct H *h) RELEASE(h->lock)`.
+- Fixed a crash when a thread safety attribute on a redeclared function pointer,
+  or on one declared in a template, names a parameter of the pointee, as in
+  `void (*release)(T *h) RELEASE(h->lock)`.
 
 #### Bug Fixes to C++ Support
 

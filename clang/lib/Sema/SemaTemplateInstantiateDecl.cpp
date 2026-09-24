@@ -881,10 +881,87 @@ static void instantiateDependentOpenACCRoutineDeclAttr(
     Sema &S, const MultiLevelTemplateArgumentList &TemplateArgs,
     const OpenACCRoutineDeclAttr *OldAttr, const Decl *Old, Decl *New);
 
+/// Find the prototype nearest the name declared with type \p TL, as in
+/// 'void (*cb)(T *h)', whose parameters are in scope for the declarator's
+/// attributes.
+static FunctionProtoTypeLoc getDeclaratorPrototypeLoc(TypeLoc TL) {
+  while (true) {
+    if (auto FTL = TL.getAs<FunctionProtoTypeLoc>())
+      return FTL;
+    switch (TL.getTypeLocClass()) {
+    case TypeLoc::Pointer:
+    case TypeLoc::BlockPointer:
+    case TypeLoc::LValueReference:
+    case TypeLoc::RValueReference:
+    case TypeLoc::MemberPointer:
+    case TypeLoc::Paren:
+    case TypeLoc::Attributed:
+    case TypeLoc::MacroQualified:
+    case TypeLoc::Qualified:
+    case TypeLoc::Adjusted:
+    case TypeLoc::Decayed:
+      TL = TL.getNextTypeLoc();
+      break;
+    default:
+      return FunctionProtoTypeLoc();
+    }
+  }
+}
+
+/// An attribute on a declarator may name a parameter of the prototype in its
+/// type, such as 'h' in 'void (*cb)(T *h) REQUIRES(h->mu)'. That parameter is
+/// instantiated with the type, but its mapping does not outlive the type's
+/// substitution, so map it again in \p Scope, pushing it if needed. An
+/// attribute inherited from a redeclaration names that redeclaration's
+/// parameter, so map those too. A function's own parameters are mapped by its
+/// instantiation instead.
+static void
+addInstantiatedPrototypeParams(Sema &S, const Decl *Tmpl, const Decl *New,
+                               std::optional<LocalInstantiationScope> &Scope) {
+  const auto *NewDD = dyn_cast<DeclaratorDecl>(New);
+  if (!NewDD || isa<FunctionDecl>(NewDD) || !NewDD->getTypeSourceInfo())
+    return;
+  FunctionProtoTypeLoc NewProto =
+      getDeclaratorPrototypeLoc(NewDD->getTypeSourceInfo()->getTypeLoc());
+  if (!NewProto)
+    return;
+  for (const Decl *R : Tmpl->redecls()) {
+    const auto *OldDD = dyn_cast<DeclaratorDecl>(R);
+    if (!OldDD || !OldDD->getTypeSourceInfo())
+      continue;
+    FunctionProtoTypeLoc OldProto =
+        getDeclaratorPrototypeLoc(OldDD->getTypeSourceInfo()->getTypeLoc());
+    if (!OldProto)
+      continue;
+    for (unsigned I = 0, E = std::min(OldProto.getNumParams(),
+                                      NewProto.getNumParams());
+         I != E; ++I) {
+      // A pack expands to any number of parameters, so the ones after it no
+      // longer line up.
+      ParmVarDecl *OldParam = OldProto.getParam(I);
+      if (!OldParam || OldParam->isParameterPack())
+        break;
+      ParmVarDecl *NewParam = NewProto.getParam(I);
+      if (!NewParam ||
+          (S.CurrentInstantiationScope &&
+           S.CurrentInstantiationScope->getInstantiationOfIfExists(OldParam)))
+        continue;
+      if (!Scope)
+        Scope.emplace(S, /*CombineWithOuterScope=*/true);
+      Scope->InstantiatedLocal(OldParam, NewParam);
+    }
+  }
+}
+
 void Sema::InstantiateAttrs(const MultiLevelTemplateArgumentList &TemplateArgs,
                             const Decl *Tmpl, Decl *New,
                             LateInstantiatedAttrVec *LateAttrs,
                             LocalInstantiationScope *OuterMostScope) {
+  // A deferred attribute keeps a copy of this scope, and so the mapping.
+  std::optional<LocalInstantiationScope> ProtoScope;
+  if (Tmpl->hasAttrs())
+    addInstantiatedPrototypeParams(*this, Tmpl, New, ProtoScope);
+
   for (const auto *TmplAttr : Tmpl->attrs()) {
     if (!isRelevantAttr(*this, New, TmplAttr))
       continue;
