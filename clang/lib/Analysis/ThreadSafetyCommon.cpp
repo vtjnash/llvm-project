@@ -108,11 +108,6 @@ til::SCFG *SExprBuilder::buildCFG(CFGWalker &Walker) {
   return Scfg;
 }
 
-static bool isCalleeArrow(const Expr *E) {
-  const auto *ME = dyn_cast<MemberExpr>(E->IgnoreParenCasts());
-  return ME ? ME->isArrow() : false;
-}
-
 /// If CE calls through a function pointer field D, return the member access
 /// through which the field was reached; its base is the implicit object
 /// ('this') for the attributes on the field.
@@ -147,25 +142,20 @@ CapabilityExpr SExprBuilder::translateAttrExpr(const Expr *AttrExp,
   if (!DeclExp)
     /* We'll use Self. */;
   else if (const auto *ME = dyn_cast<MemberExpr>(DeclExp)) {
-    Ctx.SelfArg   = ME->getBase();
-    Ctx.SelfArrow = ME->isArrow();
+    Ctx.SelfArg = ME->getBase();
   } else if (const auto *CE = dyn_cast<CXXMemberCallExpr>(DeclExp)) {
-    Ctx.SelfArg   = CE->getImplicitObjectArgument();
-    Ctx.SelfArrow = isCalleeArrow(CE->getCallee());
-    Ctx.NumArgs   = CE->getNumArgs();
-    Ctx.FunArgs   = CE->getArgs();
+    Ctx.SelfArg = CE->getImplicitObjectArgument();
+    Ctx.NumArgs = CE->getNumArgs();
+    Ctx.FunArgs = CE->getArgs();
   } else if (const auto *CE = dyn_cast<CallExpr>(DeclExp)) {
     // Calls to operators that are members need to be treated like member calls.
     if (isa<CXXOperatorCallExpr>(CE) && isa<CXXMethodDecl>(D)) {
       Ctx.SelfArg = CE->getArg(0);
-      Ctx.SelfArrow = false;
       Ctx.NumArgs = CE->getNumArgs() - 1;
       Ctx.FunArgs = CE->getArgs() + 1;
     } else {
-      if (const MemberExpr *ME = getFunPtrFieldCallee(CE, D)) {
+      if (const MemberExpr *ME = getFunPtrFieldCallee(CE, D))
         Ctx.SelfArg = ME->getBase();
-        Ctx.SelfArrow = ME->isArrow();
-      }
       Ctx.NumArgs = CE->getNumArgs();
       Ctx.FunArgs = CE->getArgs();
     }
@@ -566,10 +556,8 @@ til::SExpr *SExprBuilder::translateCallExpr(const CallExpr *CE,
         LRCallCtx.AttrDecl = D;
         LRCallCtx.SelfArg = SelfE;
         if (!SelfE)
-          if (const MemberExpr *ME = getFunPtrFieldCallee(CE, D)) {
+          if (const MemberExpr *ME = getFunPtrFieldCallee(CE, D))
             LRCallCtx.SelfArg = ME->getBase();
-            LRCallCtx.SelfArrow = ME->isArrow();
-          }
         LRCallCtx.NumArgs = CE->getNumArgs();
         LRCallCtx.FunArgs = CE->getArgs();
         return const_cast<til::SExpr *>(
