@@ -118,6 +118,38 @@ static bool IsAttributeArgsParsedInFunctionScope(const IdentifierInfo &II) {
 #undef CLANG_ATTR_PARSE_ARGS_IN_FUNCTION_SCOPE_LIST
 }
 
+/// Find the prototype nearest \p D's name, whose parameters are in scope for
+/// the declarator's attributes, as in 'void (*cb)(T *h) REQUIRES(h->mu)'.
+/// Describe what keeps template instantiation from mapping them (see
+/// Sema::InstantiateAttrs): the index of the prototype's first parameter pack,
+/// after which they no longer line up, and whether the declarator is a pack
+/// expansion or an array, which instantiate to any number of prototypes.
+static const DeclaratorChunk::FunctionTypeInfo *
+getDeclaratorPrototype(const Declarator &D, unsigned &FirstPack,
+                       LateParsedAttribute::DeclaratorShape &Shape) {
+  using DeclaratorShape = LateParsedAttribute::DeclaratorShape;
+  FirstPack = ~0u;
+  Shape = D.hasEllipsis() ? DeclaratorShape::PackExpansion
+                          : DeclaratorShape::Plain;
+  for (unsigned I = 0, E = D.getNumTypeObjects(); I != E; ++I) {
+    const DeclaratorChunk &Chunk = D.getTypeObject(I);
+    if (Chunk.Kind == DeclaratorChunk::Array &&
+        Shape == DeclaratorShape::Plain)
+      Shape = DeclaratorShape::Array;
+    if (Chunk.Kind != DeclaratorChunk::Function)
+      continue;
+    const DeclaratorChunk::FunctionTypeInfo &FTI = Chunk.Fun;
+    for (unsigned P = 0, NumParams = FTI.NumParams; P != NumParams; ++P)
+      if (auto *Param = dyn_cast_or_null<ParmVarDecl>(FTI.Params[P].Param);
+          Param && Param->isParameterPack()) {
+        FirstPack = P;
+        break;
+      }
+    return &FTI;
+  }
+  return nullptr;
+}
+
 /// Check if the a start and end source location expand to the same macro.
 static bool FindLocsWithCommonFileID(Preprocessor &PP, SourceLocation StartLoc,
                                      SourceLocation EndLoc) {
@@ -203,17 +235,12 @@ bool Parser::ParseSingleGNUAttribute(ParsedAttributes &Attrs,
   // a parameter of function type is adjusted to a pointer, so keep it.
   if (D && IsAttributeArgsParsedInFunctionScope(*AttrName) &&
       (!D->isFunctionDeclarator() || D->isPrototypeContext())) {
-    for (unsigned I = 0, E = D->getNumTypeObjects(); I != E; ++I) {
-      const DeclaratorChunk &Chunk = D->getTypeObject(I);
-      if (Chunk.Kind != DeclaratorChunk::Function)
-        continue;
-      const DeclaratorChunk::FunctionTypeInfo &FTI = Chunk.Fun;
-      for (unsigned P = 0, NumParams = FTI.NumParams; P != NumParams; ++P)
-        if (auto *Param = dyn_cast_or_null<ParmVarDecl>(FTI.Params[P].Param);
+    if (const DeclaratorChunk::FunctionTypeInfo *FTI =
+            getDeclaratorPrototype(*D, LA->ProtoFirstPack, LA->Shape))
+      for (unsigned P = 0, NumParams = FTI->NumParams; P != NumParams; ++P)
+        if (auto *Param = dyn_cast_or_null<ParmVarDecl>(FTI->Params[P].Param);
             Param && Param->getIdentifier())
           LA->ProtoParams.push_back(Param);
-      break;
-    }
   }
 
   LateAttrs->push_back(LA);
@@ -706,18 +733,14 @@ void Parser::ParseGNUAttributeArgs(
   // These may refer to the function arguments, but need to be parsed early to
   // participate in determining whether it's a redeclaration.
   std::optional<ParseScope> PrototypeScope;
+  const DeclaratorChunk::FunctionTypeInfo *FTI = nullptr;
+  unsigned ProtoFirstPack;
+  LateParsedAttribute::DeclaratorShape Shape;
   if (D && IsAttributeArgsParsedInFunctionScope(*AttrName)) {
     // Find the innermost function chunk to make its parameters available for
     // attribute argument parsing. This is necessary for attributes like thread
     // safety annotations on function pointers which reference their parameters.
-    const DeclaratorChunk::FunctionTypeInfo *FTI = nullptr;
-    for (unsigned i = 0; i < D->getNumTypeObjects(); ++i) {
-      if (D->getTypeObject(i).Kind == DeclaratorChunk::Function) {
-        FTI = &D->getTypeObject(i).Fun;
-        break;
-      }
-    }
-
+    FTI = getDeclaratorPrototype(*D, ProtoFirstPack, Shape);
     if (FTI) {
       // Inherit the class scope flag from the current context. This is safe
       // because it only preserves existing struct/class visibility, which is
@@ -732,8 +755,25 @@ void Parser::ParseGNUAttributeArgs(
     }
   }
 
+  unsigned NumAttrsBefore = Attrs.size();
   ParseAttributeArgsCommon(AttrName, AttrNameLoc, Attrs, EndLoc, ScopeName,
                            ScopeLoc, Form);
+
+  // Drop an attribute naming a pointee's parameter that template instantiation
+  // cannot yet map, as for a late-parsed attribute.
+  if (PrototypeScope && Attrs.size() > NumAttrsBefore) {
+    SmallVector<const DeclRefExpr *, 4> ParamRefs;
+    collectParamRefs(Attrs.back(), ParamRefs);
+    if (ParamRefs.empty())
+      return;
+    SmallVector<ParmVarDecl *, 4> ProtoParams;
+    for (unsigned I = 0; I < FTI->NumParams; ++I)
+      if (auto *Param = dyn_cast_or_null<ParmVarDecl>(FTI->Params[I].Param))
+        ProtoParams.push_back(Param);
+    if (checkPointeeParamRefs(*AttrName, ProtoParams, ProtoFirstPack, Shape,
+                              ParamRefs))
+      Attrs.remove(&Attrs.back());
+  }
 }
 
 unsigned Parser::ParseClangAttributeArgs(

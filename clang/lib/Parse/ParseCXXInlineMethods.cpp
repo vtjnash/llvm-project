@@ -703,14 +703,12 @@ void Parser::ParseLexedAttributeList(LateParsedAttrList &LAs, Decl *D,
   LAs.clear();
 }
 
-/// Collect the references to parameters in \p Attrs' arguments.
-static void collectParamRefs(const ParsedAttributes &Attrs,
-                             SmallVectorImpl<const DeclRefExpr *> &Refs) {
+void Parser::collectParamRefs(const ParsedAttr &AL,
+                              SmallVectorImpl<const DeclRefExpr *> &Refs) {
   SmallVector<const Stmt *, 8> Worklist;
-  for (const ParsedAttr &AL : Attrs)
-    for (unsigned I = 0, E = AL.getNumArgs(); I != E; ++I)
-      if (AL.isArgExpr(I))
-        Worklist.push_back(AL.getArgAsExpr(I));
+  for (unsigned I = 0, E = AL.getNumArgs(); I != E; ++I)
+    if (AL.isArgExpr(I))
+      Worklist.push_back(AL.getArgAsExpr(I));
   while (!Worklist.empty()) {
     const Stmt *S = Worklist.pop_back_val();
     if (!S)
@@ -751,21 +749,43 @@ bool Parser::checkLateAttributeParamRefs(
     }
   }
 
-  // A name binds the same way in a template, but instantiation cannot yet map a
-  // pointee's parameters, which are instantiated with the declaration's type
-  // and not kept. Reject the attribute rather than instantiate it wrongly.
+  return ReenteredProtoParams &&
+         checkPointeeParamRefs(LPA.AttrName, LPA.ProtoParams,
+                               LPA.ProtoFirstPack, LPA.Shape, ParamRefs);
+}
+
+bool Parser::checkPointeeParamRefs(const IdentifierInfo &AttrName,
+                                   ArrayRef<ParmVarDecl *> ProtoParams,
+                                   unsigned ProtoFirstPack,
+                                   LateParsedAttribute::DeclaratorShape Shape,
+                                   ArrayRef<const DeclRefExpr *> ParamRefs) {
+  using DeclaratorShape = LateParsedAttribute::DeclaratorShape;
+  if (!Actions.CurContext->isDependentContext() &&
+      !getCurScope()->getTemplateParamParent() &&
+      !Actions.getCurGenericLambda())
+    return false;
+  // Instantiation maps a pointee's parameters by position in the prototype
+  // nearest the declared name (see Sema::InstantiateAttrs), so it cannot yet
+  // map one that follows a parameter pack, nor one of a declarator that is a
+  // pack expansion or an array. Reject the attribute rather than instantiate
+  // it wrongly.
   // FIXME: Map these parameters during template instantiation.
-  if (Actions.CurContext->isDependentContext() ||
-      getCurScope()->getTemplateParamParent() ||
-      Actions.getCurGenericLambda()) {
-    for (const DeclRefExpr *DRE : ParamRefs) {
-      const auto *PVD = cast<ParmVarDecl>(DRE->getDecl());
-      if (!IsPointeeParam(PVD))
-        continue;
-      Diag(DRE->getLocation(), diag::err_late_attribute_param_in_template)
-          << &LPA.AttrName << PVD;
-      return true;
-    }
+  for (const DeclRefExpr *DRE : ParamRefs) {
+    const auto *PVD = cast<ParmVarDecl>(DRE->getDecl());
+    if (!llvm::is_contained(ProtoParams, PVD))
+      continue;
+    unsigned Reason;
+    if (Shape == DeclaratorShape::PackExpansion)
+      Reason = 1;
+    else if (Shape == DeclaratorShape::Array)
+      Reason = 2;
+    else if (PVD->getFunctionScopeIndex() > ProtoFirstPack)
+      Reason = 0;
+    else
+      continue;
+    Diag(DRE->getLocation(), diag::err_late_attribute_param_in_template)
+        << &AttrName << PVD << Reason;
+    return true;
   }
   return false;
 }
@@ -822,7 +842,8 @@ void Parser::ParseLexedAttribute(LateParsedAttribute &LPA, bool EnterScope,
     ProtoScope.Exit();
 
     SmallVector<const DeclRefExpr *, 4> ParamRefs;
-    collectParamRefs(Parsed, ParamRefs);
+    for (const ParsedAttr &AL : Parsed)
+      collectParamRefs(AL, ParamRefs);
     if (!ParamRefs.empty() &&
         checkLateAttributeParamRefs(LPA, ParamRefs, HasProtoParams))
       Parsed.clear();
