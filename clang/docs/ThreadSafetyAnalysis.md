@@ -540,6 +540,41 @@ void visit_all(void (*visit)(int) REQUIRES(mu), int n) {
 }
 ```
 
+Attributes on a field may name other members of the same struct. Those are
+resolved against the object through which the field is called:
+
+```c++
+struct Dev {
+  Mutex mu;
+  int state GUARDED_BY(mu);
+  void (*lock)(void)       ACQUIRE(mu);
+  void (*unlock)(void)     RELEASE(mu);
+  Mutex *(*lock_of)(void)  RETURN_CAPABILITY(mu);
+};
+
+void use(Dev *dev) {
+  dev->lock();  // acquires 'dev->mu'
+  dev->state = 1;
+  dev->unlock();
+}
+```
+
+An attribute without arguments on a field refers to the object the field is
+called through, as it refers to `this` on a method, so the struct must itself
+be a capability:
+
+```c++
+struct CAPABILITY("mutex") Node {
+  void (*lock)(void)   ACQUIRE();
+  void (*unlock)(void) RELEASE();
+};
+
+void use(Node *n) {
+  n->lock();    // acquires the object 'n' points to
+  n->unlock();
+}
+```
+
 Note that the attributes are on the *variable* (or field, or parameter), not on
 the function pointer type. Assigning a function with different (or no)
 attributes to an annotated function pointer variable is not diagnosed. The
