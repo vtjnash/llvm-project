@@ -113,6 +113,16 @@ static bool isCalleeArrow(const Expr *E) {
   return ME ? ME->isArrow() : false;
 }
 
+/// If CE calls through a function pointer field D, return the member access
+/// through which the field was reached; its base is the implicit object
+/// ('this') for the attributes on the field.
+static const MemberExpr *getFunPtrFieldCallee(const CallExpr *CE,
+                                              const NamedDecl *D) {
+  if (!isa<FieldDecl>(D))
+    return nullptr;
+  return dyn_cast<MemberExpr>(CE->getCallee()->IgnoreParenCasts());
+}
+
 /// Translate a clang expression in an attribute to a til::SExpr.
 /// Constructs the context from D, DeclExp, and SelfDecl.
 ///
@@ -152,6 +162,10 @@ CapabilityExpr SExprBuilder::translateAttrExpr(const Expr *AttrExp,
       Ctx.NumArgs = CE->getNumArgs() - 1;
       Ctx.FunArgs = CE->getArgs() + 1;
     } else {
+      if (const MemberExpr *ME = getFunPtrFieldCallee(CE, D)) {
+        Ctx.SelfArg = ME->getBase();
+        Ctx.SelfArrow = ME->isArrow();
+      }
       Ctx.NumArgs = CE->getNumArgs();
       Ctx.FunArgs = CE->getArgs();
     }
@@ -551,6 +565,11 @@ til::SExpr *SExprBuilder::translateCallExpr(const CallExpr *CE,
         CallingContext LRCallCtx(Ctx);
         LRCallCtx.AttrDecl = D;
         LRCallCtx.SelfArg = SelfE;
+        if (!SelfE)
+          if (const MemberExpr *ME = getFunPtrFieldCallee(CE, D)) {
+            LRCallCtx.SelfArg = ME->getBase();
+            LRCallCtx.SelfArrow = ME->isArrow();
+          }
         LRCallCtx.NumArgs = CE->getNumArgs();
         LRCallCtx.FunArgs = CE->getArgs();
         return const_cast<til::SExpr *>(

@@ -8400,4 +8400,31 @@ void testLockReturnedDependent(Guarded *g) {
   lockReturnedDependent<Mutex *(*)(Guarded *)>(g, mu_of);
 }
 
+// A function pointer field may name a sibling member, which is resolved
+// against the object the field was reached through.
+struct GuardedOps {
+  Mutex mu;
+  int data GUARDED_BY(mu);
+  Mutex *(*mu_of)() LOCK_RETURNED(&mu);
+  void (*lock)() EXCLUSIVE_LOCK_FUNCTION(mu);
+  void (*unlock)() UNLOCK_FUNCTION(mu);
+};
+
+void testMemberLockReturned(GuardedOps *g, GuardedOps &h) {
+  g->mu_of()->Lock();
+  g->data = 1;
+  g->unlock();
+  h.lock();
+  h.data = 2;
+  h.mu_of()->Unlock();
+}
+
+void testMemberLockReturnedFail(GuardedOps *g, GuardedOps &h) {
+  h.mu_of()->Lock();
+  g->data = 1; // expected-warning {{writing variable 'data' requires holding mutex 'g->mu' exclusively}} \
+               // expected-note {{found near match 'h.mu'}}
+  g->mu_of()->Unlock(); // expected-warning {{releasing mutex 'g->mu' that was not held}}
+  h.unlock();
+}
+
 } // namespace FunctionPointers

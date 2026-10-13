@@ -397,6 +397,11 @@ features cannot lower the translation-unit ABI level;
   `void (*unlock)(struct BDev *bdev) UNLOCK_FUNCTION(bdev->lock)`, keeps
   working. Without the flag both forward references remain errors.
 
+  Thread safety attributes on a function pointer field may also name other
+  members of the same struct, which are now resolved against the object the
+  field is called through, so that `dev->lock()` acquires `dev->mu` for `void
+  (*lock)(void) ACQUIRE(mu)`.
+
 ### Improvements to Clang's diagnostics
 
 - Fixed spurious `-Wimplicit-void-ptr-cast` warnings in C for parenthesized
