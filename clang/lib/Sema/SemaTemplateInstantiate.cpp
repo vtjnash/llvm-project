@@ -1805,7 +1805,7 @@ namespace {
       if (SemaRef.RebuildingImmediateInvocation)
         return E;
       LocalInstantiationScope Scope(SemaRef, /*CombineWithOuterScope=*/true,
-                                    /*InstantiatingLambdaOrBlock=*/true);
+                                    /*MapsPrototypeParams=*/true);
       llvm::SaveAndRestore RAII(EvaluateConstraints, EvaluateLambdaConstraint);
 
       return inherited::TransformLambdaExpr(E);
@@ -1813,7 +1813,7 @@ namespace {
 
     ExprResult TransformBlockExpr(BlockExpr *E) {
       LocalInstantiationScope Scope(SemaRef, /*CombineWithOuterScope=*/true,
-                                    /*InstantiatingLambdaOrBlock=*/true);
+                                    /*MapsPrototypeParams=*/true);
       return inherited::TransformBlockExpr(E);
     }
 
@@ -2502,16 +2502,13 @@ QualType TemplateInstantiator::TransformFunctionProtoType(TypeLocBuilder &TLB,
                                  CXXRecordDecl *ThisContext,
                                  Qualifiers ThisTypeQuals,
                                  Fn TransformExceptionSpec) {
-  // If this is a lambda or block, the transformation MUST be done in the
-  // CurrentInstantiationScope since it introduces a mapping of
-  // the original to the newly created transformed parameters.
-  //
-  // In that case, TemplateInstantiator::TransformLambdaExpr will
-  // have already pushed a scope for this prototype, so don't create
-  // a second one.
+  // The parameters are mapped in a scope of their own, unless the current
+  // scope was pushed to map them: by TransformLambdaExpr for a lambda or block,
+  // whose body names them, or by Sema::enterPrototypeParamScope for a
+  // declarator whose attributes may.
   LocalInstantiationScope *Current = getSema().CurrentInstantiationScope;
   std::optional<LocalInstantiationScope> Scope;
-  if (!Current || !Current->isLambdaOrBlock())
+  if (!Current || !Current->mapsPrototypeParams())
     Scope.emplace(SemaRef, /*CombineWithOuterScope=*/true);
 
   return inherited::TransformFunctionProtoType(
@@ -2557,14 +2554,11 @@ bool TemplateInstantiator::TransformFunctionTypeParams(
   bool Failed = inherited::TransformFunctionTypeParams(
       Loc, Params, ParamTypes, ParamInfos, PTypes, PVars, PInfos,
       LastParamTransformed);
-  // The attributes were deferred in this scope itself, so there is nothing to
-  // free on failure.
-  assert(
-      llvm::all_of(LateAttrs, [&](const Sema::LateInstantiatedAttribute &LA) {
-        return LA.Scope == Scope;
-      }));
-  if (Failed)
+  if (Failed) {
+    for (const Sema::LateInstantiatedAttribute &LA : LateAttrs)
+      LocalInstantiationScope::deleteScopes(LA.Scope, Scope);
     return true;
+  }
   SemaRef.InstantiateLateAttrs(TemplateArgs, LateAttrs, Scope);
   return false;
 }
@@ -3227,6 +3221,13 @@ ParmVarDecl *Sema::SubstParmVarDecl(
   TypeSourceInfo *OldTSI = OldParm->getTypeSourceInfo();
   TypeSourceInfo *NewTSI = nullptr;
 
+  // The parameter is mapped in the current scope, its prototype's. Its own
+  // attributes may name a parameter of a prototype in its type, which are
+  // mapped in a scope of their own that lasts until they are instantiated.
+  LocalInstantiationScope *ParmScope = CurrentInstantiationScope;
+  std::optional<LocalInstantiationScope> ProtoScope;
+  enterPrototypeParamScope(OldParm, TemplateArgs, ProtoScope);
+
   TypeLoc OldTL = OldTSI->getTypeLoc();
   if (PackExpansionTypeLoc ExpansionTL = OldTL.getAs<PackExpansionTypeLoc>()) {
 
@@ -3321,10 +3322,10 @@ ParmVarDecl *Sema::SubstParmVarDecl(
 
   if (OldParm->isParameterPack() && !NewParm->isParameterPack()) {
     // Add the new parameter to the instantiated parameter pack.
-    CurrentInstantiationScope->InstantiatedLocalPackArg(OldParm, NewParm);
+    ParmScope->InstantiatedLocalPackArg(OldParm, NewParm);
   } else {
     // Introduce an Old -> New mapping
-    CurrentInstantiationScope->InstantiatedLocal(OldParm, NewParm);
+    ParmScope->InstantiatedLocal(OldParm, NewParm);
   }
 
   // A parameter that is not a function's own, such as one of a function
@@ -3339,8 +3340,7 @@ ParmVarDecl *Sema::SubstParmVarDecl(
   NewParm->setScopeInfo(OldParm->getFunctionScopeDepth(),
                         OldParm->getFunctionScopeIndex() + indexAdjustment);
 
-  InstantiateAttrs(TemplateArgs, OldParm, NewParm, LateAttrs,
-                   CurrentInstantiationScope);
+  InstantiateAttrs(TemplateArgs, OldParm, NewParm, LateAttrs, ParmScope);
 
   NewParm->deduceParmAddressSpace(Context);
 

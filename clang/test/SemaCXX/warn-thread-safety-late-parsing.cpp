@@ -82,14 +82,10 @@ struct InTemplate {
 };
 InTemplate<Holder> in_template;
 
-// Template instantiation cannot yet map a pointee parameter that follows a
-// parameter pack in its prototype, or one of a declarator that is a pack
-// expansion or an array, as those instantiate to any number of parameters or
-// prototypes.
+// Also around a parameter pack.
 template <typename... Ts>
 struct PackInTemplate {
-  void (*cb)(Ts *..., Holder *h) REQUIRES(h->lock); // both-error{{'requires_capability' attribute in a template cannot name pointee function parameter 'h' after a parameter pack}}
-  // A parameter before the pack can be named.
+  void (*cb)(Ts *..., Holder *h) REQUIRES(h->lock);
   void (*earlier)(Holder *h, Ts *...) REQUIRES(h->lock);
 };
 PackInTemplate<int, long> pack_in_template;

@@ -8319,8 +8319,8 @@ void callRedecl(int n, Owner *arg) {
   redecl_cb(n, arg); // expected-warning {{calling function 'redecl_cb' requires holding mutex 'arg->gmu' exclusively}}
 }
 
-// An attribute instantiated from a template still names the pattern's
-// parameter when the parameter's type does not depend on a template argument.
+// An attribute instantiated from a template names the instantiated parameter
+// even when the parameter's type does not depend on a template argument.
 template <typename T>
 struct PointeePattern {
   void (*lock)(T *, Mutex *m) EXCLUSIVE_LOCK_FUNCTION(m);
@@ -8393,12 +8393,39 @@ template <typename T>
 void (*PointeeMembers<T>::scb)(int, T *g) = nullptr;
 template struct PointeeMembers<Owner>; // expected-note {{in instantiation of member function 'FunctionPointers::PointeeMembers<FunctionPointers::Owner>::call' requested here}}
 
+// After a parameter pack, which expands to any number of parameters.
+template <typename... Ts>
+void callPointeePack(int n, void (*cb)(Ts *..., Owner *g) EXCLUSIVE_LOCKS_REQUIRED(g->gmu),
+                     Ts *...ts, Owner *arg) {
+  cb(ts..., arg); // expected-warning {{calling function 'cb' requires holding mutex 'arg->gmu' exclusively}}
+}
+template void callPointeePack<int, long>(int, void (*)(int *, long *, Owner *), int *, long *, Owner *); // expected-note {{in instantiation of function template specialization 'FunctionPointers::callPointeePack<int, long>' requested here}}
+
+// On a declarator that is itself a pack expansion, which expands to any number
+// of prototypes, each with a parameter of its own.
+template <typename... Ts>
+void callPointeeExpansion(void (*...cbs)(Ts *g) EXCLUSIVE_LOCKS_REQUIRED(g->gmu), Ts *...args) {
+  using Expand = int[];
+  (void)Expand{(cbs(args), 0)...}; // expected-warning 2 {{calling function 'cbs' requires holding mutex 'args->gmu' exclusively}}
+}
+template void callPointeeExpansion<Owner, Owner>(void (*)(Owner *), void (*)(Owner *), Owner *, Owner *); // expected-note {{in instantiation of function template specialization 'FunctionPointers::callPointeeExpansion<FunctionPointers::Owner, FunctionPointers::Owner>' requested here}}
+
 #if __cplusplus >= 201402L
 template <typename T>
 void (*pointee_var)(int, T *g) EXCLUSIVE_LOCKS_REQUIRED(g->gmu) = nullptr;
 
 void callPointeeVar(int n, Owner *arg) {
   pointee_var<Owner>(n, arg); // expected-warning {{calling function 'pointee_var<FunctionPointers::Owner>' requires holding mutex 'arg->gmu' exclusively}}
+}
+
+// A redeclaration inherits the attribute, which names the declaration's 'g'.
+template <typename T>
+extern void (*pointee_var_redecl)(int, T *g) EXCLUSIVE_LOCKS_REQUIRED(g->gmu);
+template <typename T>
+void (*pointee_var_redecl)(int, T *g) = nullptr;
+
+void callPointeeVarRedecl(int n, Owner *arg) {
+  pointee_var_redecl<Owner>(n, arg); // expected-warning {{calling function 'pointee_var_redecl<FunctionPointers::Owner>' requires holding mutex 'arg->gmu' exclusively}}
 }
 
 auto pointee_lambda = [](int n, void (*cb)(int, Owner *g) EXCLUSIVE_LOCKS_REQUIRED(g->gmu),

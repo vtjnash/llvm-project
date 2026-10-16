@@ -444,9 +444,9 @@ til::SExpr *SExprBuilder::translateDeclRefExpr(const DeclRefExpr *DRE,
         // A pointee's parameter belongs to no function (see
         // ActOnParamDeclarator). An attribute on a declarator can only name a
         // parameter of the prototype in its type, which may be a
-        // redeclaration's, or the template pattern's when the parameter's type
-        // is not dependent (see FindInstantiatedDecl); it is at the same
-        // position in the prototype called here.
+        // redeclaration's, or the template pattern's when the prototype is not
+        // dependent (see FindInstantiatedDecl); it is at the same position in
+        // the prototype called here.
         Match = true;
       else
         llvm_unreachable("ParmVarDecl does not belong to current declaration");

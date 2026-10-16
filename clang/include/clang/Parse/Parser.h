@@ -207,13 +207,6 @@ struct LateParsedAttribute : public LateParsedDeclaration {
   /// late parsing runs after their scope is popped and the arguments may name
   /// one: 'void (*unlock)(struct BDev *bdev) UNLOCK_FUNCTION(bdev->lock)'.
   SmallVector<ParmVarDecl *, 4> ProtoParams;
-  /// Template instantiation maps those parameters by position (see
-  /// Sema::InstantiateAttrs), so it cannot yet map one after a parameter pack,
-  /// nor any of a declarator that is a pack expansion or an array: the index
-  /// of the prototype's first pack, and the declarator's shape.
-  enum class DeclaratorShape { Plain, PackExpansion, Array };
-  unsigned ProtoFirstPack = ~0u;
-  DeclaratorShape Shape = DeclaratorShape::Plain;
 
 private:
   Kind K;
@@ -1556,22 +1549,11 @@ private:
   /// attributes. Shared implementation used by both ParseLexedAttribute and
   /// ParseLexedTypeAttribute.
   ParsedAttributes ParseLexedAttributeTokens(LateParsedAttribute &LPA);
-  /// Collect the references to parameters in \p AL's arguments.
-  static void collectParamRefs(const ParsedAttr &AL,
-                               SmallVectorImpl<const DeclRefExpr *> &Refs);
   /// Diagnose a late-parsed attribute naming a parameter that it cannot, and
   /// return true if it must be dropped.
   bool checkLateAttributeParamRefs(const LateParsedAttribute &LPA,
                                    ArrayRef<const DeclRefExpr *> ParamRefs,
                                    bool ReenteredProtoParams);
-  /// Diagnose an attribute in a template naming one of \p ProtoParams, the
-  /// parameters of the prototype nearest its declarator's name, that template
-  /// instantiation cannot yet map, and return true if it must be dropped.
-  bool checkPointeeParamRefs(const IdentifierInfo &AttrName,
-                             ArrayRef<ParmVarDecl *> ProtoParams,
-                             unsigned ProtoFirstPack,
-                             LateParsedAttribute::DeclaratorShape Shape,
-                             ArrayRef<const DeclRefExpr *> ParamRefs);
 
   /// Helper function to move LateParsedTypeAttribute pointers from one list
   /// to another. Filters type attributes from \p From and appends them to \p
