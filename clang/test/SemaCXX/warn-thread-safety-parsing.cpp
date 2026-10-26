@@ -1806,6 +1806,24 @@ struct MutexHolder {
 };
 Mutex *(*fp_returned_param)(MutexHolder *h) LOCK_RETURNED(&h->mu);
 
+// A pointer to member function names a member function to call; a pointer to
+// data member does not.
+struct PMFields {
+  void (PMFields::*lock)() EXCLUSIVE_LOCK_FUNCTION(mu1);
+  int PMFields::*data EXCLUSIVE_LOCKS_REQUIRED(mu1); // \
+    // expected-warning {{'exclusive_locks_required' attribute on a field requires the field to be of function pointer type}}
+};
+
+// Without arguments, the attribute refers to the object the member is called
+// on, so the class of the pointer, not the enclosing class, must be a capability.
+struct LOCKABLE PMSelf {};
+struct PMNotLockable {};
+struct PMHolder {
+  void (PMSelf::*lock)() EXCLUSIVE_LOCK_FUNCTION();
+  void (PMNotLockable::*bad_lock)() EXCLUSIVE_LOCK_FUNCTION(); // \
+    // expected-warning {{'exclusive_lock_function' attribute without capability arguments refers to 'this', but 'PMNotLockable' isn't annotated with 'capability' or 'scoped_lockable' attribute}}
+};
+
 int bad_fp_var EXCLUSIVE_LOCK_FUNCTION(mu1); // \
   // expected-warning {{'exclusive_lock_function' attribute on a variable requires the variable to be of function pointer type}}
 struct BadFPFields {

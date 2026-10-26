@@ -68,11 +68,13 @@ ThreadSafetyHandler::~ThreadSafetyHandler() = default;
 /// Sema accepts capability attributes on a parameter for two unrelated
 /// purposes: a scoped-lockable parameter, where the attributes describe the
 /// locks the passed scope object holds, and a parameter naming a function to
-/// call -- a function pointer or a function reference -- where they describe
-/// the requirements of the function called through it.
+/// call -- a function pointer, a function reference, or a pointer to member
+/// function -- where they describe the requirements of the function called
+/// through it.
 static bool isCallbackParam(const ParmVarDecl *Param) {
   QualType T = Param->getType().getNonReferenceType();
-  return T->isFunctionPointerType() || T->isFunctionType();
+  return T->isFunctionPointerType() || T->isFunctionType() ||
+         T->isMemberFunctionPointerType();
 }
 
 /// Issue a warning about an invalid lock expression

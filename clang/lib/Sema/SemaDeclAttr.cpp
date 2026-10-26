@@ -352,16 +352,26 @@ static void checkAttrArgsAreCapabilityObjs(Sema &S, Decl *D,
   if (Sidx == AL.getNumArgs()) {
     // If we don't have any capability arguments, the attribute implicitly
     // refers to 'this'. So we need to make sure that 'this' exists, i.e. we're
-    // a non-static method, and that the class is a (scoped) capability.
-    const auto *MD = dyn_cast<const CXXMethodDecl>(D);
-    if (MD && !MD->isStatic()) {
-      const CXXRecordDecl *RD = MD->getParent();
+    // a non-static method, and that the class is a (scoped) capability. A
+    // pointer to member function is called on an object of its class, which
+    // 'this' then refers to.
+    const CXXRecordDecl *RD = nullptr;
+    if (const auto *MD = dyn_cast<CXXMethodDecl>(D)) {
+      if (!MD->isStatic())
+        RD = MD->getParent();
+    } else if (const auto *VD = dyn_cast<ValueDecl>(D)) {
+      if (const auto *MPT =
+              VD->getType().getNonReferenceType()->getAs<MemberPointerType>())
+        if (MPT->isMemberFunctionPointer())
+          RD = MPT->getMostRecentCXXRecordDecl();
+    }
+    if (RD) {
       // FIXME -- need to check this again on template instantiation
       if (!checkRecordDeclForAttr<CapabilityAttr>(RD) &&
           !checkRecordDeclForAttr<ScopedLockableAttr>(RD))
         S.Diag(AL.getLoc(),
                diag::warn_thread_attribute_not_on_capability_member)
-            << AL << MD->getParent();
+            << AL << RD;
     } else {
       S.Diag(AL.getLoc(), diag::warn_thread_attribute_not_on_non_static_member)
           << AL;
@@ -438,12 +448,12 @@ static void checkAttrArgsAreCapabilityObjs(Sema &S, Decl *D,
 }
 
 /// True if T names a function to call: a function pointer, a function
-/// reference, or a reference to a function pointer. Dependent types are also
-/// accepted, and re-checked after instantiation.
+/// reference, a pointer to member function, or a reference to either pointer.
+/// Dependent types are also accepted, and re-checked after instantiation.
 static bool isCallbackOrDependent(QualType T) {
   T = T.getNonReferenceType();
   return T->isDependentType() || T->isFunctionPointerType() ||
-         T->isFunctionType();
+         T->isFunctionType() || T->isMemberFunctionPointerType();
 }
 
 /// Checks that thread-safety attributes on variables or fields apply only to

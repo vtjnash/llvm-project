@@ -8307,6 +8307,45 @@ void test_attr_refers_to_param(Mutex *m) {
   m->Unlock();
 }
 
+// Attributes on a pointer to member function describe the member function
+// called through it, so 'this' is the object the member is called on, not the
+// one the pointer was read from.
+struct GuardedMembers {
+  Mutex mu;
+  int data GUARDED_BY(mu);
+  void (GuardedMembers::*lock)() EXCLUSIVE_LOCK_FUNCTION(mu);
+  void (GuardedMembers::*unlock)() UNLOCK_FUNCTION(mu);
+};
+
+void testPointerToMember(GuardedMembers *g, GuardedMembers &h) {
+  (g->*h.lock)();
+  g->data = 1;
+  h.data = 2; // expected-warning {{writing variable 'data' requires holding mutex 'h.mu' exclusively}} \
+              // expected-note {{found near match 'g->mu'}}
+  (g->*h.unlock)();
+}
+
+// A parameter of that type is a callback parameter, whose attributes are
+// checked at the call through it. Outside the class, the capability is named
+// through the class.
+void testPointerToMemberParam(GuardedMembers *g,
+    void (GuardedMembers::*touch)() EXCLUSIVE_LOCKS_REQUIRED(GuardedMembers::mu)) {
+  (g->*touch)(); // expected-warning {{calling function 'touch' requires holding mutex 'g->mu' exclusively}}
+}
+
+// Without arguments, the attribute refers to the object the member is called on.
+struct LOCKABLE SelfLocked {
+  void (SelfLocked::*lock)() EXCLUSIVE_LOCK_FUNCTION();
+  void (SelfLocked::*unlock)() UNLOCK_FUNCTION();
+};
+void (SelfLocked::*self_lock)() EXCLUSIVE_LOCK_FUNCTION();
+
+void testPointerToMemberSelf(SelfLocked &t) {
+  (t.*self_lock)(); // expected-note {{mutex acquired here}}
+  (t.*t.lock)(); // expected-warning {{acquiring mutex 't' that is already held}}
+  (t.*t.unlock)();
+}
+
 struct Owner {
   Mutex gmu;
 };

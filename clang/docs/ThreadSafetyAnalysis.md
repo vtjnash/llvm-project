@@ -545,9 +545,9 @@ the function pointer type. Assigning a function with different (or no)
 attributes to an annotated function pointer variable is not diagnosed. The
 analysis trusts the annotations on the variable at the call site.
 
-This support is limited to plain function pointers and function references.
-Pointers-to-member functions, blocks, and wrapper types such as `std::function`
-are not supported yet.
+This support is limited to plain function pointers, function references, and
+pointers-to-member functions.
+Blocks and wrapper types, such as `std::function`, are not supported yet.
 
 ### Warning flags
 
