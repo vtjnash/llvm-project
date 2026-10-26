@@ -8307,6 +8307,114 @@ void test_attr_refers_to_param(Mutex *m) {
   m->Unlock();
 }
 
+// Attributes on a pointer to member function describe the member function
+// called through it, so 'this' is the object the member is called on, not the
+// one the pointer was read from.
+struct GuardedMembers {
+  Mutex mu;
+  int data GUARDED_BY(mu);
+  void (GuardedMembers::*lock)() EXCLUSIVE_LOCK_FUNCTION(mu);
+  void (GuardedMembers::*unlock)() UNLOCK_FUNCTION(mu);
+};
+
+void testPointerToMember(GuardedMembers *g, GuardedMembers &h) {
+  (g->*h.lock)();
+  g->data = 1;
+  h.data = 2; // expected-warning {{writing variable 'data' requires holding mutex 'h.mu' exclusively}} \
+              // expected-note {{found near match 'g->mu'}}
+  (g->*h.unlock)();
+}
+
+// A parameter of that type is a callback parameter, whose attributes are
+// checked at the call through it. Outside the class, the capability is named
+// through the class.
+void testPointerToMemberParam(GuardedMembers *g,
+    void (GuardedMembers::*touch)() EXCLUSIVE_LOCKS_REQUIRED(GuardedMembers::mu)) {
+  (g->*touch)(); // expected-warning {{calling function 'touch' requires holding mutex 'g->mu' exclusively}}
+}
+
+// Without arguments, the attribute refers to the object the member is called on.
+struct LOCKABLE SelfLocked {
+  void (SelfLocked::*lock)() EXCLUSIVE_LOCK_FUNCTION();
+  void (SelfLocked::*unlock)() UNLOCK_FUNCTION();
+};
+void (SelfLocked::*self_lock)() EXCLUSIVE_LOCK_FUNCTION();
+
+void testPointerToMemberSelf(SelfLocked &t) {
+  (t.*self_lock)(); // expected-note {{mutex acquired here}}
+  (t.*t.lock)(); // expected-warning {{acquiring mutex 't' that is already held}}
+  (t.*t.unlock)();
+}
+
+// On a parameter of a member function, the attribute also refers to the object
+// the member is called on, not to the 'this' of the enclosing function.
+struct PMCaller {
+  Mutex mu;
+  void run(PMCaller *o, void (PMCaller::*pm)() EXCLUSIVE_LOCKS_REQUIRED(mu)) {
+    mu.Lock();
+    (o->*pm)(); // expected-warning {{calling function 'pm' requires holding mutex 'o->mu' exclusively}} \
+                // expected-note {{found near match 'mu'}}
+    mu.Unlock();
+  }
+};
+
+// An attribute may name a parameter of the member function.
+void (GuardedMembers::*pm_pointee)(GuardedMembers *g) EXCLUSIVE_LOCKS_REQUIRED(g->mu);
+
+void testPointerToMemberPointee(GuardedMembers *a, GuardedMembers *b) {
+  a->mu.Lock();
+  (a->*pm_pointee)(b); // expected-warning {{calling function 'pm_pointee' requires holding mutex 'b->mu' exclusively}} \
+                       // expected-note {{found near match 'a->mu'}}
+  a->mu.Unlock();
+}
+
+// lock_returned on a pointer to member function names the capability of the
+// object the member is called on.
+struct PMLockReturned {
+  Mutex mu;
+  Mutex *(PMLockReturned::*get_mu)() LOCK_RETURNED(&mu);
+  void (PMLockReturned::*touch)() EXCLUSIVE_LOCKS_REQUIRED((this->*get_mu)());
+};
+
+void testPointerToMemberLockReturned(PMLockReturned *p) {
+  (p->*p->touch)(); // expected-warning {{calling function 'touch' requires holding mutex 'p->mu' exclusively}}
+  p->mu.Lock();
+  (p->*p->touch)();
+  p->mu.Unlock();
+}
+
+// In templates, the attributes are instantiated with the pointer.
+template <typename T> struct PMTemplate {
+  Mutex mu;
+  int data GUARDED_BY(mu);
+  void (PMTemplate::*lock)() EXCLUSIVE_LOCK_FUNCTION(mu);
+  void (PMTemplate::*unlock)() UNLOCK_FUNCTION(mu);
+};
+
+void testPointerToMemberTemplate(PMTemplate<int> *t) {
+  (t->*t->lock)();
+  t->data = 1;
+  (t->*t->unlock)();
+  t->data = 2; // expected-warning {{writing variable 'data' requires holding mutex 't->mu' exclusively}}
+}
+
+template <typename T>
+void callPointerToMember(T *t, void (T::*f)() EXCLUSIVE_LOCKS_REQUIRED(T::mu)) {
+  (t->*f)(); // expected-warning {{calling function 'f' requires holding mutex 't->mu' exclusively}}
+}
+
+template <typename T> void callPointerToMemberInLambda(T *arg) {
+  [&]() {
+    void (T::*f)(T *g) EXCLUSIVE_LOCKS_REQUIRED(g->mu) = nullptr;
+    (arg->*f)(arg); // expected-warning {{calling function 'f' requires holding mutex 'arg->mu' exclusively}}
+  }();
+}
+
+void testPointerToMemberDependent(GuardedMembers *g, void (GuardedMembers::*f)()) {
+  callPointerToMember(g, f); // expected-note {{in instantiation of function template specialization 'FunctionPointers::callPointerToMember<FunctionPointers::GuardedMembers>' requested here}}
+  callPointerToMemberInLambda(g); // expected-note {{in instantiation of function template specialization 'FunctionPointers::callPointerToMemberInLambda<FunctionPointers::GuardedMembers>' requested here}}
+}
+
 struct Owner {
   Mutex gmu;
 };
