@@ -1831,6 +1831,69 @@ template <typename T> struct PMDependent {
 struct PMIncomplete;
 void (PMIncomplete::*pm_incomplete_lock)() EXCLUSIVE_LOCK_FUNCTION();
 
+// A pointer to member function is called on an object of its class, so an
+// argument may not name a member of another class through 'this', or without
+// an object, unless the class of the pointer has it through a base.
+struct PMTarget { Mutex mu; };
+struct PMBase { Mutex bmu; };
+struct PMTargetDerived : PMBase {};
+struct PMOther : PMBase {
+  Mutex omu;
+  Mutex &getMu();
+  void (PMTarget::*req)() EXCLUSIVE_LOCKS_REQUIRED(omu); // \
+    // expected-warning {{ignoring 'exclusive_locks_required' argument naming a member of 'PMOther'; a pointer to member function of 'PMTarget' is called on an object of 'PMTarget'}}
+  void (PMTarget::*req_this)() EXCLUSIVE_LOCKS_REQUIRED(this->omu); // \
+    // expected-warning {{ignoring 'exclusive_locks_required' argument naming a member of 'PMOther'}}
+  void (PMTarget::*req_call)() EXCLUSIVE_LOCKS_REQUIRED(getMu()); // \
+    // expected-warning {{ignoring 'exclusive_locks_required' argument naming a member of 'PMOther'}}
+  void (PMTarget::*req_base)() EXCLUSIVE_LOCKS_REQUIRED(bmu); // \
+    // expected-warning {{ignoring 'exclusive_locks_required' argument naming a member of 'PMBase'}}
+  void (PMTarget::*acq)() EXCLUSIVE_LOCK_FUNCTION(omu); // \
+    // expected-warning {{ignoring 'exclusive_lock_function' argument naming a member of 'PMOther'}}
+  void (PMTarget::*rel)() UNLOCK_FUNCTION(omu); // \
+    // expected-warning {{ignoring 'unlock_function' argument naming a member of 'PMOther'}}
+  bool (PMTarget::*try_acq)() EXCLUSIVE_TRYLOCK_FUNCTION(true, omu); // \
+    // expected-warning {{ignoring 'exclusive_trylock_function' argument naming a member of 'PMOther'}}
+  Mutex *(PMTarget::*returned)() LOCK_RETURNED(&omu); // \
+    // expected-warning {{ignoring 'lock_returned' argument naming a member of 'PMOther'}}
+  void (PMTarget::*self)() EXCLUSIVE_LOCK_FUNCTION(this); // \
+    // expected-warning {{ignoring 'exclusive_lock_function' argument naming 'this' of 'PMOther'}}
+
+  void (PMTarget::*wildcard)() EXCLUSIVE_LOCKS_REQUIRED(&PMOther::omu);
+  void (PMBase::*own_base)() EXCLUSIVE_LOCKS_REQUIRED(PMBase::bmu);
+  void (PMTargetDerived::*derived)() EXCLUSIVE_LOCKS_REQUIRED(bmu);
+  void (*fun_ptr)() EXCLUSIVE_LOCKS_REQUIRED(omu);
+
+#if __cplusplus >= 201103L
+  // Naming a member without an object needs C++11.
+  void (PMTarget::*named)() EXCLUSIVE_LOCKS_REQUIRED(PMTarget::mu);
+  void (PMTarget::*req_some)() EXCLUSIVE_LOCKS_REQUIRED(PMTarget::mu, omu); // \
+    // expected-warning {{ignoring 'exclusive_locks_required' argument naming a member of 'PMOther'}}
+  void run(PMTarget *t, void (PMTarget::*cb)() EXCLUSIVE_LOCKS_REQUIRED(omu)); // \
+    // expected-warning {{ignoring 'exclusive_locks_required' argument naming a member of 'PMOther'}}
+#endif
+};
+
+#if __cplusplus >= 201103L
+// A member of an enclosing class is not named through 'this'.
+struct PMOuter {
+  Mutex mu;
+  struct Inner {
+    void (PMOuter::*lock)() EXCLUSIVE_LOCK_FUNCTION(mu);
+  };
+};
+#endif
+
+// A class that is dependent or incomplete cannot be checked yet.
+template <typename T> struct PMOtherDependent {
+  Mutex mu;
+  void (PMTarget::*req)() EXCLUSIVE_LOCKS_REQUIRED(mu);
+};
+struct PMOtherIncomplete {
+  Mutex mu;
+  void (PMIncomplete::*req)() EXCLUSIVE_LOCKS_REQUIRED(mu);
+};
+
 int bad_fp_var EXCLUSIVE_LOCK_FUNCTION(mu1); // \
   // expected-warning {{'exclusive_lock_function' attribute on a variable requires the variable to be of function pointer type}}
 struct BadFPFields {

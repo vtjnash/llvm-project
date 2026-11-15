@@ -4381,6 +4381,10 @@ def warn_thread_attribute_not_on_capability_member : Warning<
   "%0 attribute without capability arguments refers to 'this', but %1 isn't "
   "annotated with 'capability' or 'scoped_lockable' attribute">,
   InGroup<ThreadSafetyAttributes>, DefaultIgnore;
+def warn_thread_attribute_other_object : Warning<
+  "ignoring %0 argument naming %select{a member of|'this' of}1 %2; a pointer "
+  "to member function of %3 is called on an object of %3">,
+  InGroup<ThreadSafetyAttributes>, DefaultIgnore;
 def warn_thread_attribute_argument_not_lockable : Warning<
   "%0 attribute requires arguments whose type is annotated "
   "with 'capability' attribute; type here is %1">,

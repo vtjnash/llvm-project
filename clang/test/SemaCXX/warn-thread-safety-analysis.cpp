@@ -8415,6 +8415,24 @@ void testPointerToMemberDependent(GuardedMembers *g, void (GuardedMembers::*f)()
   callPointerToMemberInLambda(g); // expected-note {{in instantiation of function template specialization 'FunctionPointers::callPointerToMemberInLambda<FunctionPointers::GuardedMembers>' requested here}}
 }
 
+// An argument naming a member of another class is ignored, and an attribute
+// left without arguments does not refer to the object instead.
+struct LOCKABLE PMLockable {};
+struct PMOtherOwner {
+  Mutex mu;
+  void (PMLockable::*lock)() EXCLUSIVE_LOCK_FUNCTION(mu); // \
+    // expected-warning {{argument naming a member of 'PMOtherOwner'}}
+  void (GuardedMembers::*touch)() EXCLUSIVE_LOCKS_REQUIRED(mu); // \
+    // expected-warning {{argument naming a member of 'PMOtherOwner'}}
+};
+
+void testPointerToMemberOther(PMOtherOwner *o, PMLockable *l, GuardedMembers *g) {
+  (l->*o->lock)();
+  g->mu.Lock();
+  (g->*o->touch)();
+  g->mu.Unlock();
+}
+
 struct Owner {
   Mutex gmu;
 };

@@ -339,6 +339,81 @@ static bool isCapabilityExpr(Sema &S, const Expr *Ex) {
   return typeHasCapability(S, Ex->getType());
 }
 
+/// If D is a pointer to member function, or a reference to one, set
+/// IsMemberPointer and return the class of the objects it is called on, or
+/// null if that class is dependent, so not known yet, or incomplete, so not
+/// checkable yet.
+static const CXXRecordDecl *getMemberFunctionPointerClass(const Decl *D,
+                                                          bool &IsMemberPointer) {
+  IsMemberPointer = false;
+  const auto *VD = dyn_cast<ValueDecl>(D);
+  if (!VD)
+    return nullptr;
+  const auto *MPT =
+      VD->getType().getNonReferenceType()->getAs<MemberPointerType>();
+  if (!MPT || !MPT->isMemberFunctionPointer())
+    return nullptr;
+  IsMemberPointer = true;
+  const CXXRecordDecl *RD = MPT->getMostRecentCXXRecordDecl();
+  return RD && RD->hasDefinition() ? RD : nullptr;
+}
+
+/// The named class whose 'this' an access to a member of RD goes through:
+/// RD itself, or, for an anonymous struct or union, the class it is in.
+static const CXXRecordDecl *getNamedOwner(const CXXRecordDecl *RD) {
+  while (RD && RD->isAnonymousStructOrUnion())
+    RD = dyn_cast<CXXRecordDecl>(RD->getParent());
+  return RD;
+}
+
+/// For an attribute on a pointer to member function called on objects of
+/// class CalledOn, find a part of E that names an object of another class,
+/// one that is neither CalledOn nor a base of it: a member of that class
+/// named through 'this' or without an object, or that class's 'this' itself.
+/// The analysis would take 'this' for the object the member is called on,
+/// which does not have that member. '&C::m' names no object.
+static const Expr *findOtherObject(const Expr *E,
+                                   const CXXRecordDecl *CalledOn,
+                                   const CXXRecordDecl *&Other) {
+  auto IsOther = [&](const DeclContext *DC) {
+    const auto *RD = getNamedOwner(dyn_cast_or_null<CXXRecordDecl>(DC));
+    if (!RD || RD->isDependentContext() || CalledOn->isDependentContext() ||
+        declaresSameEntity(RD, CalledOn) || CalledOn->isDerivedFrom(RD))
+      return false;
+    Other = RD;
+    return true;
+  };
+  if (const auto *TE = dyn_cast<CXXThisExpr>(E)) {
+    if (IsOther(TE->getType()->getPointeeCXXRecordDecl()))
+      return E;
+    return nullptr;
+  }
+  // A member of a base of CalledOn is a member of CalledOn too, whatever the
+  // type of 'this' it is named through.
+  if (const auto *ME = dyn_cast<MemberExpr>(E))
+    if (isa<CXXThisExpr>(ME->getBase()->IgnoreParenImpCasts()))
+      return IsOther(ME->getMemberDecl()->getDeclContext()) ? E : nullptr;
+  if (const auto *DRE = dyn_cast<DeclRefExpr>(E)) {
+    const ValueDecl *VD = DRE->getDecl();
+    if (VD->isCXXInstanceMember() && isa<FieldDecl, IndirectFieldDecl>(VD) &&
+        IsOther(VD->getDeclContext()))
+      return E;
+    return nullptr;
+  }
+  if (const auto *UO = dyn_cast<UnaryOperator>(E))
+    if (UO->getOpcode() == UO_AddrOf)
+      if (const auto *DRE = dyn_cast<DeclRefExpr>(UO->getSubExpr()))
+        if (DRE->getDecl()->isCXXInstanceMember())
+          return nullptr;
+  if (isa<LambdaExpr>(E))
+    return nullptr;
+  for (const Stmt *Child : E->children())
+    if (const auto *ChildE = dyn_cast_or_null<Expr>(Child))
+      if (const Expr *Found = findOtherObject(ChildE, CalledOn, Other))
+        return Found;
+  return nullptr;
+}
+
 /// Checks that all attribute arguments, starting from Sidx, resolve to
 /// a capability object.
 /// \param Sidx The attribute argument index to start checking with.
@@ -349,28 +424,21 @@ static void checkAttrArgsAreCapabilityObjs(Sema &S, Decl *D,
                                            SmallVectorImpl<Expr *> &Args,
                                            unsigned Sidx = 0,
                                            bool ParamIdxOk = false) {
+  bool IsMemberPointer;
+  const CXXRecordDecl *CalledOn =
+      getMemberFunctionPointerClass(D, IsMemberPointer);
+
   if (Sidx == AL.getNumArgs()) {
     // If we don't have any capability arguments, the attribute implicitly
     // refers to 'this'. So we need to make sure that 'this' exists, i.e. we're
     // a non-static method, and that the class is a (scoped) capability. A
     // pointer to member function is called on an object of its class, which
     // 'this' then refers to.
-    bool HasThis = false;
-    const CXXRecordDecl *RD = nullptr;
+    bool HasThis = IsMemberPointer;
+    const CXXRecordDecl *RD = CalledOn;
     if (const auto *MD = dyn_cast<CXXMethodDecl>(D)) {
       HasThis = !MD->isStatic();
       RD = MD->getParent();
-    } else if (const auto *VD = dyn_cast<ValueDecl>(D)) {
-      if (const auto *MPT =
-              VD->getType().getNonReferenceType()->getAs<MemberPointerType>();
-          MPT && MPT->isMemberFunctionPointer()) {
-        HasThis = true;
-        // A dependent class is not known yet, and an incomplete one cannot be
-        // checked yet.
-        RD = MPT->getMostRecentCXXRecordDecl();
-        if (RD && !RD->hasDefinition())
-          RD = nullptr;
-      }
     }
     if (!HasThis) {
       S.Diag(AL.getLoc(), diag::warn_thread_attribute_not_on_non_static_member)
@@ -387,6 +455,18 @@ static void checkAttrArgsAreCapabilityObjs(Sema &S, Decl *D,
 
   for (unsigned Idx = Sidx; Idx < AL.getNumArgs(); ++Idx) {
     Expr *ArgExp = AL.getArgAsExpr(Idx);
+
+    // A pointer to member function is called on an object of its class, which
+    // the analysis takes for any 'this' in the argument.
+    // FIXME -- need to check this again on template instantiation
+    const CXXRecordDecl *Other = nullptr;
+    if (CalledOn)
+      if (const Expr *E = findOtherObject(ArgExp, CalledOn, Other)) {
+        S.Diag(E->getExprLoc(), diag::warn_thread_attribute_other_object)
+            << AL << isa<CXXThisExpr>(E) << Other << CalledOn
+            << E->getSourceRange();
+        continue;
+      }
 
     if (ArgExp->isTypeDependent()) {
       // FIXME -- need to check this again on template instantiation
@@ -620,7 +700,9 @@ static bool checkLockFunAttrCommon(Sema &S, Decl *D, const ParsedAttr &AL,
   // check that all arguments are lockable objects
   checkAttrArgsAreCapabilityObjs(S, D, AL, Args, 0, /*ParamIdxOk=*/true);
 
-  return true;
+  // Without arguments, the attribute refers to 'this', which arguments that
+  // were all ignored did not.
+  return AL.getNumArgs() == 0 || !Args.empty();
 }
 
 /// Checks to be sure that the given parameter number is in bounds, and
@@ -699,7 +781,9 @@ static bool checkTryLockFunAttrCommon(Sema &S, Decl *D, const ParsedAttr &AL,
   // check that all arguments are lockable objects
   checkAttrArgsAreCapabilityObjs(S, D, AL, Args, 1);
 
-  return true;
+  // Without arguments, the attribute refers to 'this', which arguments that
+  // were all ignored did not.
+  return AL.getNumArgs() == 1 || !Args.empty();
 }
 
 static void handleLockReturnedAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
@@ -6960,6 +7044,11 @@ static void handleReleaseCapabilityAttr(Sema &S, Decl *D,
   // Check that all arguments are lockable objects.
   SmallVector<Expr *, 1> Args;
   checkAttrArgsAreCapabilityObjs(S, D, AL, Args, 0, true);
+
+  // Without arguments, the attribute refers to 'this', which arguments that
+  // were all ignored did not.
+  if (AL.getNumArgs() != 0 && Args.empty())
+    return;
 
   D->addAttr(::new (S.Context) ReleaseCapabilityAttr(S.Context, AL, Args.data(),
                                                      Args.size()));
