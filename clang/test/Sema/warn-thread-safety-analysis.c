@@ -755,28 +755,28 @@ void test_trylock_void_conditional_via_var(void) {
 // edge determines nothing and is reported as a possible leak.
 int get_data(void);
 void test_trylock_conditional_arm(void) {
-  if (mutex_exclusive_trylock(&mu1) ? get_data() : 0) {
+  if (mutex_exclusive_trylock(&mu1) ? get_data() : 0) { // expected-note{{mutex acquired here}}
     work_data = 1; // expected-warning {{writing variable 'work_data' requires holding mutex 'mu1' exclusively}}
     mutex_unlock(&mu1); // expected-warning {{releasing mutex 'mu1' that may not be held}}
   }
-}
+} // expected-warning{{unchecked result of try-acquire; mutex 'mu1' may still be held at the end of function}}
 
 // GNU `?:` with a falsy constant is the result itself: both edges resolve,
 // like a plain branch on the call.
 void test_trylock_gnu_conditional(void) {
-  if (mutex_exclusive_trylock(&mu1) ?: 0) {
+  if (mutex_exclusive_trylock(&mu1) ?: 0) { // expected-note {{mutex acquired here}}
     work_data = 1; // expected-warning {{writing variable 'work_data' requires holding mutex 'mu1' exclusively}}
     mutex_unlock(&mu1); // expected-warning {{releasing mutex 'mu1' that may not be held}}
   }
-}
+} // expected-warning {{unchecked result of try-acquire; mutex 'mu1' may still be held at the end of function}}
 
 // GNU `?:` with a non-constant right operand: a falsy value proves both
 // operands falsy -- the try-lock failed -- while a truthy value may be the
 // right operand's, so the result stays undetermined there.
 void test_trylock_gnu_conditional_nonconst(void) {
-  if (mutex_exclusive_trylock(&mu1) ?: get_data())
+  if (mutex_exclusive_trylock(&mu1) ?: get_data()) // expected-note {{mutex acquired here}}
     mutex_unlock(&mu1); // expected-warning{{releasing mutex 'mu1' that may not be held}}
-}
+} // expected-warning {{unchecked result of try-acquire; mutex 'mu1' may still be held at the end of function}}
 
 // A switch on an int-typed but provably boolean condition (a comparison in
 // C) derives the default edge the same way as a _Bool condition: case 1 is

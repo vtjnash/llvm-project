@@ -212,14 +212,15 @@ public:
   void tryLockReaddChecksOnce(bool c, bool d) {
     bool b = false;
     if (c)
-      b = mu.TryLock(); // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}}
+      b = mu.TryLock(); // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}} \
+                        // expected-note {{mutex acquired here}}
     if (d) {
       a = 0;            // expected-warning{{writing variable 'a' requires holding mutex 'mu' exclusively}}
     }
     if (b) {
       mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
     }
-  }
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
 
   // A failed try-acquire proves nothing about whether the thread holds the
   // capability -- it fails for other reasons too -- so its failure edge

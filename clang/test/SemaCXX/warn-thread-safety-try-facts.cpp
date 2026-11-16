@@ -66,7 +66,7 @@ void stale_kept_by_lock() {
 // second call's result reaches the end of the function unchecked.
 void two_proofs_one_release() {
   bool ok1 = rmu.TryLock(); // expected-note 2 {{mutex acquired here}}
-  bool ok2 = rmu.TryLock();
+  bool ok2 = rmu.TryLock(); // expected-note {{mutex acquired here}}
   if (ok1 && ok2) {
     rmu.Unlock();
     if (ok1) {
@@ -74,7 +74,8 @@ void two_proofs_one_release() {
       rmu.Unlock();
     }
   }
-} // expected-warning 2 {{mutex 'rmu' is not held on every path through here}}
+} // expected-warning 2 {{mutex 'rmu' is not held on every path through here}} \
+  // expected-warning {{unchecked result of try-acquire; mutex 'rmu' may still be held at the end of function}}
 
 // A stale result blocks per call: another call's release on the other
 // side of a join says nothing about this call's result, so the hold this
@@ -153,7 +154,7 @@ void loop_carried_result_break() {
 // keying the fold on the patched block's own terminator found no twin and
 // promoted the one acquisition twice.
 void loop_carried_twin_break() {
-  bool ok = mu.TryLock();
+  bool ok = mu.TryLock(); // expected-note {{mutex acquired here}}
   while (!ok) {
     if (cond)
       break;
@@ -163,7 +164,7 @@ void loop_carried_twin_break() {
     a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
     mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
   }
-}
+} // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
 
 // The same pair with the first call already checked and released before
 // the spin: its record at the head is resolved, not unresolved, and the
