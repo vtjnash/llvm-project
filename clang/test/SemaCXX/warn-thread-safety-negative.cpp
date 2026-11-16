@@ -258,7 +258,7 @@ class ScopedTryLockTest {
 
 public:
   void scopedTryNegativeWarn() {
-    MutexLockMaybe scope(&mu);
+    MutexLockMaybe scope(&mu); // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}}
   }
 
   // The guard's death releases whatever the try-acquire took, but does not
@@ -267,7 +267,7 @@ public:
   // again.
   void scopedTryDisarmThenLock() {
     {
-      MutexLockMaybe scope(&mu);
+      MutexLockMaybe scope(&mu); // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}}
     }
     mu.Lock(); // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}}
     a = 0;

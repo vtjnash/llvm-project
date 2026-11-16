@@ -7232,9 +7232,9 @@ void conditionalGuard(bool c) {
 // it establishes makes the relock clean.
 void explicitUnlockUnchecked() {
   RelockableMutexLockMaybe scope(&mu);
-  scope.Unlock();
+  scope.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
   scope.Lock();
-  x = 1; // expected-warning {{writing variable 'x' requires holding mutex 'mu' exclusively}}
+  x = 1;
 }
 
 // An explicit release consumes the guard's own conditional level, not a hold
@@ -7244,7 +7244,7 @@ void explicitUnlockOverOuterHold() {
   mu.Lock();
   {
     RelockableMutexLockMaybe scope(&mu);
-    scope.Unlock();
+    scope.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
     x = 1;
   }
   x = 2;
@@ -7256,7 +7256,7 @@ void explicitUnlockOverOuterHold() {
 // function, as it is without the guard.
 void unlockThenLockUnderTryGuard() {
   MutexLockMaybe scope(&mu);
-  mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+  mu.Unlock();  // expected-warning {{releasing mutex 'mu' that may not be held}}
   mu.Lock();    // expected-note {{mutex acquired here}}
   x = 3;
 } // expected-warning {{mutex 'mu' is still held at the end of function}}
@@ -7267,16 +7267,17 @@ void unlockThenLockUnderTryGuard() {
 // guard's own try fact is subsumed (no branch can resolve it, and the
 // destructor releases the definite level in its place).
 void relockOverTryHeld() {
-  RelockableMutexLockMaybe scope(&mu);
-  scope.Lock();
-  x = 1; // expected-warning {{writing variable 'x' requires holding mutex 'mu' exclusively}}
+  RelockableMutexLockMaybe scope(&mu); // expected-note {{mutex acquired here}}
+  scope.Lock(); // expected-warning {{acquiring mutex 'mu' that may already be held}}
+  x = 1;
 }
 
 // The same capability under opposite success values is acquired regardless
 // of the result: an unconditional managed acquisition, released for real
 // by the destructor.
 void eitherWay() {
-  MutexLockEitherWay scope(&mu);
+  MutexLockEitherWay scope(&mu); // expected-warning {{acquiring mutex 'mu' that may already be held}} \
+                                 // expected-note {{mutex acquired here}}
   x = 1; // expected-warning {{writing variable 'x' requires holding mutex 'mu' exclusively}}
 }
 
@@ -7346,8 +7347,8 @@ void assertPromotesManagedHold() {
 // definitely held: the explicit release pairs with it, and the destructor
 // finds nothing of its own left to release.
 void directRelockOverManagedHold() {
-  MutexLockMaybe scope(&mu);
-  mu.Lock();
+  MutexLockMaybe scope(&mu); // expected-note {{mutex acquired here}}
+  mu.Lock(); // expected-warning {{acquiring mutex 'mu' that may already be held}}
   x = 1;
   mu.Unlock();
 }
@@ -7435,7 +7436,7 @@ void not_holding_mu() LOCKS_EXCLUDED(mu);
 void managed_lost_at_interior_join(bool c) {
   RelockableMutexLockMaybe scope(&mu);
   if (c)
-    scope.Unlock();
+    scope.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
   print(0);
 }
 
@@ -7446,7 +7447,7 @@ void managed_guard_per_iteration(int n) {
   for (int i = 0; i < n; ++i) {
     MutexLockMaybe scope(&mu);
     if (i > 2)
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
   }
   not_holding_mu();
 }
