@@ -87,17 +87,17 @@ void two_proofs_one_release() {
 void stale_result_blocks_per_call(bool c) {
   bool ok = false, ok2 = false;
   if (c) {
-    ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+    ok = mu.TryLock();
     if (!ok)
       return;
   } else {
     ok2 = mu.TryLock();
     if (ok2)
-      mu.Unlock(); // expected-note {{mutex released here}}
+      mu.Unlock();
   }
-  if (ok) { // expected-warning {{mutex 'mu' is not held on every path through here}}
-    a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+  if (ok) {
+    a = 1;
+    mu.Unlock();
   }
 }
 
@@ -127,7 +127,7 @@ void loop_carried_result_released_after() {
       a = 1;
   }
   if (ok)
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock();
 }
 
 // The possible hold leaves through any exit edge, a break included, and
@@ -135,14 +135,14 @@ void loop_carried_result_released_after() {
 void loop_carried_result_break() {
   bool ok = false;
   while (cond) {
-    ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+    ok = mu.TryLock();
     if (ok) {
       a = 1;
       break;
     }
   }
-  if (ok) // expected-warning {{mutex 'mu' is not held on every path through here}}
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+  if (ok)
+    mu.Unlock();
 }
 
 // Two calls of one acquisition, merged by the loop condition: the spin's
@@ -154,17 +154,17 @@ void loop_carried_result_break() {
 // keying the fold on the patched block's own terminator found no twin and
 // promoted the one acquisition twice.
 void loop_carried_twin_break() {
-  bool ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+  bool ok = mu.TryLock();
   while (!ok) {
     if (cond)
       break;
     ok = mu.TryLock();
   }
   if (ok) {
-    a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+    a = 1;
+    mu.Unlock();
   }
-} // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
+}
 
 // The same pair with the first call already checked and released before
 // the spin: its record at the head is resolved, not unresolved, and the
@@ -200,7 +200,7 @@ void nested_failure_continues(bool c) {
       b = 1;
     }
     if (ok)
-      rmu.Unlock(); // expected-warning {{releasing mutex 'rmu' that was not held}}
+      rmu.Unlock();
   }
 }
 

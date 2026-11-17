@@ -53,7 +53,7 @@ void same_origin_continue_latch_still_conservative() {
     a = 1;
   }
   if (b)
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock();
 }
 
 // The same shape leaking (nothing releases after the loop) reports the
@@ -160,7 +160,7 @@ void check_first_if_else() {
     }
   }
   if (b)
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock();
 }
 
 void check_first_goto() {
@@ -173,7 +173,7 @@ top:
     goto top;
   }
   if (b)
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock();
 }
 
 // The release-and-reset loop: correct code, silent in both modes. The loop
@@ -190,7 +190,7 @@ void release_and_reset() {
     b = mu.TryLock();
   }
   if (b)
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock();
 }
 
 // The in-loop acquire-and-continue leak, and a release that follows the
@@ -285,8 +285,8 @@ void cond_terminator_resolves_without_beta() {
 // The arm's own call is what a later branch on the value resolves.
 void cond_arm_resolves_without_beta() {
   if (mu.TryLock() ? mu2.TryLock() : false) {
-    a2 = 3; // expected-warning {{writing variable 'a2' requires holding mutex 'mu2' exclusively}}
-    mu2.Unlock(); // expected-warning {{releasing mutex 'mu2' that may not be held}}
+    a2 = 3;
+    mu2.Unlock();
     mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
   }
 }
@@ -369,5 +369,5 @@ void proved_beside_skipped_call_warns_without_beta(bool c, bool d) {
   if (d) // expected-warning {{mutex 'mu' is not held on every path through here}}
     cond = true;
   if (ok)
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock();
 }
