@@ -93,7 +93,7 @@ void stale_result_blocks_per_call(bool c) {
   } else {
     ok2 = mu.TryLock();
     if (ok2)
-      mu.Unlock();
+      mu.Unlock(); // expected-note {{mutex released here}}
   }
   if (ok) { // expected-warning {{mutex 'mu' is not held on every path through here}}
     a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
@@ -175,7 +175,7 @@ void loop_carried_twin_stale() {
   bool ok = mu.TryLock();
   if (ok) {
     a = 1;
-    mu.Unlock();
+    mu.Unlock(); // expected-note {{mutex released here}}
   }
   while (!ok)
     ok = mu.TryLock();

@@ -2502,7 +2502,8 @@ struct TestTryLock {
   // unlocked.
   void tryheld_unlock_unchecked_then_again() {
     mu.TryLock();
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}} \
+                 // expected-note {{mutex released here}}
     mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
   }
 
@@ -2746,10 +2747,11 @@ struct TestTryLock {
     bool b2 = mu.TryLock();       // expected-warning {{acquiring mutex 'mu' that may already be held}}
     if (b2) {
       a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}} \
+                   // expected-note {{mutex released here}}
     }
     if (b1) {
-      mu.ReaderUnlock();
+      mu.ReaderUnlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
@@ -2992,7 +2994,7 @@ struct TestTryLock {
     if (b) {
       reset();
       if (!b)
-        mu.Unlock();
+        mu.Unlock(); // expected-note {{mutex released here}}
       a = 1;           // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}} \
                        // expected-warning {{mutex 'mu' is not held on every path through here}}
       mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
@@ -3031,13 +3033,14 @@ struct TestTryLock {
   void tryheld_partial_resolution() {
     bool b = TryLockBoth();
     if (cond)
-      mu.Unlock();   // expected-warning {{releasing mutex 'mu' that may not be held}}
+      mu.Unlock();   // expected-warning {{releasing mutex 'mu' that may not be held}} \
+                     // expected-note {{mutex released here}}
     if (cond) {}
     if (b) {
-      a = 1;
+      a = 1;         // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
       a2 = 1;
       mu2.Unlock();
-      mu.Unlock();
+      mu.Unlock();   // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
@@ -3735,13 +3738,13 @@ struct TestTryLock {
   // the branch on the try-acquire result sits in a successor block of the
   // join's compound condition.
   void tryheld_rebranch_short_circuit(bool c) {
-    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    bool b = mu.TryLock();
     if (b)
       a = 1;
-    if (c && b) { // expected-warning {{mutex 'mu' is not held on every path through here}}
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    if (c && b) {
+      mu.Unlock();
     } else if (b) {
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      mu.Unlock();
     }
   }
 
@@ -3751,13 +3754,13 @@ struct TestTryLock {
   void tryheld_rebranch_short_circuit_deep(bool c1, bool c2, bool c3, bool c4,
                                            bool c5, bool c6, bool c7, bool c8,
                                            bool c9) {
-    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    bool b = mu.TryLock();
     if (b)
       a = 1;
-    if (c1 && c2 && c3 && c4 && c5 && c6 && c7 && c8 && c9 && b) { // expected-warning {{mutex 'mu' is not held on every path through here}}
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    if (c1 && c2 && c3 && c4 && c5 && c6 && c7 && c8 && c9 && b) {
+      mu.Unlock();
     } else if (b) {
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      mu.Unlock();
     }
   }
 
@@ -4603,7 +4606,7 @@ struct TestTryLock {
   void tryheld_release_makes_result_stale() {
     bool b = mu.TryLock();
     if (b)
-      mu.Unlock();
+      mu.Unlock(); // expected-note {{mutex released here}}
     if (b)
       mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
   }
@@ -4637,11 +4640,11 @@ struct TestTryLock {
     bool b = mu.TryLock();
     if (c) {
       if (b)
-        mu.Unlock();
+        mu.Unlock(); // expected-note {{mutex released here}}
     }
     if (b) {
-      a = 1;
-      mu.Unlock();
+      a = 1;   // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
@@ -4667,16 +4670,16 @@ struct TestTryLock {
   // definitely-held fact lost to the release is diagnosed with
   // the plain missing-on-some-paths warning at the rebranch instead.
   void tryheld_release_makes_result_stale_in_success_region(bool c) {
-    bool b = mu.TryLock();
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
     if (b) {
       if (c)
-        mu.Unlock();
+        mu.Unlock(); // expected-note {{mutex released here}}
       else
         a = 1;
     }
-    if (b) {
-      a = 1;
-      mu.Unlock();
+    if (b) {   // expected-warning {{mutex 'mu' is not held on every path through here}}
+      a = 1;   // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
@@ -4685,14 +4688,14 @@ struct TestTryLock {
   // re-resolving the post-loop branch to a live hold. The next iteration's
   // branch on the stale result releases again, a real double unlock.
   void tryheld_release_makes_result_stale_in_loop() {
-    bool b = mu.TryLock();
-    while (cond) {
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    while (cond) { // expected-warning {{expecting mutex 'mu' to be held at start of each loop}}
       if (b)
-        mu.Unlock();
+        mu.Unlock(); // expected-note {{mutex released here}}
     }
     if (b) {
-      a = 1;
-      mu.Unlock();
+      a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
@@ -4700,8 +4703,8 @@ struct TestTryLock {
   // one releasing again: the loop head's state includes that iteration's,
   // and the second release is reported.
   void tryheld_loop_head_result_released() {
-    bool b = mu.TryLock();
-    while (b) {
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    while (b) { // expected-warning {{expecting mutex 'mu' to be held at start of each loop}}
       mu.Unlock();
       mu.Lock();
       mu.Unlock();
@@ -4710,8 +4713,8 @@ struct TestTryLock {
 
   // As above, with the body branching on the result.
   void tryheld_loop_head_result_released_rebranch(bool c) {
-    bool b = mu.TryLock();
-    while (b) {
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    while (b) { // expected-warning {{expecting mutex 'mu' to be held at start of each loop}}
       mu.Unlock();
       if (c || b) {
         mu.Lock();
@@ -4734,17 +4737,17 @@ struct TestTryLock {
   // As above with the release on a continue path: continue joins keep the
   // one-sided Released try fact like branch joins do.
   void tryheld_release_makes_result_stale_continue(bool c) {
-    bool b = mu.TryLock();
-    for (int i = 0; i < 10; i++) {
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    for (int i = 0; i < 10; i++) { // expected-warning {{expecting mutex 'mu' to be held at start of each loop}}
       if (c) {
         if (b)
-          mu.Unlock();
+          mu.Unlock(); // expected-note {{mutex released here}}
         continue;
       }
     }
     if (b) {
-      a = 1;
-      mu.Unlock();
+      a = 1;   // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
@@ -4759,13 +4762,13 @@ struct TestTryLock {
     bool b = mu.TryLock();
     if (c) {
       if (b)
-        mu.Unlock();
+        mu.Unlock(); // expected-note {{mutex released here}}
       if (mu.TryLock())
         mu.Unlock();
     }
     if (b) {
-      a = 1;
-      mu.Unlock();
+      a = 1;   // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
@@ -4773,17 +4776,17 @@ struct TestTryLock {
   // release's Released try fact with the same call's ProvedNotHeld try fact:
   // the merged try fact is Released for the post-loop resolution.
   void tryheld_release_makes_result_stale_continue_merged() {
-    bool b = mu.TryLock();
-    for (int i = 0; i < 10; i++) {
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    for (int i = 0; i < 10; i++) { // expected-warning {{expecting mutex 'mu' to be held at start of each loop}}
       if (b) {
-        mu.Unlock();
+        mu.Unlock(); // expected-note {{mutex released here}}
         continue;
       }
       a = 0; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
     }
     if (b) {
-      a = 1;
-      mu.Unlock();
+      a = 1;   // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
@@ -4792,14 +4795,14 @@ struct TestTryLock {
   void tryheld_stale_absorbed_at_loop_head() {
     if (mu.TryLock())
       mu.Unlock();
-    bool b = mu.TryLock();
-    while (cond) {
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    while (cond) { // expected-warning {{expecting mutex 'mu' to be held at start of each loop}}
       if (b)
-        mu.Unlock();
+        mu.Unlock(); // expected-note {{mutex released here}}
     }
     if (b) {
-      a = 1;
-      mu.Unlock();
+      a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
@@ -4811,16 +4814,16 @@ struct TestTryLock {
   // the negative requirement and the failure path still holds the mutex.
   void needsNegative() EXCLUSIVE_LOCKS_REQUIRED(!mu);
   void tryheld_negative_capability_join_resolves() {
-    mu.Lock(); // expected-note {{mutex acquired here}}
+    mu.Lock();
     bool b = TryRelease();
     if (b)
       cond = true;
     else
       cond = false;
-    if (b) // expected-warning {{mutex 'mu' is not held on every path through here}}
+    if (b)
       needsNegative();
     else
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      mu.Unlock();
   }
 
   // The inverse-hold exemption needs the call's own resolved fact on the
@@ -4844,23 +4847,23 @@ struct TestTryLock {
   // capability really is gone, so guarded access on that path is
   // diagnosed even across the join.
   void tryheld_negative_capability_release_is_real() {
-    mu.Lock(); // expected-note {{mutex acquired here}}
+    mu.Lock();
     bool b = TryRelease();
     if (b)
       cond = true;
-    if (b) // expected-warning {{mutex 'mu' is not held on every path through here}}
+    if (b)
       a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
     else
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      mu.Unlock();
   }
 
   // A release inside the loop reaches an exit edge owned by a block other
   // than the loop head (a break after the release).
   void tryheld_stale_reaches_break_exit() {
-    bool b = mu.TryLock();
-    for (;;) {
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    for (;;) { // expected-warning {{expecting mutex 'mu' to be held at start of each loop}}
       if (b)
-        mu.Unlock();
+        mu.Unlock(); // expected-note {{mutex released here}}
       if (cond)
         break;
     }
@@ -4873,16 +4876,16 @@ struct TestTryLock {
   // A release inside an inner loop: the inner loop head joins the release
   // its back edge carries, and the outer loop head joins it in turn.
   void tryheld_stale_in_nested_loop() {
-    bool b = mu.TryLock();
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
     while (cond) {
-      while (cond) {
+      while (cond) { // expected-warning {{expecting mutex 'mu' to be held at start of each loop}}
         if (b)
-          mu.Unlock();
+          mu.Unlock(); // expected-note {{mutex released here}}
       }
     }
     if (b) {
-      a = 1;
-      mu.Unlock();
+      a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
@@ -4891,7 +4894,7 @@ struct TestTryLock {
   // any outgoing edge, so the weakened hold is diagnosed at the join after
   // all, like an escaping short-circuit.
   void tryheld_rebranch_switch_resolves_nothing(bool c) {
-    bool ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+    bool ok = mu.TryLock(); // expected-note 2 {{mutex acquired here}}
     if (ok) {
       if (c) {
         mu.Unlock();
@@ -4899,27 +4902,27 @@ struct TestTryLock {
       }
     }
     // expected-warning@+2 {{switch condition has boolean value}}
-
+    // expected-warning@+1 {{mutex 'mu' is not held on every path through here}}
     switch (ok) {
     default:
       break;
     }
-  } // expected-warning {{mutex 'mu' is not held on every path through here}}
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
 
   // A case label a boolean condition can never match is a dead edge, not a
   // live path that holds the capability.
   void tryheld_bool_switch_impossible_case() {
-    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    bool b = mu.TryLock();
     switch (b) { // expected-warning {{switch condition has boolean value}}
     case 2:
       break;
     case 1:
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      mu.Unlock();
       break;
     case 0:
       break;
     }
-  } // expected-warning {{mutex 'mu' is not held on every path through here}}
+  }
 
   // Two independent, properly checked try-acquires: the first one's released
   // result does not block resolving the second's.
@@ -4950,8 +4953,8 @@ struct TestTryLock {
     if (cond) // expected-warning {{mutex 'mu' is not held on every path through here}}
       cond = false;
     if (ok) {
-      a = 2; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      a = 2;
+      mu.Unlock();
     }
   }
 
@@ -4991,16 +4994,17 @@ struct TestTryLock {
   // (Injected as released, the check after the loop drew a guarded write
   // and a stray release.)
   void tryheld_loop_release_then_reacquire() {
-    bool b = mu.TryLock();
-    while (cond) { // expected-warning {{mutex 'mu' is not held on every path through here}}
+    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    while (cond) { // expected-warning {{mutex 'mu' is not held on every path through here}} \
+                   // expected-warning {{expecting mutex 'mu' to be held at start of each loop}}
       if (b) {
-        mu.Unlock();
+        mu.Unlock(); // expected-note {{mutex released here}}
         mu.Lock(); // expected-note {{mutex acquired here}}
       }
     }
     if (b) {
-      a = 1;
-      mu.Unlock();
+      a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
@@ -5011,14 +5015,14 @@ struct TestTryLock {
     bool ok = mu.TryLock();
     if (c) {
       if (ok) {
-        mu.Unlock();
+        mu.Unlock(); // expected-note {{mutex released here}}
         mu.Lock();
         mu.Unlock();
       }
     }
     if (ok) {
-      a = 1;
-      mu.Unlock();
+      a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
@@ -5048,7 +5052,7 @@ struct TestTryLock {
   void tryheld_relock_reproves_short_circuit(bool c) {
     bool ok = mu.TryLock();
     if (ok && c) {
-      mu.Unlock();
+      mu.Unlock(); // expected-note {{mutex released here}}
       mu.Lock(); // expected-note {{mutex acquired here}}
     }
     if (ok) // expected-warning {{mutex 'mu' is not held on every path through here}}
@@ -5062,7 +5066,7 @@ struct TestTryLock {
   void tryheld_relock_after_failure_merge() {
     bool ok = mu.TryLock();
     if (ok)
-      mu.Unlock();
+      mu.Unlock(); // expected-note {{mutex released here}}
     mu.Lock(); // expected-note {{mutex acquired here}}
     if (!ok)
       mu.Unlock();
@@ -5074,7 +5078,8 @@ struct TestTryLock {
   // Likewise for the record a release of a merely possible hold leaves.
   void tryheld_relock_after_unchecked_release() {
     bool ok = mu.TryLock();
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}} \
+                 // expected-note {{mutex released here}}
     mu.Lock();   // expected-note {{mutex acquired here}}
     if (!ok)
       mu.Unlock();
@@ -5108,14 +5113,14 @@ struct TestTryLock {
     bool ok = mu.TryLock();
     if (c) {
       if (ok) {
-        mu.Unlock();
+        mu.Unlock(); // expected-note {{mutex released here}}
         mu.ReaderLock();
         mu.ReaderUnlock();
       }
     }
     if (ok) {
-      a = 1;
-      mu.Unlock();
+      a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
@@ -5156,7 +5161,7 @@ struct TestTryLock {
     if (c)
       ok = mu.TryLock();
     if (c) {}
-    mu.Unlock();         // expected-warning {{releasing mutex 'mu' that may not be held}}
+    mu.Unlock();         // expected-warning {{releasing mutex 'mu' that may not be held}} expected-note {{mutex released here}}
     if (ok) {
       a = 1;             // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
       mu.Unlock();       // expected-warning {{releasing mutex 'mu' that was not held}}
@@ -5175,7 +5180,7 @@ struct TestTryLock {
     if (ok) {
       if (y) {
       } else {
-        mu.Unlock();
+        mu.Unlock(); // expected-note {{mutex released here}}
       }
       a = 1;         // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}} \
                      // expected-warning {{mutex 'mu' is not held on every path through here}}
@@ -5323,7 +5328,7 @@ struct TestTryLock {
   // definite hold; `c && ok` rebranches on the call, but the c-false edge
   // escapes without resolving it.
   void tryheld_inverse_hold_short_circuit(bool c) {
-    mu.Lock(); // expected-note {{mutex acquired here}}
+    mu.Lock(); // expected-note 2 {{mutex acquired here}}
     bool ok = TryRelease();
     if (ok) {
     } else {
@@ -5331,13 +5336,14 @@ struct TestTryLock {
     if (c && ok) { // expected-warning {{mutex 'mu' is not held on every path through here}}
       a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
     }
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}} \
+                 // expected-warning {{mutex 'mu' is not held on every path through here}}
   }
 
   // The same with the arms swapped, so the hold reaches the join from the
   // other side and the mirrored arm of the intersection reports it.
   void tryheld_inverse_hold_short_circuit_swapped(bool c) {
-    mu.Lock(); // expected-note {{mutex acquired here}}
+    mu.Lock(); // expected-note 2 {{mutex acquired here}}
     bool ok = TryRelease();
     if (!ok) {
     } else {
@@ -5345,7 +5351,8 @@ struct TestTryLock {
     if (c && ok) { // expected-warning {{mutex 'mu' is not held on every path through here}}
       a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
     }
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}} \
+                 // expected-warning {{mutex 'mu' is not held on every path through here}}
   }
 
   // A back-edge merge still forms when the variable's pre-loop history
@@ -5569,15 +5576,15 @@ struct TestTryLock {
   // try-acquire whose success proved the hold is stale afterwards, so a
   // later branch on its result resurrects nothing.
   void tryheld_tryrelease_makes_proof_stale() {
-    bool ok = mu.TryLock();
+    bool ok = mu.TryLock(); // expected-note {{mutex acquired here}}
     if (!ok)
       return;
-    bool rel = TryRelease();
+    bool rel = TryRelease(); // expected-note {{mutex released here}}
     if (rel) {
     }
-    if (ok) {
-      a = 1;
-      mu.Unlock();
+    if (ok) { // expected-warning {{mutex 'mu' is not held on every path through here}}
+      a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
     }
   }
 
@@ -5585,15 +5592,14 @@ struct TestTryLock {
   // whichever call may have acquired it: the stored results are stale, not
   // forgotten, so a later branch on one does not re-materialize the hold.
   void tryheld_tryrelease_makes_conditional_stale() {
-    bool ok = mu.TryLock(); // expected-note 2 {{mutex acquired here}}
+    bool ok = mu.TryLock(); // expected-note {{mutex acquired here}}
     bool rel = TryRelease();
     if (rel) {
       if (ok) {
-        a = 1;
+        a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
       }
     }
-  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}} \
-    // expected-warning {{mutex 'mu' is not held on every path through here}}
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
 
   static void fail() __attribute__((noreturn));
 };  // end TestTrylock
@@ -5745,16 +5751,15 @@ struct TestTrylockSwitch {
   int TryLockInt() EXCLUSIVE_TRYLOCK_FUNCTION(true, mu);
 
   void switchSuccessFirst() {
-    switch (mu.TryLock()) { // expected-warning {{switch condition has boolean value}} \
-                            // expected-note {{mutex acquired here}}
+    switch (mu.TryLock()) { // expected-warning {{switch condition has boolean value}}
     case 1:
-      a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      a = 1;
+      mu.Unlock();
       break;
     case 0:
       break;
     }
-  } // expected-warning {{mutex 'mu' is not held on every path through here}}
+  }
 
   // Unlike an if/else, resolution must not depend on the case order.
   void switchFailureFirst() {
@@ -5817,7 +5822,7 @@ struct TestTrylockSwitch {
     switch (mu.TryLock()) { // expected-warning {{switch condition has boolean value}} \
                             // expected-note {{mutex acquired here}}
     case 1:
-      a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+      a = 1;
       break; // never released
     case 0:
       break;
@@ -5827,7 +5832,7 @@ struct TestTrylockSwitch {
   // For a non-boolean result the default covers both zero (failed) and other
   // nonzero values (acquired): the capability stays conditionally held.
   void switchIntDefaultUnknown() {
-    switch (TryLockInt()) {
+    switch (TryLockInt()) { // expected-note {{mutex acquired here}}
     case 1:
       a = 1;
       mu.Unlock();
@@ -5835,7 +5840,7 @@ struct TestTrylockSwitch {
     default:
       break;
     }
-  }
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
 
   // A success code other than 1 is matched by value, not by truthiness: the
   // label pinning the code acquires the capability, and every other label --
@@ -5846,33 +5851,33 @@ struct TestTrylockSwitch {
   int TryLockCode() EXCLUSIVE_TRYLOCK_FUNCTION(3, mu);
 
   void switchExactSuccessCode() {
-    switch (TryLockCode()) {
+    switch (TryLockCode()) { // expected-note {{mutex acquired here}}
     case 1:
       a = 1;         // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-      mu.Unlock();   // expected-warning {{releasing mutex 'mu' that was not held}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
       break;
     case 2:
       a = 2;         // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-      mu.Unlock();   // expected-warning {{releasing mutex 'mu' that was not held}}
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
       break;
     case 3:
       a = 3;
       mu.Unlock();
       break;
     }
-  }
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu' may still be held at the end of function}}
 
   // With zero listed, the default edge implies a nonzero result: acquired.
   void switchIntDefaultNonzero() {
-    switch (TryLockInt()) { // expected-note {{mutex acquired here}}
+    switch (TryLockInt()) {
     case 0:
       break;
     default:
-      a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      a = 1;
+      mu.Unlock();
       break;
     }
-  } // expected-warning {{mutex 'mu' is not held on every path through here}}
+  }
 
   // The implicit fall-out edge of an inner switch can land on an enclosing
   // switch's case label. That label pins the enclosing condition, not the
@@ -6812,14 +6817,14 @@ void deferredRelockKeepsStale(bool c) {
   bool ok = tryLockMu();
   if (c) {
     if (ok)
-      mu.Unlock();
+      mu.Unlock(); // expected-note {{mutex released here}}
     RelockableExclusiveMutexLock scope(&mu, DeferTraits{});
     scope.Lock();
     scope.Unlock();
   }
   if (ok) {
-    x = 1;
-    mu.Unlock();
+    x = 1;       // expected-warning {{writing variable 'x' requires holding mutex 'mu' exclusively}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
   }
 }
 
@@ -9778,7 +9783,8 @@ public:
   // As test2: when 'c' is false a successful try-lock leaks. And an
   // iteration releases it with 'b' still true, so the next releases again.
   void test7() {
-    for (bool b = mu.TryLock(); c && b;) { // expected-note {{mutex acquired here}}
+    for (bool b = mu.TryLock(); c && b;) { // expected-note 2 {{mutex acquired here}} \
+                                           // expected-warning {{expecting mutex 'mu' to be held at start of each loop}}
       a = 0;
       mu.Unlock();
     }
@@ -9857,23 +9863,25 @@ public:
   int TryCodes() EXCLUSIVE_TRYLOCK_FUNCTION(1, muA)
       EXCLUSIVE_TRYLOCK_FUNCTION(2, muB);
   void test21() {
-    int v = c && (TryCodes() != 0); // expected-note {{mutex acquired here}}
+    int v = c && (TryCodes() != 0); // expected-note 2 {{mutex acquired here}}
     switch (v) {
     case 1:
-      dataB = 1;
-      muB.Unlock();
+      dataB = 1;     // expected-warning {{writing variable 'dataB' requires holding mutex 'muB' exclusively}}
+      muB.Unlock();  // expected-warning {{releasing mutex 'muB' that may not be held}}
       break;
     }
-  } // expected-warning {{mutex 'muA' is not held on every path through here}}
+  } // expected-warning {{unchecked result of try-acquire; mutex 'muA' may still be held at the end of function}} \
+    // expected-warning {{unchecked result of try-acquire; mutex 'muB' may still be held at the end of function}}
   void test22() {
-    int v = (TryCodes() != 0); // expected-note {{mutex acquired here}}
+    int v = (TryCodes() != 0); // expected-note 2 {{mutex acquired here}}
     switch (v) {
     case 1:
-      dataB = 1;
-      muB.Unlock();
+      dataB = 1;     // expected-warning {{writing variable 'dataB' requires holding mutex 'muB' exclusively}}
+      muB.Unlock();  // expected-warning {{releasing mutex 'muB' that may not be held}}
       break;
     }
-  } // expected-warning {{mutex 'muA' is not held on every path through here}}
+  } // expected-warning {{unchecked result of try-acquire; mutex 'muA' may still be held at the end of function}} \
+    // expected-warning {{unchecked result of try-acquire; mutex 'muB' may still be held at the end of function}}
 
   // The shapes the merge newly resolves, which the parent could only
   // refuse: a stored operator, one behind __builtin_expect (the kernel's
@@ -11714,7 +11722,7 @@ void testReentrantTryLockEitherFailedSameOrigin() {
     if (b2) // expected-warning {{mutex 'rmu' is not held on every path through here}}
       rmu.Unlock();
     if (b1)
-      rmu.Unlock(); // expected-warning {{releasing mutex 'rmu' that was not held}}
+      rmu.Unlock();
   }
 }
 
@@ -12244,8 +12252,8 @@ public:
   void depth2() {
     rmu.Lock();
     rmu.Lock();
-    if (TryRelease()) { // expected-note {{mutex released here}}
-      rmu.Unlock(); // expected-warning {{releasing mutex 'rmu' that was not held}}
+    if (TryRelease()) {
+      rmu.Unlock();
     } else {
       rmu.Unlock();
       rmu.Unlock();
@@ -12257,18 +12265,18 @@ public:
   // levels the second branch releases intact. The proof this join needs is
   // the call's, keyed on the negative capability it acquired.
   void depth2_rechecked() {
-    rmu.Lock(); // expected-note {{mutex acquired here}}
+    rmu.Lock(); // expected-note 2 {{mutex acquired here}}
     rmu.Lock();
-    bool r = TryRelease(); // expected-note {{mutex released here}}
+    bool r = TryRelease();
     if (r) {
     }
-    if (r) { // expected-warning {{mutex 'rmu' is not held on every path through here}}
-      rmu.Unlock(); // expected-warning {{releasing mutex 'rmu' that was not held}}
+    if (r) { // expected-warning {{mutex 'rmu' is not held on every path through here with equal reentrancy depth}}
+      rmu.Unlock();
     } else {
-      rmu.Unlock(); // expected-warning {{releasing mutex 'rmu' that was not held}}
-      rmu.Unlock(); // expected-warning {{releasing mutex 'rmu' that was not held}}
+      rmu.Unlock();
+      rmu.Unlock();
     }
-  }
+  } // expected-warning {{mutex 'rmu' is not held on every path through here}}
 };
 
 } // namespace Reentrancy

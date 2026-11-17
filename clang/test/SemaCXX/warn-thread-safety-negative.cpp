@@ -160,14 +160,13 @@ public:
   }
 
   void tryLockRebranchOneWarning(bool c) {
-    bool b = mu.TryLock(); // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}} \
-                           // expected-note {{mutex acquired here}}
+    bool b = mu.TryLock(); // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}}
     if (b)
       a = 0;
-    if (c && b) { // expected-warning {{mutex 'mu' is not held on every path through here}}
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    if (c && b) {
+      mu.Unlock();
     } else if (b) {
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      mu.Unlock();
     }
   }
 
