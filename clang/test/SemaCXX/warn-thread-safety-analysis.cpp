@@ -3539,11 +3539,11 @@ struct TestTryLock {
   // is tracked as one conditional acquisition per kind, each resolved on
   // its own attribute's edge. Exclusive access on the success arm is
   // clean; the failure arm holds the capability shared.
-  bool TryUpgrade() EXCLUSIVE_TRYLOCK_FUNCTION(true, mu) // expected-note 2 {{declared here}}
+  bool TryUpgrade() EXCLUSIVE_TRYLOCK_FUNCTION(true, mu)
       SHARED_TRYLOCK_FUNCTION(false, mu);
   void tryheld_cross_kind_per_outcome() {
-    if (TryUpgrade()) { // expected-warning {{mutex 'mu' is acquired regardless of the result of the try-acquire call; treating the acquisition as unconditional}}
-      a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+    if (TryUpgrade()) {
+      a = 1;
       mu.Unlock();
     } else {
       int r = a;
@@ -3556,14 +3556,85 @@ struct TestTryLock {
   // diagnosed against the shared hold, and a release of the wrong kind
   // against the exclusive one.
   void tryheld_cross_kind_wrong_kind() {
-    if (TryUpgrade()) { // expected-warning {{mutex 'mu' is acquired regardless of the result of the try-acquire call; treating the acquisition as unconditional}}
-      a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-      mu.ReaderUnlock();
+    if (TryUpgrade()) { // expected-note {{mutex acquired here}}
+      a = 1;
+      mu.ReaderUnlock(); // expected-warning {{releasing mutex 'mu' using shared access, expected exclusive access}}
     } else {
       a = 2; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
       mu.ReaderUnlock();
     }
   }
+
+  // The two kinds' holds meeting at a join are not two acquisitions in one
+  // scope: each is what its own side's branch proved from the same call, on
+  // outcomes that exclude each other, so the merge takes the weaker
+  // guarantee silently. Reporting a conflict there named the call twice, in
+  // a note at the very location it warned about.
+  void tryheld_cross_kind_arms_rejoin() {
+    int r = TryUpgrade() ? 1 : 2;
+    a = 3;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+    mu.Unlock(); // the merged hold is the shared one; Unlock() names no kind
+  }
+
+  // Each arm releasing the kind its own outcome promised is clean.
+  void tryheld_cross_kind_upgrade_idiom() {
+    bool ok = TryUpgrade();
+    if (ok)
+      mu.Unlock();
+    else
+      mu.ReaderUnlock();
+  }
+
+  // Codes discriminate the two kinds as well as polarities do, and the two
+  // regions must not overlap for the acquisitions to be companions.
+  Mutex mu13;
+  int data13 GUARDED_BY(mu13);
+  int TryTwoCodes() EXCLUSIVE_TRYLOCK_FUNCTION(2, mu13)
+      SHARED_TRYLOCK_FUNCTION(3, mu13);
+  void tryheld_cross_kind_codes() {
+    if (TryTwoCodes() == 2) { // expected-note {{mutex acquired here}}
+      data13 = 1;
+      mu13.Unlock();
+    }
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu13' may still be held at the end of function}}
+  void tryheld_cross_kind_codes_shared() {
+    if (TryTwoCodes() == 3) { // expected-note {{mutex acquired here}}
+      data13 = 2; // expected-warning {{writing variable 'data13' requires holding mutex 'mu13' exclusively}}
+      mu13.ReaderUnlock();
+    }
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu13' may still be held at the end of function}}
+
+  // A blocking acquisition over a cross-kind pair takes over the level of
+  // the kind it acquires; the other kind's try fact cannot be a level of it
+  // and goes, but the same kind's stays and is still reported where it is
+  // lost. Dropping every unresolved fact took that report with it.
+  Mutex mu14;
+  int TryCrossKinds() EXCLUSIVE_TRYLOCK_FUNCTION(2, mu14)
+      SHARED_TRYLOCK_FUNCTION(0, mu14);
+  void tryheld_cross_kind_blocking_acquire() {
+    TryCrossKinds(); // expected-note 2 {{mutex acquired here}}
+    mu14.Lock();     // expected-warning {{acquiring mutex 'mu14' that may already be held}}
+    mu14.Unlock();
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu14' may still be held at the end of function}}
+
+  // One kind's coverage of the result domain is not the other's: an
+  // exclusive pair keyed to codes that leave results uncovered stays
+  // conditional, whatever a shared attribute promises on any nonzero
+  // result. Reading the coverage across the kinds made the exclusive pair
+  // an unconditional hold, and a result matching no code held it.
+  Mutex mu15;
+  int data15 GUARDED_BY(mu15);
+  int TryUncovered() EXCLUSIVE_TRYLOCK_FUNCTION(2, mu15)
+      EXCLUSIVE_TRYLOCK_FUNCTION(0, mu15) SHARED_TRYLOCK_FUNCTION(true, mu15);
+  void tryheld_cross_kind_coverage() {
+    switch (TryUncovered()) { // expected-warning {{acquiring mutex 'mu15' that may already be held}} \
+                              // expected-note 2 {{mutex acquired here}}
+    case 5:
+      data15 = 1;    // expected-warning {{writing variable 'data15' requires holding mutex 'mu15' exclusively}}
+      mu15.Unlock(); // the shared promise still stands here
+      break;
+    }
+  } // expected-warning {{unchecked result of try-acquire; mutex 'mu15' may still be held at the end of function}}
 
   // Degenerate in both kinds at once: one diagnostic, one unconditional
   // acquisition -- exclusive, since both polarities promised it.
@@ -6597,7 +6668,7 @@ struct TestTrylockValueCodes {
       mu6.Unlock();
       break;
     case 2:
-      data6 = 2; // expected-warning {{writing variable 'data6' requires holding mutex 'mu6' exclusively}}
+      data6 = 2;
       mu6.Unlock();
       break;
     default:
