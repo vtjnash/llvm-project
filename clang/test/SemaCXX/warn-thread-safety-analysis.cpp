@@ -3028,31 +3028,31 @@ struct TestTryLock {
   // The same shape with the assert spelled as a branch on the result. This
   // is the common `assert(havelock); ...; if (havelock) unlock();` shape.
   void tryheld_assert_if_then_branch() {
-    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    bool b = mu.TryLock();
     if (!b)
       fail();
     a = 1;
     if (b)
       mu.Unlock();
-  } // expected-warning {{mutex 'mu' is not held on every path through here}}
+  }
 
   // Same, with the assert spelled as a void conditional operator (glibc
   // before 2.32) and as a statement expression (glibc 2.32 and later).
   void tryheld_assert_ternary_then_branch() {
-    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    bool b = mu.TryLock();
     b ? static_cast<void>(0) : fail();
     a = 1;
     if (b)
       mu.Unlock();
-  } // expected-warning {{mutex 'mu' is not held on every path through here}}
+  }
 
   void tryheld_assert_stmtexpr_then_branch() {
-    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
+    bool b = mu.TryLock();
     ({ if (!b) fail(); });
     a = 1;
     if (b)
       mu.Unlock();
-  } // expected-warning {{mutex 'mu' is not held on every path through here}}
+  }
 
   void tryheld_assert_then_unconditional_release() {
     bool b = mu.TryLock();
@@ -5233,17 +5233,16 @@ struct TestTryLock {
   // (Injected as released, the check after the loop drew a guarded write
   // and a stray release.)
   void tryheld_loop_release_then_reacquire() {
-    bool b = mu.TryLock(); // expected-note {{mutex acquired here}}
-    while (cond) { // expected-warning {{mutex 'mu' is not held on every path through here}} \
-                   // expected-warning {{expecting mutex 'mu' to be held at start of each loop}}
+    bool b = mu.TryLock();
+    while (cond) { // expected-warning {{mutex 'mu' is not held on every path through here}}
       if (b) {
-        mu.Unlock(); // expected-note {{mutex released here}}
+        mu.Unlock();
         mu.Lock(); // expected-note {{mutex acquired here}}
       }
     }
     if (b) {
-      a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      a = 1;
+      mu.Unlock();
     }
   }
 
@@ -5254,9 +5253,9 @@ struct TestTryLock {
     bool ok = mu.TryLock();
     if (c) {
       if (ok) {
-        mu.Unlock(); // expected-note {{mutex released here}}
-        mu.Lock();
         mu.Unlock();
+        mu.Lock();
+        mu.Unlock(); // expected-note {{mutex released here}}
       }
     }
     if (ok) {
@@ -5271,10 +5270,10 @@ struct TestTryLock {
     if (!ok)
       return;
     mu.Unlock();
-    mu.Lock(); // expected-note {{mutex acquired here}}
+    mu.Lock();
     if (ok)
       mu.Unlock();
-  } // expected-warning {{mutex 'mu' is not held on every path through here}}
+  }
 
   void tryheld_relock_reproves_merged(bool c) {
     bool ok = mu.TryLock();
@@ -5282,20 +5281,20 @@ struct TestTryLock {
       return;
     if (c) {
       mu.Unlock();
-      mu.Lock(); // expected-note {{mutex acquired here}}
+      mu.Lock();
     }
     if (ok)
       mu.Unlock();
-  } // expected-warning {{mutex 'mu' is not held on every path through here}}
+  }
 
   void tryheld_relock_reproves_short_circuit(bool c) {
     bool ok = mu.TryLock();
     if (ok && c) {
-      mu.Unlock(); // expected-note {{mutex released here}}
-      mu.Lock(); // expected-note {{mutex acquired here}}
+      mu.Unlock();
+      mu.Lock();
     }
-    if (ok) // expected-warning {{mutex 'mu' is not held on every path through here}}
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    if (ok)
+      mu.Unlock();
   }
 
   // A stale result that met the call's failure may be falsy: a relock does

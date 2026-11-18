@@ -31,17 +31,15 @@ bool cond;
 // not carry the failure, and the dead arm then drew a lost-hold, a
 // guarded-write and a stray-release warning.)
 void failed_survives_lock() {
-  bool ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+  bool ok = mu.TryLock();
   if (!ok) {
-    mu.Lock(); // expected-note {{mutex acquired here}}
+    mu.Lock();
     if (ok) {
       mu.Unlock();
     }
-    a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}} \
-           // expected-warning {{mutex 'mu' is not held on every path through here}}
+    a = 1;
   }
-  mu.Unlock(); // expected-warning {{mutex 'mu' is not held on every path through here}} \
-               // expected-warning {{releasing mutex 'mu' that was not held}}
+  mu.Unlock();
 }
 
 // A blocking acquisition over a released record that met the call's
@@ -65,7 +63,7 @@ void stale_kept_by_lock() {
 // on that path. The hold is lost once at the three-way join, and the
 // second call's result reaches the end of the function unchecked.
 void two_proofs_one_release() {
-  bool ok1 = rmu.TryLock(); // expected-note 2 {{mutex acquired here}}
+  bool ok1 = rmu.TryLock(); // expected-note {{mutex acquired here}}
   bool ok2 = rmu.TryLock(); // expected-note {{mutex acquired here}}
   if (ok1 && ok2) {
     rmu.Unlock();
@@ -74,7 +72,7 @@ void two_proofs_one_release() {
       rmu.Unlock();
     }
   }
-} // expected-warning 2 {{mutex 'rmu' is not held on every path through here}} \
+} // expected-warning {{mutex 'rmu' is not held on every path through here}} \
   // expected-warning {{unchecked result of try-acquire; mutex 'rmu' may still be held at the end of function}}
 
 // A stale result blocks per call: another call's release on the other
