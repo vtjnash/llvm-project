@@ -3802,10 +3802,10 @@ struct TestTryLock {
   // the next iteration's check, and the check after the loop. Warning-free.
   void tryheld_loop_failure_path_continues() {
     bool b = false;
-    while (cond) { // expected-warning 2 {{expecting mutex 'mu' to be held at start of each loop}}
+    while (cond) { // expected-warning {{expecting mutex 'mu' to be held at start of each loop}}
       if (b)
         mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
-      b = mu.TryLock(); // expected-note 2 {{mutex acquired here}}
+      b = mu.TryLock(); // expected-note {{mutex acquired here}}
       if (!b)
         continue;
       a = 1;
@@ -12700,7 +12700,7 @@ join:
 } // expected-warning {{mutex 'rmu' is still held at the end of function}}
 
 void testReentrantTryLockThreeWayJoinReversed(bool x) {
-  rmu.Lock(); // expected-note 4 {{mutex acquired here}}
+  rmu.Lock(); // expected-note 3 {{mutex acquired here}}
   bool b = false;
   if (x)
     goto skip;
@@ -12711,7 +12711,7 @@ void testReentrantTryLockThreeWayJoinReversed(bool x) {
 skip:
   b = false;
 join:
-  if (b) // expected-warning 2 {{mutex 'rmu' is not held on every path through here with equal reentrancy depth}}
+  if (b) // expected-warning {{mutex 'rmu' is not held on every path through here with equal reentrancy depth}}
     rmu.Unlock();
   rmu.Unlock(); // expected-warning {{mutex 'rmu' is not held on every path through here with equal reentrancy depth}}
 } // expected-warning {{mutex 'rmu' is still held at the end of function}}

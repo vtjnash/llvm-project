@@ -3312,6 +3312,64 @@ struct JoinContext {
   }
 };
 
+/// A diagnostic a join reports about what the merged state lost.
+struct JoinReport {
+  enum Kind : uint8_t {
+    /// A hold lost (FactEntry::handleRemovalFromIntersection(), over \c Set).
+    Lost,
+    /// The guaranteed depth differs, whatever the capability's reentrancy.
+    Depth,
+    /// The guaranteed depth differs, on a reentrant capability (on any other,
+    /// a conditional level models a try-acquire over a hold, which fails
+    /// rather than nests at runtime).
+    ReentrantDepth,
+    /// Held exclusively on one side and shared on the other (\c Other).
+    ExclusiveShared,
+  };
+  Kind K;
+  const FactEntry *Fact;
+  LockErrorKind LEK;
+  const FactEntry *Other = nullptr;
+  const FactSet *Set = nullptr;
+};
+
+/// Emits the joins' diagnostics, each once. A join of several predecessors
+/// is folded pairwise, and some orders lose the same fact twice -- e.g.
+/// (conditionally held, not held, conditionally held): the middle
+/// predecessor removes it from the entry set with a diagnostic, then the last
+/// re-supplies it one-sided and would diagnose the same leak again. One leak
+/// is one report. A try-acquire's unchecked result is one leak however many
+/// joins lose it, so it is reported once per function.
+class JoinReportManager {
+  llvm::DenseSet<std::tuple<unsigned, unsigned, unsigned, unsigned>> Emitted;
+  /// The capability names reported, interned for the key above.
+  llvm::StringMap<unsigned> Names;
+  /// The acquisitions already reported as never checked, by originating call,
+  /// capability expression and lock kind. Keyed on the capability's
+  /// expression rather than its printed name, so that two capabilities that
+  /// print alike are two leaks. The expressions compare as expressions:
+  /// each record holds its own copy.
+  SmallVector<
+      std::tuple<const Expr *, const threadSafety::til::SExpr *, unsigned>, 4>
+      NeverChecked;
+
+public:
+  void emit(const JoinReport &R, SourceLocation JoinLoc, FactManager &FactMan,
+            ThreadSafetyHandler &Handler);
+  /// Whether the unchecked result of \p W's call has not been reported yet;
+  /// it counts as reported from here.
+  bool claimNeverChecked(const TryFactEntry &W, const CapabilityExpr &Cap) {
+    const unsigned K = 2 * unsigned(W.kind()) + unsigned(W.negative());
+    if (llvm::any_of(NeverChecked, [&](const auto &T) {
+          return std::get<0>(T) == W.origin() && std::get<2>(T) == K &&
+                 sx::equals(std::get<1>(T), Cap.sexpr());
+        }))
+      return false;
+    NeverChecked.emplace_back(W.origin(), Cap.sexpr(), K);
+    return true;
+  }
+};
+
 /// Class which implements the core thread safety analysis routines.
 class ThreadSafetyAnalyzer {
   friend class BuildLockset;
@@ -3326,22 +3384,8 @@ class ThreadSafetyAnalyzer {
   const FunctionDecl *CurrentFunction;
   ASTContext *ASTCtx = nullptr;
   LocalVariableMap LocalVarMap;
-  // The beta unchecked-result diagnostics already emitted, keyed by
-  // "<join location>:<acquisition location>:<capability>". A join of three
-  // or more predecessors is intersected pairwise, and some predecessor
-  // orders lose the same try fact twice -- e.g. (conditionally held, not held,
-  // conditionally held): the middle predecessor removes it from the entry set
-  // with a diagnostic, then the last predecessor re-supplies it one-sided and
-  // would diagnose the same leak again (intersectAndWarn()).
-  /// The acquisitions already reported as never checked, by originating call,
-  /// capability expression and lock kind: one unchecked result is one leak,
-  /// however many joins lose the try fact that records it. Keyed on the
-  /// capability's expression rather than its printed name, so that two
-  /// capabilities that print alike are two leaks. The expressions compare
-  /// as expressions: each record holds its own copy.
-  SmallVector<
-      std::tuple<const Expr *, const threadSafety::til::SExpr *, unsigned>, 4>
-      NeverCheckedWarned;
+  /// What the joins have reported (JoinReportManager).
+  JoinReportManager JoinReports;
   // Maps constructed objects to `this` placeholder prior to initialization.
   llvm::SmallDenseMap<const Expr *, til::LiteralPtr *> ConstructedObjects;
   /// The capabilities named by a try-acquire call's attributes, translated
@@ -6940,12 +6984,8 @@ bool ThreadSafetyAnalyzer::join(const FactEntry &A, const FactEntry &B,
   const unsigned ReentrancyDepthB = reentrancyDepth(B);
 
   if (ReentrancyDepthA != ReentrancyDepthB) {
-    // Only a reentrant capability has a depth to report. On any other, the
-    // deeper level is one a try-acquire over the hold proved, and losing it
-    // is losing a hold.
-    Handler.handleMutexHeldEndOfScope(B.getKind(), B.toString(), B.loc(),
-                                      JoinLoc, EntryLEK,
-                                      /*ReentrancyMismatch=*/B.reentrant());
+    JoinReports.emit({JoinReport::Depth, &B, EntryLEK}, JoinLoc, FactMan,
+                     Handler);
     // Pick the FactEntry with the greater reentrancy depth as the "good"
     // fact to reduce potential later warnings.
     return CanModify && ReentrancyDepthA < ReentrancyDepthB;
@@ -6958,8 +6998,8 @@ bool ThreadSafetyAnalyzer::join(const FactEntry &A, const FactEntry &B,
       if (CanModify || !ShouldTakeB)
         return ShouldTakeB;
     }
-    Handler.handleExclusiveAndShared(B.getKind(), B.toString(), B.loc(),
-                                     A.loc());
+    JoinReports.emit({JoinReport::ExclusiveShared, &B, EntryLEK, &A}, JoinLoc,
+                     FactMan, Handler);
     // Take the exclusive capability to reduce further warnings.
     return CanModify && B.kind() == LK_Exclusive;
   } else {
@@ -7287,8 +7327,9 @@ void LocksetJoin::warnLost(const Side &S) const {
                        Ctx.ExitLEK != LEK_NotLockedAtEndOfFunction
                  : Ctx.EntryLEK != LEK_LockedAtEndOfFunction);
   if (!Exempt)
-    cast<CapFact>(FE).handleRemovalFromIntersection(S.Set, FactMan, Ctx.JoinLoc,
-                                                    lostLEK(S), Handler);
+    Analyzer.JoinReports.emit(
+        {JoinReport::Lost, &FE, lostLEK(S), nullptr, &S.Set}, Ctx.JoinLoc,
+        FactMan, Handler);
 }
 
 // Likewise for the beta diagnostic that a try-acquire's possible success
@@ -7298,7 +7339,7 @@ void LocksetJoin::warnLost(const Side &S) const {
 // than one join -- by the pairwise intersection of a many-predecessor join,
 // or on two different paths out of the acquisition -- and the leak it
 // reports is one, so it is reported at the first join that loses it
-// (NeverCheckedWarned).
+// (JoinReportManager::claimNeverChecked()).
 // \p LEK is the error kind governing the branch that fires the warning
 // (EntryLEK for a try fact from the exit set, ExitLEK for one from the
 // entry set); it decides the at-end-of-function wording.
@@ -7323,13 +7364,8 @@ void LocksetJoin::warnNeverChecked(const TryFactEntry &W,
   // checks -- the caller's decision still, joinTryFactsAtLoop().)
   if (W.managed() && !isEndOfFunctionLEK(LEK))
     return;
-  const unsigned K = 2 * unsigned(W.kind()) + unsigned(W.negative());
-  if (llvm::any_of(Analyzer.NeverCheckedWarned, [&](const auto &T) {
-        return std::get<0>(T) == W.origin() && std::get<2>(T) == K &&
-               sx::equals(std::get<1>(T), Cap.sexpr());
-      }))
+  if (!Analyzer.JoinReports.claimNeverChecked(W, Cap))
     return;
-  Analyzer.NeverCheckedWarned.emplace_back(W.origin(), Cap.sexpr(), K);
   SourceLocation LocAcquired = W.origin()->getExprLoc();
   std::string Name = Cap.toString();
   Handler.handleTryAcquireNeverChecked(Cap.getKind(), Name, LocAcquired,
@@ -7341,18 +7377,55 @@ void LocksetJoin::warnNeverChecked(const TryFactEntry &W,
 // Diagnose a join where only the guaranteed depth of the hold differs.
 void LocksetJoin::warnReentrancyMismatch(const FactEntry &FE,
                                          LockErrorKind LEK) const {
-  // Only a reentrant capability has levels to disagree about. On any other,
-  // a level that exists only conditionally is the modeling of a try-acquire
-  // over a hold (ThreadSafetyAnalyzer::addTryLock()), which at runtime fails
-  // rather than nesting: both sides hold the capability, so there is nothing
-  // to report, and "reentrancy depth" would name something it does not have.
-  // A level a branch proved is a different matter, and the definite join
-  // still reports losing it (CapFact::handleRemovalFromIntersection).
-  if (!FE.reentrant())
+  Analyzer.JoinReports.emit({JoinReport::ReentrantDepth, &FE, LEK}, Ctx.JoinLoc,
+                            FactMan, Handler);
+}
+
+void JoinReportManager::emit(const JoinReport &R, SourceLocation JoinLoc,
+                             FactManager &FactMan,
+                             ThreadSafetyHandler &Handler) {
+  // One report per join, diagnostic and fact -- by what the fact says (its
+  // location and name), not which copy of it a fold happened to carry.
+  const FactEntry &FE = *R.Fact;
+  const unsigned Name =
+      Names.try_emplace(FE.toString(), Names.size()).first->second;
+  if (!Emitted
+           .insert({JoinLoc.getRawEncoding(),
+                    unsigned(R.K) | unsigned(R.LEK) << 8,
+                    FE.loc().getRawEncoding(), Name})
+           .second)
     return;
-  Handler.handleMutexHeldEndOfScope(FE.getKind(), FE.toString(), FE.loc(),
-                                    Ctx.JoinLoc, LEK,
-                                    /*ReentrancyMismatch=*/true);
+  switch (R.K) {
+  case JoinReport::Lost:
+    cast<CapFact>(FE).handleRemovalFromIntersection(*R.Set, FactMan, JoinLoc,
+                                                    R.LEK, Handler);
+    return;
+  case JoinReport::ReentrantDepth:
+    // Only a reentrant capability has levels to disagree about. On any
+    // other, a level that exists only conditionally is the modeling of a
+    // try-acquire over a hold (ThreadSafetyAnalyzer::addTryLock()), which at
+    // runtime fails rather than nesting: both sides hold the capability, so
+    // there is nothing to report, and "reentrancy depth" would name
+    // something it does not have. A level a branch proved is a different
+    // matter, and the definite join still reports losing it
+    // (CapFact::handleRemovalFromIntersection).
+    if (!FE.reentrant())
+      return;
+    [[fallthrough]];
+  case JoinReport::Depth:
+    // Only a reentrant capability has a depth to report. On any other, the
+    // deeper level is one a try-acquire over the hold proved, and losing it
+    // is losing a hold.
+    Handler.handleMutexHeldEndOfScope(FE.getKind(), FE.toString(), FE.loc(),
+                                      JoinLoc, R.LEK,
+                                      /*ReentrancyMismatch=*/FE.reentrant());
+    return;
+  case JoinReport::ExclusiveShared:
+    Handler.handleExclusiveAndShared(FE.getKind(), FE.toString(), FE.loc(),
+                                     R.Other->loc());
+    return;
+  }
+  llvm_unreachable("unhandled join report");
 }
 
 void LocksetJoin::joinCapability(const Side &E, const Side &X) {

@@ -189,10 +189,10 @@ void loop_carried_twin_stale() {
 void nested_failure_continues(bool c) {
   while (c) {
     bool ok = false;
-    while (cond) { // expected-warning 2 {{expecting mutex 'rmu' to be held at start of each loop}}
+    while (cond) { // expected-warning {{expecting mutex 'rmu' to be held at start of each loop}}
       if (ok)
         rmu.Unlock(); // expected-warning {{releasing mutex 'rmu' that was not held}}
-      ok = rmu.TryLock(); // expected-note 2 {{mutex acquired here}}
+      ok = rmu.TryLock(); // expected-note {{mutex acquired here}}
       if (!ok)
         continue;
       b = 1;
@@ -207,10 +207,10 @@ void nested_failure_continues(bool c) {
 void nested_failure_continues_leaks(bool c) {
   while (c) {
     bool ok = false;
-    while (cond) { // expected-warning 2 {{expecting mutex 'rmu' to be held at start of each loop}}
+    while (cond) { // expected-warning {{expecting mutex 'rmu' to be held at start of each loop}}
       if (ok)
         rmu.Unlock(); // expected-warning {{releasing mutex 'rmu' that was not held}}
-      ok = rmu.TryLock(); // expected-note 2 {{mutex acquired here}}
+      ok = rmu.TryLock(); // expected-note {{mutex acquired here}}
       if (!ok)
         continue;
       b = 1;

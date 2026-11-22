@@ -44,10 +44,10 @@ void same_origin_branch_join_warns_without_beta() {
 // change here.
 void same_origin_continue_latch_still_conservative() {
   bool b = false;
-  while (cond) { // expected-warning 2 {{expecting mutex 'mu' to be held at start of each loop}}
+  while (cond) { // expected-warning {{expecting mutex 'mu' to be held at start of each loop}}
     if (b)
       mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
-    b = mu.TryLock(); // expected-note 2 {{mutex acquired here}}
+    b = mu.TryLock(); // expected-note {{mutex acquired here}}
     if (!b)
       continue;
     a = 1;
@@ -64,10 +64,10 @@ void same_origin_continue_latch_still_conservative() {
 // loop_carried_leak_without_beta below is its counterpart in this mode.
 void same_origin_continue_latch_leak_adds_nothing() {
   bool b = false;
-  while (cond) { // expected-warning 2 {{expecting mutex 'mu' to be held at start of each loop}}
+  while (cond) { // expected-warning {{expecting mutex 'mu' to be held at start of each loop}}
     if (b)
       mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
-    b = mu.TryLock(); // expected-note 2 {{mutex acquired here}}
+    b = mu.TryLock(); // expected-note {{mutex acquired here}}
     if (!b)
       continue;
     a = 1;
