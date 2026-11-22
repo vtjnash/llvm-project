@@ -3036,8 +3036,19 @@ void ThreadSafetyAnalyzer::runAnalysis(AnalysisDeclContext &AC) {
     // terminator branches on. Computed lazily on the first join.
     CapExprSet TerminatorTrylockCaps;
     bool TerminatorTrylockCapsComputed = false;
-    for (CFGBlock::const_pred_iterator PI = CurrBlock->pred_begin(),
-         PE  = CurrBlock->pred_end(); PI != PE; ++PI) {
+    // A 'continue' latch is joined as a loop join, so it must not be the
+    // predecessor that initializes the entry lockset: the other
+    // predecessors come first, whichever order the CFG lists them in.
+    SmallVector<const CFGBlock::AdjacentBlock *, 4> Preds;
+    for (const CFGBlock::AdjacentBlock &P : CurrBlock->preds())
+      Preds.push_back(&P);
+    std::stable_partition(
+        Preds.begin(), Preds.end(), [](const CFGBlock::AdjacentBlock *P) {
+          return !*P ||
+                 !isa_and_nonnull<ContinueStmt>((*P)->getTerminatorStmt());
+        });
+    for (const CFGBlock::AdjacentBlock *PIP : Preds) {
+      const CFGBlock::AdjacentBlock *PI = PIP;
       // if *PI -> CurrBlock is a back edge
       if (*PI == nullptr || !VisitedBlocks.alreadySet(*PI))
         continue;

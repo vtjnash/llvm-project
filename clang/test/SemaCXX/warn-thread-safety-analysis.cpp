@@ -347,10 +347,9 @@ void sls_fun_bad_7() {
 // loop join, whichever predecessor the walk meets first: the lockset held
 // on only some iterations is reported once, as a loop's.
 void sls_fun_bad_continue_first() {
-  sls_mu.Lock(); // expected-note 2 {{mutex acquired here}}
+  sls_mu.Lock(); // expected-note {{mutex acquired here}}
   while (getBool()) { // \
-        expected-warning{{expecting mutex 'sls_mu' to be held at start of each loop}} \
-        expected-warning {{mutex 'sls_mu' is not held on every path through here}}
+        expected-warning{{expecting mutex 'sls_mu' to be held at start of each loop}}
     if (getBool()) {
       sls_mu.Unlock();
       continue;
@@ -360,7 +359,8 @@ void sls_fun_bad_continue_first() {
 }
 
 void sls_fun_bad_continue_first_lock() {
-  while (getBool()) { // expected-warning {{mutex 'sls_mu' is not held on every path through here}}
+  while (getBool()) { // \
+        expected-warning{{expecting mutex 'sls_mu' to be held at start of each loop}}
     if (getBool()) {
       sls_mu.Lock(); // expected-note {{mutex acquired here}}
       continue;
