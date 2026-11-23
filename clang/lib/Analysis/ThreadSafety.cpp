@@ -150,17 +150,6 @@ public:
   bool declared() const { return Source == Declared; }
   bool managed() const { return Source == Managed; }
 
-  virtual void
-  handleRemovalFromIntersection(const FactSet &FSet, FactManager &FactMan,
-                                SourceLocation JoinLoc, LockErrorKind LEK,
-                                ThreadSafetyHandler &Handler) const = 0;
-  virtual void handleLock(FactSet &FSet, FactManager &FactMan,
-                          const FactEntry &entry,
-                          ThreadSafetyHandler &Handler) const = 0;
-  virtual void handleUnlock(FactSet &FSet, FactManager &FactMan,
-                            const CapabilityExpr &Cp, SourceLocation UnlockLoc,
-                            bool FullyRemove,
-                            ThreadSafetyHandler &Handler) const = 0;
 
   // Return true if LKind >= LK, where exclusive > shared
   bool isAtLeast(LockKind LK) const {
@@ -970,36 +959,89 @@ static void findBlockLocations(CFG *CFGraph,
 
 namespace {
 
-class LockableFactEntry final : public FactEntry {
+enum UnderlyingCapabilityKind {
+  UCK_Acquired,          ///< Any kind of acquired capability.
+  UCK_ReleasedShared,    ///< Shared capability that was released.
+  UCK_ReleasedExclusive, ///< Exclusive capability that was released.
+};
+
+struct UnderlyingCapability {
+  CapabilityExpr Cap;
+  UnderlyingCapabilityKind Kind;
+};
+
+/// A fact of a capability: held -- its levels, as a reentrancy depth -- or,
+/// for a negative capability, provably not held; or a scoped object's own
+/// fact (isScope()), with the capabilities it acquired or released, which
+/// its members and its destructor act on in its place.
+class LockableFactEntry final
+    : public FactEntry,
+      private llvm::TrailingObjects<LockableFactEntry, UnderlyingCapability> {
+  friend TrailingObjects;
+
 private:
   /// Reentrancy depth: incremented when a capability has been acquired
   /// reentrantly (after initial acquisition). Always 0 for non-reentrant
   /// capabilities.
   unsigned int ReentrancyDepth = 0;
+  /// A scoped object's own fact.
+  const bool IsScope;
+  const unsigned ManagedCapacity;
+  unsigned ManagedSize = 0;
 
   LockableFactEntry(const CapabilityExpr &CE, LockKind LK, SourceLocation Loc,
-                    SourceKind Src)
-      : FactEntry(Lockable, CE, LK, Loc, Src) {}
+                    SourceKind Src, bool IsScope, unsigned ManagedCapacity)
+      : FactEntry(Lockable, CE, LK, Loc, Src), IsScope(IsScope),
+        ManagedCapacity(ManagedCapacity) {}
+
+  /// A copy of \p Other, what it manages included.
+  explicit LockableFactEntry(const LockableFactEntry &Other)
+      : FactEntry(Other), ReentrancyDepth(Other.ReentrancyDepth),
+        IsScope(Other.IsScope), ManagedCapacity(Other.ManagedSize),
+        ManagedSize(Other.ManagedSize) {
+    llvm::uninitialized_copy(Other.getManaged(), getTrailingObjects());
+  }
+
+  static void *allocate(llvm::BumpPtrAllocator &Alloc, unsigned Managed) {
+    return Alloc.Allocate(totalSizeToAlloc<UnderlyingCapability>(Managed),
+                          alignof(LockableFactEntry));
+  }
+
+  void addManaged(const CapabilityExpr &M, UnderlyingCapabilityKind UCK) {
+    assert(ManagedSize < ManagedCapacity);
+    new (getTrailingObjects() + ManagedSize) UnderlyingCapability{M, UCK};
+    ++ManagedSize;
+  }
 
 public:
   static LockableFactEntry *create(llvm::BumpPtrAllocator &Alloc,
                                    const LockableFactEntry &Other) {
-    return new (Alloc) LockableFactEntry(Other);
+    return new (allocate(Alloc, Other.ManagedSize)) LockableFactEntry(Other);
   }
-
   static LockableFactEntry *create(llvm::BumpPtrAllocator &Alloc,
                                    const CapabilityExpr &CE, LockKind LK,
                                    SourceLocation Loc,
                                    SourceKind Src = Acquired) {
-    return new (Alloc) LockableFactEntry(CE, LK, Loc, Src);
+    return new (allocate(Alloc, 0))
+        LockableFactEntry(CE, LK, Loc, Src, /*IsScope=*/false, 0);
+  }
+
+  /// A scoped object's fact, with room for \p ManagedCapacity managed
+  /// capabilities.
+  static LockableFactEntry *create(llvm::BumpPtrAllocator &Alloc,
+                                   const CapabilityExpr &CE, SourceLocation Loc,
+                                   SourceKind Src, unsigned ManagedCapacity) {
+    return new (allocate(Alloc, ManagedCapacity)) LockableFactEntry(
+        CE, LK_Exclusive, Loc, Src, /*IsScope=*/true, ManagedCapacity);
   }
 
   unsigned int getReentrancyDepth() const { return ReentrancyDepth; }
 
-  void
-  handleRemovalFromIntersection(const FactSet &FSet, FactManager &FactMan,
-                                SourceLocation JoinLoc, LockErrorKind LEK,
-                                ThreadSafetyHandler &Handler) const override {
+  void handleRemovalFromIntersection(const FactSet &FSet, FactManager &FactMan,
+                                     SourceLocation JoinLoc, LockErrorKind LEK,
+                                     ThreadSafetyHandler &Handler) const {
+    if (IsScope)
+      return scopeRemoval(FSet, FactMan, JoinLoc, LEK, Handler);
     if (!asserted() && !negative() && !isUniversal()) {
       Handler.handleMutexHeldEndOfScope(getKind(), toString(), loc(), JoinLoc,
                                         LEK);
@@ -1007,7 +1049,9 @@ public:
   }
 
   void handleLock(FactSet &FSet, FactManager &FactMan, const FactEntry &entry,
-                  ThreadSafetyHandler &Handler) const override {
+                  ThreadSafetyHandler &Handler) const {
+    if (IsScope)
+      return scopeRelock(FSet, FactMan, entry, Handler);
     if (const FactEntry *RFact = tryReenter(FactMan, entry.kind())) {
       // This capability has been reentrantly acquired.
       FSet.replaceLock(FactMan, entry, RFact);
@@ -1019,8 +1063,9 @@ public:
 
   void handleUnlock(FactSet &FSet, FactManager &FactMan,
                     const CapabilityExpr &Cp, SourceLocation UnlockLoc,
-                    bool FullyRemove,
-                    ThreadSafetyHandler &Handler) const override {
+                    bool FullyRemove, ThreadSafetyHandler &Handler) const {
+    if (IsScope)
+      return scopeRelease(FSet, FactMan, Cp, UnlockLoc, FullyRemove, Handler);
     FSet.removeLock(FactMan, Cp);
 
     if (const FactEntry *RFact = leaveReentrant(FactMan)) {
@@ -1055,58 +1100,15 @@ public:
     NewFact->ReentrancyDepth--;
     return NewFact;
   }
+  /// Whether this is a scoped object's own fact.
+  bool isScope() const { return IsScope; }
 
-  static bool classof(const FactEntry *A) {
-    return A->getFactEntryKind() == Lockable;
-  }
-};
-
-enum UnderlyingCapabilityKind {
-  UCK_Acquired,          ///< Any kind of acquired capability.
-  UCK_ReleasedShared,    ///< Shared capability that was released.
-  UCK_ReleasedExclusive, ///< Exclusive capability that was released.
-};
-
-struct UnderlyingCapability {
-  CapabilityExpr Cap;
-  UnderlyingCapabilityKind Kind;
-};
-
-class ScopedLockableFactEntry final
-    : public FactEntry,
-      private llvm::TrailingObjects<ScopedLockableFactEntry,
-                                    UnderlyingCapability> {
-  friend TrailingObjects;
-
-private:
-  const unsigned ManagedCapacity;
-  unsigned ManagedSize = 0;
-
-  ScopedLockableFactEntry(const CapabilityExpr &CE, SourceLocation Loc,
-                          SourceKind Src, unsigned ManagedCapacity)
-      : FactEntry(ScopedLockable, CE, LK_Exclusive, Loc, Src),
-        ManagedCapacity(ManagedCapacity) {}
-
-  void addManaged(const CapabilityExpr &M, UnderlyingCapabilityKind UCK) {
-    assert(ManagedSize < ManagedCapacity);
-    new (getTrailingObjects() + ManagedSize) UnderlyingCapability{M, UCK};
-    ++ManagedSize;
-  }
-
+  /// The capabilities this scope acquired or released, which its members and
+  /// its destructor act on in its place.
   ArrayRef<UnderlyingCapability> getManaged() const {
     return getTrailingObjects(ManagedSize);
   }
 
-public:
-  static ScopedLockableFactEntry *create(llvm::BumpPtrAllocator &Alloc,
-                                         const CapabilityExpr &CE,
-                                         SourceLocation Loc, SourceKind Src,
-                                         unsigned ManagedCapacity) {
-    void *Storage =
-        Alloc.Allocate(totalSizeToAlloc<UnderlyingCapability>(ManagedCapacity),
-                       alignof(ScopedLockableFactEntry));
-    return new (Storage) ScopedLockableFactEntry(CE, Loc, Src, ManagedCapacity);
-  }
 
   CapExprSet getUnderlyingMutexes() const {
     CapExprSet UnderlyingMutexesSet;
@@ -1130,103 +1132,135 @@ public:
   }
   /// \}
 
-  void
-  handleRemovalFromIntersection(const FactSet &FSet, FactManager &FactMan,
-                                SourceLocation JoinLoc, LockErrorKind LEK,
-                                ThreadSafetyHandler &Handler) const override {
-    if (LEK == LEK_LockedAtEndOfFunction || LEK == LEK_NotLockedAtEndOfFunction)
-      return;
-
-    for (const auto &UnderlyingMutex : getManaged()) {
-      const auto *Entry = FSet.findLock(FactMan, UnderlyingMutex.Cap);
-      if ((UnderlyingMutex.Kind == UCK_Acquired && Entry) ||
-          (UnderlyingMutex.Kind != UCK_Acquired && !Entry)) {
-        // If this scoped lock manages another mutex, and if the underlying
-        // mutex is still/not held, then warn about the underlying mutex.
-        Handler.handleMutexHeldEndOfScope(UnderlyingMutex.Cap.getKind(),
-                                          UnderlyingMutex.Cap.toString(), loc(),
-                                          JoinLoc, LEK);
-      }
-    }
-  }
-
-  void handleLock(FactSet &FSet, FactManager &FactMan, const FactEntry &entry,
-                  ThreadSafetyHandler &Handler) const override {
-    for (const auto &UnderlyingMutex : getManaged()) {
-      if (UnderlyingMutex.Kind == UCK_Acquired)
-        lock(FSet, FactMan, UnderlyingMutex.Cap, entry.kind(), entry.loc(),
-             &Handler);
-      else
-        unlock(FSet, FactMan, UnderlyingMutex.Cap, entry.loc(), &Handler);
-    }
-  }
-
-  void handleUnlock(FactSet &FSet, FactManager &FactMan,
-                    const CapabilityExpr &Cp, SourceLocation UnlockLoc,
-                    bool FullyRemove,
-                    ThreadSafetyHandler &Handler) const override {
-    assert(!Cp.negative() && "Managing object cannot be negative.");
-    for (const auto &UnderlyingMutex : getManaged()) {
-      // Remove/lock the underlying mutex if it exists/is still unlocked; warn
-      // on double unlocking/locking if we're not destroying the scoped object.
-      ThreadSafetyHandler *TSHandler = FullyRemove ? nullptr : &Handler;
-      if (UnderlyingMutex.Kind == UCK_Acquired) {
-        unlock(FSet, FactMan, UnderlyingMutex.Cap, UnlockLoc, TSHandler);
-      } else {
-        LockKind kind = UnderlyingMutex.Kind == UCK_ReleasedShared
-                            ? LK_Shared
-                            : LK_Exclusive;
-        lock(FSet, FactMan, UnderlyingMutex.Cap, kind, UnlockLoc, TSHandler);
-      }
-    }
-    if (FullyRemove)
-      FSet.removeLock(FactMan, Cp);
-  }
-
   static bool classof(const FactEntry *A) {
-    return A->getFactEntryKind() == ScopedLockable;
+    return A->getFactEntryKind() == Lockable;
   }
 
 private:
-  void lock(FactSet &FSet, FactManager &FactMan, const CapabilityExpr &Cp,
-            LockKind kind, SourceLocation loc,
-            ThreadSafetyHandler *Handler) const {
-    if (const auto It = FSet.findLockIter(FactMan, Cp); It != FSet.end()) {
-      const auto &Fact = cast<LockableFactEntry>(FactMan[*It]);
-      if (const FactEntry *RFact = Fact.tryReenter(FactMan, kind)) {
-        // This capability has been reentrantly acquired.
-        FSet.replaceLock(FactMan, It, RFact);
-      } else if (Handler) {
-        Handler->handleDoubleLock(Cp.getKind(), Cp.toString(), Fact.loc(), loc);
-      }
-    } else {
-      FSet.removeLock(FactMan, !Cp);
-      FSet.addLock(FactMan, FactMan.createFact<LockableFactEntry>(Cp, kind, loc,
-                                                                  Managed));
-    }
-  }
-
-  void unlock(FactSet &FSet, FactManager &FactMan, const CapabilityExpr &Cp,
-              SourceLocation loc, ThreadSafetyHandler *Handler) const {
-    if (const auto It = FSet.findLockIter(FactMan, Cp); It != FSet.end()) {
-      const auto &Fact = cast<LockableFactEntry>(FactMan[*It]);
-      if (const FactEntry *RFact = Fact.leaveReentrant(FactMan)) {
-        // This capability remains reentrantly acquired.
-        FSet.replaceLock(FactMan, It, RFact);
-        return;
-      }
-
-      FSet.replaceLock(
-          FactMan, It,
-          FactMan.createFact<LockableFactEntry>(!Cp, LK_Exclusive, loc));
-    } else if (Handler) {
-      SourceLocation PrevLoc;
-      if (const FactEntry *Neg = FSet.findLock(FactMan, !Cp))
-        PrevLoc = Neg->loc();
-      Handler->handleUnmatchedUnlock(Cp.getKind(), Cp.toString(), loc, PrevLoc);
-    }
-  }
+  /// \name A scoped object's own fact
+  /// \{
+  void scopeRemoval(const FactSet &FSet, FactManager &FactMan,
+                    SourceLocation JoinLoc, LockErrorKind LEK,
+                    ThreadSafetyHandler &Handler) const;
+  void scopeRelock(FactSet &FSet, FactManager &FactMan, const FactEntry &entry,
+                   ThreadSafetyHandler &Handler) const;
+  void scopeRelease(FactSet &FSet, FactManager &FactMan,
+                    const CapabilityExpr &Cp, SourceLocation UnlockLoc,
+                    bool FullyRemove, ThreadSafetyHandler &Handler) const;
+  void scopeLock(FactSet &FSet, FactManager &FactMan, const CapabilityExpr &Cp,
+                 LockKind kind, SourceLocation loc,
+                 ThreadSafetyHandler *Handler) const;
+  void scopeUnlock(FactSet &FSet, FactManager &FactMan,
+                   const CapabilityExpr &Cp, SourceLocation loc,
+                   ThreadSafetyHandler *Handler) const;
+  /// \}
 };
+
+/// \p FE if it is a lock fact -- a hold of its own capability, or the
+/// negative capability -- rather than a scoped object's.
+static const LockableFactEntry *asLock(const FactEntry *FE) {
+  const auto *L = dyn_cast_or_null<LockableFactEntry>(FE);
+  return L && !L->isScope() ? L : nullptr;
+}
+/// \p FE if it is a scoped object's own fact.
+static const LockableFactEntry *asScope(const FactEntry *FE) {
+  const auto *L = dyn_cast_or_null<LockableFactEntry>(FE);
+  return L && L->isScope() ? L : nullptr;
+}
+
+void LockableFactEntry::scopeRemoval(const FactSet &FSet, FactManager &FactMan,
+                                     SourceLocation JoinLoc, LockErrorKind LEK,
+                                     ThreadSafetyHandler &Handler) const {
+  if (LEK == LEK_LockedAtEndOfFunction || LEK == LEK_NotLockedAtEndOfFunction)
+    return;
+
+  for (const auto &UnderlyingMutex : getManaged()) {
+    const auto *Entry = FSet.findLock(FactMan, UnderlyingMutex.Cap);
+    if ((UnderlyingMutex.Kind == UCK_Acquired && Entry) ||
+        (UnderlyingMutex.Kind != UCK_Acquired && !Entry)) {
+      // If this scoped lock manages another mutex, and if the underlying
+      // mutex is still/not held, then warn about the underlying mutex.
+      Handler.handleMutexHeldEndOfScope(UnderlyingMutex.Cap.getKind(),
+                                        UnderlyingMutex.Cap.toString(), loc(),
+                                        JoinLoc, LEK);
+    }
+  }
+}
+
+void LockableFactEntry::scopeRelock(FactSet &FSet, FactManager &FactMan,
+                                    const FactEntry &entry,
+                                    ThreadSafetyHandler &Handler) const {
+  for (const auto &UnderlyingMutex : getManaged()) {
+    if (UnderlyingMutex.Kind == UCK_Acquired)
+      scopeLock(FSet, FactMan, UnderlyingMutex.Cap, entry.kind(), entry.loc(),
+                &Handler);
+    else
+      scopeUnlock(FSet, FactMan, UnderlyingMutex.Cap, entry.loc(), &Handler);
+  }
+}
+
+void LockableFactEntry::scopeRelease(FactSet &FSet, FactManager &FactMan,
+                                     const CapabilityExpr &Cp,
+                                     SourceLocation UnlockLoc, bool FullyRemove,
+                                     ThreadSafetyHandler &Handler) const {
+  assert(!Cp.negative() && "Managing object cannot be negative.");
+  for (const auto &UnderlyingMutex : getManaged()) {
+    // Remove/lock the underlying mutex if it exists/is still unlocked; warn
+    // on double unlocking/locking if we're not destroying the scoped object.
+    ThreadSafetyHandler *TSHandler = FullyRemove ? nullptr : &Handler;
+    if (UnderlyingMutex.Kind == UCK_Acquired) {
+      scopeUnlock(FSet, FactMan, UnderlyingMutex.Cap, UnlockLoc, TSHandler);
+    } else {
+      LockKind kind =
+          UnderlyingMutex.Kind == UCK_ReleasedShared ? LK_Shared : LK_Exclusive;
+      scopeLock(FSet, FactMan, UnderlyingMutex.Cap, kind, UnlockLoc, TSHandler);
+    }
+  }
+  if (FullyRemove)
+    FSet.removeLock(FactMan, Cp);
+}
+
+void LockableFactEntry::scopeLock(FactSet &FSet, FactManager &FactMan,
+                                  const CapabilityExpr &Cp, LockKind kind,
+                                  SourceLocation loc,
+                                  ThreadSafetyHandler *Handler) const {
+  if (const auto It = FSet.findLockIter(FactMan, Cp); It != FSet.end()) {
+    const auto &Fact = cast<LockableFactEntry>(FactMan[*It]);
+    if (const FactEntry *RFact = Fact.tryReenter(FactMan, kind)) {
+      // This capability has been reentrantly acquired.
+      FSet.replaceLock(FactMan, It, RFact);
+    } else if (Handler) {
+      Handler->handleDoubleLock(Cp.getKind(), Cp.toString(), Fact.loc(), loc);
+    }
+  } else {
+    FSet.removeLock(FactMan, !Cp);
+    FSet.addLock(FactMan,
+                 FactMan.createFact<LockableFactEntry>(Cp, kind, loc, Managed));
+  }
+}
+
+void LockableFactEntry::scopeUnlock(FactSet &FSet, FactManager &FactMan,
+                                    const CapabilityExpr &Cp,
+                                    SourceLocation loc,
+                                    ThreadSafetyHandler *Handler) const {
+  if (const auto It = FSet.findLockIter(FactMan, Cp); It != FSet.end()) {
+    const auto &Fact = cast<LockableFactEntry>(FactMan[*It]);
+    if (const FactEntry *RFact = Fact.leaveReentrant(FactMan)) {
+      // This capability remains reentrantly acquired.
+      FSet.replaceLock(FactMan, It, RFact);
+      return;
+    }
+
+    FSet.replaceLock(
+        FactMan, It,
+        FactMan.createFact<LockableFactEntry>(!Cp, LK_Exclusive, loc));
+  } else if (Handler) {
+    SourceLocation PrevLoc;
+    if (const FactEntry *Neg = FSet.findLock(FactMan, !Cp))
+      PrevLoc = Neg->loc();
+    Handler->handleUnmatchedUnlock(Cp.getKind(), Cp.toString(), loc, PrevLoc);
+  }
+}
 
 /// Class which implements the core thread safety analysis routines.
 class ThreadSafetyAnalyzer {
@@ -1508,7 +1542,7 @@ void ThreadSafetyAnalyzer::addLock(FactSet &FSet, const FactEntry *Entry,
 
   if (const FactEntry *Cp = FSet.findLock(FactMan, *Entry)) {
     if (!Entry->asserted())
-      Cp->handleLock(FSet, FactMan, *Entry, Handler);
+      cast<LockableFactEntry>(Cp)->handleLock(FSet, FactMan, *Entry, Handler);
   } else {
     FSet.addLock(FactMan, Entry);
   }
@@ -1539,7 +1573,8 @@ void ThreadSafetyAnalyzer::removeLock(FactSet &FSet, const CapabilityExpr &Cp,
                                       ReceivedKind, LDat->loc(), UnlockLoc);
   }
 
-  LDat->handleUnlock(FSet, FactMan, Cp, UnlockLoc, FullyRemove, Handler);
+  cast<LockableFactEntry>(LDat)->handleUnlock(FSet, FactMan, Cp, UnlockLoc,
+                                              FullyRemove, Handler);
 }
 
 /// Extract the list of mutexIDs from the attribute on an expression,
@@ -2411,7 +2446,7 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
                                              Exp->getExprLoc());
         continue;
       }
-      const auto *Scope = cast<ScopedLockableFactEntry>(Fact);
+      const auto *Scope = cast<LockableFactEntry>(Fact);
       for (const auto &[a, b] :
            zip_longest(DeclaredLocks, Scope->getUnderlyingMutexes())) {
         if (!a.has_value()) {
@@ -2453,7 +2488,7 @@ void BuildLockset::handleCall(const Expr *Exp, const NamedDecl *D,
 
   if (!Scp.shouldIgnore()) {
     // Add the managing object as a dummy mutex, mapped to the underlying mutex.
-    auto *ScopedEntry = Analyzer->FactMan.createFact<ScopedLockableFactEntry>(
+    auto *ScopedEntry = Analyzer->FactMan.createFact<LockableFactEntry>(
         Scp, Loc, FactEntry::Acquired,
         ExclusiveLocksToAdd.size() + SharedLocksToAdd.size() +
             ScopedReqsAndExcludes.size() + ExclusiveLocksToRemove.size() +
@@ -2781,8 +2816,8 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
         *EntryIt = Fact;
     } else if ((!ExitFact.managed() || EntryLEK == LEK_LockedAtEndOfFunction) &&
                !IsTrylockRebranched(ExitFact)) {
-      ExitFact.handleRemovalFromIntersection(ExitSet, FactMan, JoinLoc,
-                                             EntryLEK, Handler);
+      cast<LockableFactEntry>(ExitFact).handleRemovalFromIntersection(
+          ExitSet, FactMan, JoinLoc, EntryLEK, Handler);
     }
   }
 
@@ -2795,8 +2830,8 @@ void ThreadSafetyAnalyzer::intersectAndWarn(
       if ((!EntryFact->managed() || ExitLEK == LEK_LockedSomeLoopIterations ||
            ExitLEK == LEK_NotLockedAtEndOfFunction) &&
           !IsTrylockRebranched(*EntryFact))
-        EntryFact->handleRemovalFromIntersection(EntrySetOrig, FactMan, JoinLoc,
-                                                 ExitLEK, Handler);
+        cast<LockableFactEntry>(EntryFact)->handleRemovalFromIntersection(
+            EntrySetOrig, FactMan, JoinLoc, ExitLEK, Handler);
       if (ExitLEK == LEK_LockedSomePredecessors)
         EntrySet.removeLock(FactMan, *EntryFact);
     }
@@ -2971,7 +3006,7 @@ void ThreadSafetyAnalyzer::runAnalysis(AnalysisDeclContext &AC) {
       CapabilityExpr Cp(SxBuilder.translateVariable(Param, nullptr),
                         StringRef(),
                         /*Neg=*/false, /*Reentrant=*/false);
-      auto *ScopedEntry = FactMan.createFact<ScopedLockableFactEntry>(
+      auto *ScopedEntry = FactMan.createFact<LockableFactEntry>(
           Cp, Param->getLocation(), FactEntry::Declared,
           UnderlyingLocks.size());
       for (const CapabilityExpr &M : UnderlyingLocks)
