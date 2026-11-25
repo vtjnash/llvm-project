@@ -922,12 +922,12 @@ void test_trylock_goto_into_loop(int e, int d) {
       goto inner;
     return;
   }
-  while (d) { // expected-warning {{unchecked result of try-acquire; mutex 'mu1' may still be held past this point}}
+  while (d) {
   inner:;
   }
   if (ok2)
     mutex_unlock_mu1();
-} // expected-warning {{unchecked result of try-acquire; mutex 'mu1' may still be held at the end of function}}
+} // expected-warning 2 {{unchecked result of try-acquire; mutex 'mu1' may still be held at the end of function}}
 
 // A cross-kind try-acquire in C: one conditional acquisition per kind,
 // each resolved on the outcome its own attribute names.

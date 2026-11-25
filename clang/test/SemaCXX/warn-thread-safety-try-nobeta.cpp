@@ -27,7 +27,7 @@ void same_origin_branch_join_warns_without_beta() {
     cond = true;
   a = 3;       // expected-warning {{mutex 'mu' is not held on every path through here}} \
                // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-  mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+  mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
 }
 
 // Loop joins are the deliberate exception: the demotion applies there in
@@ -81,11 +81,11 @@ void same_origin_continue_latch_leak_adds_nothing() {
 // the hidden level eagerly, as a depth difference. The merged state is the
 // demotion's either way, so the release below unwinds the base level.
 void same_origin_depth_pair_warns_without_beta() {
-  mu.Lock();   // expected-note 2 {{mutex acquired here}}
+  mu.Lock();   // expected-note {{mutex acquired here}}
   if (mu.TryLock()) {
   }
   mu.Unlock(); // expected-warning {{mutex 'mu' is not held on every path through here}}
-} // expected-warning {{mutex 'mu' is still held at the end of function}}
+}
 
 // The idioms the same-origin demotion is for, in the mode where it does not
 // apply at branch merges: each keeps the eager diagnosis the merge gives.
@@ -100,7 +100,7 @@ void two_calls_each_branched() {
     cond = true;
   a = 1;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}} \
                // expected-warning {{mutex 'mu' is not held on every path through here}}
-  mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+  mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
 }
 
 // A shared try-acquire takes the rebranch exemption like an exclusive one,
@@ -153,10 +153,10 @@ void leaves_conditional_at_end() __attribute__((requires_capability(mu))) { // e
 // this mode's join reports rather than hides in the call's result.
 void check_first_if_else() {
   bool b = false;
-  while (cond) {
+  while (cond) { // expected-warning {{mutex 'mu' is not held on every path through here}}
     if (b) {
     } else {
-      b = mu.TryLock();
+      b = mu.TryLock(); // expected-note {{mutex acquired here}}
     }
   }
   if (b)
@@ -183,7 +183,7 @@ void release_and_reset() {
   bool b = false;
   while (cond) {
     if (b) {
-      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+      mu.Unlock();
       b = false;
       continue;
     }
@@ -218,7 +218,7 @@ void in_loop_acquire_continue() {
 void loop_carried_leak_without_beta() {
   bool ok = false;
   while (cond) { // expected-warning {{mutex 'mu' is not held on every path through here}}
-    ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+    ok = mu.TryLock(); // expected-note 2 {{mutex acquired here}} expected-warning {{acquiring mutex 'mu' that may already be held}}
     if (ok)
       a = 1;
   }
@@ -259,11 +259,10 @@ void release_after_reacquire() {
 // success arm proved as lost on the other path, which is the eager
 // diagnosis this mode otherwise keeps.
 void cond_split_join_stays_silent_without_beta() {
-  int r = mu.TryLock() ? 1 : 2; // expected-warning {{mutex 'mu' is not held on every path through here}} \
-                                // expected-note {{mutex acquired here}}
+  int r = mu.TryLock() ? 1 : 2;
   if (r) {
     a = 3;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
   }
 }
 
@@ -285,11 +284,10 @@ void cond_terminator_resolves_without_beta() {
 
 // The arm's own call is what a later branch on the value resolves.
 void cond_arm_resolves_without_beta() {
-  if (mu.TryLock() ? mu2.TryLock() : false) { // expected-warning {{mutex 'mu' is not held on every path through here}} \
-                                              // expected-note {{mutex acquired here}}
+  if (mu.TryLock() ? mu2.TryLock() : false) {
     a2 = 3;
     mu2.Unlock();
-    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
   }
 }
 
@@ -317,9 +315,10 @@ void gnu_cond_without_beta() {
 // constant, so a true value may be that constant with the call never made:
 // the capability is possibly held there, not held.
 void stored_logical_without_beta(bool other) {
-  bool b = other || mu.TryLock();
+  bool b = other || mu.TryLock(); // expected-note {{mutex acquired here}}
   if (b) {
-    a = 3;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+    a = 3;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}} \
+                 // expected-warning {{mutex 'mu' is not held on every path through here}}
     mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
   }
 }
@@ -328,9 +327,10 @@ void stored_logical_without_beta(bool other) {
 // variable -- is a merge of the right-hand side's result with the
 // left-hand side's constant, and reads the same in both modes.
 void logical_merge_without_beta(bool other) {
-  if (!(other || mu.TryLock()))
+  if (!(other || mu.TryLock())) // expected-note {{mutex acquired here}}
     return;
-  a = 3;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+  a = 3;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}} \
+               // expected-warning {{mutex 'mu' is not held on every path through here}}
   mu.Unlock(); // expected-warning {{releasing mutex 'mu' that may not be held}}
 }
 

@@ -624,6 +624,12 @@ documentation](CIR/index.md) for more information regarding ClangIR's status and
   try-acquire whose result the analysis never sees checked: the capability may
   be leaked, and the warning is reported where the analysis loses track of the
   result, or at the end of the function. One acquisition is reported once.
+  Enabling it also makes a merge of two outcomes of the same try-acquire --
+  the hold its success proved meeting the record of its failure -- silent,
+  since the merged state is again conditionally held. If nothing afterwards
+  resolves the result, the leak is reported where the analysis loses track
+  of it, still as "not held on every path", the result having been checked.
+  That merge is silent at a loop merge in either mode.
 
 - Thread safety analysis now tracks a scoped capability initialized or
   returned by value from a function annotated with an acquire attribute under
@@ -646,6 +652,18 @@ documentation](CIR/index.md) for more information regarding ClangIR's status and
   are recognized now, and a guard declared as a loop's condition variable is
   no longer released before its body runs. The last two were already wrong
   under C++17.
+
+- Thread safety analysis now carries a try-acquire result out of the loop
+  that acquired it. A loop whose body checks the result and keeps it may
+  leave with the capability held, and the code after the loop is now read
+  against that possibility: a release is "may not be held" rather than
+  "was not held", a blocking acquire is "may already be held", and a
+  branch (`if (ok) mu.Unlock();`) resolves it, all under plain
+  `-Wthread-safety`. Where nothing after the loop resolves it,
+  `-Wthread-safety-beta` reports the leak. Previously the loop's exit
+  edges were computed from the head's state as analyzed on the first
+  iteration, before the result existed, so the possible hold was invisible
+  after the loop.
 
 - Fixed bug in `-Wdocumentation` so that it correctly handles explicit
   function template instantiations (#64087).

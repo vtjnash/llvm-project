@@ -512,6 +512,22 @@ that is already conditionally held by another try-acquire is tracked separately:
 each is resolved by the branch on its own return value. Asserting the capability
 (`ASSERT_CAPABILITY`) upgrades it to held without a warning.
 
+A merge that brings together two outcomes of the *same* call -- the hold its
+success proved on one path, the record of its failure on the other -- loses
+nothing: taken together they are again "held if the call succeeded", so the
+capability is conditionally held after the merge and a later branch on the
+result resolves it. The same applies to a call that releases on success
+(`TRY_ACQUIRE(true, !mu)`), where the two outcomes differ by the level the
+release discharged, and to a merge where one path is one level deeper than
+the other for the same reason. At a loop merge this is silent always; at a
+branch merge only under `-Wthread-safety-beta`: without it the merge still
+warns "not held on every path", the only report of a result that really is
+leaked. With the flag the merge is silent, and if nothing afterwards
+resolves the result, the leak is reported where the analysis loses track of
+it -- at the latest at the end of the function -- with the same "not held on
+every path" wording, since the result was checked. The flag moves that
+warning rather than removing it.
+
 Under `-Wthread-safety-beta`, a try-acquire additionally warns where the
 analysis loses track of its result -- at a branch merge with a path that does
 not hold the capability, or at the end of the function -- since the capability
@@ -521,7 +537,16 @@ parameter, or simply returned to the caller. One acquisition is reported once,
 at the first merge that loses it. A loop merge is exempt only while the result
 is branched on somewhere inside the loop -- in a block the loop's head
 dominates, so a check made before a `goto` into the body does not count; a
-result never checked anywhere warns at the loop merge too.
+result never checked anywhere warns at the loop merge too. Such a result --
+one the loop checks and keeps -- leaves the loop as a *possible* hold on
+every exit edge, since an iteration may have acquired the capability and
+none afterwards released it: a branch after the loop resolves it
+(`if (ok) mu.Unlock();` is clean), and otherwise it is reported at the
+end of the function. A result an iteration may have released leaves the
+loop the same way, whether or not the loop checks it, so a release after
+the loop is "may not be held" rather than "was not held" and a blocking
+acquire is "may already be held" -- those two are ordinary
+`-Wthread-safety` diagnostics and do not need the beta flag.
 
 (trysuccesscodes)=
 A success value that is a specific integer constant other than `1`

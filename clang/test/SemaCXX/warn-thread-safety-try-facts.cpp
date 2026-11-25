@@ -106,12 +106,13 @@ void stale_result_blocks_per_call(bool c) {
 // nothing after the loop checks the last possible hold.
 void loop_carried_result_leaks() {
   bool ok = false;
-  while (cond) { // expected-warning {{mutex 'mu' is not held on every path through here}}
-    ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+  while (cond) {
+    ok = mu.TryLock(); // expected-warning {{acquiring mutex 'mu' that may already be held}} \
+                       // expected-note 2 {{mutex acquired here}}
     if (ok)
       a = 1;
   }
-}
+} // expected-warning {{mutex 'mu' is not held on every path through here}}
 
 // The same loop released after it: the carried result resolves the
 // post-loop branch, and the release is matched -- the hold the loop carries
@@ -119,8 +120,9 @@ void loop_carried_result_leaks() {
 // iteration left is not: the loop still reports it.
 void loop_carried_result_released_after() {
   bool ok = false;
-  while (cond) { // expected-warning {{mutex 'mu' is not held on every path through here}}
-    ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+  while (cond) {
+    ok = mu.TryLock(); // expected-warning {{acquiring mutex 'mu' that may already be held}} \
+                       // expected-note {{mutex acquired here}}
     if (ok)
       a = 1;
   }
@@ -176,8 +178,9 @@ void loop_carried_twin_stale() {
     mu.Unlock(); // expected-note {{mutex released here}}
   }
   while (!ok)
-    ok = mu.TryLock();
-  a = 2;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+    ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+  a = 2;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}} \
+               // expected-warning {{mutex 'mu' is not held on every path through here}}
   mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
 }
 
@@ -189,10 +192,10 @@ void loop_carried_twin_stale() {
 void nested_failure_continues(bool c) {
   while (c) {
     bool ok = false;
-    while (cond) { // expected-warning {{expecting mutex 'rmu' to be held at start of each loop}}
+    while (cond) {
       if (ok)
-        rmu.Unlock(); // expected-warning {{releasing mutex 'rmu' that was not held}}
-      ok = rmu.TryLock(); // expected-note {{mutex acquired here}}
+        rmu.Unlock();
+      ok = rmu.TryLock();
       if (!ok)
         continue;
       b = 1;
@@ -207,13 +210,14 @@ void nested_failure_continues(bool c) {
 void nested_failure_continues_leaks(bool c) {
   while (c) {
     bool ok = false;
-    while (cond) { // expected-warning {{expecting mutex 'rmu' to be held at start of each loop}}
+    while (cond) {
       if (ok)
-        rmu.Unlock(); // expected-warning {{releasing mutex 'rmu' that was not held}}
-      ok = rmu.TryLock(); // expected-note {{mutex acquired here}}
+        rmu.Unlock();
+      ok = rmu.TryLock(); // expected-warning {{mutex 'rmu' is not held on every path through here}} \
+                          // expected-note 2 {{mutex acquired here}}
       if (!ok)
         continue;
       b = 1;
     }
   }
-}
+} // expected-warning {{mutex 'rmu' is not held on every path through here}}
