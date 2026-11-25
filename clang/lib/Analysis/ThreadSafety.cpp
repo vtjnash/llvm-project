@@ -3493,7 +3493,7 @@ struct JoinContext {
   bool Silent = false;
   /// Where set, the capabilities whose record this join does not balance:
   /// a loss it reports (heard or not). A loop takes the state its edges
-  /// carry only for the others (joinPredecessors()).
+  /// carry only for the others (joinLoopEdges()).
   SmallVectorImpl<CapabilityExpr> *Unbalanced = nullptr;
 
   /// What the join writes into the entry set.
@@ -4273,14 +4273,13 @@ public:
   bool join(const FactEntry &A, const FactEntry &B, LockErrorKind EntryLEK,
             SmallVectorImpl<JoinReport> &Reports);
 
-  void intersectAndWarn(FactSet &EntrySet, const FactSet &ExitSet,
-                        const JoinContext &Ctx);
+  void compareSets(const FactSet &Entry, const FactSet &Edge,
+                   const JoinContext &Ctx);
   FactSet joinSets(ArrayRef<const FactSet *> Ins, const JoinContext &Ctx);
-
-  void intersectAndWarn(FactSet &EntrySet, const FactSet &ExitSet,
-                        SourceLocation JoinLoc, LockErrorKind LEK) {
-    intersectAndWarn(EntrySet, ExitSet, JoinContext{JoinLoc, LEK, LEK});
-  }
+  SmallVector<CapabilityExpr, 4>
+  joinLoopEdges(FactSet &Entry, ArrayRef<const FactSet *> Edges,
+                const JoinContext &Ctx,
+                SmallVectorImpl<CapabilityExpr> *Adopted);
 
   void runAnalysis(AnalysisDeclContext &AC);
 
@@ -9226,26 +9225,14 @@ FactSet LocksetJoin::run() {
   return std::move(Result);
 }
 
-/// Compute the intersection of two locksets and issue warnings for any
-/// locks in the symmetric difference.
-///
-/// This function is used at a merge point in the CFG when comparing the lockset
-/// of each branch being merged. For example, given the following sequence:
-/// A; if () then B; else C; D; we need to check that the lockset after B and C
-/// are the same. In the event of a difference, we use the intersection of these
-/// two locksets at the start of D.
-///
-/// \param EntrySet A lockset for entry into a (possibly new) block.
-/// \param ExitSet The lockset on exiting a preceding block.
-/// \param Ctx Where the join is, which kind of join it is, and what the
-/// joining block does with the try-acquire results the sets carry (see
-/// LocksetJoin).
-void ThreadSafetyAnalyzer::intersectAndWarn(FactSet &EntrySet,
-                                            const FactSet &ExitSet,
-                                            const JoinContext &Ctx) {
-  FactSet Merged = joinSets({&EntrySet, &ExitSet}, Ctx);
-  if (Ctx.writes() != JoinContext::Writes::None)
-    EntrySet = std::move(Merged);
+/// Compare the edge lockset \p Edge with the state \p Entry it enters -- a
+/// loop's entry state, or the function's declared exit set -- and warn for
+/// what differs (joinSets()).
+void ThreadSafetyAnalyzer::compareSets(const FactSet &Entry,
+                                       const FactSet &Edge,
+                                       const JoinContext &Ctx) {
+  assert(Ctx.writes() == JoinContext::Writes::None && "a comparison");
+  joinSets({&Entry, &Edge}, Ctx);
 }
 
 /// The join of every set of \p Ins at once: a merge's merged state, each
@@ -9705,6 +9692,52 @@ bool ThreadSafetyAnalyzer::addDeclaredLocksets(const NamedDecl *D,
   return true;
 }
 
+/// Join the states \p Edges carry into a loop -- its back edges', or its
+/// 'continue' edges' -- into \p Entry, the state of the block's other
+/// predecessors: the iterations are one more class of paths into the loop.
+/// \p Entry takes the merge for each record it balances (appending the
+/// records that change to \p Adopted); a record it does not balance keeps
+/// \p Entry's state, as without the fixpoint, and is returned, for the
+/// edges' comparison to report.
+SmallVector<CapabilityExpr, 4> ThreadSafetyAnalyzer::joinLoopEdges(
+    FactSet &Entry, ArrayRef<const FactSet *> Edges, const JoinContext &Ctx,
+    SmallVectorImpl<CapabilityExpr> *Adopted) {
+  SmallVector<CapabilityExpr, 4> Unbalanced;
+  JoinContext Merge = Ctx;
+  Merge.Silent = true;
+  Merge.Unbalanced = &Unbalanced;
+  SmallVector<const FactSet *, 4> Ins = {&Entry};
+  llvm::append_range(Ins, Edges);
+  const FactSet Merged = joinSets(Ins, Merge);
+  auto Has = [](ArrayRef<CapabilityExpr> Caps, const CapabilityExpr &Pos) {
+    return llvm::any_of(Caps,
+                        [&](const CapabilityExpr &C) { return C.equals(Pos); });
+  };
+  SmallVector<CapabilityExpr, 8> Caps;
+  for (const FactSet *Set : Ins)
+    for (FactID ID : *Set)
+      if (const CapabilityExpr Pos = FactSet::keyOf(FactMan[ID]);
+          !Has(Caps, Pos))
+        Caps.push_back(Pos);
+  SmallVector<CapabilityExpr, 4> Kept;
+  for (const CapabilityExpr &Pos : Caps) {
+    if (Has(Unbalanced, Pos)) {
+      Kept.push_back(Pos);
+      continue;
+    }
+    const FactEntry *New = Merged.findExactRecord(FactMan, Pos);
+    // The same state, however the joins built it, is nothing adopted.
+    if (const FactEntry *Old = Entry.findExactRecord(FactMan, Pos);
+        Old == New || recordKey(Old, /*WithLoose=*/true) ==
+                          recordKey(New, /*WithLoose=*/true))
+      continue;
+    Entry.setExactRecord(FactMan, Pos, New);
+    if (Adopted)
+      Adopted->push_back(Pos);
+  }
+  return Kept;
+}
+
 /// Compute \p CurrBlock's entry lockset by intersecting, edge by edge,
 /// what each visited predecessor's exit lockset proves along its edge into
 /// the block (getEdgeLockset(), joinSets()), warning where they
@@ -9827,107 +9860,39 @@ void ThreadSafetyAnalyzer::joinPredecessors(const CFGBlock *CurrBlock,
     CurrBlockInfo.EntrySet = joinSets(Ins, Ctx);
   }
 
-  // A 'continue' edge carries one more iteration's state into the loop, as
-  // a back edge does into its head, and joins as the head joins its back
-  // edges: the block takes the merge for each record it balances; a record
-  // it does not keeps the other predecessors' state, and the edge's loop
-  // comparison reports what differs.
+  if (!RebranchTryLockComputed &&
+      (!ContinuePreds.empty() || BackEdgeStates.count(CurrBlock->getBlockID())))
+    Ctx.setRebranch(
+        getConditionTrylockCallExpr(CurrBlock, /*CheckAllPaths=*/true));
+  // A 'continue' edge carries one more iteration's state into the loop, as a
+  // back edge does into its head, and joins the same way; its comparison is
+  // here, a back edge's in checkBackEdges().
   if (!ContinuePreds.empty()) {
-    if (!RebranchTryLockComputed) {
-      Ctx.setRebranch(
-          getConditionTrylockCallExpr(CurrBlock, /*CheckAllPaths=*/true));
-      RebranchTryLockComputed = true;
-    }
-    FactSet &Entry = CurrBlockInfo.EntrySet;
-    SmallVector<CapabilityExpr, 4> Unbalanced;
-    JoinContext Merge = Ctx;
-    Merge.Silent = true;
-    Merge.Unbalanced = &Unbalanced;
-    SmallVector<const FactSet *, 4> Ins = {&Entry};
+    SmallVector<const FactSet *, 2> Edges;
     for (const FactSet &P : ContinuePreds)
-      Ins.push_back(&P);
-    FactSet WithCont = joinSets(Ins, Merge);
-    auto IsUnbalanced = [&](const CapabilityExpr &Pos) {
-      return llvm::any_of(
-          Unbalanced, [&](const CapabilityExpr &C) { return C.equals(Pos); });
-    };
-    SmallVector<CapabilityExpr, 8> Caps;
-    SmallVector<const FactSet *, 4> Sets = {&Entry, &WithCont};
-    for (const FactSet &P : ContinuePreds)
-      Sets.push_back(&P);
-    for (const FactSet *Set : Sets)
-      for (FactID ID : *Set) {
-        const CapabilityExpr Pos = FactSet::keyOf(FactMan[ID]);
-        if (llvm::none_of(
-                Caps, [&](const CapabilityExpr &C) { return C.equals(Pos); }))
-          Caps.push_back(Pos);
-      }
+      Edges.push_back(&P);
     JoinContext Loop{CurrBlockInfo.EntryLoc, LEK_LockedSomeLoopIterations,
                      LEK_LockedSomeLoopIterations};
-    for (const CapabilityExpr &Pos : Caps) {
-      if (!IsUnbalanced(Pos)) {
-        Entry.setExactRecord(FactMan, Pos,
-                             WithCont.findExactRecord(FactMan, Pos));
-        continue;
-      }
+    for (const CapabilityExpr &Pos :
+         joinLoopEdges(CurrBlockInfo.EntrySet, Edges, Ctx, nullptr))
       for (const FactSet &P : ContinuePreds) {
         FactSet Head, Latch;
-        Head.setExactRecord(FactMan, Pos, Entry.findExactRecord(FactMan, Pos));
+        Head.setExactRecord(
+            FactMan, Pos, CurrBlockInfo.EntrySet.findExactRecord(FactMan, Pos));
         Latch.setExactRecord(FactMan, Pos, P.findExactRecord(FactMan, Pos));
-        intersectAndWarn(Head, Latch, Loop);
+        compareSets(Head, Latch, Loop);
       }
-    }
   }
   // A loop head: the states its back edges carried on earlier walks
-  // (BackEdgeStates), joined in as one more predecessor -- silently, since
-  // the back edge's own comparison (checkBackEdges()) diagnoses it.
-  std::optional<FactSet> WithBack;
-  SmallVector<CapabilityExpr, 4> Unbalanced;
+  // (BackEdgeStates).
   if (CurrBlockInfo.Reachable)
     if (auto It = BackEdgeStates.find(CurrBlock->getBlockID());
         It != BackEdgeStates.end()) {
-      if (!RebranchTryLockComputed)
-        Ctx.setRebranch(
-            getConditionTrylockCallExpr(CurrBlock, /*CheckAllPaths=*/true));
-      JoinContext Merge = Ctx;
-      Merge.Silent = true;
-      Merge.Unbalanced = &Unbalanced;
-      WithBack = joinSets({&CurrBlockInfo.EntrySet, &It->second}, Merge);
+      SmallVector<CapabilityExpr, 2> &Adopted =
+          AdoptedFromBackEdges[CurrBlock->getBlockID()];
+      Adopted.clear();
+      joinLoopEdges(CurrBlockInfo.EntrySet, {&It->second}, Ctx, &Adopted);
     }
-  // The head takes the back edges' state for each record that join
-  // balances: the iterations are one more class of paths into the loop. A
-  // record it does not balance keeps the forward predecessors' state, as
-  // without the fixpoint, and the back edge's comparison reports it.
-  if (WithBack) {
-    FactSet &Entry = CurrBlockInfo.EntrySet;
-    SmallVector<CapabilityExpr, 2> &Adopted =
-        AdoptedFromBackEdges[CurrBlock->getBlockID()];
-    Adopted.clear();
-    auto IsUnbalanced = [&](const CapabilityExpr &Pos) {
-      return llvm::any_of(
-          Unbalanced, [&](const CapabilityExpr &C) { return C.equals(Pos); });
-    };
-    SmallVector<CapabilityExpr, 8> Caps;
-    for (const FactSet *Set : {&Entry, &*WithBack})
-      for (FactID ID : *Set) {
-        const CapabilityExpr Pos = FactSet::keyOf(FactMan[ID]);
-        if (llvm::none_of(
-                Caps, [&](const CapabilityExpr &C) { return C.equals(Pos); }))
-          Caps.push_back(Pos);
-      }
-    for (const CapabilityExpr &Pos : Caps) {
-      if (IsUnbalanced(Pos))
-        continue;
-      const FactEntry *New = WithBack->findExactRecord(FactMan, Pos);
-      // The same state, however the joins built it, is nothing adopted.
-      if (const FactEntry *Old = Entry.findExactRecord(FactMan, Pos);
-          Old == New || recordKey(Old, /*WithLoose=*/true) ==
-                            recordKey(New, /*WithLoose=*/true))
-        continue;
-      Entry.setExactRecord(FactMan, Pos, New);
-      Adopted.push_back(Pos);
-    }
-  }
   // The balance join keeps a stale result in the merged record, for the
   // checks above and the joins of the fold to meet. One no later condition
   // can name has nothing left to prove once the block is entered.
@@ -10197,9 +10162,9 @@ void ThreadSafetyAnalyzer::checkBackEdges(const CFGBlock *CurrBlock) {
         Head.setExactRecord(FactMan, Pos, nullptr);
         Latch.setExactRecord(FactMan, Pos, nullptr);
       }
-      intersectAndWarn(Head, Latch, Ctx);
+      compareSets(Head, Latch, Ctx);
     } else
-      intersectAndWarn(PreLoop->EntrySet, LoopEnd->ExitSet, Ctx);
+      compareSets(PreLoop->EntrySet, LoopEnd->ExitSet, Ctx);
   }
 }
 
@@ -10364,9 +10329,9 @@ void ThreadSafetyAnalyzer::runAnalysis(AnalysisDeclContext &AC) {
     return;
 
   // FIXME: Should we call this function for all blocks which exit the function?
-  intersectAndWarn(*ExpectedFunctionExitSet, Final.ExitSet,
-                   JoinContext{Final.ExitLoc, LEK_LockedAtEndOfFunction,
-                               LEK_NotLockedAtEndOfFunction});
+  compareSets(*ExpectedFunctionExitSet, Final.ExitSet,
+              JoinContext{Final.ExitLoc, LEK_LockedAtEndOfFunction,
+                          LEK_NotLockedAtEndOfFunction});
 
   Handler.leaveFunction(CurrentFunction);
 }
