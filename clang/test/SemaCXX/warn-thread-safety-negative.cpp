@@ -25,6 +25,7 @@ class LOCKABLE REENTRANT_CAPABILITY ReentrantMutex {
 public:
   void Lock() EXCLUSIVE_LOCK_FUNCTION();
   void Unlock() UNLOCK_FUNCTION();
+  bool TryLock() EXCLUSIVE_TRYLOCK_FUNCTION(true);
 
   // for negative capabilities
   const ReentrantMutex& operator!() const { return *this; }
@@ -35,6 +36,12 @@ public:
   MutexLock(Mutex *mu) EXCLUSIVE_LOCK_FUNCTION(mu);
   MutexLock(Mutex *mu, bool adopt) EXCLUSIVE_LOCKS_REQUIRED(mu);
   ~MutexLock() UNLOCK_FUNCTION();
+};
+
+class SCOPED_LOCKABLE MutexLockMaybe {
+public:
+  MutexLockMaybe(Mutex *mu) EXCLUSIVE_TRYLOCK_FUNCTION(true, mu);
+  ~MutexLockMaybe() UNLOCK_FUNCTION();
 };
 
 namespace SimpleTest {
@@ -118,6 +125,169 @@ public:
 
   void callHaveNegative() EXCLUSIVE_LOCKS_REQUIRED(!mu) {
     requireNegative();
+  }
+
+  // A failed try-acquire of a reentrant capability does not show the
+  // thread free of it: the caller may hold it.
+  void tryFailureIsNotNegative() {
+    if (!mu.TryLock())
+      requireNegative(); // expected-warning{{calling function 'requireNegative' requires negative capability '!mu'}}
+    else
+      mu.Unlock();
+  }
+
+  void tryFailureKeepsDeclared() EXCLUSIVE_LOCKS_REQUIRED(!mu) {
+    if (!mu.TryLock())
+      requireNegative();
+    else
+      mu.Unlock();
+  }
+};
+
+class TryLockTest {
+  Mutex mu;
+  int a GUARDED_BY(mu);
+
+public:
+  // The analysis of a TryLock expects to have !mu declared at the boundaries,
+  // even though inside a function this recursion pattern is permitted without
+  // a warning.
+  void tryLockNegativeWarn() {
+    if (mu.TryLock()) { // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}}
+      a = 0;
+      mu.Unlock();
+    }
+  }
+
+  void tryLockRebranchOneWarning(bool c) {
+    bool b = mu.TryLock(); // expected-warning 3 {{acquiring mutex 'mu' requires negative capability '!mu'}} \
+                           // expected-note {{mutex acquired here}}
+    if (b)
+      a = 0;
+    if (c && b) { // expected-warning {{mutex 'mu' is not held on every path through here}}
+      mu.Unlock();
+    } else if (b) {
+      mu.Unlock();
+    }
+  }
+
+  // Inside a REQUIRES(!mu) region the declared negative fact satisfies the
+  // attempt; the success edge consumes it (no duplicate '!mu' facts, no
+  // spurious diagnostics), and the failure path retains it.
+  void tryLockNegativeSatisfied() EXCLUSIVE_LOCKS_REQUIRED(!mu) {
+    if (mu.TryLock()) {
+      a = 0;
+      mu.Unlock();
+    } else {
+      needsNegative();
+    }
+  }
+
+  // Releasing an unchecked try-acquire is diagnosed at the release, and it
+  // does not show the thread free of the capability (the caller may hold a
+  // reentrant one): without a declared '!mu', re-acquiring needs it again.
+  void tryLockUncheckedReleaseThenLock() {
+    mu.TryLock();
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Lock();    // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}}
+    a = 0;
+    mu.Unlock();
+  }
+
+  // With '!mu' declared, the release restores it.
+  void tryLockUncheckedReleaseKeepsDeclared() EXCLUSIVE_LOCKS_REQUIRED(!mu) {
+    mu.TryLock();
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    mu.Lock();
+    a = 0;
+    mu.Unlock();
+  }
+
+  void needsNegative() EXCLUSIVE_LOCKS_REQUIRED(!mu);
+
+  // A conditional fact carried past an unrelated join is resolved by the
+  // later branch on the stored result, and the acquisition checks still run
+  // only at the call (one diagnostic at the TryLock, none at the branches --
+  // resolving is not a new acquisition).
+  void tryLockReaddChecksOnce(bool c, bool d) {
+    bool b = false;
+    if (c)
+      b = mu.TryLock();
+    if (d) {
+      a = 0;            // expected-warning{{writing variable 'a' requires holding mutex 'mu' exclusively}}
+    }
+    if (b) {
+      mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+    }
+  }
+
+  // A failed try-acquire proves nothing about whether the thread holds the
+  // capability -- it fails for other reasons too -- so its failure edge
+  // keeps what preceded the call: without a declared '!mu', the acquire
+  // there needs it again.
+  void tryLockFailureProvesNothing() {
+    if (mu.TryLock()) { // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}}
+      a = 0;
+      mu.Unlock();
+    } else {
+      mu.Lock(); // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}}
+      a = 0;
+      mu.Unlock();
+    }
+  }
+
+  // With '!mu' declared, the failure edge restores what the call consumed.
+  void tryLockFailureKeepsDeclared() EXCLUSIVE_LOCKS_REQUIRED(!mu) {
+    if (mu.TryLock()) {
+      a = 0;
+      mu.Unlock();
+    } else {
+      mu.Lock();
+      a = 0;
+      mu.Unlock();
+    }
+  }
+};
+
+// A scoped try-acquire constructor attempts the acquisition like the
+// direct call: it requires the negative capability, a declared negative
+// satisfies it, and the guard's death restores only a declared one.
+class ScopedTryLockTest {
+  Mutex mu;
+  int a GUARDED_BY(mu);
+
+public:
+  void scopedTryNegativeWarn() {
+    MutexLockMaybe scope(&mu);
+  }
+
+  // The guard's death releases whatever the try-acquire took, but does not
+  // show the thread free of the capability (the caller may hold a
+  // reentrant one): without a declared '!mu', a following acquire needs it
+  // again.
+  void scopedTryDisarmThenLock() {
+    {
+      MutexLockMaybe scope(&mu);
+    }
+    mu.Lock(); // expected-warning{{acquiring mutex 'mu' requires negative capability '!mu'}}
+    a = 0;
+    mu.Unlock();
+  }
+
+  // With '!mu' declared, the disarm restores it.
+  void scopedTryDisarmKeepsDeclared() EXCLUSIVE_LOCKS_REQUIRED(!mu) {
+    {
+      MutexLockMaybe scope(&mu);
+    }
+    mu.Lock();
+    a = 0;
+    mu.Unlock();
+  }
+
+  // Inside a REQUIRES(!mu) region the declared negative fact satisfies the
+  // constructor's attempt, and the disarm restores '!mu' by function end.
+  void scopedTryNegativeSatisfied() EXCLUSIVE_LOCKS_REQUIRED(!mu) {
+    MutexLockMaybe scope(&mu);
   }
 };
 

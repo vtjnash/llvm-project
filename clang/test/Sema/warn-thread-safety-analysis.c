@@ -104,6 +104,9 @@ int get_value(int *p) SHARED_LOCKS_REQUIRED(foo_.mu_){
 
 void unlock_scope(struct Mutex *const *mu) __attribute__((release_capability(**mu)));
 void unlock_scope_type_erased(int **priv) __attribute__((release_capability(*(struct Mutex **)priv)));
+// Degenerate try-acquire attributes: acquired whatever the result.
+void try_lock_scope_either_way(struct Mutex *const *mu)
+    EXCLUSIVE_TRYLOCK_FUNCTION(1, **mu) EXCLUSIVE_TRYLOCK_FUNCTION(0, **mu);
 
 // Verify late parsing:
 #ifdef LATE_PARSING
@@ -188,10 +191,20 @@ int main(void) {
 
   mutex_shared_lock(&mu1);      // expected-note {{mutex acquired here}}
   mutex_exclusive_unlock(&mu1); // expected-warning {{releasing mutex 'mu1' using exclusive access, expected shared access}}
-                                // expected-note@-1{{mutex released here}}
+                                // expected-note@-1 2 {{mutex released here}}
   mutex_shared_unlock(&mu1);    // expected-warning {{releasing mutex 'mu1' that was not held}}
 
   /// Cleanup functions
+  {
+    // A cleanup function has no result to branch on, so a capability its
+    // try-acquire attributes name under both success values is acquired
+    // unconditionally, as for any other expression-less call.
+
+    struct Mutex *const __attribute__((cleanup(try_lock_scope_either_way)))
+        try_scope = &mu1;
+    (void)try_scope;
+  } // The cleanup runs here, acquiring mu1 unconditionally.
+  mutex_exclusive_unlock(&mu1); // expected-warning {{releasing mutex 'mu1' that was not held}}
   {
     struct Mutex* const __attribute__((cleanup(unlock_scope))) scope = &mu1;
     mutex_exclusive_lock(scope);  // Lock through scope works.
@@ -735,6 +748,65 @@ void test_trylock_void_conditional_via_var(void) {
   work_data = 1;
   mutex_unlock(&mu1);
 }
+
+// A non-void conditional whose arms carry the result as constants resolves
+// where the value is branched on; with one non-constant arm, a truthy value
+// still proves the true arm ran and the try-lock succeeded, while the falsy
+// edge determines nothing and is reported as a possible leak.
+int get_data(void);
+void test_trylock_conditional_arm(void) {
+  if (mutex_exclusive_trylock(&mu1) ? get_data() : 0) {
+    work_data = 1; // expected-warning {{writing variable 'work_data' requires holding mutex 'mu1' exclusively}}
+    mutex_unlock(&mu1); // expected-warning {{releasing mutex 'mu1' that was not held}}
+  }
+}
+
+// GNU `?:` with a falsy constant is the result itself: both edges resolve,
+// like a plain branch on the call.
+void test_trylock_gnu_conditional(void) {
+  if (mutex_exclusive_trylock(&mu1) ?: 0) {
+    work_data = 1; // expected-warning {{writing variable 'work_data' requires holding mutex 'mu1' exclusively}}
+    mutex_unlock(&mu1); // expected-warning {{releasing mutex 'mu1' that was not held}}
+  }
+}
+
+// GNU `?:` with a non-constant right operand: a falsy value proves both
+// operands falsy -- the try-lock failed -- while a truthy value may be the
+// right operand's, so the result stays undetermined there.
+void test_trylock_gnu_conditional_nonconst(void) {
+  if (mutex_exclusive_trylock(&mu1) ?: get_data())
+    mutex_unlock(&mu1); // expected-warning {{releasing mutex 'mu1' that was not held}}
+}
+
+// A switch on an int-typed but provably boolean condition (a comparison in
+// C) derives the default edge the same way as a _Bool condition: case 1 is
+// the success edge, so default implies the try-lock failed.
+void test_trylock_switch_comparison(void) {
+  switch (mutex_exclusive_trylock(&mu1) != 0) { // expected-warning {{switch condition has boolean value}}
+  case 1:
+    work_data = 1;
+    mutex_unlock(&mu1);
+    break;
+  default:
+    break;
+  }
+}
+
+// An increment or decrement mutates the stored result like a compound
+// assignment: the branch below no longer identifies the call, so the path
+// on which the mutex stays held is diagnosed rather than pruned as
+// infeasible.
+void test_trylock_result_decremented(void) {
+  int r = mutex_exclusive_trylock(&mu1); // expected-note 2 {{mutex acquired here}} \
+                                         // expected-warning {{acquiring mutex 'mu1' that is already held}}
+  if (!r)
+    return;
+  r--;
+  if (r) {
+    mutex_unlock(&mu1);
+    return;
+  }
+} // expected-warning {{mutex 'mu1' is not held on every path through here}}
 
 // We had a problem where we'd skip all attributes that follow a late-parsed
 // attribute in a single __attribute__.

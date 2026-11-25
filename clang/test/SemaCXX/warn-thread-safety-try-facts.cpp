@@ -1,0 +1,221 @@
+// RUN: %clang_cc1 -fsyntax-only -verify -std=c++17 -Wthread-safety -Wthread-safety-beta %s
+
+// A try-acquire call's resolved result is a try fact of its own, separate
+// from the definite hold it proved: what happens to the hold afterwards
+// (another call acquires the capability, a release releases the result)
+// leaves the record of the call's result standing, and one call's record
+// says nothing about another call's.
+
+struct __attribute__((capability("mutex"))) Mutex {
+  void Lock() __attribute__((acquire_capability()));
+  void Unlock() __attribute__((release_capability()));
+  bool TryLock() __attribute__((try_acquire_capability(true)));
+};
+
+struct __attribute__((capability("mutex"), reentrant_capability)) RMutex {
+  void Lock() __attribute__((acquire_capability()));
+  void Unlock() __attribute__((release_capability()));
+  bool TryLock() __attribute__((try_acquire_capability(true)));
+};
+
+Mutex mu;
+RMutex rmu;
+int a __attribute__((guarded_by(mu)));
+int b __attribute__((guarded_by(rmu)));
+bool cond;
+
+// The call's failure record survives a later acquisition by a blocking
+// call: the result is still falsy, so a re-check inside the locked region
+// finds its success edge infeasible and the dead arm's release resolves
+// nothing at the join. (A negative fact consumed by the acquisition could
+// not carry the failure, and the dead arm then drew a lost-hold, a
+// guarded-write and a stray-release warning.)
+void failed_survives_lock() {
+  bool ok = mu.TryLock(); // expected-warning {{acquiring mutex 'mu' that is already held}} \
+                          // expected-note {{mutex acquired here}}
+  if (!ok) {
+    mu.Lock(); // expected-note 2 {{mutex acquired here}}
+    if (ok) {
+      mu.Unlock();
+    }
+    a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}} \
+           // expected-warning {{mutex 'mu' is not held on every path through here}}
+  }
+  mu.Unlock(); // expected-warning {{mutex 'mu' is not held on every path through here}} \
+               // expected-warning {{releasing mutex 'mu' that was not held}}
+}
+
+// A blocking acquisition over a released record that met the call's
+// failure: the result may be falsy, so the record is not re-proved, and
+// stays stale beside the blocking call's hold. The branch on the stale
+// result resurrects nothing and does not release that hold either.
+void stale_kept_by_lock() {
+  bool ok = mu.TryLock(); // expected-warning {{acquiring mutex 'mu' that is already held}}
+  if (ok)
+    mu.Unlock();
+  mu.Lock(); // expected-note {{mutex acquired here}}
+  if (ok) {
+    a = 1;
+  }
+  mu.Unlock();
+}
+
+// Two proved holds over one reentrant capability, one level released:
+// definite levels are interchangeable, so both try facts still prove the
+// remaining level and the second release leaves the capability released
+// on that path. The hold is lost once at the three-way join, and the
+// second call's result reaches the end of the function unchecked.
+void two_proofs_one_release() {
+  bool ok1 = rmu.TryLock(); // expected-note {{mutex acquired here}}
+  bool ok2 = rmu.TryLock();
+  if (ok1 && ok2) {
+    rmu.Unlock();
+    if (ok1) {
+      b = 1;
+      rmu.Unlock();
+    }
+  }
+} // expected-warning {{mutex 'rmu' is not held on every path through here}}
+
+// A stale result blocks per call: another call's release on the other
+// side of a join says nothing about this call's result, so the hold this
+// call proved is still carried, demoted to its conditional try fact, into
+// the rebranch on its stored result. (A single negative fact per
+// capability could not tell whose stale truth would do the resurrecting,
+// and refused the demotion: the hold was lost at the join, the guarded
+// write and the release under the rebranch both warned.)
+void stale_result_blocks_per_call(bool c) {
+  bool ok = false, ok2 = false;
+  if (c) {
+    ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+    if (!ok)
+      return;
+  } else {
+    ok2 = mu.TryLock();
+    if (ok2)
+      mu.Unlock();
+  }
+  if (ok) { // expected-warning {{mutex 'mu' is not held on every path through here}}
+    a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+  }
+}
+
+// A result the loop branches on and keeps across the iteration's own join
+// is a possible hold on every exit of the loop, and around the loop: the
+// next iteration runs the call again before any branch on the result, over
+// the hold it may have left, so the call may find the capability held;
+// nothing after the loop checks the last possible hold.
+void loop_carried_result_leaks() {
+  bool ok = false;
+  while (cond) { // expected-warning {{mutex 'mu' is not held on every path through here}}
+    ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+    if (ok)
+      a = 1;
+  }
+}
+
+// The same loop released after it: the carried result resolves the
+// post-loop branch, and the release is matched -- the hold the loop carries
+// out is one a later branch can still resolve. The hold an earlier
+// iteration left is not: the loop still reports it.
+void loop_carried_result_released_after() {
+  bool ok = false;
+  while (cond) { // expected-warning {{mutex 'mu' is not held on every path through here}}
+    ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+    if (ok)
+      a = 1;
+  }
+  if (ok)
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+}
+
+// The possible hold leaves through any exit edge, a break included, and
+// resolves there the same way.
+void loop_carried_result_break() {
+  bool ok = false;
+  while (cond) {
+    ok = mu.TryLock(); // expected-note {{mutex acquired here}}
+    if (ok) {
+      a = 1;
+      break;
+    }
+  }
+  if (ok) // expected-warning {{mutex 'mu' is not held on every path through here}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+}
+
+// Two calls of one acquisition, merged by the loop condition: the spin's
+// pre-loop call and its latch call. Only one of the two may be carried
+// out of the loop -- the variable holds one result and the branch after
+// the loop resolves it -- so a block that already records either call's
+// acquisition does not take the other's. Here the loop's exit edge is an
+// ordinary break, which is not the block that branches on the merge, so
+// keying the fold on the patched block's own terminator found no twin and
+// promoted the one acquisition twice.
+void loop_carried_twin_break() {
+  bool ok = mu.TryLock();
+  while (!ok) {
+    if (cond)
+      break;
+    ok = mu.TryLock();
+  }
+  if (ok) {
+    a = 1; // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+    mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+  }
+}
+
+// The same pair with the first call already checked and released before
+// the spin: its record at the head is resolved, not unresolved, and the
+// fold has to see it all the same. Taking the latch's possible hold on
+// top of it covers the path on which the loop never runs, and silences
+// both the race and the double unlock the zero-iteration path has.
+void loop_carried_twin_stale() {
+  bool ok = mu.TryLock();
+  if (ok) {
+    a = 1;
+    mu.Unlock();
+  }
+  while (!ok)
+    ok = mu.TryLock();
+  a = 2;       // expected-warning {{writing variable 'a' requires holding mutex 'mu' exclusively}}
+  mu.Unlock(); // expected-warning {{releasing mutex 'mu' that was not held}}
+}
+
+// A loop whose failure path continues, inside another loop: at the inner
+// loop's head a side holds both the current iteration's result and an
+// earlier run's, released, that no variable holds any more. The join keeps
+// the two apart -- the earlier run's result has no level to trade -- and
+// the program is clean.
+void nested_failure_continues(bool c) {
+  while (c) {
+    bool ok = false;
+    while (cond) { // expected-warning 2 {{expecting mutex 'rmu' to be held at start of each loop}}
+      if (ok)
+        rmu.Unlock(); // expected-warning {{releasing mutex 'rmu' that was not held}}
+      ok = rmu.TryLock(); // expected-note 2 {{mutex acquired here}}
+      if (!ok)
+        continue;
+      b = 1;
+    }
+    if (ok)
+      rmu.Unlock(); // expected-warning {{releasing mutex 'rmu' that was not held}}
+  }
+}
+
+// The same loops without the release after the inner one: the last
+// iteration's hold leaks.
+void nested_failure_continues_leaks(bool c) {
+  while (c) {
+    bool ok = false;
+    while (cond) { // expected-warning 2 {{expecting mutex 'rmu' to be held at start of each loop}}
+      if (ok)
+        rmu.Unlock(); // expected-warning {{releasing mutex 'rmu' that was not held}}
+      ok = rmu.TryLock(); // expected-note 2 {{mutex acquired here}}
+      if (!ok)
+        continue;
+      b = 1;
+    }
+  }
+}
